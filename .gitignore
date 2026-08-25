@@ -1,0 +1,20 @@
+# Dart / Flutter
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+.vscode/
+
+# Generated / local
+**/pubspec.lock
+!app/pubspec.lock
+.DS_Store
+*.log
+
+# Local AI models are large and user-supplied; never commit them.
+models/
+*.gguf
+*.task
