@@ -54,7 +54,10 @@ class _HomeBody extends ConsumerWidget {
         .where((Habit h) => !todayHabits.contains(h))
         .toList();
     final Workout? workout = snapshot.plan?.workoutFor(challenge.startDay, today);
-    final bool cycleDone = challenge.dayInCycle(today) >= challenge.lengthDays &&
+    // Day 100 of the *current* cycle, finished. The cycleOf check keeps the
+    // card from reappearing on the same day after the user has ascended.
+    final bool cycleDone = challenge.cycleOf(today) >= challenge.cycle &&
+        challenge.dayInCycle(today) >= challenge.lengthDays &&
         snapshot.me.streak.doneToday;
 
     return RefreshIndicator(
@@ -106,9 +109,8 @@ class _HomeBody extends ConsumerWidget {
             'Heute abhaken',
             subtitle: todayHabits.isEmpty
                 ? 'Heute steht nichts an — Pausentag laut Plan.'
-                : '${todayHabits.where((Habit h) => log?.entryFor(h.id) != null
-                    && !(log!.entryFor(h.id)!.relapse)).length}'
-                    ' von ${todayHabits.length} erledigt',
+                : '${_doneCount(todayHabits, log)} von '
+                    '${todayHabits.length} erledigt',
           ),
           for (final Habit habit in todayHabits)
             Padding(
@@ -154,6 +156,16 @@ class _HomeBody extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Habits that actually hit their target today — an under-target reading
+  /// entry is progress, not a completed habit.
+  int _doneCount(List<Habit> habits, DayLog? log) {
+    if (log == null) return 0;
+    return habits.where((Habit h) {
+      final CheckIn? entry = log.entryFor(h.id);
+      return entry != null && !entry.relapse && entry.value >= h.target;
+    }).length;
   }
 
   Future<void> _checkIn(
