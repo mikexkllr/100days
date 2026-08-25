@@ -15,32 +15,46 @@ class FeedWriter {
   final Identity identity;
   final FeedStore store;
 
-  Future<void> _queue = Future<void>.value();
+  /// Completes when the append currently in flight has finished. Null when the
+  /// writer is idle.
+  ///
+  /// Deliberately *not* seeded with a `Future.value()` at construction: that
+  /// binds the whole chain to whatever zone built the writer, and an append
+  /// issued from a different zone then never runs. Creating the link at call
+  /// time keeps each append in its caller's zone.
+  Future<void>? _pending;
 
   Future<FeedEvent> append(
     String type,
     Map<String, dynamic> payload, {
     DateTime? timestamp,
-  }) {
-    final completer = Completer<FeedEvent>();
-    _queue = _queue.then((_) async {
-      try {
-        final head = await store.head(identity.did);
-        final event = await FeedEvent.create(
-          identity: identity,
-          seq: (head?.seq ?? 0) + 1,
-          prevHash: head?.hash,
-          type: type,
-          payload: payload,
-          timestamp: timestamp,
-        );
-        await store.append(event);
-        completer.complete(event);
-      } on Object catch (error, stack) {
-        completer.completeError(error, stack);
-      }
-    });
-    return completer.future;
+  }) async {
+    final previous = _pending;
+    final gate = Completer<void>();
+    _pending = gate.future;
+
+    try {
+      // Two concurrent check-ins that both read `head.seq == 41` would both
+      // try to write 42 and tear the chain, so appends are serialised.
+      if (previous != null) await previous;
+
+      final head = await store.head(identity.did);
+      final event = await FeedEvent.create(
+        identity: identity,
+        seq: (head?.seq ?? 0) + 1,
+        prevHash: head?.hash,
+        type: type,
+        payload: payload,
+        timestamp: timestamp,
+      );
+      await store.append(event);
+      return event;
+    } finally {
+      // Never completes with an error: a failed append must not poison every
+      // append queued behind it.
+      gate.complete();
+      if (identical(_pending, gate.future)) _pending = null;
+    }
   }
 }
 

@@ -9,6 +9,23 @@ Future<FeedEvent> _append(
 }) =>
     writer.append(type, payload, timestamp: at);
 
+/// Fails the first append, then behaves like a normal store.
+class _ExplodingStore extends MemoryFeedStore {
+  _ExplodingStore({required this.failOnSeq});
+
+  final int failOnSeq;
+  bool _exploded = false;
+
+  @override
+  Future<void> append(FeedEvent event) async {
+    if (!_exploded && event.seq == failOnSeq) {
+      _exploded = true;
+      throw StateError('disk on fire');
+    }
+    return super.append(event);
+  }
+}
+
 void main() {
   late Identity identity;
   late MemoryFeedStore store;
@@ -31,6 +48,24 @@ void main() {
       expect(first.prevHash, isNull);
       expect(second.seq, 2);
       expect(second.prevHash, equals(first.hash));
+    });
+
+    test('a failed append does not poison the ones queued behind it',
+        () async {
+      final failing = _ExplodingStore(failOnSeq: 1);
+      final brokenWriter =
+          FeedWriter(identity: identity, store: failing);
+
+      await expectLater(
+        brokenWriter.append(FeedEventType.checkIn, <String, dynamic>{}),
+        throwsA(isA<StateError>()),
+      );
+
+      // The second append must still run rather than waiting forever on the
+      // failed one.
+      final recovered =
+          await brokenWriter.append(FeedEventType.checkIn, <String, dynamic>{});
+      expect(recovered.seq, 1);
     });
 
     test('serialises concurrent appends without tearing the chain', () async {

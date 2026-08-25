@@ -1,122 +1,187 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hundred_core/hundred_core.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'app.dart';
+import 'data/app_repository.dart';
+import 'data/key_store.dart';
+import 'data/lan_transport.dart';
+import 'data/notifications.dart';
+import 'data/sqlite_feed_store.dart';
+import 'data/sync_service.dart';
+import 'state/providers.dart';
+
+/// The name peers see during a handshake.
+///
+/// Held in a mutable box because the transports start before the profile is
+/// projected, and the user can rename themselves at any time afterwards.
+class _LocalName {
+  String value = 'Jemand';
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+final _LocalName _localName = _LocalName();
 
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final SqliteFeedStore store = await SqliteFeedStore.open();
+  final AppRepository repository = await AppRepository.open(
+    keyStore: SecureKeyStore(),
+    store: store,
+  );
+
+  final NotificationService notifications = NotificationService();
+  await notifications.initialize();
+
+  final SyncService sync = SyncService(
+    store: store,
+    replicator: repository.replicator,
+    localDid: repository.did,
+    localDisplayName: () => _localName.value,
+    followedDids: () => repository.follows,
+  );
+
+  // Discovery and replication are best-effort: a locked-down network must
+  // degrade the app to "works alone", never to "does not start".
+  LanTransport? lan;
+  try {
+    lan = LanTransport(
+      localDid: repository.did,
+      localName: () => _localName.value,
     );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+    await sync.addTransport(lan);
+  } on Object catch (error) {
+    debugPrint('LAN transport unavailable: $error');
+    lan = null;
   }
 
+  runApp(ProviderScope(
+    overrides: <Override>[
+      repositoryProvider.overrideWithValue(repository),
+      notificationsProvider.overrideWithValue(notifications),
+      syncServiceProvider.overrideWithValue(sync),
+      lanTransportProvider.overrideWithValue(lan),
+    ],
+    child: const _Bootstrap(child: HundredDaysApp()),
+  ));
+}
+
+/// Side effects that need the provider container: reminder scheduling and
+/// notifications for peer activity that arrives while the app is open.
+class _Bootstrap extends ConsumerStatefulWidget {
+  const _Bootstrap({required this.child});
+
+  final Widget child;
+
   @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+  ConsumerState<_Bootstrap> createState() => _BootstrapState();
+}
+
+class _BootstrapState extends ConsumerState<_Bootstrap>
+    with WidgetsBindingObserver {
+  ProviderSubscription<AsyncValue<AppSnapshot>>? _subscription;
+  StreamSubscription<SyncEvent>? _syncSubscription;
+  String? _lastScheduledFor;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    _subscription = ref.listenManual<AsyncValue<AppSnapshot>>(
+      appStateProvider,
+      (AsyncValue<AppSnapshot>? _, AsyncValue<AppSnapshot> next) {
+        final AppSnapshot? snapshot = next.valueOrNull;
+        if (snapshot == null) return;
+        _localName.value = snapshot.me.profile.displayName;
+        if (snapshot.hasChallenge) {
+          unawaited(_scheduleReminders(snapshot));
+        }
+      },
+      fireImmediately: true,
     );
+
+    _syncSubscription =
+        ref.read(syncServiceProvider)?.events.listen(_onSyncEvent);
   }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Coming back into the app is the cheapest moment to look for peers:
+      // the user is holding the phone, on a network, right now.
+      unawaited(ref.read(appStateProvider.notifier).syncNow());
+    }
+  }
+
+  Future<void> _onSyncEvent(SyncEvent event) async {
+    if (!event.broughtSomething) return;
+    await ref.read(appStateProvider.notifier).refresh();
+
+    final AppSnapshot? snapshot = ref.read(appStateProvider).valueOrNull;
+    if (snapshot == null || snapshot.me.streak.doneToday) return;
+
+    final List<PeerState> active = snapshot.peerStates
+        .where((PeerState p) => p.activeToday)
+        .toList();
+    if (active.isEmpty) return;
+
+    await ref.read(notificationsProvider).showNow(
+          id: snapshot.today.toString().hashCode,
+          title: active.length == 1
+              ? '${active.first.profile.displayName} war heute schon dran'
+              : '${active.length} deiner Leute waren heute schon dran',
+          body: 'Du stehst noch auf null. Noch ist der Tag nicht rum.',
+        );
+  }
+
+  /// Rewrites the next two weeks of reminders on every state change.
+  ///
+  /// Cheap enough to do eagerly, and it keeps the text honest: a reminder
+  /// written today knows today's streak, so it can say "Tag 41" instead of
+  /// something generic.
+  Future<void> _scheduleReminders(AppSnapshot snapshot) async {
+    final String signature = '${snapshot.today}-${snapshot.me.streak.current}-'
+        '${snapshot.me.streak.doneToday}';
+    if (_lastScheduledFor == signature) return;
+    _lastScheduledFor = signature;
+
+    final NotificationService notifications = ref.read(notificationsProvider);
+    final Challenge challenge = snapshot.challenge!;
+    final int streak = snapshot.me.streak.current;
+
+    await notifications.scheduleDailyReminders(
+      hour: 18,
+      minute: 30,
+      messageBuilder: (int offset) {
+        final int day = challenge.dayNumber(snapshot.today.addDays(offset));
+        if (offset == 0 && snapshot.me.streak.doneToday) {
+          return 'Tag $day steht. Morgen wieder.';
+        }
+        return 'Tag $day von ${challenge.lengthDays}. '
+            '${streak > 0 ? '$streak Tage Streak wollen verteidigt werden.' : 'Heute wieder anfangen.'}';
+      },
+    );
+
+    if (streak >= 3) {
+      await notifications.scheduleStreakRisk(
+        hour: 21,
+        minute: 30,
+        body: '$streak Tage. Ein vergessener Abend, und sie sind weg.',
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _subscription?.close();
+    unawaited(_syncSubscription?.cancel());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

@@ -14,6 +14,27 @@
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleDisplayName</key>
+	<string>100 Tage</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Zum Scannen des Einladungs-QR-Codes deiner Freunde. Es werden keine Bilder gespeichert oder gesendet.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Damit sich deine App und die deiner Freunde im selben WLAN direkt finden können. Es gibt keinen Server — die Daten gehen ausschließlich von Gerät zu Gerät.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_hundreddays._tcp</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.hundreddays.invite</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>hundreddays</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleName</key>
 	<string>hundred_days</string>
 	<key>CFBundlePackageType</key>
