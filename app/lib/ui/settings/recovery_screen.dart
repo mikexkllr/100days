@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
@@ -33,8 +34,9 @@ class _RecoveryScreenState extends ConsumerState<RecoveryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: const Text('Wiederherstellungs-Key')),
+      appBar: AppBar(title: Text(l10n.recoveryTitle)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.md,
@@ -54,9 +56,7 @@ class _RecoveryScreenState extends ConsumerState<RecoveryScreen> {
                 const SizedBox(width: AppSpacing.sm + 2),
                 Expanded(
                   child: Text(
-                    'Wer diesen Key hat, ist du. Er kann in deinem Namen '
-                    'Check-ins signieren, und du kannst ihn nicht sperren — '
-                    'es gibt keinen Anbieter, der das könnte.',
+                    l10n.recoveryWarning,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
@@ -73,13 +73,13 @@ class _RecoveryScreenState extends ConsumerState<RecoveryScreen> {
                       size: 40, color: AppColors.textTertiary),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    'Schau dich einmal um.',
+                    l10n.recoveryLookAround,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   FilledButton(
                     onPressed: _reveal,
-                    child: const Text('Key anzeigen'),
+                    child: Text(l10n.recoveryShow),
                   ),
                 ],
               ),
@@ -119,28 +119,17 @@ class _RecoveryScreenState extends ConsumerState<RecoveryScreen> {
                 await Clipboard.setData(ClipboardData(text: _key!));
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Key kopiert.')),
+                  SnackBar(content: Text(l10n.recoveryCopied)),
                 );
               },
               icon: const Icon(Icons.copy, size: 18),
-              label: const Text('Kopieren'),
+              label: Text(l10n.actionCopy),
             ),
           ],
-          const SectionHeader('Wohin damit'),
-          const _Tip(
-            emoji: '🔐',
-            text: 'Passwortmanager — der beste Ort dafür.',
-          ),
-          const _Tip(
-            emoji: '📄',
-            text: 'Aufschreiben und in die Schublade legen, in der auch '
-                'dein Ausweis liegt.',
-          ),
-          const _Tip(
-            emoji: '🚫',
-            text: 'Nicht in einen Chat, nicht in eine Notiz-App mit '
-                'Cloud-Sync, nicht als Screenshot in der Galerie.',
-          ),
+          SectionHeader(l10n.recoveryWhereTitle),
+          _Tip(emoji: '🔐', text: l10n.recoveryTip1),
+          _Tip(emoji: '📄', text: l10n.recoveryTip2),
+          _Tip(emoji: '🚫', text: l10n.recoveryTip3),
         ],
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hundred_core/hundred_core.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../../l10n/l10n.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
 
@@ -44,9 +45,10 @@ class _ScanInviteScreenState extends State<ScanInviteScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Code scannen'),
+        title: Text(l10n.scanTitle),
         actions: <Widget>[
           IconButton(
             onPressed: () => _controller.toggleTorch(),
@@ -90,7 +92,7 @@ class _ScanInviteScreenState extends State<ScanInviteScreen> {
             child: Column(
               children: <Widget>[
                 Text(
-                  'Halte die Kamera auf den QR-Code deines Freundes.',
+                  l10n.scanHint,
                   textAlign: TextAlign.center,
                   style: Theme.of(context)
                       .textTheme
@@ -101,7 +103,7 @@ class _ScanInviteScreenState extends State<ScanInviteScreen> {
                 OutlinedButton.icon(
                   onPressed: () => _pasteLink(context),
                   icon: const Icon(Icons.link, size: 18),
-                  label: const Text('Stattdessen Link einfügen'),
+                  label: Text(l10n.scanPasteInstead),
                 ),
               ],
             ),
@@ -139,9 +141,10 @@ class _PasteDialogState extends State<_PasteDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     return AlertDialog(
       backgroundColor: AppColors.surface,
-      title: const Text('Einladungslink'),
+      title: Text(l10n.scanPasteTitle),
       content: TextField(
         controller: _controller,
         autofocus: true,
@@ -153,13 +156,13 @@ class _PasteDialogState extends State<_PasteDialog> {
       actions: <Widget>[
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Abbrechen'),
+          child: Text(l10n.actionCancel),
         ),
         FilledButton(
           style: FilledButton.styleFrom(minimumSize: const Size(110, 44)),
           onPressed: () =>
               Navigator.of(context).pop(_controller.text.trim()),
-          child: const Text('Verbinden'),
+          child: Text(l10n.actionConnect),
         ),
       ],
     );
@@ -175,9 +178,8 @@ class _CameraUnavailable extends StatelessWidget {
   Widget build(BuildContext context) {
     return EmptyState(
       emoji: '📷',
-      title: 'Kamera nicht verfügbar',
-      body: 'Ohne Kamerazugriff geht es auch: lass dir den Einladungslink '
-          'schicken und füge ihn unten ein.\n\n${error.errorCode.name}',
+      title: context.l10n.scanCameraUnavailableTitle,
+      body: context.l10n.scanCameraUnavailableBody(error.errorCode.name),
     );
   }
 }

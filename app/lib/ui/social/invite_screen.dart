@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../data/app_repository.dart';
 import '../../data/lan_transport.dart';
+import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
@@ -39,10 +40,11 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     final AsyncValue<AppSnapshot> async = ref.watch(appStateProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Freunde einladen')),
+      appBar: AppBar(title: Text(l10n.inviteTitle)),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (Object error, StackTrace _) => Center(child: Text('$error')),
@@ -99,11 +101,11 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
               const SizedBox(height: AppSpacing.md),
               FilledButton.icon(
                 onPressed: () => Share.share(
-                  'Mach die 100 Tage mit mir: $uri',
-                  subject: '100 Tage Challenge',
+                  l10n.inviteShareText(uri),
+                  subject: l10n.inviteShareSubject,
                 ),
                 icon: const Icon(Icons.ios_share, size: 19),
-                label: const Text('Link teilen'),
+                label: Text(l10n.actionShare),
               ),
               const SizedBox(height: AppSpacing.sm),
               OutlinedButton.icon(
@@ -111,27 +113,16 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
                   await Clipboard.setData(ClipboardData(text: uri));
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Link kopiert.')),
+                    SnackBar(content: Text(l10n.inviteLinkCopied)),
                   );
                 },
                 icon: const Icon(Icons.copy, size: 18),
-                label: const Text('Link kopieren'),
+                label: Text(l10n.actionCopyLink),
               ),
-              const SectionHeader('Wie das funktioniert'),
-              const _Explainer(
-                emoji: '1️⃣',
-                text: 'Dein Gegenüber scannt den Code oder öffnet den Link.',
-              ),
-              const _Explainer(
-                emoji: '2️⃣',
-                text: 'Ihr folgt einander direkt — kein Konto, keine '
-                    'Telefonnummer, keine Freigabe durch einen Anbieter.',
-              ),
-              const _Explainer(
-                emoji: '3️⃣',
-                text: 'Ab dann synchronisieren eure Geräte, sobald sie sich '
-                    'sehen: gleiches WLAN, gleiches Zuhause, gleiches Gym.',
-              ),
+              SectionHeader(l10n.inviteHowTitle),
+              _Explainer(emoji: '1️⃣', text: l10n.inviteStep1),
+              _Explainer(emoji: '2️⃣', text: l10n.inviteStep2),
+              _Explainer(emoji: '3️⃣', text: l10n.inviteStep3),
               if (_addresses.isNotEmpty) ...<Widget>[
                 const SizedBox(height: AppSpacing.md),
                 AppCard(
@@ -140,7 +131,7 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        'Erreichbar unter',
+                        l10n.inviteReachableAt,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               color: AppColors.textTertiary,
                             ),

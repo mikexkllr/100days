@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hundred_core/hundred_core.dart';
 import 'package:hundred_days/data/app_repository.dart';
+import 'package:hundred_days/l10n/l10n.dart';
 import 'package:hundred_days/state/onboarding_state.dart';
 import 'package:hundred_days/state/providers.dart';
 import 'package:hundred_days/ui/onboarding/onboarding_flow.dart';
+
+import 'package:hundred_days/data/locale_store.dart';
 
 import 'helpers.dart';
 
@@ -31,17 +34,26 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    Locale locale = const Locale('de'),
+  }) async {
     await tester.pumpWidget(ProviderScope(
       overrides: <Override>[
         repositoryProvider.overrideWithValue(repository),
       ],
-      child: const MaterialApp(home: OnboardingFlow()),
+      child: MaterialApp(
+        locale: locale,
+        supportedLocales: kSupportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        home: const OnboardingFlow(),
+      ),
     ));
     await tester.pumpAndSettle();
   }
 
-  testWidgets('opens on the manifesto and can advance', (WidgetTester tester) async {
+  testWidgets('opens on the manifesto and can advance',
+      (WidgetTester tester) async {
     await pump(tester);
 
     expect(find.textContaining('Du brauchst kein neues Ich'), findsOneWidget);
@@ -51,6 +63,22 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Worum geht es?'), findsOneWidget);
+  });
+
+  testWidgets('runs in English when the system language is English',
+      (WidgetTester tester) async {
+    await pump(tester, locale: const Locale('en'));
+
+    expect(find.textContaining('You do not need a new you'), findsOneWidget);
+    expect(find.text('Continue'), findsOneWidget);
+
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('What is this about?'), findsOneWidget);
+    expect(find.text('Build discipline'), findsOneWidget);
+    // No stray German left on a translated screen.
+    expect(find.text('Disziplin aufbauen'), findsNothing);
   });
 
   testWidgets('cannot advance past the goal step without picking one',

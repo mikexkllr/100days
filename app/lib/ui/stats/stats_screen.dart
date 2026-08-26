@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
 import '../../data/app_repository.dart';
+import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
@@ -22,6 +23,7 @@ class StatsScreen extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (Object error, StackTrace _) => Center(child: Text('$error')),
       data: (AppSnapshot snapshot) {
+        final AppLocalizations l10n = context.l10n;
         final Challenge challenge = snapshot.challenge!;
         final StreakStats streak = snapshot.me.streak;
         final int xp = snapshot.me.lifetimeXp;
@@ -44,7 +46,7 @@ class StatsScreen extends ConsumerWidget {
                       Expanded(
                         child: StatTile(
                           value: '${streak.current}',
-                          label: 'Aktueller Streak',
+                          label: l10n.statsCurrentStreak,
                           color: AppColors.flame,
                           icon: Icons.local_fire_department,
                         ),
@@ -52,7 +54,7 @@ class StatsScreen extends ConsumerWidget {
                       Expanded(
                         child: StatTile(
                           value: '${streak.longest}',
-                          label: 'Längster Streak',
+                          label: l10n.statsLongestStreak,
                         ),
                       ),
                     ],
@@ -63,15 +65,15 @@ class StatsScreen extends ConsumerWidget {
                       Expanded(
                         child: StatTile(
                           value: '${streak.completedDays}',
-                          label: 'Volle Tage',
+                          label: l10n.statsFullDays,
                           color: AppColors.lime,
                         ),
                       ),
                       Expanded(
                         child: StatTile(
-                          value:
-                              '${(streak.completionRate * 100).round()} %',
-                          label: 'Trefferquote',
+                          value: l10n.statsPercent(
+                              '${(streak.completionRate * 100).round()}'),
+                          label: l10n.statsHitRate,
                         ),
                       ),
                     ],
@@ -79,11 +81,11 @@ class StatsScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            const SectionHeader('Level'),
+            SectionHeader(l10n.statsLevel),
             _LevelCard(xp: xp, level: level),
             SectionHeader(
-              'Verlauf',
-              subtitle: 'Seit ${challenge.startDay}',
+              l10n.profileHistory,
+              subtitle: l10n.statsHistorySince('${challenge.startDay}'),
             ),
             AppCard(
               child: Column(
@@ -104,9 +106,9 @@ class StatsScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            const SectionHeader('XP der letzten Wochen'),
+            SectionHeader(l10n.statsWeeklyXp),
             AppCard(child: _WeeklyXpChart(snapshot: snapshot)),
-            const SectionHeader('Pro Gewohnheit'),
+            SectionHeader(l10n.statsPerHabit),
             for (final Habit habit in challenge.habits)
               Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -156,6 +158,7 @@ class _LevelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     final int floor = xpRequiredForLevel(level);
     final int ceil = xpRequiredForLevel(level + 1);
     final double progress = levelProgress(xp);
@@ -166,10 +169,10 @@ class _LevelCard extends StatelessWidget {
         children: <Widget>[
           Row(
             children: <Widget>[
-              Text('Level $level',
+              Text(l10n.statsLevelNumber(level),
                   style: Theme.of(context).textTheme.headlineMedium),
               const Spacer(),
-              Pill('$xp XP', color: AppColors.lime, filled: true),
+              Pill(l10n.homeXp(xp), color: AppColors.lime, filled: true),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -185,8 +188,8 @@ class _LevelCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Noch ${ceil - xp} XP bis Level ${level + 1} '
-            '(${xp - floor} / ${ceil - floor})',
+            l10n.statsXpToNextLevel(
+                ceil - xp, level + 1, xp - floor, ceil - floor),
             style: Theme.of(context)
                 .textTheme
                 .bodyMedium
@@ -216,7 +219,7 @@ class _WeeklyXpChart extends StatelessWidget {
 
     if (max == 0) {
       return Text(
-        'Noch keine XP. Die kommen mit dem ersten Haken.',
+        context.l10n.statsNoXpYet,
         style: Theme.of(context)
             .textTheme
             .bodyMedium
@@ -301,6 +304,7 @@ class _HabitStatRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     final int elapsed =
         math.max(1, today.differenceInDays(challenge.startDay) + 1);
     final int scheduled = habit.kind == HabitKind.abstain
@@ -316,11 +320,11 @@ class _HabitStatRow extends StatelessWidget {
               Text(habit.emoji, style: const TextStyle(fontSize: 22)),
               const SizedBox(width: AppSpacing.sm + 4),
               Expanded(
-                child: Text(habit.displayTitle,
+                child: Text(l10n.habitLabel(habit),
                     style: Theme.of(context).textTheme.titleMedium),
               ),
               Text(
-                '$streak 🔥',
+                l10n.tileStreakBadge(streak),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ],
@@ -345,8 +349,8 @@ class _HabitStatRow extends StatelessWidget {
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              '$totalDone von $scheduled geplanten Tagen '
-              '(${(rate * 100).round()} %)',
+              l10n.statsHabitProgress(
+                  totalDone, scheduled, (rate * 100).round()),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.textTertiary,
                     fontSize: 12,

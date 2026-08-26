@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
 import '../../data/app_repository.dart';
+import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../plan/workout_detail.dart';
@@ -27,7 +28,7 @@ class HomeScreen extends ConsumerWidget {
       error: (Object error, StackTrace _) => Center(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Text('Fehler: $error'),
+          child: Text(context.l10n.errorGeneric('$error')),
         ),
       ),
       data: (AppSnapshot snapshot) => _HomeBody(
@@ -46,6 +47,7 @@ class _HomeBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations l10n = context.l10n;
     final Challenge challenge = snapshot.challenge!;
     final DayKey today = snapshot.today;
     final DayLog? log = snapshot.me.logsByDay[today.toString()];
@@ -98,19 +100,19 @@ class _HomeBody extends ConsumerWidget {
             _AscendCard(challenge: challenge),
           ],
           if (workout != null) ...<Widget>[
-            const SectionHeader('Heutiges Training'),
+            SectionHeader(l10n.homeTodaysWorkout),
             _WorkoutCard(workout: workout, challenge: challenge, day: today),
           ],
           if (snapshot.plan?.nutrition != null) ...<Widget>[
-            const SectionHeader('Heutige Makros'),
+            SectionHeader(l10n.homeTodaysMacros),
             _MacroCard(plan: snapshot.plan!.nutrition!),
           ],
           SectionHeader(
-            'Heute abhaken',
+            l10n.homeCheckOffToday,
             subtitle: todayHabits.isEmpty
-                ? 'Heute steht nichts an — Pausentag laut Plan.'
-                : '${_doneCount(todayHabits, log)} von '
-                    '${todayHabits.length} erledigt',
+                ? l10n.homeRestDay
+                : l10n.homeDoneOfTotal(
+                    _doneCount(todayHabits, log), todayHabits.length),
           ),
           for (final Habit habit in todayHabits)
             Padding(
@@ -125,9 +127,9 @@ class _HomeBody extends ConsumerWidget {
               ),
             ),
           if (otherHabits.isNotEmpty) ...<Widget>[
-            const SectionHeader(
-              'Freiwillig',
-              subtitle: 'Heute nicht eingeplant — zählt trotzdem als XP.',
+            SectionHeader(
+              l10n.homeOptional,
+              subtitle: l10n.homeOptionalSubtitle,
             ),
             for (final Habit habit in otherHabits)
               Padding(
@@ -182,13 +184,13 @@ class _HomeBody extends ConsumerWidget {
     final bool justCompleted =
         after != null && after.me.streak.doneToday && !before.me.streak.doneToday;
 
+    final AppLocalizations l10n = context.l10n;
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
       ..showSnackBar(SnackBar(
         content: Text(justCompleted
-            ? '🔥 Tag komplett — Streak steht bei '
-                '${after.me.streak.current}.'
-            : '${habit.emoji} ${habit.displayTitle} eingetragen.'),
+            ? l10n.homeDayCompleteToast(after.me.streak.current)
+            : l10n.homeCheckInToast(habit.emoji, l10n.habitLabel(habit))),
         duration: const Duration(seconds: 2),
       ));
   }
@@ -198,19 +200,17 @@ class _HomeBody extends ConsumerWidget {
     WidgetRef ref,
     Habit habit,
   ) async {
+    final AppLocalizations l10n = context.l10n;
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text('Rückfall bei ${habit.displayTitle}?'),
-        content: const Text(
-          'Das setzt den Streak zurück und ist für deine Freunde sichtbar. '
-          'Ehrlich bleiben ist der ganze Sinn — aber nur, wenn es stimmt.',
-        ),
+        title: Text(l10n.homeRelapseTitle(l10n.habitLabel(habit))),
+        content: Text(l10n.homeRelapseBody),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Abbrechen'),
+            child: Text(l10n.actionCancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -218,7 +218,7 @@ class _HomeBody extends ConsumerWidget {
               minimumSize: const Size(120, 44),
             ),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Eintragen'),
+            child: Text(l10n.homeRelapseConfirm),
           ),
         ],
       ),
@@ -235,6 +235,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     final Challenge challenge = snapshot.challenge!;
     return Padding(
       padding: const EdgeInsets.only(top: AppSpacing.sm),
@@ -251,8 +252,11 @@ class _Header extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 Text(
-                  '${challenge.tier.emoji} ${challenge.tier.nameDe} · '
-                  'Level ${levelForXp(snapshot.me.lifetimeXp)}',
+                  l10n.homeLevelAndTier(
+                    challenge.tier.emoji,
+                    l10n.tierName(challenge.tier),
+                    levelForXp(snapshot.me.lifetimeXp),
+                  ),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                         fontSize: 12.5,
@@ -262,7 +266,7 @@ class _Header extends StatelessWidget {
             ),
           ),
           Pill(
-            '${snapshot.me.lifetimeXp} XP',
+            l10n.homeXp(snapshot.me.lifetimeXp),
             color: AppColors.lime,
             filled: true,
           ),
@@ -285,12 +289,13 @@ class _WorkoutCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     return AppCard(
       onTap: () => Navigator.of(context).push<void>(
         MaterialPageRoute<void>(
           builder: (BuildContext context) => WorkoutDetailScreen(
             workout: workout,
-            titleSuffix: 'Tag ${challenge.dayNumber(day)}',
+            titleSuffix: l10n.friendsDayNumber(challenge.dayNumber(day)),
           ),
         ),
       ),
@@ -305,10 +310,10 @@ class _WorkoutCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(workout.nameDe,
+                    Text(l10n.workoutName(workout.kind),
                         style: Theme.of(context).textTheme.titleMedium),
                     Text(
-                      workout.focusDe,
+                      l10n.workoutFocus(workout.kind),
                       style:
                           Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: AppColors.textSecondary,
@@ -326,9 +331,9 @@ class _WorkoutCard extends StatelessWidget {
             spacing: AppSpacing.sm,
             runSpacing: AppSpacing.sm,
             children: <Widget>[
-              Pill('${workout.blocks.length} Übungen'),
-              Pill('${workout.totalSets} Sätze'),
-              Pill('≈ ${workout.estimatedMinutes} Min'),
+              Pill(l10n.homeExercisesCount(workout.blocks.length)),
+              Pill(l10n.homeSetsCount(workout.totalSets)),
+              Pill(l10n.homeMinutesApprox(workout.estimatedMinutes)),
             ],
           ),
         ],
@@ -344,28 +349,30 @@ class _MacroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     return AppCard(
       child: Row(
         children: <Widget>[
           Expanded(
             child: StatTile(
               value: '${plan.kcal}',
-              label: 'kcal',
+              label: l10n.planKcal,
               color: AppColors.flame,
             ),
           ),
           Expanded(
             child: StatTile(
               value: '${plan.proteinG}g',
-              label: 'Protein',
+              label: l10n.planProtein,
               color: AppColors.lime,
             ),
           ),
           Expanded(
-            child: StatTile(value: '${plan.carbsG}g', label: 'Carbs'),
+            child: StatTile(
+                value: '${plan.carbsG}g', label: l10n.planCarbsShort),
           ),
           Expanded(
-            child: StatTile(value: '${plan.fatG}g', label: 'Fett'),
+            child: StatTile(value: '${plan.fatG}g', label: l10n.planFat),
           ),
         ],
       ),
@@ -380,6 +387,7 @@ class _FreezeCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations l10n = context.l10n;
     return AppCard(
       color: AppColors.surfaceHigh,
       child: Row(
@@ -390,11 +398,10 @@ class _FreezeCard extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text('Streak einfrieren',
+                Text(l10n.homeFreezeTitle,
                     style: Theme.of(context).textTheme.titleMedium),
                 Text(
-                  'Noch $remaining übrig. Rettet den Streak, zählt aber '
-                  'nicht als erledigter Tag.',
+                  l10n.homeFreezeBody(remaining),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                         fontSize: 12.5,
@@ -406,7 +413,7 @@ class _FreezeCard extends ConsumerWidget {
           TextButton(
             onPressed: () =>
                 ref.read(appStateProvider.notifier).useStreakFreeze(),
-            child: const Text('Nutzen'),
+            child: Text(l10n.homeFreezeUse),
           ),
         ],
       ),
@@ -421,7 +428,9 @@ class _AscendCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations l10n = context.l10n;
     final ChallengeTier next = tierForCycle(challenge.cycle + 1);
+    final String nextName = l10n.tierName(next);
     return AppCard(
       border: AppColors.lime,
       gradient: LinearGradient(
@@ -436,13 +445,12 @@ class _AscendCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            'Zyklus geschafft: ${challenge.lengthDays} Tage.',
+            l10n.homeAscendTitle(challenge.lengthDays),
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Hier hören die meisten Apps auf. Deine nächste Stufe: '
-            '${next.emoji} ${next.nameDe}. Streak, XP und Historie bleiben.',
+            l10n.homeAscendBody(next.emoji, nextName),
             style: Theme.of(context)
                 .textTheme
                 .bodyMedium
@@ -456,7 +464,7 @@ class _AscendCard extends ConsumerWidget {
               minimumSize: const Size.fromHeight(48),
             ),
             onPressed: () => ref.read(appStateProvider.notifier).ascend(),
-            child: Text('Weiter zu ${next.nameDe}'),
+            child: Text(l10n.homeAscendAction(nextName)),
           ),
         ],
       ),

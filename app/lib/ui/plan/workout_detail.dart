@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hundred_core/hundred_core.dart';
 
+import '../../l10n/l10n.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
 
@@ -17,9 +18,10 @@ class WorkoutDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
-        title: Text(workout.nameDe),
+        title: Text(l10n.workoutName(workout.kind)),
         actions: <Widget>[
           if (titleSuffix != null)
             Padding(
@@ -43,20 +45,20 @@ class WorkoutDetailScreen extends StatelessWidget {
                 Expanded(
                   child: StatTile(
                     value: '${workout.blocks.length}',
-                    label: 'Übungen',
+                    label: l10n.workoutExercises,
                   ),
                 ),
                 Expanded(
                   child: StatTile(
                     value: '${workout.totalSets}',
-                    label: 'Arbeitssätze',
+                    label: l10n.workoutWorkingSets,
                     color: AppColors.flame,
                   ),
                 ),
                 Expanded(
                   child: StatTile(
                     value: '${workout.estimatedMinutes}',
-                    label: 'Minuten',
+                    label: l10n.workoutMinutes,
                   ),
                 ),
               ],
@@ -74,13 +76,11 @@ class WorkoutDetailScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text('RPE verstehen',
+                Text(l10n.workoutRpeTitle,
                     style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'RPE 8 heißt: nach dem Satz hättest du noch zwei saubere '
-                  'Wiederholungen geschafft. Wähle das Gewicht so, dass das '
-                  'stimmt — nicht das, was letzte Woche im Plan stand.',
+                  l10n.workoutRpeBody,
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium
@@ -103,7 +103,9 @@ class _ExerciseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     final Exercise exercise = block.exercise;
+    final String? cue = l10n.exerciseCue(exercise.id);
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,11 +134,11 @@ class _ExerciseCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(exercise.nameDe,
+                    Text(l10n.exerciseName(exercise.id),
                         style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 2),
                     Text(
-                      _muscleLabel(exercise.primary),
+                      l10n.muscleName(exercise.primary),
                       style:
                           Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: AppColors.textTertiary,
@@ -154,28 +156,28 @@ class _ExerciseCard extends StatelessWidget {
               Expanded(
                 child: StatTile(
                   value: '${block.sets}',
-                  label: 'Sätze',
+                  label: l10n.workoutSets,
                   color: AppColors.flame,
                 ),
               ),
               Expanded(
-                child: StatTile(value: block.repRange, label: 'Wdh.'),
+                child: StatTile(value: block.repRange, label: l10n.workoutReps),
               ),
               Expanded(
                 child: StatTile(
-                  value: 'RPE ${block.rpe.toStringAsFixed(1)}',
-                  label: 'Intensität',
+                  value: l10n.workoutRpe(block.rpe.toStringAsFixed(1)),
+                  label: l10n.workoutIntensity,
                 ),
               ),
               Expanded(
                 child: StatTile(
-                  value: '${block.restSeconds}s',
-                  label: 'Pause',
+                  value: l10n.workoutRestSeconds(block.restSeconds),
+                  label: l10n.workoutRest,
                 ),
               ),
             ],
           ),
-          if (exercise.cueDe != null) ...<Widget>[
+          if (cue != null) ...<Widget>[
             const Divider(height: AppSpacing.lg),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,7 +187,7 @@ class _ExerciseCard extends StatelessWidget {
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
-                    exercise.cueDe!,
+                    cue,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
                           fontSize: 12.5,
@@ -198,32 +200,5 @@ class _ExerciseCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _muscleLabel(MuscleGroup group) {
-    switch (group) {
-      case MuscleGroup.quads:
-        return 'Quadrizeps';
-      case MuscleGroup.hamstrings:
-        return 'Beinbeuger';
-      case MuscleGroup.glutes:
-        return 'Gesäß';
-      case MuscleGroup.calves:
-        return 'Waden';
-      case MuscleGroup.chest:
-        return 'Brust';
-      case MuscleGroup.back:
-        return 'Rücken';
-      case MuscleGroup.shoulders:
-        return 'Schultern';
-      case MuscleGroup.biceps:
-        return 'Bizeps';
-      case MuscleGroup.triceps:
-        return 'Trizeps';
-      case MuscleGroup.core:
-        return 'Rumpf';
-      case MuscleGroup.fullBody:
-        return 'Ganzkörper';
-    }
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'data/app_repository.dart';
+import 'data/locale_store.dart';
+import 'l10n/l10n.dart';
 import 'state/providers.dart';
 import 'theme/theme.dart';
 import 'ui/home/home_screen.dart';
@@ -11,15 +13,21 @@ import 'ui/settings/settings_screen.dart';
 import 'ui/social/social_screen.dart';
 import 'ui/stats/stats_screen.dart';
 
-class HundredDaysApp extends StatelessWidget {
+class HundredDaysApp extends ConsumerWidget {
   const HundredDaysApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Null follows the device language; a stored choice overrides it.
+    final Locale? locale = ref.watch(localeProvider);
+
     return MaterialApp(
-      title: '100 Tage',
+      onGenerateTitle: (BuildContext context) => context.l10n.appTitle,
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
+      locale: locale,
+      supportedLocales: kSupportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
       home: const _Gate(),
     );
   }
@@ -45,7 +53,7 @@ class _Gate extends ConsumerWidget {
                 const Text('💥', style: TextStyle(fontSize: 44)),
                 const SizedBox(height: AppSpacing.md),
                 Text(
-                  'Die App konnte ihren Speicher nicht öffnen.',
+                  context.l10n.homeStorageError,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
@@ -61,7 +69,7 @@ class _Gate extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.lg),
                 FilledButton(
                   onPressed: () => ref.invalidate(appStateProvider),
-                  child: const Text('Nochmal versuchen'),
+                  child: Text(context.l10n.actionRetry),
                 ),
               ],
             ),
@@ -108,18 +116,18 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int _index = 0;
 
-  static const List<String> _titles = <String>[
-    'Heute',
-    'Plan',
-    'Freunde',
-    'Zahlen',
-    'Einstellungen',
-  ];
-
   void _openSocial() => setState(() => _index = 2);
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    final List<String> titles = <String>[
+      l10n.navToday,
+      l10n.navPlan,
+      l10n.navFriends,
+      l10n.navStats,
+      l10n.navSettingsTitle,
+    ];
     final List<Widget> pages = <Widget>[
       HomeScreen(onOpenSocial: _openSocial),
       const PlanScreen(),
@@ -129,38 +137,38 @@ class _AppShellState extends State<AppShell> {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: Text(_titles[_index])),
+      appBar: AppBar(title: Text(titles[_index])),
       body: SafeArea(
         child: IndexedStack(index: _index, children: pages),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (int index) => setState(() => _index = index),
-        destinations: const <NavigationDestination>[
+        destinations: <NavigationDestination>[
           NavigationDestination(
-            icon: Icon(Icons.local_fire_department_outlined),
-            selectedIcon: Icon(Icons.local_fire_department),
-            label: 'Heute',
+            icon: const Icon(Icons.local_fire_department_outlined),
+            selectedIcon: const Icon(Icons.local_fire_department),
+            label: l10n.navToday,
           ),
           NavigationDestination(
-            icon: Icon(Icons.assignment_outlined),
-            selectedIcon: Icon(Icons.assignment),
-            label: 'Plan',
+            icon: const Icon(Icons.assignment_outlined),
+            selectedIcon: const Icon(Icons.assignment),
+            label: l10n.navPlan,
           ),
           NavigationDestination(
-            icon: Icon(Icons.groups_outlined),
-            selectedIcon: Icon(Icons.groups),
-            label: 'Freunde',
+            icon: const Icon(Icons.groups_outlined),
+            selectedIcon: const Icon(Icons.groups),
+            label: l10n.navFriends,
           ),
           NavigationDestination(
-            icon: Icon(Icons.insights_outlined),
-            selectedIcon: Icon(Icons.insights),
-            label: 'Zahlen',
+            icon: const Icon(Icons.insights_outlined),
+            selectedIcon: const Icon(Icons.insights),
+            label: l10n.navStats,
           ),
           NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Mehr',
+            icon: const Icon(Icons.settings_outlined),
+            selectedIcon: const Icon(Icons.settings),
+            label: l10n.navMore,
           ),
         ],
       ),

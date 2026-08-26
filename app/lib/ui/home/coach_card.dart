@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
+import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
@@ -12,14 +13,15 @@ class CoachCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AsyncValue<CoachMessage?> briefing = ref.watch(briefingProvider);
+    final AppLocalizations l10n = context.l10n;
+    final AsyncValue<CoachDirective?> briefing = ref.watch(briefingProvider);
 
     return briefing.when(
       loading: () => const _CoachSkeleton(),
       error: (Object _, StackTrace __) => const SizedBox.shrink(),
-      data: (CoachMessage? message) {
-        if (message == null) return const SizedBox.shrink();
-        final Color accent = _accentFor(message.tone);
+      data: (CoachDirective? directive) {
+        if (directive == null) return const SizedBox.shrink();
+        final Color accent = _accentFor(directive.tone);
         return AppCard(
           border: accent.withValues(alpha: 0.45),
           gradient: LinearGradient(
@@ -35,11 +37,11 @@ class CoachCard extends ConsumerWidget {
             children: <Widget>[
               Row(
                 children: <Widget>[
-                  Icon(_iconFor(message.tone), size: 17, color: accent),
+                  Icon(_iconFor(directive.tone), size: 17, color: accent),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
-                      message.headline,
+                      l10n.coachHeadline(directive),
                       style: Theme.of(context)
                           .textTheme
                           .titleMedium
@@ -47,14 +49,16 @@ class CoachCard extends ConsumerWidget {
                     ),
                   ),
                   Pill(
-                    message.source == 'llm' ? 'on-device KI' : 'Coach',
+                    directive.source == CoachSource.llm
+                        ? l10n.coachBadgeLlm
+                        : l10n.coachBadgeRule,
                     color: AppColors.textTertiary,
                   ),
                 ],
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                message.body,
+                l10n.coachBody(directive),
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             ],

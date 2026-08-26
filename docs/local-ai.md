@@ -37,9 +37,11 @@ geworden ist, liest sich wie Hohn — und sanft zu jemandem zu sein, der es sich
 bequem macht, ist genau der Grund, warum Gewohnheits-Apps nach zwei Wochen
 aufhören zu wirken.
 
-Die Formulierung wird mit dem Tagesdatum als Seed gewählt, damit sie innerhalb
-eines Tages stabil bleibt. Die App neu zu öffnen soll die Ansprache nicht neu
-würfeln.
+Aus dem Ton wird ein `CoachTemplate` gewählt — mit dem Tagesdatum als Seed,
+damit die Ansprache innerhalb eines Tages stabil bleibt. Der Coach gibt
+**keinen Satz** zurück, sondern eine Direktive aus Template, Zahlen und Namen;
+formuliert wird in der App. So treiben dieselben Regeln einen deutschen wie
+einen englischen Nutzer.
 
 ### `LocalLlmCoach` — die Kür
 
@@ -78,3 +80,8 @@ Zielsatz, Tag, Streak, Trefferquote, die Gewohnheiten mit ihren Serien, die
 Uhrzeit und für jeden Freund Name, Streak und ob er heute schon aktiv war. Als
 Text, direkt an das Modell auf diesem Gerät. Keine Telemetrie, kein
 Zwischenspeicher, kein Netzwerkaufruf.
+
+Der Prompt ist in der Sprache verfasst, in der der Nutzer liest — ein Modell
+auf Deutsch antworten zu lassen, während der Prompt englisch ist, funktioniert
+messbar schlechter. Deshalb ist `CoachPromptBuilder` ein Port und die App
+liefert `LocalizedCoachPrompts`.

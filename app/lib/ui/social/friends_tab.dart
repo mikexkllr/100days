@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
 import '../../data/app_repository.dart';
+import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
@@ -18,6 +19,7 @@ class FriendsTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations l10n = context.l10n;
     final AsyncValue<List<NudgeSuggestion>> nudges =
         ref.watch(nudgeSuggestionsProvider);
 
@@ -41,7 +43,7 @@ class FriendsTab extends ConsumerWidget {
                 style: FilledButton.styleFrom(
                     minimumSize: const Size.fromHeight(48)),
                 icon: const Icon(Icons.qr_code_2, size: 19),
-                label: const Text('Einladen'),
+                label: Text(l10n.friendsInvite),
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
@@ -51,19 +53,18 @@ class FriendsTab extends ConsumerWidget {
                 style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(48)),
                 icon: const Icon(Icons.qr_code_scanner, size: 19),
-                label: const Text('Scannen'),
+                label: Text(l10n.friendsScan),
               ),
             ),
           ],
         ),
         if (snapshot.friends.isEmpty)
-          const Padding(
-            padding: EdgeInsets.only(top: AppSpacing.xxl),
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.xxl),
             child: EmptyState(
               emoji: '👥',
-              title: 'Noch niemand verbunden',
-              body: 'Die App funktioniert allein — aber sie wirkt erst, wenn '
-                  'jemand zuschaut. Zeig einem Freund deinen QR-Code.',
+              title: l10n.friendsEmptyTitle,
+              body: l10n.friendsEmptyBody,
             ),
           )
         else ...<Widget>[
@@ -73,7 +74,7 @@ class FriendsTab extends ConsumerWidget {
                 : _NudgeSection(suggestions: items, snapshot: snapshot),
             orElse: () => const SizedBox.shrink(),
           ),
-          const SectionHeader('Deine Leute'),
+          SectionHeader(l10n.friendsYourPeople),
           for (final UserProjection friend in snapshot.friends)
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -93,9 +94,7 @@ class FriendsTab extends ConsumerWidget {
               const SizedBox(width: AppSpacing.sm + 2),
               Expanded(
                 child: Text(
-                  'Verbindungen laufen direkt zwischen euren Geräten — im '
-                  'gleichen WLAN sofort, sonst beim nächsten Treffen. Kein '
-                  'Server dazwischen, der eure Streaks kennt.',
+                  l10n.friendsNetworkNote,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                         fontSize: 12.5,
@@ -122,12 +121,24 @@ class FriendsTab extends ConsumerWidget {
       await ref.read(appStateProvider.notifier).addFriend(invite);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${invite.displayName} verbunden.')),
+        SnackBar(content: Text(context.l10n.friendsConnected(
+          invite.displayName,
+        ))),
       );
+    } on InviteRejection catch (rejection) {
+      if (!context.mounted) return;
+      final AppLocalizations l10n = context.l10n;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(rejection.problem == InviteProblem.self
+            ? l10n.inviteErrorSelf
+            : l10n.inviteErrorMalformed),
+      ));
     } on Object catch (error) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Einladung ungültig: $error')),
+        SnackBar(
+          content: Text(context.l10n.friendsInviteInvalid('$error')),
+        ),
       );
     }
   }
@@ -144,9 +155,9 @@ class _NudgeSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        const SectionHeader(
-          'Anstupsen',
-          subtitle: 'Die hier waren heute noch nicht dran.',
+        SectionHeader(
+          context.l10n.friendsNudgeSection,
+          subtitle: context.l10n.friendsNudgeSubtitle,
         ),
         for (final NudgeSuggestion suggestion in suggestions)
           Padding(
@@ -175,6 +186,8 @@ class _NudgeCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations l10n = context.l10n;
+    final String text = l10n.nudgeText(suggestion);
     return AppCard(
       border: AppColors.violet.withValues(alpha: 0.35),
       child: Row(
@@ -186,11 +199,11 @@ class _NudgeCard extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  profile?.displayName ?? 'Freund',
+                  profile?.displayName ?? l10n.friendsFallbackName,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Text(
-                  '"${suggestion.text}"',
+                  '"$text"',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                         fontSize: 12.5,
@@ -204,7 +217,7 @@ class _NudgeCard extends ConsumerWidget {
                 ? null
                 : () => ref.read(appStateProvider.notifier).nudge(
                       suggestion.targetDid,
-                      suggestion.text,
+                      text,
                     ),
             style: FilledButton.styleFrom(
               minimumSize: const Size(86, 40),
@@ -214,7 +227,7 @@ class _NudgeCard extends ConsumerWidget {
                   AppColors.violet.withValues(alpha: 0.25),
               disabledForegroundColor: Colors.white70,
             ),
-            child: Text(alreadySent ? 'Gesendet' : 'Senden'),
+            child: Text(alreadySent ? l10n.actionSent : l10n.actionSend),
           ),
         ],
       ),
@@ -230,6 +243,7 @@ class _FriendRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     final PeerState peer = friend.toPeerState(today: today);
     return AppCard(
       onTap: () => Navigator.of(context).push<void>(
@@ -256,9 +270,9 @@ class _FriendRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   peer.lastActivityAt == null
-                      ? 'Noch keine Aktivität'
-                      : '${peer.lastActivityLabel} · '
-                          '${formatRelative(peer.lastActivityAt!)}',
+                      ? l10n.friendsNoActivity
+                      : '${l10n.peerActivityLabel(peer.lastActivity)} · '
+                          '${l10n.formatRelative(peer.lastActivityAt!)}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -274,10 +288,10 @@ class _FriendRow extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: <Widget>[
-              Text('${peer.currentStreak}🔥',
+              Text(l10n.tileStreakBadge(peer.currentStreak),
                   style: Theme.of(context).textTheme.titleMedium),
               Text(
-                'Tag ${peer.dayNumber}',
+                l10n.friendsDayNumber(peer.dayNumber),
                 style: Theme.of(context)
                     .textTheme
                     .labelSmall

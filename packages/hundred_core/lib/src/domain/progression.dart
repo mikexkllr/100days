@@ -89,41 +89,22 @@ double levelProgress(int xp) {
 /// Weekly leagues, straight out of the Duolingo playbook: a small pool of
 /// people, one week, promotion at the top and demotion at the bottom. The
 /// pressure comes from the pool being your actual friends.
-enum League { holz, bronze, silber, gold, platin, diamant, obsidian }
+enum League { wood, bronze, silver, gold, platinum, diamond, obsidian }
 
 extension LeagueInfo on League {
-  String get nameDe {
-    switch (this) {
-      case League.holz:
-        return 'Holz';
-      case League.bronze:
-        return 'Bronze';
-      case League.silber:
-        return 'Silber';
-      case League.gold:
-        return 'Gold';
-      case League.platin:
-        return 'Platin';
-      case League.diamant:
-        return 'Diamant';
-      case League.obsidian:
-        return 'Obsidian';
-    }
-  }
-
   String get emoji {
     switch (this) {
-      case League.holz:
+      case League.wood:
         return '🪵';
       case League.bronze:
         return '🥉';
-      case League.silber:
+      case League.silver:
         return '🥈';
       case League.gold:
         return '🥇';
-      case League.platin:
+      case League.platinum:
         return '💠';
-      case League.diamant:
+      case League.diamond:
         return '💎';
       case League.obsidian:
         return '🖤';
@@ -215,7 +196,7 @@ LeagueStanding buildLeagueStanding({
 /// League derived from lifetime XP, so a fresh install cannot land in Diamant.
 League leagueForXp(int lifetimeXp) {
   const List<int> thresholds = <int>[0, 500, 1500, 3500, 7000, 13000, 25000];
-  var league = League.holz;
+  var league = League.wood;
   for (var i = 0; i < thresholds.length; i++) {
     if (lifetimeXp >= thresholds[i]) league = League.values[i];
   }

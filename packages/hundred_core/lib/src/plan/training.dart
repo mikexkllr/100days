@@ -42,18 +42,38 @@ class PlannedSet {
       };
 }
 
+/// Which session this is. Name and focus line come from the app's
+/// localizations, keyed by this.
+enum WorkoutKind {
+  fullBodyA,
+  fullBodyB,
+  fullBodyC,
+  push,
+  pull,
+  legs,
+  upper,
+  lower,
+}
+
+/// How the training week is arranged.
+enum SplitKind {
+  fullBodyTwice,
+  fullBodyThrice,
+  upperLower,
+  pplPlusUpperLower,
+  pplTwice,
+}
+
 @immutable
 class Workout {
   const Workout({
-    required this.nameDe,
-    required this.focusDe,
+    required this.kind,
     required this.weekday,
     required this.blocks,
     required this.estimatedMinutes,
   });
 
-  final String nameDe;
-  final String focusDe;
+  final WorkoutKind kind;
   final int weekday;
   final List<PlannedSet> blocks;
   final int estimatedMinutes;
@@ -66,13 +86,20 @@ class Workout {
 class TrainingWeek {
   const TrainingWeek({
     required this.weekNumber,
-    required this.phaseDe,
+    required this.blockNumber,
+    required this.weekInBlock,
     required this.isDeload,
     required this.workouts,
   });
 
   final int weekNumber;
-  final String phaseDe;
+
+  /// 1-based four-week mesocycle this week belongs to.
+  final int blockNumber;
+
+  /// 1..3 during accumulation, 4 on the deload week.
+  final int weekInBlock;
+
   final bool isDeload;
   final List<Workout> workouts;
 
@@ -87,16 +114,14 @@ class TrainingWeek {
 @immutable
 class TrainingPlan {
   const TrainingPlan({
-    required this.splitNameDe,
+    required this.split,
     required this.daysPerWeek,
     required this.weeks,
-    required this.rationaleDe,
   });
 
-  final String splitNameDe;
+  final SplitKind split;
   final int daysPerWeek;
   final List<TrainingWeek> weeks;
-  final String rationaleDe;
 
   TrainingWeek weekFor(DayKey startDay, DayKey day) {
     final dayNumber = day.differenceInDays(startDay);
@@ -108,17 +133,16 @@ class TrainingPlan {
       weekFor(startDay, day).workoutOn(day.toDateTime().weekday);
 }
 
-/// A single training day's template: a name and the movement patterns it hits.
+/// A single training day's template: which session it is and which movement
+/// patterns it hits.
 class _SessionTemplate {
-  const _SessionTemplate(this.nameDe, this.focusDe, this.patterns);
-  final String nameDe;
-  final String focusDe;
+  const _SessionTemplate(this.kind, this.patterns);
+  final WorkoutKind kind;
   final List<MovementPattern> patterns;
 }
 
 const _SessionTemplate _fullBodyA = _SessionTemplate(
-  'Ganzkörper A',
-  'Knie, Druck, Zug',
+  WorkoutKind.fullBodyA,
   <MovementPattern>[
     MovementPattern.squat,
     MovementPattern.horizontalPush,
@@ -128,8 +152,7 @@ const _SessionTemplate _fullBodyA = _SessionTemplate(
 );
 
 const _SessionTemplate _fullBodyB = _SessionTemplate(
-  'Ganzkörper B',
-  'Hüfte, Überkopf, Klimmzug',
+  WorkoutKind.fullBodyB,
   <MovementPattern>[
     MovementPattern.hinge,
     MovementPattern.verticalPush,
@@ -139,8 +162,7 @@ const _SessionTemplate _fullBodyB = _SessionTemplate(
 );
 
 const _SessionTemplate _fullBodyC = _SessionTemplate(
-  'Ganzkörper C',
-  'Einbeinig, Druck, Zug',
+  WorkoutKind.fullBodyC,
   <MovementPattern>[
     MovementPattern.lunge,
     MovementPattern.horizontalPush,
@@ -150,8 +172,7 @@ const _SessionTemplate _fullBodyC = _SessionTemplate(
 );
 
 const _SessionTemplate _push = _SessionTemplate(
-  'Push',
-  'Brust, Schultern, Trizeps',
+  WorkoutKind.push,
   <MovementPattern>[
     MovementPattern.horizontalPush,
     MovementPattern.verticalPush,
@@ -161,8 +182,7 @@ const _SessionTemplate _push = _SessionTemplate(
 );
 
 const _SessionTemplate _pull = _SessionTemplate(
-  'Pull',
-  'Rücken, Bizeps, hintere Schulter',
+  WorkoutKind.pull,
   <MovementPattern>[
     MovementPattern.verticalPull,
     MovementPattern.horizontalPull,
@@ -172,8 +192,7 @@ const _SessionTemplate _pull = _SessionTemplate(
 );
 
 const _SessionTemplate _legs = _SessionTemplate(
-  'Legs',
-  'Quads, Hamstrings, Glutes',
+  WorkoutKind.legs,
   <MovementPattern>[
     MovementPattern.squat,
     MovementPattern.hinge,
@@ -183,8 +202,7 @@ const _SessionTemplate _legs = _SessionTemplate(
 );
 
 const _SessionTemplate _upper = _SessionTemplate(
-  'Oberkörper',
-  'Druck und Zug',
+  WorkoutKind.upper,
   <MovementPattern>[
     MovementPattern.horizontalPush,
     MovementPattern.verticalPull,
@@ -195,8 +213,7 @@ const _SessionTemplate _upper = _SessionTemplate(
 );
 
 const _SessionTemplate _lower = _SessionTemplate(
-  'Unterkörper',
-  'Beine und Rumpf',
+  WorkoutKind.lower,
   <MovementPattern>[
     MovementPattern.squat,
     MovementPattern.hinge,
@@ -207,38 +224,33 @@ const _SessionTemplate _lower = _SessionTemplate(
 
 /// Split selection. Fewer days means each session has to be more general;
 /// more days lets sessions specialise without cooking the same muscles twice.
-({String name, List<_SessionTemplate> sessions}) _splitFor(int daysPerWeek) {
+({SplitKind kind, List<_SessionTemplate> sessions}) _splitFor(int daysPerWeek) {
   switch (daysPerWeek.clamp(2, 6)) {
     case 2:
-      return (name: 'Ganzkörper 2x', sessions: <_SessionTemplate>[
-        _fullBodyA,
-        _fullBodyB,
-      ]);
+      return (
+        kind: SplitKind.fullBodyTwice,
+        sessions: <_SessionTemplate>[_fullBodyA, _fullBodyB],
+      );
     case 3:
-      return (name: 'Ganzkörper 3x', sessions: <_SessionTemplate>[
-        _fullBodyA,
-        _fullBodyB,
-        _fullBodyC,
-      ]);
+      return (
+        kind: SplitKind.fullBodyThrice,
+        sessions: <_SessionTemplate>[_fullBodyA, _fullBodyB, _fullBodyC],
+      );
     case 4:
-      return (name: 'Upper / Lower', sessions: <_SessionTemplate>[
-        _upper,
-        _lower,
-        _upper,
-        _lower,
-      ]);
+      return (
+        kind: SplitKind.upperLower,
+        sessions: <_SessionTemplate>[_upper, _lower, _upper, _lower],
+      );
     case 5:
-      return (name: 'Push / Pull / Legs + Upper / Lower',
-          sessions: <_SessionTemplate>[_push, _pull, _legs, _upper, _lower]);
+      return (
+        kind: SplitKind.pplPlusUpperLower,
+        sessions: <_SessionTemplate>[_push, _pull, _legs, _upper, _lower],
+      );
     default:
-      return (name: 'Push / Pull / Legs 2x', sessions: <_SessionTemplate>[
-        _push,
-        _pull,
-        _legs,
-        _push,
-        _pull,
-        _legs,
-      ]);
+      return (
+        kind: SplitKind.pplTwice,
+        sessions: <_SessionTemplate>[_push, _pull, _legs, _push, _pull, _legs],
+      );
   }
 }
 
@@ -315,8 +327,7 @@ TrainingPlan buildTrainingPlan(Goal goal, {int totalWeeks = 15}) {
       final totalSets =
           blocks.fold(0, (int sum, PlannedSet b) => sum + b.sets);
       workouts.add(Workout(
-        nameDe: template.nameDe,
-        focusDe: template.focusDe,
+        kind: template.kind,
         weekday: weekdays[i],
         blocks: blocks,
         // ~3 min per working set including rest, plus a 10 min warm-up.
@@ -326,21 +337,17 @@ TrainingPlan buildTrainingPlan(Goal goal, {int totalWeeks = 15}) {
 
     weeks.add(TrainingWeek(
       weekNumber: week,
-      phaseDe: isDeload
-          ? 'Deload'
-          : 'Aufbau ${positionInBlock + 1}/3 · Block ${((week - 1) ~/ 4) + 1}',
+      blockNumber: ((week - 1) ~/ 4) + 1,
+      weekInBlock: positionInBlock + 1,
       isDeload: isDeload,
       workouts: workouts,
     ));
   }
 
   return TrainingPlan(
-    splitNameDe: split.name,
+    split: split.kind,
     daysPerWeek: daysPerWeek,
     weeks: weeks,
-    rationaleDe: '$daysPerWeek Trainingstage pro Woche als '
-        '"${split.name}". Drei Wochen Aufbau, dann eine Deload-Woche — '
-        'so hältst du 100 Tage durch, ohne auszubrennen.',
   );
 }
 

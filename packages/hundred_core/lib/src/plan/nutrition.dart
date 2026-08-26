@@ -4,6 +4,16 @@ import 'package:meta/meta.dart';
 
 import '../domain/goal.dart';
 
+/// Which way the calorie target deviates from maintenance, and why.
+///
+/// The app turns this into a sentence; the numbers that justify it live on
+/// [NutritionPlan] so the explanation cannot drift from the maths.
+enum NutritionStrategy { deficit, surplus, maintenance }
+
+/// The four slots a day is split into. Meal ideas per slot come from the
+/// app's localizations — a German breakfast suggestion is not an English one.
+enum MealSlotKind { breakfast, lunch, snack, dinner }
+
 /// Daily energy and macro targets.
 @immutable
 class NutritionPlan {
@@ -16,7 +26,9 @@ class NutritionPlan {
     required this.carbsG,
     required this.fiberG,
     required this.waterMl,
-    required this.rationaleDe,
+    required this.strategy,
+    required this.deltaPercent,
+    required this.goalDrivesNutrition,
     required this.meals,
   });
 
@@ -28,7 +40,15 @@ class NutritionPlan {
   final int carbsG;
   final int fiberG;
   final int waterMl;
-  final String rationaleDe;
+  final NutritionStrategy strategy;
+
+  /// Absolute deviation from [tdee] in percent, 0 for maintenance.
+  final int deltaPercent;
+
+  /// False when the goal is not about the body at all — the app then says
+  /// "eating should not slow you down" rather than explaining a deficit.
+  final bool goalDrivesNutrition;
+
   final List<MealSlot> meals;
 
   /// Expected weekly weight change in kg from the calorie delta
@@ -50,18 +70,16 @@ class NutritionPlan {
 @immutable
 class MealSlot {
   const MealSlot({
-    required this.nameDe,
+    required this.kind,
     required this.share,
     required this.kcal,
     required this.proteinG,
-    required this.suggestionsDe,
   });
 
-  final String nameDe;
+  final MealSlotKind kind;
   final double share;
   final int kcal;
   final int proteinG;
-  final List<String> suggestionsDe;
 }
 
 double activityFactor(ActivityLevel level) {
@@ -103,29 +121,33 @@ NutritionPlan buildNutritionPlan(Goal goal) {
   final tdee = (bmr * activityFactor(body.activityLevel)).round();
 
   int kcal;
-  String rationale;
+  final NutritionStrategy strategy;
+  final int deltaPercent;
+  final bool goalDrivesNutrition;
   switch (goal.archetype) {
     case GoalArchetype.loseFat:
       kcal = (tdee * 0.80).round();
-      rationale = '20 % Defizit unter deinem Verbrauch von $tdee kcal. '
-          'Das sind rund 0,5 kg Fett pro Woche — schnell genug, dass du es '
-          'siehst, langsam genug, dass die Muskeln bleiben.';
+      strategy = NutritionStrategy.deficit;
+      deltaPercent = 20;
+      goalDrivesNutrition = true;
     case GoalArchetype.buildMuscle:
       kcal = (tdee * 1.12).round();
-      rationale = '12 % Überschuss über deinem Verbrauch von $tdee kcal. '
-          'Lean Bulk: genug für Aufbau, wenig genug, dass du nicht nur '
-          'Fett zunimmst.';
+      strategy = NutritionStrategy.surplus;
+      deltaPercent = 12;
+      goalDrivesNutrition = true;
     case GoalArchetype.getFit:
       kcal = tdee;
-      rationale = 'Erhaltung bei $tdee kcal. Erst Gewohnheit und Leistung, '
-          'dann Körperkomposition.';
+      strategy = NutritionStrategy.maintenance;
+      deltaPercent = 0;
+      goalDrivesNutrition = true;
     case GoalArchetype.discipline:
     case GoalArchetype.clarity:
     case GoalArchetype.sober:
     case GoalArchetype.custom:
       kcal = tdee;
-      rationale = 'Erhaltung bei $tdee kcal. Dein Ziel liegt woanders — '
-          'Ernährung soll dich hier nur nicht ausbremsen.';
+      strategy = NutritionStrategy.maintenance;
+      deltaPercent = 0;
+      goalDrivesNutrition = false;
   }
 
   final floor = body.sex == BiologicalSex.male ? 1600 : 1300;
@@ -149,54 +171,22 @@ NutritionPlan buildNutritionPlan(Goal goal) {
     carbsG: carbsG,
     fiberG: fiberG,
     waterMl: waterMl,
-    rationaleDe: rationale,
+    strategy: strategy,
+    deltaPercent: deltaPercent,
+    goalDrivesNutrition: goalDrivesNutrition,
     meals: _buildMeals(kcal, proteinG),
   );
 }
 
-const List<List<String>> _mealIdeas = <List<String>>[
-  <String>[
-    'Skyr mit Beeren, Haferflocken und Leinsamen',
-    'Rührei aus 3 Eiern mit Vollkorntoast',
-    'Overnight Oats mit Magerquark und Banane',
-    'Proteinporridge mit Erdnussmus',
-  ],
-  <String>[
-    'Hähnchenbrust, Reis, Brokkoli',
-    'Linsenbolognese mit Vollkornnudeln',
-    'Lachsfilet mit Kartoffeln und Salat',
-    'Rindergeschnetzeltes mit Couscous und Ofengemüse',
-  ],
-  <String>[
-    'Magerquark mit Honig und Walnüssen',
-    'Proteinshake mit Banane',
-    'Handvoll Mandeln und ein Apfel',
-    'Hüttenkäse auf Knäckebrot',
-  ],
-  <String>[
-    'Putenpfanne mit Zucchini und Feta',
-    'Omelette mit Champignons und Spinat',
-    'Kichererbsencurry mit Naturjoghurt',
-    'Thunfischsalat mit Bohnen und Ei',
-  ],
-];
-
 List<MealSlot> _buildMeals(int kcal, int proteinG) {
-  const List<String> names = <String>[
-    'Frühstück',
-    'Mittagessen',
-    'Snack',
-    'Abendessen',
-  ];
   const List<double> shares = <double>[0.25, 0.35, 0.10, 0.30];
   return <MealSlot>[
-    for (var i = 0; i < names.length; i++)
+    for (var i = 0; i < MealSlotKind.values.length; i++)
       MealSlot(
-        nameDe: names[i],
+        kind: MealSlotKind.values[i],
         share: shares[i],
         kcal: (kcal * shares[i]).round(),
         proteinG: (proteinG * shares[i]).round(),
-        suggestionsDe: _mealIdeas[i],
       ),
   ];
 }

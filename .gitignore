@@ -14,6 +14,9 @@ build/
 .DS_Store
 *.log
 
+# Generated localizations are committed so CI can prove they are in sync
+# with the ARB files (see the gen-l10n step in the workflow).
+
 # Local AI models are large and user-supplied; never commit them.
 models/
 *.gguf

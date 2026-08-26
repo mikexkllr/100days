@@ -10,7 +10,7 @@ import 'coach.dart';
 /// This is the floor of the product. If the on-device model is missing, still
 /// downloading, or too slow, the user must never get a blank screen where the
 /// motivation is supposed to be — so every path here terminates in a real
-/// sentence.
+/// directive.
 class HeuristicCoach implements CoachEngine {
   const HeuristicCoach();
 
@@ -18,136 +18,113 @@ class HeuristicCoach implements CoachEngine {
   bool get isReady => true;
 
   @override
-  String get name => 'Regelbasiert (on-device)';
+  String? get modelName => null;
+
+  /// How many friends a message names before it says "and N others".
+  static const int maxNamedPeers = 3;
 
   @override
-  Future<CoachMessage> dailyBriefing(CoachContext c) async {
+  Future<CoachDirective> dailyBriefing(CoachContext c) async {
     final tone = selectTone(c);
-    // Seeded by the day so the message is stable within a day: re-opening the
+    // Seeded by the day so the choice is stable within a day: re-opening the
     // app should not reroll the pep talk.
     final random = math.Random(c.today.toString().hashCode ^ tone.index);
 
     switch (tone) {
       case CoachTone.welcome:
-        return CoachMessage(
-          tone: tone,
-          headline: 'Tag ${c.dayNumber} von ${c.challenge.lengthDays}',
-          body: _pick(random, <String>[
-            'Der Anfang ist der einfachste Teil und der wichtigste. '
-                'Heute nur eine Sache: abhaken.',
-            'Du hast dir vorgenommen: "${c.challenge.goal.statement}". '
-                'Heute machst du den ersten Beweis daraus.',
-            'Niemand sieht Tag ${c.dayNumber}. Alle sehen Tag 100. '
-                'Der eine geht nicht ohne den anderen.',
+        return _base(
+          c,
+          tone,
+          _pick(random, <CoachTemplate>[
+            CoachTemplate.welcomeCheckOffOneThing,
+            CoachTemplate.welcomeYourOwnWords,
+            CoachTemplate.welcomeNobodySeesDayOne,
           ]),
-          ctaLabel: 'Heute abhaken',
+          statement: c.challenge.goal.statement,
         );
 
       case CoachTone.steady:
         final next = c.challenge.nextMilestone(c.dayNumber);
-        return CoachMessage(
-          tone: tone,
-          headline: '${c.streak.current} Tage Streak',
-          body: next == null
-              ? 'Läuft. Weiter wie gestern.'
-              : 'Noch ${next - c.dayNumber} Tage bis Tag $next. '
-                  '${_pick(random, <String>[
-                  'Nichts Spektakuläres nötig — nur nicht aufhören.',
-                  'Konstanz schlägt Intensität. Immer.',
-                  'Der Plan funktioniert, solange du ihn machst.',
-                ])}',
-          ctaLabel: 'Weitermachen',
+        if (next == null) {
+          return _base(c, tone, CoachTemplate.steadyRunning);
+        }
+        return _base(
+          c,
+          tone,
+          _pick(random, <CoachTemplate>[
+            CoachTemplate.steadyToNextMilestone,
+            CoachTemplate.steadyConsistencyBeatsIntensity,
+            CoachTemplate.steadyPlanWorksIfYouDo,
+          ]),
+          milestoneDay: next,
+          daysToMilestone: next - c.dayNumber,
         );
 
       case CoachTone.socialPressure:
         final active = c.peersActiveToday;
-        if (active.isEmpty) {
-          final ahead = c.peersAhead;
-          if (ahead.isEmpty) {
-            return CoachMessage(
-              tone: tone,
-              headline: 'Heute steht noch offen',
-              body: 'Du führst gerade. Führen heißt, nicht der Erste zu sein, '
-                  'der aufhört.',
-              ctaLabel: 'Jetzt abhaken',
-            );
-          }
-          final leader = ahead.first;
-          return CoachMessage(
-            tone: tone,
-            headline: '${leader.profile.displayName} liegt vor dir',
-            body: '${leader.profile.avatarEmoji} '
-                '${leader.profile.displayName}: '
-                '${leader.currentStreak} Tage. Du: ${c.streak.current}. '
-                'Das ist noch aufholbar — heute.',
-            ctaLabel: 'Jetzt abhaken',
+        if (active.isNotEmpty) {
+          return _base(
+            c,
+            tone,
+            _pick(random, <CoachTemplate>[
+              CoachTemplate.pressureFriendsWereActive,
+              CoachTemplate.pressureTheySeeYourFeed,
+              CoachTemplate.pressureTwoHoursLeft,
+            ]),
+            peers: active,
           );
         }
-        return CoachMessage(
-          tone: tone,
-          headline: _activeHeadline(active),
-          body: '${_nameList(active)} '
-              '${active.length == 1 ? 'war' : 'waren'} heute schon dran. '
-              'Du stehst noch auf 0. '
-              '${_pick(random, <String>[
-            'Willst du das so stehen lassen?',
-            'Die sehen deinen Feed auch.',
-            'In zwei Stunden ist der Tag durch.',
-          ])}',
-          ctaLabel: 'Jetzt abhaken',
+        final ahead = c.peersAhead;
+        if (ahead.isEmpty) {
+          return _base(c, tone, CoachTemplate.pressureYouLead);
+        }
+        return _base(
+          c,
+          tone,
+          CoachTemplate.pressureLeaderAhead,
+          peers: <PeerState>[ahead.first],
         );
 
       case CoachTone.urgent:
-        return CoachMessage(
-          tone: tone,
-          headline: c.isLateNight
-              ? 'Letzte Chance'
-              : '${c.streak.current} Tage stehen auf dem Spiel',
-          body: c.isLateNight
-              ? 'Noch ${24 - c.now.hour} Stunden. ${c.streak.current} Tage '
-                  'Arbeit gegen ein paar Minuten. Rechne selbst.'
-              : 'Der Tag ist fast rum und heute fehlt noch alles. '
-                  'Mach die kleinste Version davon — sie zählt genauso.',
-          ctaLabel: 'Retten',
+        return _base(
+          c,
+          tone,
+          c.isLateNight
+              ? CoachTemplate.urgentLastChance
+              : CoachTemplate.urgentSmallestVersion,
+          hoursLeft: math.max(1, 24 - c.now.hour),
         );
 
       case CoachTone.celebrate:
-        return CoachMessage(
-          tone: tone,
-          headline: 'Tag ${c.dayNumber} 🎉',
-          body: _milestoneLine(c.dayNumber, c.challenge.tier.nameDe),
-          ctaLabel: 'Teilen',
+        return _base(
+          c,
+          tone,
+          _celebrationFor(c.dayNumber),
+          milestoneDay: c.dayNumber,
         );
 
       case CoachTone.recover:
-        final relapsedHabit = _relapsedHabit(c);
-        return CoachMessage(
-          tone: tone,
-          headline: 'Neuer Tag 1',
-          body: relapsedHabit == null
-              ? 'Streak ist weg, die 100 Tage sind es nicht. '
-                  'Der Unterschied zwischen einem Rückfall und einem Abbruch '
-                  'ist genau das, was du in den nächsten 24 Stunden machst.'
-              : 'Rückfall bei ${relapsedHabit.displayTitle}. '
-                  'Das ist Teil der Kurve, nicht ihr Ende. '
-                  '${_recoveryHint(relapsedHabit)}',
-          ctaLabel: 'Neu starten',
+        final relapsed = _relapsedHabit(c);
+        if (relapsed == null) {
+          return _base(c, tone, CoachTemplate.recoverStreakLost);
+        }
+        return _base(
+          c,
+          tone,
+          CoachTemplate.recoverRelapse,
+          habitCategory: relapsed.category,
+          recoveryHint: recoveryHintFor(relapsed.category),
         );
 
       case CoachTone.raiseTheBar:
-        return CoachMessage(
-          tone: tone,
-          headline: '${c.streak.current} Tage — das läuft zu glatt',
-          body: 'Du triffst '
-              '${(c.streak.completionRate * 100).round()} % deiner Tage. '
-              '${_pick(random, <String>[
-            'Zeit, das Ziel härter zu machen: ein Tag mehr pro Woche oder '
-                'ein höheres Tagesziel.',
-            'Gewohnheiten, die keine Kraft mehr kosten, bringen auch keine '
-                'mehr. Erhöh eine Zahl.',
-            'Nimm dir eine zweite Baustelle dazu. Du hast Kapazität.',
-          ])}',
-          ctaLabel: 'Ziel anpassen',
+        return _base(
+          c,
+          tone,
+          _pick(random, <CoachTemplate>[
+            CoachTemplate.raiseBarHarderTarget,
+            CoachTemplate.raiseBarNoEffortNoGain,
+            CoachTemplate.raiseBarSecondFront,
+          ]),
         );
     }
   }
@@ -157,19 +134,22 @@ class HeuristicCoach implements CoachEngine {
     final suggestions = <NudgeSuggestion>[];
     for (final peer in c.peers) {
       if (peer.activeToday) continue;
+      // Never taunt someone who is ahead of you and merely has not gone yet.
       if (!peer.isSlipping && c.streak.current <= peer.currentStreak) continue;
       final random = math.Random(peer.did.hashCode ^ c.today.hashCode);
       suggestions.add(NudgeSuggestion(
         targetDid: peer.did,
-        text: _pick(random, <String>[
-          'Ich war heute schon. Und du?',
-          'Tag ${c.dayNumber}. Dein Streak schaut dich an.',
-          '${peer.currentStreak} Tage warst du dabei. Heute auch?',
-          'Kein Druck. Aber ich sehe deinen Feed.',
+        template: _pick(random, <NudgeTemplate>[
+          NudgeTemplate.iWentDidYou,
+          NudgeTemplate.yourStreakIsWatching,
+          NudgeTemplate.youWereInForDays,
+          NudgeTemplate.noPressureButISeeYourFeed,
         ]),
         reason: peer.isSlipping
-            ? 'Seit zwei Tagen inaktiv'
-            : 'Heute noch nichts gemacht',
+            ? NudgeReason.inactiveTwoDays
+            : NudgeReason.nothingToday,
+        dayNumber: c.dayNumber,
+        peerStreak: peer.currentStreak,
       ));
     }
     suggestions.sort((NudgeSuggestion a, NudgeSuggestion b) =>
@@ -178,14 +158,14 @@ class HeuristicCoach implements CoachEngine {
   }
 
   @override
-  Future<List<String>> planAdjustments(CoachContext c) async {
-    final tips = <String>[];
+  Future<List<PlanAdvice>> planAdjustments(CoachContext c) async {
+    final advice = <PlanAdvice>[];
 
     if (c.streak.completionRate < 0.6 && c.streak.scheduledDays >= 7) {
-      tips.add('Du triffst nur '
-          '${(c.streak.completionRate * 100).round()} % deiner Tage. '
-          'Nimm eine Gewohnheit raus statt weiter zu scheitern — '
-          'drei sichere Tage schlagen fünf geplante.');
+      advice.add(PlanAdvice(
+        kind: PlanAdviceKind.cutScope,
+        completionPercent: c.completionPercent,
+      ));
     }
 
     for (final habit in c.challenge.habits) {
@@ -193,44 +173,81 @@ class HeuristicCoach implements CoachEngine {
       if (habit.kind == HabitKind.abstain) {
         final next = nextMilestone(habit.category, streak);
         if (next != null) {
-          tips.add('${habit.emoji} ${habit.displayTitle}: noch '
-              '${next.day - streak} Tage bis "${next.titleDe}".');
+          advice.add(PlanAdvice(
+            kind: PlanAdviceKind.milestoneAhead,
+            habitCategory: habit.category,
+            milestone: next.id,
+            daysToMilestone: next.day - streak,
+          ));
         }
       } else if (streak >= 21) {
-        tips.add('${habit.emoji} ${habit.displayTitle} läuft seit $streak '
-            'Tagen. Erhöh das Tagesziel um 20 %.');
+        advice.add(PlanAdvice(
+          kind: PlanAdviceKind.raiseTarget,
+          habitCategory: habit.category,
+          streak: streak,
+        ));
       } else if (streak == 0 && c.dayNumber > 7) {
-        tips.add('${habit.emoji} ${habit.displayTitle} läuft nicht. '
-            'Halbier das Ziel, bis es wieder greift.');
+        advice.add(PlanAdvice(
+          kind: PlanAdviceKind.halveTarget,
+          habitCategory: habit.category,
+        ));
       }
     }
 
     if (c.peers.isEmpty) {
-      tips.add('Du hast noch niemanden verbunden. '
-          'Allein durchzuhalten ist messbar schwerer — lade jemanden ein.');
+      advice.add(const PlanAdvice(kind: PlanAdviceKind.inviteSomeone));
     }
 
-    return tips.take(6).toList();
+    return advice.take(6).toList();
   }
 
-  String _activeHeadline(List<PeerState> active) {
-    if (active.length == 1) {
-      return '${active.first.profile.displayName} war heute schon dran';
-    }
-    return '${active.length} deiner Leute waren heute schon dran';
+  CoachDirective _base(
+    CoachContext c,
+    CoachTone tone,
+    CoachTemplate template, {
+    List<PeerState> peers = const <PeerState>[],
+    int? milestoneDay,
+    int? daysToMilestone,
+    int? hoursLeft,
+    HabitCategory? habitCategory,
+    RecoveryHint? recoveryHint,
+    String? statement,
+  }) {
+    return CoachDirective(
+      tone: tone,
+      template: template,
+      cta: ctaForTone(tone),
+      dayNumber: c.dayNumber,
+      totalDays: c.challenge.lengthDays,
+      streak: c.streak.current,
+      completionPercent: c.completionPercent,
+      cycleIndex: c.challenge.cycle,
+      milestoneDay: milestoneDay,
+      daysToMilestone: daysToMilestone,
+      hoursLeft: hoursLeft,
+      peers: peers.take(maxNamedPeers).map(PeerMention.of).toList(),
+      extraPeerCount: math.max(0, peers.length - maxNamedPeers),
+      habitCategory: habitCategory,
+      recoveryHint: recoveryHint,
+      statement: statement,
+    );
   }
 
-  String _nameList(List<PeerState> peers) {
-    final names = peers
-        .take(3)
-        .map((PeerState p) => '${p.profile.avatarEmoji} '
-            '${p.profile.displayName}')
-        .toList();
-    if (peers.length > 3) {
-      return '${names.join(', ')} und ${peers.length - 3} weitere';
+  CoachTemplate _celebrationFor(int day) {
+    switch (day) {
+      case 7:
+        return CoachTemplate.celebrateWeek;
+      case 30:
+        return CoachTemplate.celebrateMonth;
+      case 66:
+        return CoachTemplate.celebrateHabitFormed;
+      case 100:
+        return CoachTemplate.celebrateHundred;
+      case 365:
+        return CoachTemplate.celebrateYear;
+      default:
+        return CoachTemplate.celebrateGeneric;
     }
-    if (names.length == 1) return names.first;
-    return '${names.sublist(0, names.length - 1).join(', ')} und ${names.last}';
   }
 
   Habit? _relapsedHabit(CoachContext c) {
@@ -242,42 +259,6 @@ class HeuristicCoach implements CoachEngine {
     return null;
   }
 
-  String _recoveryHint(Habit habit) {
-    switch (habit.category) {
-      case HabitCategory.noFap:
-      case HabitCategory.dopamineDetox:
-        return 'Handy heute Abend aus dem Schlafzimmer. Das ist der Trigger, '
-            'nicht die Willenskraft.';
-      case HabitCategory.noAlcohol:
-        return 'Schreib auf, wo du warst und mit wem. Das Muster ist wichtiger '
-            'als der eine Abend.';
-      case HabitCategory.noSugar:
-        return 'Mehr Protein zum Frühstück. Heißhunger ist meistens ein '
-            'Frühstücksproblem.';
-      default:
-        return 'Morgen die kleinste mögliche Version. Nur nicht null.';
-    }
-  }
-
-  String _milestoneLine(int day, String tierName) {
-    switch (day) {
-      case 7:
-        return 'Eine Woche. Die meisten hören genau hier auf.';
-      case 30:
-        return '30 Tage. Ab jetzt musst du dich weniger überreden.';
-      case 66:
-        return '66 Tage — der Durchschnitt, bis ein Verhalten automatisch '
-            'läuft. Du bist durch.';
-      case 100:
-        return 'Hundert Tage. Und jetzt kommt der Teil, für den die App '
-            'gebaut ist: es hört hier nicht auf. Willkommen in "$tierName".';
-      case 365:
-        return 'Ein Jahr. Das ist keine Challenge mehr, das bist du.';
-      default:
-        return '$day Tage am Stück. Das ist der Beweis, nicht das Gefühl.';
-    }
-  }
-
-  String _pick(math.Random random, List<String> options) =>
+  T _pick<T>(math.Random random, List<T> options) =>
       options[random.nextInt(options.length)];
 }

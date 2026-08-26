@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../state/onboarding_state.dart';
 import '../../../theme/theme.dart';
 import '../../widgets/app_card.dart';
@@ -25,49 +26,18 @@ class _StatementStepState extends ConsumerState<StatementStep> {
     super.dispose();
   }
 
-  static const Map<GoalArchetype, List<String>> _examples =
-      <GoalArchetype, List<String>>{
-    GoalArchetype.buildMuscle: <String>[
-      'In 100 Tagen 5 kg Muskeln drauf',
-      'Endlich 10 saubere Klimmzüge',
-    ],
-    GoalArchetype.loseFat: <String>[
-      '8 kg runter bis zum Sommer',
-      'Wieder in meine alte Hose passen',
-    ],
-    GoalArchetype.getFit: <String>[
-      '5 km unter 25 Minuten laufen',
-      'Ohne Pause die Treppen hoch',
-    ],
-    GoalArchetype.discipline: <String>[
-      '100 Tage keine Ausrede',
-      'Jeden Morgen um 6 auf, ohne Diskussion',
-    ],
-    GoalArchetype.clarity: <String>[
-      'Handyzeit halbieren, Kopf zurückholen',
-      '100 Tage ohne Doomscrolling',
-    ],
-    GoalArchetype.sober: <String>[
-      '100 Tage komplett trocken',
-      'Kein Zucker, kein Alkohol, keine Ausnahme',
-    ],
-    GoalArchetype.custom: <String>[
-      'Mein Ding, meine Regeln',
-    ],
-  };
-
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     final draft = ref.watch(onboardingProvider);
     final notifier = ref.read(onboardingProvider.notifier);
-    final examples =
-        _examples[draft.archetype ?? GoalArchetype.custom] ?? const <String>[];
+    final List<String> examples =
+        l10n.goalExamples(draft.archetype ?? GoalArchetype.custom);
 
     return OnboardingScaffold(
-      eyebrow: 'Schritt 2',
-      title: 'Sag es in einem Satz.',
-      subtitle: 'Diesen Satz bekommst du an jedem schweren Tag zu sehen. '
-          'Also schreib den echten, nicht den vorzeigbaren.',
+      eyebrow: l10n.obStep2,
+      title: l10n.obStatementTitle,
+      subtitle: l10n.obStatementSubtitle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -79,9 +49,10 @@ class _StatementStepState extends ConsumerState<StatementStep> {
             maxLines: 2,
             textCapitalization: TextCapitalization.sentences,
             style: Theme.of(context).textTheme.titleLarge,
-            decoration: const InputDecoration(
-              hintText: 'Ich will …',
-              counterStyle: TextStyle(color: AppColors.textTertiary),
+            decoration: InputDecoration(
+              hintText: l10n.obStatementHint,
+              counterStyle:
+                  const TextStyle(color: AppColors.textTertiary),
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -100,7 +71,7 @@ class _StatementStepState extends ConsumerState<StatementStep> {
             ],
           ),
           const SizedBox(height: AppSpacing.xl),
-          Text('Wie lang ist ein Zyklus?',
+          Text(l10n.obCycleLengthTitle,
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: AppSpacing.sm),
           Row(
@@ -127,8 +98,7 @@ class _StatementStepState extends ConsumerState<StatementStep> {
                 const SizedBox(width: AppSpacing.sm + 2),
                 Expanded(
                   child: Text(
-                    'Am Ende des Zyklus ist nicht Schluss: dein Streak läuft '
-                    'weiter und du steigst in die nächste Stufe auf.',
+                    l10n.obCycleNote,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
                           fontSize: 13,
@@ -172,7 +142,7 @@ class _LengthOption extends StatelessWidget {
                 ),
           ),
           Text(
-            'Tage',
+            context.l10n.obCycleDays,
             style: Theme.of(context)
                 .textTheme
                 .labelSmall

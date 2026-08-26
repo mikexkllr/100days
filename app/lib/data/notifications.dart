@@ -4,6 +4,29 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
+/// The handful of strings the notification layer needs, resolved by the caller
+/// in whatever language the app is running in.
+///
+/// Passed in rather than looked up here so this file stays free of both
+/// Flutter's widget tree and of any one language.
+class NotificationCopy {
+  const NotificationCopy({
+    required this.appTitle,
+    required this.reminderChannelName,
+    required this.reminderChannelDescription,
+    required this.pressureChannelName,
+    required this.pressureChannelDescription,
+    required this.streakRiskTitle,
+  });
+
+  final String appTitle;
+  final String reminderChannelName;
+  final String reminderChannelDescription;
+  final String pressureChannelName;
+  final String pressureChannelDescription;
+  final String streakRiskTitle;
+}
+
 /// Local, on-device notifications.
 ///
 /// There is no push server anywhere in this app — there is no server at all —
@@ -21,24 +44,29 @@ class NotificationService {
   static const int _riskIdBase = 2000;
   static const int _socialIdBase = 3000;
 
-  static const AndroidNotificationDetails _reminderChannel =
+  /// Channel names show up in the system settings, so they are localized too.
+  /// Android updates a channel's name when it is next used with a new one.
+  static AndroidNotificationDetails _reminderChannel(
+    NotificationCopy copy,
+  ) =>
       AndroidNotificationDetails(
-    'daily_reminder',
-    'Tägliche Erinnerung',
-    channelDescription: 'Erinnert dich an deine Gewohnheiten für heute.',
-    importance: Importance.high,
-    priority: Priority.high,
-  );
+        'daily_reminder',
+        copy.reminderChannelName,
+        channelDescription: copy.reminderChannelDescription,
+        importance: Importance.high,
+        priority: Priority.high,
+      );
 
-  static const AndroidNotificationDetails _pressureChannel =
+  static AndroidNotificationDetails _pressureChannel(
+    NotificationCopy copy,
+  ) =>
       AndroidNotificationDetails(
-    'social_pressure',
-    'Freunde & Streak-Warnungen',
-    channelDescription:
-        'Wenn Freunde aktiv waren oder dein Streak auf der Kippe steht.',
-    importance: Importance.max,
-    priority: Priority.max,
-  );
+        'social_pressure',
+        copy.pressureChannelName,
+        channelDescription: copy.pressureChannelDescription,
+        importance: Importance.max,
+        priority: Priority.max,
+      );
 
   Future<bool> initialize() async {
     if (_ready) return true;
@@ -78,11 +106,11 @@ class NotificationService {
   /// state ("Tag 41, dein Streak steht") rather than a generic string, and
   /// sidesteps the timezone drift of a UTC-anchored repeat.
   Future<void> scheduleDailyReminders({
+    required NotificationCopy copy,
     required int hour,
     required int minute,
     required String Function(int dayOffset) messageBuilder,
     int days = 14,
-    String title = '100 Tage',
   }) async {
     if (!_ready) return;
     for (var i = 0; i < days; i++) {
@@ -95,16 +123,17 @@ class NotificationService {
       if (target.isBefore(now)) continue;
       await _schedule(
         id: _dailyIdBase + i,
-        title: title,
+        title: copy.appTitle,
         body: messageBuilder(i),
         when: target,
-        android: _reminderChannel,
+        android: _reminderChannel(copy),
       );
     }
   }
 
   /// The evening "your streak dies at midnight" warning.
   Future<void> scheduleStreakRisk({
+    required NotificationCopy copy,
     required int hour,
     required int minute,
     required String body,
@@ -121,10 +150,10 @@ class NotificationService {
       if (target.isBefore(now)) continue;
       await _schedule(
         id: _riskIdBase + i,
-        title: 'Dein Streak steht auf dem Spiel',
+        title: copy.streakRiskTitle,
         body: body,
         when: target,
-        android: _pressureChannel,
+        android: _pressureChannel(copy),
       );
     }
   }
@@ -132,6 +161,7 @@ class NotificationService {
   /// Fires immediately — used when a sync brings in a friend's check-in or a
   /// nudge addressed to us.
   Future<void> showNow({
+    required NotificationCopy copy,
     required int id,
     required String title,
     required String body,
@@ -141,9 +171,9 @@ class NotificationService {
       _socialIdBase + (id.abs() % 500),
       title,
       body,
-      const NotificationDetails(
-        android: _pressureChannel,
-        iOS: DarwinNotificationDetails(),
+      NotificationDetails(
+        android: _pressureChannel(copy),
+        iOS: const DarwinNotificationDetails(),
       ),
     );
   }

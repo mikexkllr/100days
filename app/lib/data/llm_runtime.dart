@@ -12,15 +12,17 @@ class LocalModelSpec {
     required this.name,
     required this.fileName,
     required this.approxBytes,
-    required this.descriptionDe,
     required this.sourceUrl,
   });
 
+  /// Stable identifier; the app's localizations describe the model under it.
   final String id;
+
+  /// The model's own name, which is not translated.
   final String name;
+
   final String fileName;
   final int approxBytes;
-  final String descriptionDe;
 
   /// Where a user can get the weights. The app never downloads a model on its
   /// own: pulling a gigabyte over someone's mobile data without asking is not
@@ -35,8 +37,6 @@ const List<LocalModelSpec> kSupportedModels = <LocalModelSpec>[
     name: 'Qwen2.5 1.5B Instruct (Q4)',
     fileName: 'qwen2.5-1.5b-instruct-q4_k_m.gguf',
     approxBytes: 1_100_000_000,
-    descriptionDe: 'Guter Kompromiss aus Qualität und Größe. '
-        'Läuft auf Mittelklasse-Geräten.',
     sourceUrl: 'https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF',
   ),
   LocalModelSpec(
@@ -44,7 +44,6 @@ const List<LocalModelSpec> kSupportedModels = <LocalModelSpec>[
     name: 'Gemma 2 2B IT (Q4)',
     fileName: 'gemma-2-2b-it-q4_k_m.gguf',
     approxBytes: 1_600_000_000,
-    descriptionDe: 'Etwas stärker im Deutschen, braucht mehr RAM.',
     sourceUrl: 'https://huggingface.co/google/gemma-2-2b-it-GGUF',
   ),
   LocalModelSpec(
@@ -52,7 +51,6 @@ const List<LocalModelSpec> kSupportedModels = <LocalModelSpec>[
     name: 'SmolLM2 360M Instruct (Q8)',
     fileName: 'smollm2-360m-instruct-q8_0.gguf',
     approxBytes: 400_000_000,
-    descriptionDe: 'Winzig und schnell, für ältere Geräte.',
     sourceUrl: 'https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct-GGUF',
   ),
 ];

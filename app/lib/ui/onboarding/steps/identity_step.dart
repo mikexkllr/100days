@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../state/onboarding_state.dart';
 import '../../../state/providers.dart';
 import '../../../theme/theme.dart';
@@ -32,15 +33,15 @@ class _IdentityStepState extends ConsumerState<IdentityStep> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     final draft = ref.watch(onboardingProvider);
     final notifier = ref.read(onboardingProvider.notifier);
     final did = ref.watch(repositoryProvider).did;
 
     return OnboardingScaffold(
-      eyebrow: 'Schritt 4',
-      title: 'Wie sollen dich deine Leute sehen?',
-      subtitle: 'Kein Konto, keine E-Mail, kein Passwort. Dein Schlüsselpaar '
-          'liegt schon auf diesem Gerät.',
+      eyebrow: l10n.obStep4,
+      title: l10n.obIdentityTitle,
+      subtitle: l10n.obIdentitySubtitle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -57,8 +58,8 @@ class _IdentityStepState extends ConsumerState<IdentityStep> {
                   maxLength: 24,
                   textCapitalization: TextCapitalization.words,
                   style: Theme.of(context).textTheme.titleLarge,
-                  decoration: const InputDecoration(
-                    hintText: 'Dein Name',
+                  decoration: InputDecoration(
+                    hintText: l10n.obIdentityNameHint,
                     counterText: '',
                   ),
                 ),
@@ -93,7 +94,7 @@ class _IdentityStepState extends ConsumerState<IdentityStep> {
                   children: <Widget>[
                     const Icon(Icons.key, size: 17, color: AppColors.violet),
                     const SizedBox(width: AppSpacing.sm),
-                    Text('Deine Identität',
+                    Text(l10n.obIdentityBoxTitle,
                         style: Theme.of(context).textTheme.titleMedium),
                   ],
                 ),
@@ -108,11 +109,7 @@ class _IdentityStepState extends ConsumerState<IdentityStep> {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'Ein Ed25519-Schlüsselpaar auf diesem Gerät, als did:key. '
-                  'Jeder Check-in wird damit signiert — deshalb kann niemand '
-                  'deinen Streak fälschen, und du brauchst niemandem zu '
-                  'vertrauen. Den Wiederherstellungs-Key findest du in den '
-                  'Einstellungen. Sichere ihn.',
+                  l10n.obIdentityBoxBody,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                         fontSize: 12.5,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../state/onboarding_state.dart';
 import '../../../theme/theme.dart';
 import '../../widgets/app_card.dart';
@@ -17,12 +18,13 @@ class SummaryStep extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations l10n = context.l10n;
     final draft = ref.watch(onboardingProvider);
     if (!draft.isReady) {
-      return const OnboardingScaffold(
-        title: 'Fast fertig',
-        subtitle: 'Ein paar Angaben fehlen noch.',
-        child: SizedBox.shrink(),
+      return OnboardingScaffold(
+        title: l10n.obSummaryAlmostDone,
+        subtitle: l10n.obSummaryMissing,
+        child: const SizedBox.shrink(),
       );
     }
 
@@ -31,8 +33,8 @@ class SummaryStep extends ConsumerWidget {
     final firstWeek = plan.training?.weeks.first;
 
     return OnboardingScaffold(
-      eyebrow: 'Dein Plan',
-      title: '${draft.lengthDays} Tage, ab heute.',
+      eyebrow: l10n.obSummaryEyebrow,
+      title: l10n.obSummaryTitle(draft.lengthDays),
       subtitle: '"${draft.statement.trim()}"',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,9 +60,11 @@ class SummaryStep extends ConsumerWidget {
                       Text(draft.displayName.trim(),
                           style: Theme.of(context).textTheme.titleLarge),
                       Text(
-                        '${goalInfo(draft.archetype!).emoji} '
-                        '${goalInfo(draft.archetype!).titleDe} · '
-                        'Tag 1 von ${draft.lengthDays}',
+                        l10n.obSummaryDayOne(
+                          goalInfo(draft.archetype!).emoji,
+                          l10n.goalTitle(draft.archetype!),
+                          draft.lengthDays,
+                        ),
                         style:
                             Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   color: AppColors.textSecondary,
@@ -73,7 +77,7 @@ class SummaryStep extends ConsumerWidget {
               ],
             ),
           ),
-          const SectionHeader('Das zählt täglich'),
+          SectionHeader(l10n.obSummaryDailySection),
           Wrap(
             spacing: AppSpacing.sm,
             runSpacing: AppSpacing.sm,
@@ -82,13 +86,13 @@ class SummaryStep extends ConsumerWidget {
                 Chip(
                   avatar: Text(habit.emoji),
                   label: Text(
-                    '${habit.displayTitle} · ${formatHabitTarget(habit)}',
+                    '${l10n.habitLabel(habit)} · ${l10n.formatTarget(habit)}',
                   ),
                 ),
             ],
           ),
           if (plan.hasNutrition) ...<Widget>[
-            const SectionHeader('Ernährungsplan'),
+            SectionHeader(l10n.obSummaryNutritionSection),
             AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,34 +102,34 @@ class SummaryStep extends ConsumerWidget {
                       Expanded(
                         child: StatTile(
                           value: '${plan.nutrition!.kcal}',
-                          label: 'kcal / Tag',
+                          label: l10n.planKcalPerDayShort,
                           color: AppColors.flame,
                         ),
                       ),
                       Expanded(
                         child: StatTile(
                           value: '${plan.nutrition!.proteinG} g',
-                          label: 'Protein',
+                          label: l10n.planProtein,
                           color: AppColors.lime,
                         ),
                       ),
                       Expanded(
                         child: StatTile(
                           value: '${plan.nutrition!.carbsG} g',
-                          label: 'Carbs',
+                          label: l10n.planCarbsShort,
                         ),
                       ),
                       Expanded(
                         child: StatTile(
                           value: '${plan.nutrition!.fatG} g',
-                          label: 'Fett',
+                          label: l10n.planFat,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    plan.nutrition!.rationaleDe,
+                    l10n.nutritionRationale(plan.nutrition!),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
                           fontSize: 12.5,
@@ -137,8 +141,8 @@ class SummaryStep extends ConsumerWidget {
           ],
           if (firstWeek != null) ...<Widget>[
             SectionHeader(
-              'Trainingsplan',
-              subtitle: plan.training!.splitNameDe,
+              l10n.obSummaryTrainingSection,
+              subtitle: l10n.splitName(plan.training!.split),
             ),
             AppCard(
               child: Column(
@@ -152,7 +156,7 @@ class SummaryStep extends ConsumerWidget {
                           SizedBox(
                             width: 34,
                             child: Text(
-                              _weekdayShort(workout.weekday),
+                              l10n.weekdayShort(workout.weekday),
                               style: Theme.of(context)
                                   .textTheme
                                   .labelSmall
@@ -161,14 +165,14 @@ class SummaryStep extends ConsumerWidget {
                           ),
                           Expanded(
                             child: Text(
-                              workout.nameDe,
+                              l10n.workoutName(workout.kind),
                               style:
                                   Theme.of(context).textTheme.titleMedium,
                             ),
                           ),
                           Text(
-                            '${workout.totalSets} Sätze · '
-                            '${workout.estimatedMinutes} Min',
+                            l10n.obSetsAndMinutes(
+                                workout.totalSets, workout.estimatedMinutes),
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -182,7 +186,7 @@ class SummaryStep extends ConsumerWidget {
                     ),
                   const Divider(height: AppSpacing.lg),
                   Text(
-                    plan.training!.rationaleDe,
+                    l10n.trainingPlanRationale(plan.training!),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
                           fontSize: 12.5,
@@ -201,8 +205,7 @@ class SummaryStep extends ConsumerWidget {
                 const SizedBox(width: AppSpacing.sm + 2),
                 Expanded(
                   child: Text(
-                    'Danach: Freunde verbinden. Allein hält es kaum jemand '
-                    '100 Tage durch — mit Publikum schon.',
+                    l10n.obSummaryFriendsNote,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
                           fontSize: 13,
@@ -216,8 +219,4 @@ class SummaryStep extends ConsumerWidget {
       ),
     );
   }
-
-  String _weekdayShort(int weekday) => const <String>[
-        'MO', 'DI', 'MI', 'DO', 'FR', 'SA', 'SO'
-      ][(weekday - 1).clamp(0, 6)];
 }

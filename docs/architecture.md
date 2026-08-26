@@ -11,8 +11,12 @@ app/                       Flutter — UI, Persistenz, Transporte, Plattform
 Die Grenze ist keine Geschmacksfrage. Alles, was stimmen *muss* — die
 Kettenprüfung, die Streak-Arithmetik, die Kalorienformel, eine vollständige
 Sync-Runde — liegt im Kern und ist ohne Emulator, ohne Kamera und ohne zwei
-Telefone im selben WLAN testbar. Der Kern hat 107 Tests, die in zwei Sekunden
-durchlaufen.
+Telefone im selben WLAN testbar. Der Kern hat über 100 Tests, die in zwei
+Sekunden durchlaufen.
+
+Der Kern kennt außerdem **keine Anzeigesprache**. Er liefert Bezeichner
+(`HabitCategory.noSugar`, `exerciseId`, `CoachTemplate`), die App formuliert
+daraus Sätze. Siehe [`localization.md`](localization.md).
 
 ## Der Feed ist die einzige Wahrheit
 

@@ -2,7 +2,34 @@ import 'package:meta/meta.dart';
 
 import '../util/dates.dart';
 import 'challenge.dart';
+import 'habit.dart';
 import 'progression.dart';
+
+/// What a peer did most recently, as data rather than as a sentence.
+///
+/// The app turns this into "Marcel: Training erledigt" or "Marcel: workout
+/// done" — the projection has no business knowing which.
+enum PeerActivityKind {
+  none,
+  challengeStarted,
+  ascended,
+  checkIn,
+  relapse,
+  streakFreeze,
+  missed,
+}
+
+@immutable
+class PeerActivity {
+  const PeerActivity({required this.kind, this.category});
+
+  static const PeerActivity none = PeerActivity(kind: PeerActivityKind.none);
+
+  final PeerActivityKind kind;
+
+  /// Set for [PeerActivityKind.checkIn] and [PeerActivityKind.relapse].
+  final HabitCategory? category;
+}
 
 /// The public profile a peer publishes on their own feed. Everything here is
 /// self-asserted, which is fine — the numbers that matter (streak, XP) are
@@ -67,7 +94,7 @@ class PeerState {
     required this.tier,
     required this.activeToday,
     required this.lastActivityAt,
-    required this.lastActivityLabel,
+    required this.lastActivity,
     required this.headSeq,
     this.challenge,
   });
@@ -81,7 +108,7 @@ class PeerState {
   final ChallengeTier tier;
   final bool activeToday;
   final DateTime? lastActivityAt;
-  final String lastActivityLabel;
+  final PeerActivity lastActivity;
   final int headSeq;
   final Challenge? challenge;
 

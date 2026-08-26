@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
 import '../../data/app_repository.dart';
+import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
@@ -31,9 +32,11 @@ class SocialScreen extends ConsumerWidget {
               indicatorColor: AppColors.flame,
               dividerColor: AppColors.outline,
               tabs: <Widget>[
-                const Tab(text: 'Feed'),
-                const Tab(text: 'Liga'),
-                Tab(text: 'Freunde (${snapshot.friends.length})'),
+                Tab(text: context.l10n.socialTabFeed),
+                Tab(text: context.l10n.socialTabLeague),
+                Tab(
+                  text: context.l10n.socialTabFriends(snapshot.friends.length),
+                ),
               ],
             ),
             Expanded(
@@ -60,11 +63,10 @@ class _FeedTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (snapshot.activity.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         emoji: '📡',
-        title: 'Noch nichts im Feed',
-        body: 'Sobald du oder deine Freunde etwas abhaken, steht es hier — '
-            'signiert und nachprüfbar.',
+        title: context.l10n.feedEmptyTitle,
+        body: context.l10n.feedEmptyBody,
       );
     }
 
@@ -100,7 +102,9 @@ class _ActivityRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations l10n = context.l10n;
     final Color accent = _accent();
+    final String? detail = l10n.activityDetail(item);
     return AppCard(
       onTap: item.isOwn
           ? null
@@ -141,16 +145,16 @@ class _ActivityRow extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  item.headline,
+                  l10n.activityHeadline(item),
                   style: Theme.of(context)
                       .textTheme
                       .titleMedium
                       ?.copyWith(color: accent),
                 ),
-                if (item.detail != null) ...<Widget>[
+                if (detail != null) ...<Widget>[
                   const SizedBox(height: 2),
                   Text(
-                    item.detail!,
+                    detail,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
                           fontSize: 12.5,
@@ -167,20 +171,20 @@ class _ActivityRow extends ConsumerWidget {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: <Widget>[
                     Text(
-                      formatRelative(item.timestamp),
+                      l10n.formatRelative(item.timestamp),
                       style: Theme.of(context)
                           .textTheme
                           .labelSmall
                           ?.copyWith(color: AppColors.textTertiary),
                     ),
                     if (item.isVerifiedLive)
-                      const Pill(
-                        'verifiziert',
+                      Pill(
+                        l10n.feedVerified,
                         color: AppColors.lime,
                         icon: Icons.verified_outlined,
                       )
                     else
-                      const Pill('nachgetragen',
+                      Pill(l10n.feedBackfilledBadge,
                           color: AppColors.textTertiary),
                     if (!item.isOwn && item.kind == ActivityKind.checkIn)
                       _CheerButton(
@@ -224,12 +228,13 @@ class _CheerButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations l10n = context.l10n;
     return TextButton.icon(
       onPressed: alreadyCheered
           ? null
           : () => ref.read(appStateProvider.notifier).cheer(
                 item.author,
-                'Respekt für ${item.emoji}',
+                l10n.nudgeCheerRespect(item.emoji),
                 eventHash: item.eventHash,
               ),
       style: TextButton.styleFrom(
@@ -244,7 +249,7 @@ class _CheerButton extends ConsumerWidget {
             : Icons.whatshot_outlined,
         size: 16,
       ),
-      label: Text(alreadyCheered ? 'Gefeiert' : 'Feiern'),
+      label: Text(alreadyCheered ? l10n.feedCheered : l10n.feedCheer),
     );
   }
 }

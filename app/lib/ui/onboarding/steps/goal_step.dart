@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../state/onboarding_state.dart';
 import '../../../theme/theme.dart';
 import '../../widgets/app_card.dart';
@@ -13,13 +14,13 @@ class GoalStep extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations l10n = context.l10n;
     final draft = ref.watch(onboardingProvider);
 
     return OnboardingScaffold(
-      eyebrow: 'Schritt 1',
-      title: 'Worum geht es?',
-      subtitle: 'Ein Ziel. Alles andere — Trainingsplan, Ernährungsplan, '
-          'Streak — wird daraus gebaut.',
+      eyebrow: l10n.obStep1,
+      title: l10n.obGoalTitle,
+      subtitle: l10n.obGoalSubtitle,
       child: Column(
         children: <Widget>[
           for (final GoalArchetypeInfo info in kGoalCatalog.values)
@@ -52,6 +53,7 @@ class _GoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     return AppCard(
       onTap: onTap,
       border: selected ? AppColors.flame : null,
@@ -67,12 +69,12 @@ class _GoalCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  info.titleDe,
+                  l10n.goalTitle(info.archetype),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  info.pitchDe,
+                  l10n.goalPitch(info.archetype),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                         fontSize: 13,

@@ -7,35 +7,32 @@ import 'habit.dart';
 /// The challenge does not end on day 100 — that is the whole premise of
 /// "100 days and far beyond". Day 100 closes a *cycle*; the streak keeps
 /// counting and the user ascends into the next tier.
+/// A tier is identified by its index; the app looks up the name. Tiers past
+/// the named ones repeat the last emoji and are numbered by the app.
 @immutable
 class ChallengeTier {
-  const ChallengeTier({
-    required this.index,
-    required this.nameDe,
-    required this.emoji,
-  });
+  const ChallengeTier({required this.index, required this.emoji});
 
   final int index;
-  final String nameDe;
   final String emoji;
+
+  /// True once the user has gone past every named tier, at which point the
+  /// app numbers them instead ("Legend 3").
+  bool get isNumbered => index >= kNamedTierCount;
+
+  /// 2 for the first unnamed tier, 3 for the next, and so on.
+  int get numberedRank => index - kNamedTierCount + 2;
 }
 
-const List<ChallengeTier> kChallengeTiers = <ChallengeTier>[
-  ChallengeTier(index: 0, nameDe: 'Die ersten 100', emoji: '🔥'),
-  ChallengeTier(index: 1, nameDe: 'Jenseits der 100', emoji: '⚡'),
-  ChallengeTier(index: 2, nameDe: 'Dreihundert', emoji: '🌘'),
-  ChallengeTier(index: 3, nameDe: 'Das Jahr', emoji: '🌍'),
-  ChallengeTier(index: 4, nameDe: 'Unbeugsam', emoji: '🗿'),
-  ChallengeTier(index: 5, nameDe: 'Legende', emoji: '👑'),
-];
+/// How many tiers have a name of their own in the localizations.
+const int kNamedTierCount = 6;
 
-ChallengeTier tierForCycle(int cycle) => cycle < kChallengeTiers.length
-    ? kChallengeTiers[cycle]
-    : ChallengeTier(
-        index: cycle,
-        nameDe: 'Legende ${cycle - kChallengeTiers.length + 2}',
-        emoji: '👑',
-      );
+const List<String> _tierEmoji = <String>['🔥', '⚡', '🌘', '🌍', '🗿', '👑'];
+
+ChallengeTier tierForCycle(int cycle) => ChallengeTier(
+      index: cycle,
+      emoji: cycle < _tierEmoji.length ? _tierEmoji[cycle] : '👑',
+    );
 
 /// Day counts worth interrupting the user for.
 const List<int> kMilestoneDays = <int>[

@@ -259,14 +259,14 @@ void main() {
     });
 
     test('a fresh account cannot land in a high league', () {
-      expect(leagueForXp(0), League.holz);
+      expect(leagueForXp(0), League.wood);
       expect(leagueForXp(30000), League.obsidian);
     });
 
     test('the standing ranks by weekly XP, then streak', () {
       final standing = buildLeagueStanding(
         weekKey: '2026-W10',
-        league: League.silber,
+        league: League.silver,
         entries: const <LeagueEntry>[
           LeagueEntry(
             did: 'did:key:zA',

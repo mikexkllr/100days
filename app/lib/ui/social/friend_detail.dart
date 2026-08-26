@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
 import '../../data/app_repository.dart';
+import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
@@ -16,10 +17,11 @@ class FriendDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations l10n = context.l10n;
     final AsyncValue<AppSnapshot> async = ref.watch(appStateProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profil')),
+      appBar: AppBar(title: Text(l10n.profileTitle)),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (Object error, StackTrace _) => Center(child: Text('$error')),
@@ -30,10 +32,10 @@ class FriendDetailScreen extends ConsumerWidget {
           ].where((UserProjection f) => f.did == did).firstOrNull;
 
           if (friend == null) {
-            return const EmptyState(
+            return EmptyState(
               emoji: '🕳️',
-              title: 'Unbekannt',
-              body: 'Zu dieser Identität liegt nichts auf deinem Gerät.',
+              title: l10n.profileUnknownTitle,
+              body: l10n.profileUnknownBody,
             );
           }
 
@@ -78,8 +80,11 @@ class FriendDetailScreen extends ConsumerWidget {
                                       .textTheme
                                       .headlineMedium),
                               Text(
-                                '${peer.tier.emoji} ${peer.tier.nameDe} · '
-                                'Level ${peer.level}',
+                                l10n.homeLevelAndTier(
+                                  peer.tier.emoji,
+                                  l10n.tierName(peer.tier),
+                                  peer.level,
+                                ),
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -112,26 +117,26 @@ class FriendDetailScreen extends ConsumerWidget {
                         Expanded(
                           child: StatTile(
                             value: '${peer.currentStreak}',
-                            label: 'Streak',
+                            label: l10n.statStreak,
                             color: AppColors.flame,
                           ),
                         ),
                         Expanded(
                           child: StatTile(
                             value: '${peer.longestStreak}',
-                            label: 'Rekord',
+                            label: l10n.statRecord,
                           ),
                         ),
                         Expanded(
                           child: StatTile(
                             value: '${peer.dayNumber}',
-                            label: 'Tag',
+                            label: l10n.statDay,
                           ),
                         ),
                         Expanded(
                           child: StatTile(
                             value: '${peer.lifetimeXp}',
-                            label: 'XP',
+                            label: l10n.statXp,
                             color: AppColors.lime,
                           ),
                         ),
@@ -151,8 +156,8 @@ class FriendDetailScreen extends ConsumerWidget {
                           ref,
                           nudge: true,
                           text: peer.activeToday
-                              ? 'Stark heute. Morgen wieder?'
-                              : 'Ich war heute schon. Und du?',
+                              ? l10n.nudgeStrongToday
+                              : l10n.nudgeDefaultPoke,
                         ),
                         style: FilledButton.styleFrom(
                           minimumSize: const Size.fromHeight(48),
@@ -160,7 +165,7 @@ class FriendDetailScreen extends ConsumerWidget {
                           foregroundColor: Colors.white,
                         ),
                         icon: const Icon(Icons.visibility_outlined, size: 18),
-                        label: const Text('Anstupsen'),
+                        label: Text(l10n.profileNudge),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
@@ -170,19 +175,19 @@ class FriendDetailScreen extends ConsumerWidget {
                           context,
                           ref,
                           nudge: false,
-                          text: 'Respekt, ${peer.currentStreak} Tage!',
+                          text: l10n.cheerRespectStreak(peer.currentStreak),
                         ),
                         style: OutlinedButton.styleFrom(
                             minimumSize: const Size.fromHeight(48)),
                         icon: const Icon(Icons.whatshot_outlined, size: 18),
-                        label: const Text('Feiern'),
+                        label: Text(l10n.profileCheer),
                       ),
                     ),
                   ],
                 ),
               ],
               if (friend.challenge != null) ...<Widget>[
-                const SectionHeader('Verlauf'),
+                SectionHeader(l10n.profileHistory),
                 AppCard(
                   child: Column(
                     children: <Widget>[
@@ -203,7 +208,7 @@ class FriendDetailScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const SectionHeader('Gewohnheiten'),
+                SectionHeader(l10n.profileHabits),
                 for (final Habit habit in friend.challenge!.habits)
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -218,12 +223,13 @@ class FriendDetailScreen extends ConsumerWidget {
                               style: const TextStyle(fontSize: 20)),
                           const SizedBox(width: AppSpacing.sm + 4),
                           Expanded(
-                            child: Text(habit.displayTitle,
+                            child: Text(l10n.habitLabel(habit),
                                 style:
                                     Theme.of(context).textTheme.titleMedium),
                           ),
                           Text(
-                            '${friend.habitStreaks[habit.id] ?? 0} Tage',
+                            l10n.profileDaysCount(
+                                friend.habitStreaks[habit.id] ?? 0),
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -241,7 +247,7 @@ class FriendDetailScreen extends ConsumerWidget {
                   style: TextButton.styleFrom(
                       foregroundColor: AppColors.danger),
                   icon: const Icon(Icons.person_remove_outlined, size: 18),
-                  label: const Text('Verbindung trennen'),
+                  label: Text(l10n.profileDisconnect),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: AppSpacing.sm),
@@ -277,7 +283,9 @@ class FriendDetailScreen extends ConsumerWidget {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(nudge ? 'Anstupser gesendet.' : 'Gefeiert.'),
+        content: Text(nudge
+            ? context.l10n.profileNudgeSent
+            : context.l10n.profileCheerSent),
       ),
     );
   }
@@ -287,19 +295,17 @@ class FriendDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     PeerState peer,
   ) async {
+    final AppLocalizations l10n = context.l10n;
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text('${peer.profile.displayName} entfernen?'),
-        content: const Text(
-          'Die komplette Historie dieser Person wird von deinem Gerät '
-          'gelöscht. Rückgängig geht das nur durch erneutes Verbinden.',
-        ),
+        title: Text(l10n.profileRemoveTitle(peer.profile.displayName)),
+        content: Text(l10n.profileRemoveBody),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Abbrechen'),
+            child: Text(l10n.actionCancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -307,7 +313,7 @@ class FriendDetailScreen extends ConsumerWidget {
               minimumSize: const Size(120, 44),
             ),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Entfernen'),
+            child: Text(l10n.actionRemove),
           ),
         ],
       ),

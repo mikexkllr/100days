@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hundred_core/hundred_core.dart';
 
+import '../../l10n/l10n.dart';
 import '../../theme/theme.dart';
 import 'app_card.dart';
 
@@ -24,6 +25,7 @@ class PressureBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (activePeers.isEmpty) return const SizedBox.shrink();
+    final AppLocalizations l10n = context.l10n;
 
     final bool behind = !doneToday;
     final Color accent = behind ? AppColors.violet : AppColors.lime;
@@ -64,7 +66,7 @@ class PressureBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  _headline(),
+                  _headline(l10n),
                   style: Theme.of(context)
                       .textTheme
                       .titleMedium
@@ -72,7 +74,7 @@ class PressureBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  _body(),
+                  _body(l10n),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                         fontSize: 13,
@@ -87,19 +89,16 @@ class PressureBanner extends StatelessWidget {
     );
   }
 
-  String _headline() {
-    if (activePeers.length == 1) {
-      return '${activePeers.first.profile.displayName} war heute schon dran';
-    }
-    return '${activePeers.length} deiner Leute waren heute schon dran';
-  }
+  String _headline(AppLocalizations l10n) => activePeers.length == 1
+      ? l10n.pressureOneActive(activePeers.first.profile.displayName)
+      : l10n.pressureManyActive(activePeers.length);
 
-  String _body() {
-    if (!doneToday) {
-      final PeerState leader = activePeers.first;
-      return '${leader.lastActivityLabel} · ${leader.currentStreak} Tage '
-          'Streak. Du stehst heute noch auf null.';
-    }
-    return 'Du auch. Weiter so.';
+  String _body(AppLocalizations l10n) {
+    if (doneToday) return l10n.pressureBodyDone;
+    final PeerState leader = activePeers.first;
+    return l10n.pressureBodyBehind(
+      l10n.peerActivityLabel(leader.lastActivity),
+      leader.currentStreak,
+    );
   }
 }

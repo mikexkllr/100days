@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hundred_core/hundred_core.dart';
 
 import '../../data/app_repository.dart';
+import '../../l10n/l10n.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
 
@@ -17,6 +18,7 @@ class LeagueTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     final LeagueStanding standing = snapshot.league;
     final int myRank = standing.rankOf(snapshot.me.did);
 
@@ -46,11 +48,11 @@ class LeagueTab extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text('${standing.league.nameDe}-Liga',
+                    Text(l10n.leagueTitle(l10n.leagueName(standing.league)),
                         style: Theme.of(context).textTheme.titleLarge),
                     Text(
-                      'Woche ${standing.weekKey} · '
-                      '${standing.entries.length} Teilnehmer',
+                      l10n.leagueWeekAndPeople(
+                          standing.weekKey, standing.entries.length),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppColors.textSecondary,
                             fontSize: 12.5,
@@ -65,7 +67,7 @@ class LeagueTab extends StatelessWidget {
                     Text('#$myRank',
                         style: Theme.of(context).textTheme.headlineMedium),
                     Text(
-                      'dein Platz',
+                      l10n.leagueYourRank,
                       style: Theme.of(context)
                           .textTheme
                           .labelSmall
@@ -81,8 +83,7 @@ class LeagueTab extends StatelessWidget {
           AppCard(
             color: AppColors.surfaceHigh,
             child: Text(
-              'Eine Liga mit einer Person ist nur eine Liste. Verbinde '
-              'Freunde, dann fängt der Wettkampf an.',
+              l10n.leagueTooSmall,
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
@@ -90,7 +91,7 @@ class LeagueTab extends StatelessWidget {
             ),
           ),
         ],
-        const SectionHeader('Diese Woche'),
+        SectionHeader(l10n.leagueThisWeek),
         for (int i = 0; i < standing.entries.length; i++)
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -104,8 +105,7 @@ class LeagueTab extends StatelessWidget {
           ),
         const SizedBox(height: AppSpacing.md),
         Text(
-          'XP gibt es pro Check-in, skaliert mit Schwierigkeit und Streak. '
-          'Am Sonntag steigen die oberen Plätze auf, die unteren ab.',
+          l10n.leagueFooter,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.textTertiary,
                 fontSize: 12.5,
@@ -133,6 +133,7 @@ class _LeagueRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     final Color? zone = promoting
         ? AppColors.lime
         : demoting
@@ -172,7 +173,9 @@ class _LeagueRow extends StatelessWidget {
                   children: <Widget>[
                     Flexible(
                       child: Text(
-                        isMe ? '${entry.displayName} (du)' : entry.displayName,
+                        isMe
+                            ? l10n.leagueYouSuffix(entry.displayName)
+                            : entry.displayName,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
@@ -180,7 +183,7 @@ class _LeagueRow extends StatelessWidget {
                     if (entry.currentStreak > 0) ...<Widget>[
                       const SizedBox(width: AppSpacing.sm),
                       Text(
-                        '${entry.currentStreak}🔥',
+                        l10n.tileStreakBadge(entry.currentStreak),
                         style: Theme.of(context)
                             .textTheme
                             .bodyMedium
@@ -191,8 +194,8 @@ class _LeagueRow extends StatelessWidget {
                 ),
                 Text(
                   entry.activeToday
-                      ? 'Heute schon aktiv'
-                      : 'Heute noch nichts',
+                      ? l10n.leagueActiveToday
+                      : l10n.leagueNothingToday,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: entry.activeToday
                             ? AppColors.lime
@@ -209,7 +212,7 @@ class _LeagueRow extends StatelessWidget {
               Text('${entry.weeklyXp}',
                   style: Theme.of(context).textTheme.titleLarge),
               Text(
-                'XP',
+                l10n.statXp,
                 style: Theme.of(context)
                     .textTheme
                     .labelSmall

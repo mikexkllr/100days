@@ -21,6 +21,17 @@ void main() {
       expect(basalMetabolicRate(female), 1830 - 5 - 161);
     });
 
+    test('a mindset goal is flagged as not driven by nutrition', () {
+      final plan = buildNutritionPlan(const Goal(
+        archetype: GoalArchetype.clarity,
+        statement: 'x',
+        body: _body,
+      ));
+
+      expect(plan.strategy, NutritionStrategy.maintenance);
+      expect(plan.goalDrivesNutrition, isFalse);
+    });
+
     test('a fat-loss goal produces a deficit and high protein', () {
       final plan = buildNutritionPlan(const Goal(
         archetype: GoalArchetype.loseFat,
@@ -29,6 +40,8 @@ void main() {
       ));
 
       expect(plan.kcal, lessThan(plan.tdee));
+      expect(plan.strategy, NutritionStrategy.deficit);
+      expect(plan.deltaPercent, 20);
       expect(plan.proteinG, (85 * 2.2).round());
       expect(plan.weeklyWeightChangeKg, lessThan(0));
     });
@@ -41,6 +54,7 @@ void main() {
       ));
 
       expect(plan.kcal, greaterThan(plan.tdee));
+      expect(plan.strategy, NutritionStrategy.surplus);
       expect(plan.kcal - plan.tdee, lessThan(plan.tdee * 0.2));
     });
 
@@ -73,6 +87,19 @@ void main() {
       expect((fromMacros - plan.kcal).abs(), lessThan(20));
     });
 
+    test('every meal slot appears exactly once', () {
+      final plan = buildNutritionPlan(const Goal(
+        archetype: GoalArchetype.getFit,
+        statement: 'x',
+        body: _body,
+      ));
+
+      expect(
+        plan.meals.map((MealSlot m) => m.kind),
+        MealSlotKind.values,
+      );
+    });
+
     test('meal shares sum to the whole day', () {
       final plan = buildNutritionPlan(const Goal(
         archetype: GoalArchetype.getFit,
@@ -83,8 +110,6 @@ void main() {
           plan.meals.fold<double>(0, (double a, MealSlot m) => a + m.share);
 
       expect(shares, closeTo(1.0, 0.001));
-      expect(plan.meals.every((MealSlot m) => m.suggestionsDe.isNotEmpty),
-          isTrue);
     });
 
     test('refuses to guess without body stats', () {
@@ -104,7 +129,7 @@ void main() {
         trainingDaysPerWeek: 4,
       ));
 
-      expect(plan.splitNameDe, contains('Upper'));
+      expect(plan.split, SplitKind.upperLower);
       expect(plan.weeks.first.workouts, hasLength(4));
     });
 
@@ -116,7 +141,10 @@ void main() {
       ));
 
       expect(plan.weeks[3].isDeload, isTrue);
+      expect(plan.weeks[3].weekInBlock, 4);
+      expect(plan.weeks[3].blockNumber, 1);
       expect(plan.weeks[7].isDeload, isTrue);
+      expect(plan.weeks[7].blockNumber, 2);
       expect(
         plan.weeks[3].workouts.first.totalSets,
         lessThan(plan.weeks[2].workouts.first.totalSets),
@@ -147,7 +175,7 @@ void main() {
             expect(
               block.exercise.minEquipment,
               EquipmentAccess.bodyweight,
-              reason: '${block.exercise.nameDe} needs equipment',
+              reason: '${block.exerciseId} needs equipment',
             );
           }
         }
@@ -223,7 +251,13 @@ void main() {
   group('abstinence milestones', () {
     test('reports the milestone just passed and the next one', () {
       expect(currentMilestone(HabitCategory.noAlcohol, 8)!.day, 7);
+      expect(currentMilestone(HabitCategory.noAlcohol, 8)!.id, 'alcohol_7');
       expect(nextMilestone(HabitCategory.noAlcohol, 8)!.day, 14);
+    });
+
+    test('maps each abstinence habit to its own track', () {
+      expect(trackFor(HabitCategory.noFap), AbstinenceTrack.noFap);
+      expect(trackFor(HabitCategory.reading), AbstinenceTrack.generic);
     });
 
     test('has no current milestone on day zero', () {

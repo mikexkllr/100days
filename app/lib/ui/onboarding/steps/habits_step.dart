@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../state/onboarding_state.dart';
 import '../../../theme/theme.dart';
 import '../../widgets/app_card.dart';
@@ -30,6 +31,7 @@ class HabitsStep extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations l10n = context.l10n;
     final draft = ref.watch(onboardingProvider);
     final notifier = ref.read(onboardingProvider.notifier);
     final suggested = draft.archetype == null
@@ -37,13 +39,11 @@ class HabitsStep extends ConsumerWidget {
         : goalInfo(draft.archetype!).suggestedHabits.toSet();
 
     return OnboardingScaffold(
-      eyebrow: 'Schritt 3',
-      title: 'Was zählt jeden Tag?',
+      eyebrow: l10n.obStep3,
+      title: l10n.obHabitsTitle,
       subtitle: draft.selectedHabits.length > 4
-          ? 'Das sind viele. Erfahrungsgemäß hält man drei bis vier durch — '
-              'lieber weniger und dafür wirklich.'
-          : 'Vorausgewählt ist, was zu deinem Ziel passt. Ändere es, wie du '
-              'willst.',
+          ? l10n.obHabitsSubtitleTooMany
+          : l10n.obHabitsSubtitlePreselected,
       child: Column(
         children: <Widget>[
           for (final HabitCategory category in _order)
@@ -86,6 +86,7 @@ class _HabitRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     return AppCard(
       onTap: onToggle,
       border: selected ? AppColors.lime.withValues(alpha: 0.7) : null,
@@ -109,19 +110,20 @@ class _HabitRow extends StatelessWidget {
                       children: <Widget>[
                         Flexible(
                           child: Text(
-                            definition.titleDe,
+                            l10n.habitTitle(definition.category),
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
                         if (suggested && !selected) ...<Widget>[
                           const SizedBox(width: AppSpacing.sm),
-                          const Pill('empfohlen', color: AppColors.flame),
+                          Pill(l10n.obHabitRecommended,
+                              color: AppColors.flame),
                         ],
                       ],
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      definition.blurbDe,
+                      l10n.habitBlurb(definition.category),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppColors.textSecondary,
                             fontSize: 12.5,
@@ -146,7 +148,7 @@ class _HabitRow extends StatelessWidget {
             Row(
               children: <Widget>[
                 Text(
-                  'Tagesziel',
+                  l10n.obHabitDailyTarget,
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium
@@ -165,9 +167,9 @@ class _HabitRow extends StatelessWidget {
                 SizedBox(
                   width: 84,
                   child: Text(
-                    formatHabitTarget(
-                      Habit.fromCategory(definition.category)
-                          .copyWith(target: target),
+                    l10n.formatTarget(
+                      Habit.fromCategory(definition.category),
+                      value: target,
                     ),
                     textAlign: TextAlign.end,
                     style: Theme.of(context).textTheme.titleMedium,

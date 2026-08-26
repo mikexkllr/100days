@@ -8,9 +8,11 @@ import 'app.dart';
 import 'data/app_repository.dart';
 import 'data/key_store.dart';
 import 'data/lan_transport.dart';
+import 'data/locale_store.dart';
 import 'data/notifications.dart';
 import 'data/sqlite_feed_store.dart';
 import 'data/sync_service.dart';
+import 'l10n/l10n.dart';
 import 'state/providers.dart';
 
 /// The name peers see during a handshake.
@@ -34,6 +36,8 @@ Future<void> main() async {
 
   final NotificationService notifications = NotificationService();
   await notifications.initialize();
+
+  final LocaleStore localeStore = await LocaleStore.open();
 
   final SyncService sync = SyncService(
     store: store,
@@ -63,6 +67,7 @@ Future<void> main() async {
       notificationsProvider.overrideWithValue(notifications),
       syncServiceProvider.overrideWithValue(sync),
       lanTransportProvider.overrideWithValue(lan),
+      localeStoreProvider.overrideWithValue(localeStore),
     ],
     child: const _Bootstrap(child: HundredDaysApp()),
   ));
@@ -116,6 +121,20 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
     }
   }
 
+  /// Notification text is resolved outside the widget tree, so it follows the
+  /// same language setting the screens do.
+  Future<AppLocalizations> _strings() =>
+      AppLocalizations.delegate.load(ref.read(effectiveLocaleProvider));
+
+  NotificationCopy _copy(AppLocalizations l10n) => NotificationCopy(
+        appTitle: l10n.appTitle,
+        reminderChannelName: l10n.notifChannelReminder,
+        reminderChannelDescription: l10n.notifChannelReminderDesc,
+        pressureChannelName: l10n.notifChannelPressure,
+        pressureChannelDescription: l10n.notifChannelPressureDesc,
+        streakRiskTitle: l10n.notifStreakRiskTitle,
+      );
+
   Future<void> _onSyncEvent(SyncEvent event) async {
     if (!event.broughtSomething) return;
     await ref.read(appStateProvider.notifier).refresh();
@@ -128,12 +147,14 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
         .toList();
     if (active.isEmpty) return;
 
+    final AppLocalizations l10n = await _strings();
     await ref.read(notificationsProvider).showNow(
+          copy: _copy(l10n),
           id: snapshot.today.toString().hashCode,
           title: active.length == 1
-              ? '${active.first.profile.displayName} war heute schon dran'
-              : '${active.length} deiner Leute waren heute schon dran',
-          body: 'Du stehst noch auf null. Noch ist der Tag nicht rum.',
+              ? l10n.notifFriendActive(active.first.profile.displayName)
+              : l10n.notifFriendsActive(active.length),
+          body: l10n.notifFriendsActiveBody,
         );
   }
 
@@ -144,32 +165,38 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
   /// something generic.
   Future<void> _scheduleReminders(AppSnapshot snapshot) async {
     final String signature = '${snapshot.today}-${snapshot.me.streak.current}-'
-        '${snapshot.me.streak.doneToday}';
+        '${snapshot.me.streak.doneToday}-'
+        '${ref.read(effectiveLocaleProvider).languageCode}';
     if (_lastScheduledFor == signature) return;
     _lastScheduledFor = signature;
 
     final NotificationService notifications = ref.read(notificationsProvider);
     final Challenge challenge = snapshot.challenge!;
     final int streak = snapshot.me.streak.current;
+    final AppLocalizations l10n = await _strings();
+    final NotificationCopy copy = _copy(l10n);
 
     await notifications.scheduleDailyReminders(
+      copy: copy,
       hour: 18,
       minute: 30,
       messageBuilder: (int offset) {
         final int day = challenge.dayNumber(snapshot.today.addDays(offset));
         if (offset == 0 && snapshot.me.streak.doneToday) {
-          return 'Tag $day steht. Morgen wieder.';
+          return l10n.notifDayDone(day);
         }
-        return 'Tag $day von ${challenge.lengthDays}. '
-            '${streak > 0 ? '$streak Tage Streak wollen verteidigt werden.' : 'Heute wieder anfangen.'}';
+        return streak > 0
+            ? l10n.notifDayOpenWithStreak(day, challenge.lengthDays, streak)
+            : l10n.notifDayOpenNoStreak(day, challenge.lengthDays);
       },
     );
 
     if (streak >= 3) {
       await notifications.scheduleStreakRisk(
+        copy: copy,
         hour: 21,
         minute: 30,
-        body: '$streak Tage. Ein vergessener Abend, und sie sind weg.',
+        body: l10n.notifStreakRiskBody(streak),
       );
     }
   }

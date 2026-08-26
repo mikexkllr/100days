@@ -33,7 +33,10 @@ PeerState _peer(
       tier: tierForCycle(0),
       activeToday: activeToday,
       lastActivityAt: lastActivity ?? DateTime.now(),
-      lastActivityLabel: 'Training erledigt',
+      lastActivity: const PeerActivity(
+        kind: PeerActivityKind.checkIn,
+        category: HabitCategory.gym,
+      ),
       headSeq: streak,
     );
 
@@ -170,20 +173,20 @@ void main() {
   });
 
   group('HeuristicCoach', () {
-    test('always produces a non-empty briefing', () async {
+    test('always produces a directive, whatever the state', () async {
       for (final bool done in <bool>[true, false]) {
         for (final int day in <int>[1, 10, 30, 100, 240]) {
-          final message = await coach.dailyBriefing(
+          final directive = await coach.dailyBriefing(
               _context(currentStreak: day, doneToday: done, dayNumber: day));
-          expect(message.headline, isNotEmpty);
-          expect(message.body, isNotEmpty);
-          expect(message.source, 'heuristic');
+          expect(directive.source, CoachSource.heuristic);
+          expect(directive.dayNumber, day);
+          expect(directive.streak, day);
         }
       }
     });
 
     test('names the friends who already went today', () async {
-      final message = await coach.dailyBriefing(_context(
+      final directive = await coach.dailyBriefing(_context(
         currentStreak: 4,
         doneToday: false,
         peers: <PeerState>[
@@ -192,17 +195,73 @@ void main() {
         ],
       ));
 
-      expect(message.body, contains('Marcel'));
-      expect(message.body, contains('Lisa'));
+      expect(directive.tone, CoachTone.socialPressure);
+      expect(
+        directive.peers.map((PeerMention p) => p.displayName),
+        containsAll(<String>['Marcel', 'Lisa']),
+      );
+      expect(directive.extraPeerCount, 0);
     });
 
-    test('is stable within a day and can change across days', () async {
+    test('caps the named friends and counts the rest', () async {
+      final directive = await coach.dailyBriefing(_context(
+        currentStreak: 4,
+        doneToday: false,
+        peers: <PeerState>[
+          for (int i = 0; i < 7; i++)
+            _peer('P\$i', streak: 3, activeToday: true),
+        ],
+      ));
+
+      expect(directive.peers, hasLength(HeuristicCoach.maxNamedPeers));
+      expect(directive.extraPeerCount, 7 - HeuristicCoach.maxNamedPeers);
+    });
+
+    test('points at the leader when nobody went today', () async {
+      final directive = await coach.dailyBriefing(_context(
+        currentStreak: 4,
+        doneToday: false,
+        peers: <PeerState>[
+          _peer('Marcel', streak: 30, activeToday: false),
+        ],
+      ));
+
+      expect(directive.template, CoachTemplate.pressureLeaderAhead);
+      expect(directive.peers.single.displayName, 'Marcel');
+      expect(directive.peers.single.streak, 30);
+    });
+
+    test('is stable within a day', () async {
       final first = await coach
           .dailyBriefing(_context(currentStreak: 9, doneToday: false));
       final again = await coach
           .dailyBriefing(_context(currentStreak: 9, doneToday: false));
 
-      expect(again.body, equals(first.body));
+      expect(again.template, first.template);
+    });
+
+    test('carries the days left to the next milestone', () async {
+      final directive = await coach
+          .dailyBriefing(_context(currentStreak: 8, doneToday: true, dayNumber: 8));
+
+      expect(directive.tone, CoachTone.steady);
+      expect(directive.milestoneDay, 14);
+      expect(directive.daysToMilestone, 6);
+    });
+
+    test('picks the celebration that matches the day', () async {
+      expect(
+        (await coach.dailyBriefing(
+                _context(currentStreak: 100, doneToday: true, dayNumber: 100)))
+            .template,
+        CoachTemplate.celebrateHundred,
+      );
+      expect(
+        (await coach.dailyBriefing(
+                _context(currentStreak: 7, doneToday: true, dayNumber: 7)))
+            .template,
+        CoachTemplate.celebrateWeek,
+      );
     });
 
     test('suggests nudges only for friends who are behind', () async {
@@ -217,63 +276,94 @@ void main() {
 
       expect(suggestions, hasLength(1));
       expect(suggestions.single.targetDid, contains('Marcel'));
-      expect(suggestions.single.text, isNotEmpty);
+      expect(suggestions.single.reason, NudgeReason.nothingToday);
+      expect(suggestions.single.peerStreak, 12);
     });
 
     test('tells a solo user to invite someone', () async {
-      final tips = await coach
+      final advice = await coach
           .planAdjustments(_context(currentStreak: 5, doneToday: true));
 
-      expect(tips.any((String t) => t.contains('eingeladen') ||
-          t.contains('lade jemanden ein')), isTrue);
+      expect(
+        advice.map((PlanAdvice a) => a.kind),
+        contains(PlanAdviceKind.inviteSomeone),
+      );
     });
 
     test('recommends cutting scope when the hit rate collapses', () async {
-      final tips = await coach.planAdjustments(_context(
+      final advice = await coach.planAdjustments(_context(
         currentStreak: 0,
         doneToday: false,
         dayNumber: 20,
         completionRate: 0.3,
       ));
 
-      expect(tips.first, contains('%'));
+      expect(advice.first.kind, PlanAdviceKind.cutScope);
+      expect(advice.first.completionPercent, 30);
+    });
+
+    test('pairs a relapse with advice for that specific habit', () async {
+      expect(
+        recoveryHintFor(HabitCategory.noFap),
+        RecoveryHint.digitalTrigger,
+      );
+      expect(
+        recoveryHintFor(HabitCategory.noSugar),
+        RecoveryHint.sugarBreakfast,
+      );
+      expect(
+        recoveryHintFor(HabitCategory.reading),
+        RecoveryHint.smallestVersion,
+      );
     });
   });
 
   group('LocalLlmCoach', () {
     test('uses the model output when it parses', () async {
-      final runtime = _FakeRuntime('TITEL: Heute zählt\nTEXT: Zwei Sätze, '
-          'ein Ziel. Mach den Haken dran.');
+      final runtime = _FakeRuntime(
+          'TITLE: Today counts\nTEXT: One goal. Go and tick it off.');
       final llm = LocalLlmCoach(runtime: runtime);
 
-      final message = await llm
+      final directive = await llm
           .dailyBriefing(_context(currentStreak: 5, doneToday: false));
 
-      expect(message.source, 'llm');
-      expect(message.headline, 'Heute zählt');
-      expect(message.body, contains('Mach den Haken dran'));
+      expect(directive.source, CoachSource.llm);
+      expect(directive.template, CoachTemplate.freeform);
+      expect(directive.freeformHeadline, 'Today counts');
+      expect(directive.freeformBody, contains('tick it off'));
       expect(runtime.calls, 1);
+    });
+
+    test('accepts a localized TITEL header too', () async {
+      final runtime =
+          _FakeRuntime('TITEL: Heute zählt\nTEXT: Mach den Haken dran.');
+      final llm = LocalLlmCoach(runtime: runtime);
+
+      final directive = await llm
+          .dailyBriefing(_context(currentStreak: 5, doneToday: false));
+
+      expect(directive.freeformHeadline, 'Heute zählt');
     });
 
     test('falls back when the model output is unusable', () async {
       final runtime = _FakeRuntime('...');
       final llm = LocalLlmCoach(runtime: runtime);
 
-      final message = await llm
+      final directive = await llm
           .dailyBriefing(_context(currentStreak: 5, doneToday: false));
 
-      expect(message.source, 'heuristic');
-      expect(message.body, isNotEmpty);
+      expect(directive.source, CoachSource.heuristic);
+      expect(directive.template, isNot(CoachTemplate.freeform));
     });
 
     test('falls back when the model throws', () async {
       final runtime = _FakeRuntime('x', throwOnGenerate: true);
       final llm = LocalLlmCoach(runtime: runtime);
 
-      final message = await llm
+      final directive = await llm
           .dailyBriefing(_context(currentStreak: 5, doneToday: false));
 
-      expect(message.source, 'heuristic');
+      expect(directive.source, CoachSource.heuristic);
     });
 
     test('does not call an unloaded model at all', () async {
@@ -283,11 +373,11 @@ void main() {
       await llm.dailyBriefing(_context(currentStreak: 5, doneToday: false));
 
       expect(runtime.calls, 0);
-      expect(llm.name, contains('Regelbasiert'));
+      expect(llm.modelName, isNull);
     });
 
     test('never sends anything anywhere but the runtime', () async {
-      final runtime = _FakeRuntime('TITEL: A\nTEXT: B');
+      final runtime = _FakeRuntime('TITLE: A\nTEXT: B');
       final llm = LocalLlmCoach(runtime: runtime);
 
       // The context carries a personal goal statement; the only sink for it is

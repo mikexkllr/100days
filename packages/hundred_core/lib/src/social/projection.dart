@@ -25,7 +25,7 @@ class UserProjection {
     required this.lifetimeXp,
     required this.xpByDay,
     required this.lastActivityAt,
-    required this.lastActivityLabel,
+    required this.lastActivity,
     required this.headSeq,
     required this.lastRelapseDay,
   });
@@ -40,7 +40,7 @@ class UserProjection {
   final int lifetimeXp;
   final Map<String, int> xpByDay;
   final DateTime? lastActivityAt;
-  final String lastActivityLabel;
+  final PeerActivity lastActivity;
   final int headSeq;
   final DayKey? lastRelapseDay;
 
@@ -77,7 +77,7 @@ class UserProjection {
                   .isNotEmpty ??
               false),
       lastActivityAt: lastActivityAt,
-      lastActivityLabel: lastActivityLabel,
+      lastActivity: lastActivity,
       headSeq: headSeq,
       challenge: challenge,
     );
@@ -102,8 +102,8 @@ UserProjection projectUser(
   Challenge? challenge;
   final logs = <String, List<CheckIn>>{};
   final frozen = <String>{};
-  DateTime? lastActivity;
-  var lastLabel = 'Noch nichts los';
+  DateTime? lastActivityAt;
+  var lastActivity = PeerActivity.none;
   DayKey? lastRelapse;
 
   for (final event in ordered) {
@@ -115,16 +115,18 @@ UserProjection projectUser(
         challenge = Challenge.fromJson(
           Map<String, dynamic>.from(event.payload['challenge'] as Map),
         );
-        lastActivity = event.timestamp;
-        lastLabel = 'Challenge gestartet';
+        lastActivityAt = event.timestamp;
+        lastActivity = const PeerActivity(
+          kind: PeerActivityKind.challengeStarted,
+        );
 
       case FeedEventType.challengeAscended:
         final cycle = (event.payload['cycle'] as num?)?.toInt();
         if (challenge != null && cycle != null) {
           challenge = challenge.copyWith(cycle: cycle);
         }
-        lastActivity = event.timestamp;
-        lastLabel = 'Nächste Stufe erreicht';
+        lastActivityAt = event.timestamp;
+        lastActivity = const PeerActivity(kind: PeerActivityKind.ascended);
 
       case FeedEventType.checkIn:
         final checkIn = CheckIn.fromPayload(
@@ -135,28 +137,30 @@ UserProjection projectUser(
         logs.putIfAbsent(checkIn.day.toString(), () => <CheckIn>[])
           ..removeWhere((CheckIn e) => e.habitId == checkIn.habitId)
           ..add(checkIn);
-        lastActivity = event.timestamp;
-        lastLabel = checkIn.relapse
-            ? 'Rückfall eingetragen'
-            : '${habitDefinition(checkIn.category).emoji} '
-                '${habitDefinition(checkIn.category).titleDe} erledigt';
+        lastActivityAt = event.timestamp;
+        lastActivity = PeerActivity(
+          kind: checkIn.relapse
+              ? PeerActivityKind.relapse
+              : PeerActivityKind.checkIn,
+          category: checkIn.category,
+        );
         if (checkIn.relapse) lastRelapse = checkIn.day;
 
       case FeedEventType.streakFreeze:
         final day = event.payload['day'] as String?;
         if (day != null) frozen.add(day);
-        lastActivity = event.timestamp;
-        lastLabel = 'Streak eingefroren';
+        lastActivityAt = event.timestamp;
+        lastActivity = const PeerActivity(
+          kind: PeerActivityKind.streakFreeze,
+        );
 
       case FeedEventType.missed:
-        lastActivity = event.timestamp;
-        lastLabel = 'Tag verpasst';
+        lastActivityAt = event.timestamp;
+        lastActivity = const PeerActivity(kind: PeerActivityKind.missed);
 
       case FeedEventType.nudge:
-        lastActivity ??= event.timestamp;
-
       case FeedEventType.cheer:
-        lastActivity ??= event.timestamp;
+        lastActivityAt ??= event.timestamp;
     }
   }
 
@@ -200,8 +204,8 @@ UserProjection projectUser(
     habitStreaks: habitStreaks,
     lifetimeXp: xpByDay.values.fold(0, (int a, int b) => a + b),
     xpByDay: xpByDay,
-    lastActivityAt: lastActivity,
-    lastActivityLabel: lastLabel,
+    lastActivityAt: lastActivityAt,
+    lastActivity: lastActivity,
     headSeq: ordered.isEmpty ? 0 : ordered.last.seq,
     lastRelapseDay: lastRelapse,
   );

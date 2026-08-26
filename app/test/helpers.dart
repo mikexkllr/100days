@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 import 'package:hundred_days/data/app_repository.dart';
 import 'package:hundred_days/data/key_store.dart';
+import 'package:hundred_days/data/locale_store.dart';
+import 'package:hundred_days/l10n/l10n.dart';
 import 'package:hundred_days/state/providers.dart';
 import 'package:hundred_days/theme/theme.dart';
 
@@ -95,10 +97,13 @@ Future<Identity> seedFriend(
   return friend;
 }
 
-/// Wraps [child] in the providers and theme the real app supplies.
+/// Wraps [child] in the providers, theme and localizations the real app
+/// supplies. Defaults to German so the tests read like the product does; pass
+/// [locale] to check the other language.
 Widget wrapForTest({
   required AppRepository repository,
   required Widget child,
+  Locale locale = const Locale('de'),
   List<Override> overrides = const <Override>[],
 }) {
   return ProviderScope(
@@ -108,7 +113,15 @@ Widget wrapForTest({
     ],
     child: MaterialApp(
       theme: buildAppTheme(),
+      locale: locale,
+      supportedLocales: kSupportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
       home: Scaffold(body: child),
     ),
   );
 }
+
+/// Loads the string table for [locale] outside a widget tree, for tests that
+/// need to compare what two languages render.
+Future<AppLocalizations> localizationsFor(Locale locale) =>
+    AppLocalizations.delegate.load(locale);

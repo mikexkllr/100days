@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../state/onboarding_state.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
@@ -106,13 +107,14 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
       if (!mounted) return;
       setState(() => _submitting = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Start fehlgeschlagen: $error')),
+        SnackBar(content: Text(context.l10n.obStartFailed('$error'))),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     final draft = ref.watch(onboardingProvider);
     final steps = _steps(draft);
     final safeIndex = _index.clamp(0, steps.length - 1);
@@ -171,8 +173,8 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
                               child: CircularProgressIndicator(strokeWidth: 2.5),
                             )
                           : Text(current.isFinal
-                              ? 'Challenge starten'
-                              : 'Weiter'),
+                              ? l10n.obStartChallenge
+                              : l10n.actionNext),
                     ),
                   ),
                 ],

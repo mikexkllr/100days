@@ -32,20 +32,21 @@ enum MuscleGroup {
   fullBody,
 }
 
+/// A movement, identified by [id]. Its name and coaching cue live in the
+/// app's localizations under that id — an exercise library that hardcodes
+/// German names cannot be shown to an English user.
 @immutable
 class Exercise {
   const Exercise({
     required this.id,
-    required this.nameDe,
     required this.pattern,
     required this.primary,
     required this.minEquipment,
     this.isCompound = true,
-    this.cueDe,
+    this.hasCue = false,
   });
 
   final String id;
-  final String nameDe;
   final MovementPattern pattern;
   final MuscleGroup primary;
 
@@ -54,7 +55,9 @@ class Exercise {
   final EquipmentAccess minEquipment;
 
   final bool isCompound;
-  final String? cueDe;
+
+  /// Whether the localizations carry a form cue for this movement.
+  final bool hasCue;
 
   bool availableWith(EquipmentAccess access) {
     switch (access) {
@@ -72,31 +75,27 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   // Squat
   Exercise(
     id: 'back_squat',
-    nameDe: 'Kniebeuge (Langhantel)',
     pattern: MovementPattern.squat,
     primary: MuscleGroup.quads,
     minEquipment: EquipmentAccess.fullGym,
-    cueDe: 'Brust hoch, Knie über die Fußspitzen, kontrolliert runter.',
+    hasCue: true,
   ),
   Exercise(
     id: 'goblet_squat',
-    nameDe: 'Goblet Squat',
     pattern: MovementPattern.squat,
     primary: MuscleGroup.quads,
     minEquipment: EquipmentAccess.homeBasic,
-    cueDe: 'Kurzhantel vor der Brust, tief und aufrecht.',
+    hasCue: true,
   ),
   Exercise(
     id: 'bw_squat',
-    nameDe: 'Körpergewicht-Kniebeuge',
     pattern: MovementPattern.squat,
     primary: MuscleGroup.quads,
     minEquipment: EquipmentAccess.bodyweight,
-    cueDe: 'Langsam runter, unten kurz halten.',
+    hasCue: true,
   ),
   Exercise(
     id: 'leg_press',
-    nameDe: 'Beinpresse',
     pattern: MovementPattern.squat,
     primary: MuscleGroup.quads,
     minEquipment: EquipmentAccess.fullGym,
@@ -104,37 +103,32 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   // Hinge
   Exercise(
     id: 'deadlift',
-    nameDe: 'Kreuzheben',
     pattern: MovementPattern.hinge,
     primary: MuscleGroup.hamstrings,
     minEquipment: EquipmentAccess.fullGym,
-    cueDe: 'Rücken gerade, Hantel am Schienbein entlang.',
+    hasCue: true,
   ),
   Exercise(
     id: 'rdl',
-    nameDe: 'Rumänisches Kreuzheben',
     pattern: MovementPattern.hinge,
     primary: MuscleGroup.hamstrings,
     minEquipment: EquipmentAccess.homeBasic,
-    cueDe: 'Hüfte nach hinten, Dehnung in den Beinbeugern spüren.',
+    hasCue: true,
   ),
   Exercise(
     id: 'hip_thrust',
-    nameDe: 'Hip Thrust',
     pattern: MovementPattern.hinge,
     primary: MuscleGroup.glutes,
     minEquipment: EquipmentAccess.homeBasic,
   ),
   Exercise(
     id: 'glute_bridge',
-    nameDe: 'Glute Bridge',
     pattern: MovementPattern.hinge,
     primary: MuscleGroup.glutes,
     minEquipment: EquipmentAccess.bodyweight,
   ),
   Exercise(
     id: 'nordic_curl',
-    nameDe: 'Nordic Curl (assistiert)',
     pattern: MovementPattern.hinge,
     primary: MuscleGroup.hamstrings,
     minEquipment: EquipmentAccess.bodyweight,
@@ -142,30 +136,26 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   // Horizontal push
   Exercise(
     id: 'bench_press',
-    nameDe: 'Bankdrücken',
     pattern: MovementPattern.horizontalPush,
     primary: MuscleGroup.chest,
     minEquipment: EquipmentAccess.fullGym,
-    cueDe: 'Schulterblätter zusammen, Stange zur unteren Brust.',
+    hasCue: true,
   ),
   Exercise(
     id: 'db_bench',
-    nameDe: 'Kurzhantel-Bankdrücken',
     pattern: MovementPattern.horizontalPush,
     primary: MuscleGroup.chest,
     minEquipment: EquipmentAccess.homeBasic,
   ),
   Exercise(
     id: 'pushup',
-    nameDe: 'Liegestütz',
     pattern: MovementPattern.horizontalPush,
     primary: MuscleGroup.chest,
     minEquipment: EquipmentAccess.bodyweight,
-    cueDe: 'Körper bleibt ein Brett, Ellbogen 45 Grad.',
+    hasCue: true,
   ),
   Exercise(
     id: 'dip',
-    nameDe: 'Dips',
     pattern: MovementPattern.horizontalPush,
     primary: MuscleGroup.chest,
     minEquipment: EquipmentAccess.bodyweight,
@@ -173,21 +163,18 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   // Vertical push
   Exercise(
     id: 'ohp',
-    nameDe: 'Schulterdrücken (Langhantel)',
     pattern: MovementPattern.verticalPush,
     primary: MuscleGroup.shoulders,
     minEquipment: EquipmentAccess.fullGym,
   ),
   Exercise(
     id: 'db_ohp',
-    nameDe: 'Schulterdrücken (Kurzhantel)',
     pattern: MovementPattern.verticalPush,
     primary: MuscleGroup.shoulders,
     minEquipment: EquipmentAccess.homeBasic,
   ),
   Exercise(
     id: 'pike_pushup',
-    nameDe: 'Pike Push-up',
     pattern: MovementPattern.verticalPush,
     primary: MuscleGroup.shoulders,
     minEquipment: EquipmentAccess.bodyweight,
@@ -195,28 +182,24 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   // Horizontal pull
   Exercise(
     id: 'barbell_row',
-    nameDe: 'Langhantelrudern',
     pattern: MovementPattern.horizontalPull,
     primary: MuscleGroup.back,
     minEquipment: EquipmentAccess.fullGym,
   ),
   Exercise(
     id: 'db_row',
-    nameDe: 'Kurzhantelrudern',
     pattern: MovementPattern.horizontalPull,
     primary: MuscleGroup.back,
     minEquipment: EquipmentAccess.homeBasic,
   ),
   Exercise(
     id: 'inverted_row',
-    nameDe: 'Australian Pull-up',
     pattern: MovementPattern.horizontalPull,
     primary: MuscleGroup.back,
     minEquipment: EquipmentAccess.bodyweight,
   ),
   Exercise(
     id: 'cable_row',
-    nameDe: 'Rudern am Kabelzug',
     pattern: MovementPattern.horizontalPull,
     primary: MuscleGroup.back,
     minEquipment: EquipmentAccess.fullGym,
@@ -224,22 +207,19 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   // Vertical pull
   Exercise(
     id: 'pullup',
-    nameDe: 'Klimmzug',
     pattern: MovementPattern.verticalPull,
     primary: MuscleGroup.back,
     minEquipment: EquipmentAccess.bodyweight,
-    cueDe: 'Schultern runter, Brust zur Stange.',
+    hasCue: true,
   ),
   Exercise(
     id: 'lat_pulldown',
-    nameDe: 'Latzug',
     pattern: MovementPattern.verticalPull,
     primary: MuscleGroup.back,
     minEquipment: EquipmentAccess.fullGym,
   ),
   Exercise(
     id: 'band_pulldown',
-    nameDe: 'Latzug mit Band',
     pattern: MovementPattern.verticalPull,
     primary: MuscleGroup.back,
     minEquipment: EquipmentAccess.homeBasic,
@@ -247,21 +227,18 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   // Lunge
   Exercise(
     id: 'walking_lunge',
-    nameDe: 'Ausfallschritte',
     pattern: MovementPattern.lunge,
     primary: MuscleGroup.quads,
     minEquipment: EquipmentAccess.bodyweight,
   ),
   Exercise(
     id: 'bulgarian_split_squat',
-    nameDe: 'Bulgarian Split Squat',
     pattern: MovementPattern.lunge,
     primary: MuscleGroup.quads,
     minEquipment: EquipmentAccess.bodyweight,
   ),
   Exercise(
     id: 'step_up',
-    nameDe: 'Step-up',
     pattern: MovementPattern.lunge,
     primary: MuscleGroup.glutes,
     minEquipment: EquipmentAccess.bodyweight,
@@ -269,7 +246,6 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   // Core
   Exercise(
     id: 'plank',
-    nameDe: 'Unterarmstütz',
     pattern: MovementPattern.core,
     primary: MuscleGroup.core,
     minEquipment: EquipmentAccess.bodyweight,
@@ -277,7 +253,6 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   ),
   Exercise(
     id: 'hanging_leg_raise',
-    nameDe: 'Hängendes Beinheben',
     pattern: MovementPattern.core,
     primary: MuscleGroup.core,
     minEquipment: EquipmentAccess.bodyweight,
@@ -285,7 +260,6 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   ),
   Exercise(
     id: 'ab_wheel',
-    nameDe: 'Bauchroller',
     pattern: MovementPattern.core,
     primary: MuscleGroup.core,
     minEquipment: EquipmentAccess.homeBasic,
@@ -293,7 +267,6 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   ),
   Exercise(
     id: 'dead_bug',
-    nameDe: 'Dead Bug',
     pattern: MovementPattern.core,
     primary: MuscleGroup.core,
     minEquipment: EquipmentAccess.bodyweight,
@@ -302,7 +275,6 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   // Carry
   Exercise(
     id: 'farmers_walk',
-    nameDe: 'Farmer\'s Walk',
     pattern: MovementPattern.carry,
     primary: MuscleGroup.fullBody,
     minEquipment: EquipmentAccess.homeBasic,
@@ -310,7 +282,6 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   // Isolation
   Exercise(
     id: 'biceps_curl',
-    nameDe: 'Bizepscurls',
     pattern: MovementPattern.isolationArms,
     primary: MuscleGroup.biceps,
     minEquipment: EquipmentAccess.homeBasic,
@@ -318,7 +289,6 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   ),
   Exercise(
     id: 'hammer_curl',
-    nameDe: 'Hammercurls',
     pattern: MovementPattern.isolationArms,
     primary: MuscleGroup.biceps,
     minEquipment: EquipmentAccess.homeBasic,
@@ -326,7 +296,6 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   ),
   Exercise(
     id: 'triceps_pushdown',
-    nameDe: 'Trizepsdrücken am Kabel',
     pattern: MovementPattern.isolationArms,
     primary: MuscleGroup.triceps,
     minEquipment: EquipmentAccess.fullGym,
@@ -334,7 +303,6 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   ),
   Exercise(
     id: 'diamond_pushup',
-    nameDe: 'Diamond Push-up',
     pattern: MovementPattern.isolationArms,
     primary: MuscleGroup.triceps,
     minEquipment: EquipmentAccess.bodyweight,
@@ -342,7 +310,6 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   ),
   Exercise(
     id: 'lateral_raise',
-    nameDe: 'Seitheben',
     pattern: MovementPattern.isolationShoulders,
     primary: MuscleGroup.shoulders,
     minEquipment: EquipmentAccess.homeBasic,
@@ -350,7 +317,6 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   ),
   Exercise(
     id: 'face_pull',
-    nameDe: 'Face Pull',
     pattern: MovementPattern.isolationShoulders,
     primary: MuscleGroup.shoulders,
     minEquipment: EquipmentAccess.homeBasic,
@@ -358,7 +324,6 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   ),
   Exercise(
     id: 'leg_curl',
-    nameDe: 'Beinbeuger',
     pattern: MovementPattern.isolationLegs,
     primary: MuscleGroup.hamstrings,
     minEquipment: EquipmentAccess.fullGym,
@@ -366,7 +331,6 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   ),
   Exercise(
     id: 'calf_raise',
-    nameDe: 'Wadenheben',
     pattern: MovementPattern.isolationLegs,
     primary: MuscleGroup.calves,
     minEquipment: EquipmentAccess.bodyweight,
@@ -375,28 +339,24 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
   // Conditioning
   Exercise(
     id: 'burpee',
-    nameDe: 'Burpees',
     pattern: MovementPattern.conditioning,
     primary: MuscleGroup.fullBody,
     minEquipment: EquipmentAccess.bodyweight,
   ),
   Exercise(
     id: 'kb_swing',
-    nameDe: 'Kettlebell Swing',
     pattern: MovementPattern.conditioning,
     primary: MuscleGroup.fullBody,
     minEquipment: EquipmentAccess.homeBasic,
   ),
   Exercise(
     id: 'jump_rope',
-    nameDe: 'Seilspringen',
     pattern: MovementPattern.conditioning,
     primary: MuscleGroup.fullBody,
     minEquipment: EquipmentAccess.homeBasic,
   ),
   Exercise(
     id: 'rowing_erg',
-    nameDe: 'Rudergerät',
     pattern: MovementPattern.conditioning,
     primary: MuscleGroup.fullBody,
     minEquipment: EquipmentAccess.fullGym,

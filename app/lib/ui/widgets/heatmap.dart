@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hundred_core/hundred_core.dart';
 
+import '../../l10n/l10n.dart';
 import '../../theme/theme.dart';
 
 /// A GitHub-style contribution grid over the challenge.
@@ -36,6 +37,7 @@ class ChallengeHeatmap extends StatelessWidget {
     final DayKey firstColumn =
         startDay.addDays(1 - startDay.toDateTime().weekday);
 
+    final AppLocalizations l10n = context.l10n;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       reverse: true,
@@ -45,8 +47,11 @@ class ChallengeHeatmap extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: <Widget>[
-              for (final String label in const <String>[
-                'Mo', '', 'Mi', '', 'Fr', '', 'So'
+              for (final String label in <String>[
+                l10n.weekdayShortMon, '',
+                l10n.weekdayShortWed, '',
+                l10n.weekdayShortFri, '',
+                l10n.weekdayShortSun,
               ])
                 SizedBox(
                   height: cellSize + 3,
@@ -112,7 +117,7 @@ class HeatmapLegend extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
         Text(
-          'weniger',
+          context.l10n.heatLess,
           style: Theme.of(context)
               .textTheme
               .labelSmall
@@ -133,7 +138,7 @@ class HeatmapLegend extends StatelessWidget {
           ),
         const SizedBox(width: 6),
         Text(
-          'mehr',
+          context.l10n.heatMore,
           style: Theme.of(context)
               .textTheme
               .labelSmall

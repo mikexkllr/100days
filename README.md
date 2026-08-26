@@ -10,7 +10,8 @@ gehen direkt zu den Leuten, die du selbst verbunden hast.
 > **English:** A local-first, peer-to-peer habit challenge app built with
 > Flutter. Self-sovereign Ed25519 identity, a signed hash-chained activity feed
 > that makes streaks independently verifiable, an on-device coach, and gossip
-> replication with no backend. German-language UI.
+> replication with no backend. Ships in English and German, following the
+> device language.
 
 ---
 
@@ -33,6 +34,9 @@ steigst du eine Stufe auf, der Streak läuft weiter, die Ziele werden härter.
 
 **Niemand sieht mit.** Es gibt keinen Server, der deine Rückfälle kennt, weil
 es überhaupt keinen Server gibt. Der Coach läuft auf dem Gerät.
+
+**Deutsch und Englisch.** Die App folgt der Systemsprache; umstellen geht in
+den Einstellungen. Details: [`docs/localization.md`](docs/localization.md).
 
 ## Was du tracken kannst
 
@@ -113,9 +117,10 @@ app/                     Flutter: UI, SQLite, Keystore, Transporte,
                          Benachrichtigungen
 ```
 
-Der Kern kennt weder Flutter noch Netzwerk noch Dateisystem. Alles, was
-stimmen *muss* — Kettenprüfung, Streak-Arithmetik, Kalorienrechnung,
-Sync-Runden — ist damit ohne Gerät testbar.
+Der Kern kennt weder Flutter noch Netzwerk noch Dateisystem — und keine
+Anzeigesprache. Alles, was stimmen *muss* — Kettenprüfung, Streak-Arithmetik,
+Kalorienrechnung, Sync-Runden — ist damit ohne Gerät testbar, und dieselben
+Regeln treiben einen deutschen wie einen englischen Nutzer.
 Mehr dazu: [`docs/architecture.md`](docs/architecture.md).
 
 ## Stand

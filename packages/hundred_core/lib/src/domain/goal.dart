@@ -23,21 +23,19 @@ enum TrainingExperience { beginner, intermediate, advanced }
 
 enum EquipmentAccess { fullGym, homeBasic, bodyweight }
 
+/// What a goal implies, independent of language. Title and pitch live in the
+/// app's localizations, keyed by [archetype].
 @immutable
 class GoalArchetypeInfo {
   const GoalArchetypeInfo({
     required this.archetype,
-    required this.titleDe,
     required this.emoji,
-    required this.pitchDe,
     required this.suggestedHabits,
     required this.needsBodyStats,
   });
 
   final GoalArchetype archetype;
-  final String titleDe;
   final String emoji;
-  final String pitchDe;
   final List<HabitCategory> suggestedHabits;
 
   /// Whether the onboarding needs height/weight/age to compute a calorie
@@ -49,9 +47,7 @@ const Map<GoalArchetype, GoalArchetypeInfo> kGoalCatalog =
     <GoalArchetype, GoalArchetypeInfo>{
   GoalArchetype.buildMuscle: GoalArchetypeInfo(
     archetype: GoalArchetype.buildMuscle,
-    titleDe: 'Muskeln aufbauen',
     emoji: '💪',
-    pitchDe: 'Schwerer werden, stärker werden. Plan, Protein, Progression.',
     needsBodyStats: true,
     suggestedHabits: <HabitCategory>[
       HabitCategory.gym,
@@ -61,9 +57,7 @@ const Map<GoalArchetype, GoalArchetypeInfo> kGoalCatalog =
   ),
   GoalArchetype.loseFat: GoalArchetypeInfo(
     archetype: GoalArchetype.loseFat,
-    titleDe: 'Fett verlieren',
     emoji: '🔥',
-    pitchDe: 'Defizit halten, Muskeln behalten, Woche für Woche.',
     needsBodyStats: true,
     suggestedHabits: <HabitCategory>[
       HabitCategory.nutrition,
@@ -74,9 +68,7 @@ const Map<GoalArchetype, GoalArchetypeInfo> kGoalCatalog =
   ),
   GoalArchetype.getFit: GoalArchetypeInfo(
     archetype: GoalArchetype.getFit,
-    titleDe: 'Fit werden',
     emoji: '🏃',
-    pitchDe: 'Kondition, Kraft, Beweglichkeit. Zurück in Form.',
     needsBodyStats: true,
     suggestedHabits: <HabitCategory>[
       HabitCategory.gym,
@@ -86,9 +78,7 @@ const Map<GoalArchetype, GoalArchetypeInfo> kGoalCatalog =
   ),
   GoalArchetype.discipline: GoalArchetypeInfo(
     archetype: GoalArchetype.discipline,
-    titleDe: 'Disziplin aufbauen',
     emoji: '⚔️',
-    pitchDe: '100 Tage nicht verhandeln. Der Streak ist das Ziel.',
     needsBodyStats: false,
     suggestedHabits: <HabitCategory>[
       HabitCategory.coldShower,
@@ -99,9 +89,7 @@ const Map<GoalArchetype, GoalArchetypeInfo> kGoalCatalog =
   ),
   GoalArchetype.clarity: GoalArchetypeInfo(
     archetype: GoalArchetype.clarity,
-    titleDe: 'Kopf frei kriegen',
     emoji: '🧠',
-    pitchDe: 'Dopamin runter, Fokus rauf. Weniger Reiz, mehr Substanz.',
     needsBodyStats: false,
     suggestedHabits: <HabitCategory>[
       HabitCategory.dopamineDetox,
@@ -112,9 +100,7 @@ const Map<GoalArchetype, GoalArchetypeInfo> kGoalCatalog =
   ),
   GoalArchetype.sober: GoalArchetypeInfo(
     archetype: GoalArchetype.sober,
-    titleDe: 'Clean bleiben',
     emoji: '🛡️',
-    pitchDe: 'Alkohol, Nikotin, Zucker — jeder Tag zählt einzeln.',
     needsBodyStats: false,
     suggestedHabits: <HabitCategory>[
       HabitCategory.noAlcohol,
@@ -124,9 +110,7 @@ const Map<GoalArchetype, GoalArchetypeInfo> kGoalCatalog =
   ),
   GoalArchetype.custom: GoalArchetypeInfo(
     archetype: GoalArchetype.custom,
-    titleDe: 'Eigenes Ziel',
     emoji: '⭐',
-    pitchDe: 'Du weißt selbst, was ansteht. Bau dir den Plan.',
     needsBodyStats: false,
     suggestedHabits: <HabitCategory>[HabitCategory.custom],
   ),

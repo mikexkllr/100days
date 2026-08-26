@@ -45,8 +45,20 @@ App — so wie `FeedStore`, `PeerTransport` und `LocalLlmRuntime`.
 - **Kein Dark Pattern.** Die App darf unbequem sein; sie darf nicht täuschen.
   Keine erfundenen Freundesaktivitäten, keine ausgedachten Zahlen, keine
   künstliche Verknappung, die es nicht gibt.
+- **Keine Anzeigetexte im Kern.** Neue Inhalte kommen als Bezeichner in
+  `hundred_core` und als Übersetzung in die ARB-Dateien.
 
 ## Sprache
 
-Die Oberfläche ist deutsch, Duzform, direkt und ohne Kitsch. Code, Kommentare
-und Commit-Nachrichten sind englisch.
+Code, Kommentare und Commit-Nachrichten sind **englisch**. Ohne Ausnahme.
+
+Anzeigetexte stehen ausschließlich in `app/lib/l10n/*.arb`, in Deutsch und
+Englisch. Ein deutscher String im Dart-Code ist ein Fehler; ein deutscher
+String in `hundred_core` ist ein Architekturfehler — das Paket darf keine
+Anzeigesprache kennen.
+
+Der Ton: Duzform, direkt, ohne Kitsch. Auf Englisch dasselbe in zweiter Person.
+
+Wer eine Zeichenkette hinzufügt, fügt sie in **beiden** Sprachen hinzu.
+`flutter test test/l10n_test.dart` erzwingt das.
+Details: [`docs/localization.md`](docs/localization.md).

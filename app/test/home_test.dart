@@ -26,7 +26,10 @@ void main() {
     repository = await testRepository();
   });
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    Locale locale = const Locale('de'),
+  }) async {
     // A tall phone viewport: the home screen is a scroll view, and the default
     // 800x600 test surface would leave half the habits unbuilt.
     tester.view.physicalSize = const Size(1080, 3000);
@@ -36,6 +39,7 @@ void main() {
 
     await tester.pumpWidget(wrapForTest(
       repository: repository,
+      locale: locale,
       child: const HomeScreen(),
     ));
     await tester.pumpAndSettle();
@@ -136,6 +140,35 @@ void main() {
       ),
       findsNothing,
     );
+  });
+
+  testWidgets('the whole screen renders in English for an English phone',
+      (WidgetTester tester) async {
+    await startChallenge();
+    await seedFriend(repository, name: 'Marcel', emoji: '🦍');
+    await pump(tester, locale: const Locale('en'));
+
+    expect(find.text('No sugar'), findsOneWidget);
+    expect(find.text('Reading'), findsOneWidget);
+    expect(find.text('Check off today'), findsOneWidget);
+    expect(find.textContaining('Day 1 / 100'), findsOneWidget);
+    expect(find.textContaining('still on zero'), findsOneWidget);
+
+    // And nothing German is left behind on the same screen.
+    expect(find.text('Kein Zucker'), findsNothing);
+    expect(find.text('Heute abhaken'), findsNothing);
+  });
+
+  testWidgets('the same state reads differently in the two languages',
+      (WidgetTester tester) async {
+    await startChallenge(habits: <HabitCategory>[HabitCategory.noSugar]);
+
+    await pump(tester);
+    expect(find.widgetWithText(FilledButton, 'Heute clean'), findsOneWidget);
+
+    await pump(tester, locale: const Locale('en'));
+    expect(find.widgetWithText(FilledButton, 'Clean today'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Heute clean'), findsNothing);
   });
 
   testWidgets('the coach speaks on the home screen',

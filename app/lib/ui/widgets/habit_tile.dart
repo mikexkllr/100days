@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hundred_core/hundred_core.dart';
 
+import '../../l10n/l10n.dart';
 import '../../theme/theme.dart';
 import 'app_card.dart';
 
@@ -35,6 +36,7 @@ class HabitTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     final Color accent = _isRelapse
         ? AppColors.danger
         : _isDone
@@ -58,12 +60,12 @@ class HabitTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      habit.displayTitle,
+                      l10n.habitLabel(habit),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      _subtitle(),
+                      _subtitle(l10n),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: _isRelapse
                                 ? AppColors.danger
@@ -76,27 +78,27 @@ class HabitTile extends StatelessWidget {
               ),
               if (streak > 0 && !_isRelapse)
                 Pill(
-                  '$streak 🔥',
+                  l10n.tileStreakBadge(streak),
                   color: AppColors.flame,
                   filled: true,
                 ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          _control(context),
+          _control(context, l10n),
         ],
       ),
     );
   }
 
-  String _subtitle() {
-    if (_isRelapse) return 'Rückfall eingetragen — morgen neu.';
-    if (!scheduledToday) return 'Heute Pause laut Plan';
-    if (_isDone) return 'Erledigt · ${formatHabitTarget(habit)}';
-    return 'Ziel: ${formatHabitTarget(habit)}';
+  String _subtitle(AppLocalizations l10n) {
+    if (_isRelapse) return l10n.tileRelapseLogged;
+    if (!scheduledToday) return l10n.tileRestToday;
+    if (_isDone) return l10n.tileDoneWith(l10n.formatTarget(habit));
+    return l10n.tileTarget(l10n.formatTarget(habit));
   }
 
-  Widget _control(BuildContext context) {
+  Widget _control(BuildContext context, AppLocalizations l10n) {
     if (habit.definition.unit == HabitUnit.done) {
       return _DoneControl(
         isDone: _isDone,
@@ -131,6 +133,7 @@ class _DoneControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     return Row(
       children: <Widget>[
         Expanded(
@@ -150,10 +153,10 @@ class _DoneControl extends StatelessWidget {
             ),
             icon: Icon(isDone ? Icons.check_circle : Icons.check, size: 19),
             label: Text(isDone
-                ? 'Erledigt'
+                ? l10n.tileDone
                 : isAbstain
-                    ? 'Heute clean'
-                    : 'Abhaken'),
+                    ? l10n.tileCleanToday
+                    : l10n.tileCheckOff),
           ),
         ),
         if (isAbstain) ...<Widget>[
@@ -168,7 +171,7 @@ class _DoneControl extends StatelessWidget {
                 width: 1.5,
               ),
             ),
-            child: const Text('Rückfall'),
+            child: Text(l10n.tileRelapse),
           ),
         ],
       ],
@@ -211,6 +214,7 @@ class _AmountControlState extends State<_AmountControl> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     final bool isDone = widget.current >= widget.habit.target;
     return Row(
       children: <Widget>[
@@ -223,7 +227,7 @@ class _AmountControlState extends State<_AmountControl> {
         Expanded(
           child: Center(
             child: Text(
-              formatHabitTarget(widget.habit.copyWith(target: _value)),
+              l10n.formatTarget(widget.habit, value: _value),
               style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
@@ -244,7 +248,7 @@ class _AmountControlState extends State<_AmountControl> {
                 isDone ? AppColors.lime.withValues(alpha: 0.2) : null,
             foregroundColor: isDone ? AppColors.lime : null,
           ),
-          child: Text(isDone ? 'Update' : 'Eintragen'),
+          child: Text(isDone ? l10n.tileUpdateAmount : l10n.tileLogAmount),
         ),
       ],
     );

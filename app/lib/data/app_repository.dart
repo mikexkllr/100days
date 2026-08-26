@@ -5,6 +5,18 @@ import 'package:hundred_core/hundred_core.dart';
 import 'key_store.dart';
 import 'sqlite_feed_store.dart';
 
+/// Why an invite was refused.
+enum InviteProblem { malformed, self }
+
+class InviteRejection implements Exception {
+  const InviteRejection(this.problem);
+
+  final InviteProblem problem;
+
+  @override
+  String toString() => 'InviteRejection(${problem.name})';
+}
+
 /// One consistent read of everything the UI needs.
 class AppSnapshot {
   const AppSnapshot({
@@ -279,12 +291,12 @@ class AppRepository {
   /// anything the user built.
   Future<void> ascend(Challenge challenge) {
     final next = challenge.cycle + 1;
+    // Only the cycle index goes on the wire: a friend's device renders the
+    // tier name in *their* language, so a localized string in the payload
+    // would show up untranslated on the other side.
     return writer.append(
       FeedEventType.challengeAscended,
-      <String, dynamic>{
-        'cycle': next,
-        'tierName': tierForCycle(next).nameDe,
-      },
+      <String, dynamic>{'cycle': next},
     );
   }
 
@@ -307,12 +319,14 @@ class AppRepository {
         },
       );
 
+  /// Throws [InviteRejection] so the caller can render the reason in the
+  /// user's language.
   Future<void> addFriend(Invite invite) async {
     if (!invite.isWellFormed) {
-      throw const FormatException('Diese Einladung ist ungültig.');
+      throw const InviteRejection(InviteProblem.malformed);
     }
     if (invite.did == did) {
-      throw const FormatException('Das bist du selbst.');
+      throw const InviteRejection(InviteProblem.self);
     }
     final store = this.store;
     if (store is SqliteFeedStore) {

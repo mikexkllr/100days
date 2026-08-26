@@ -13,8 +13,13 @@ Ehrliche Liste. Was hier steht, ist noch nicht gebaut.
 - Feed, Wochenliga, Anstupser, Feiern, QR-/Link-Einladungen
 - LAN-Entdeckung und Replikation, lokale Benachrichtigungen
 - Wiederherstellungs-Key, vollständiges Löschen
+- Deutsch und Englisch nach Systemsprache, umstellbar in den Einstellungen
 
 ## Offen
+
+**Weitere Sprachen.** Die Infrastruktur steht — eine neue Sprache ist eine
+ARB-Datei plus ein Eintrag in `kSupportedLocales`, kein Code. Naheliegend:
+Spanisch, Französisch, Türkisch.
 
 **Inferenz-Engine.** `GgufLlmRuntime.attachBackend` ist der Steckplatz; es
 fehlt die Bindung an llama.cpp (FFI) oder MediaPipe. Bis dahin läuft immer der
@@ -44,9 +49,6 @@ billigste Erinnerung, die es gibt.
 
 **Import aus Health/Google Fit.** Schritte und Trainingsdauer automatisch statt
 per Hand.
-
-**Lokalisierung.** Die Oberfläche ist durchgehend deutsch und nicht über ARB
-externalisiert.
 
 **BIP39-Merkphrase.** Der Wiederherstellungs-Key ist Base58 statt zwölf Wörter.
 Funktional gleichwertig, aber schwerer abzuschreiben.

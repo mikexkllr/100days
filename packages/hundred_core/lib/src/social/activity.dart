@@ -4,7 +4,14 @@ import '../domain/peer.dart';
 import '../feed/event.dart';
 import '../util/dates.dart';
 
-/// One row in the social timeline.
+enum ActivityKind { checkIn, relapse, milestone, start, ascend, nudge, cheer }
+
+/// One row in the social timeline, as data.
+///
+/// No sentence is assembled here — the app builds "Marcel: Training erledigt"
+/// or "Marcel: workout done" from these fields. What *is* here is everything
+/// that cannot be recovered later: which event, whose, when, and whether it
+/// was a live proof or a backfill.
 class ActivityItem {
   const ActivityItem({
     required this.eventHash,
@@ -12,13 +19,18 @@ class ActivityItem {
     required this.authorName,
     required this.authorEmoji,
     required this.timestamp,
-    required this.headline,
-    required this.detail,
     required this.emoji,
     required this.kind,
     required this.isVerifiedLive,
+    this.category,
+    this.claimedDay,
     this.isOwn = false,
     this.streakAtTime,
+    this.note,
+    this.message,
+    this.targetName,
+    this.statement,
+    this.tierIndex,
   });
 
   final String eventHash;
@@ -26,8 +38,6 @@ class ActivityItem {
   final String authorName;
   final String authorEmoji;
   final DateTime timestamp;
-  final String headline;
-  final String? detail;
   final String emoji;
   final ActivityKind kind;
 
@@ -36,11 +46,31 @@ class ActivityItem {
   /// makes the leaderboard mean anything.
   final bool isVerifiedLive;
 
+  /// Set for [ActivityKind.checkIn] and [ActivityKind.relapse].
+  final HabitCategory? category;
+
+  /// The day the check-in claims, shown when it differs from the day it was
+  /// written.
+  final DayKey? claimedDay;
+
   final bool isOwn;
   final int? streakAtTime;
-}
 
-enum ActivityKind { checkIn, relapse, milestone, start, ascend, nudge, cheer }
+  /// User-authored text. Never translated, never rewritten.
+  final String? note;
+
+  /// The nudge or cheer message, also user-authored.
+  final String? message;
+
+  /// Display name of the person a nudge or cheer was aimed at.
+  final String? targetName;
+
+  /// The goal sentence, for [ActivityKind.start].
+  final String? statement;
+
+  /// The tier reached, for [ActivityKind.ascend].
+  final int? tierIndex;
+}
 
 /// Turns raw feed events into a readable timeline.
 ///
@@ -56,7 +86,7 @@ List<ActivityItem> buildActivityFeed(
 
   for (final event in events) {
     final profile = profiles[event.author];
-    final name = profile?.displayName ?? 'Anonym';
+    final name = profile?.displayName ?? '';
     final emoji = profile?.avatarEmoji ?? '🙂';
     final isOwn = event.author == selfDid;
 
@@ -67,27 +97,23 @@ List<ActivityItem> buildActivityFeed(
           loggedAt: event.timestamp,
           eventHash: event.hash,
         );
-        final def = habitDefinition(checkIn.category);
-        final streak = (event.payload['streak'] as num?)?.toInt();
         items.add(ActivityItem(
           eventHash: event.hash,
           author: event.author,
           authorName: name,
           authorEmoji: emoji,
           timestamp: event.timestamp,
-          emoji: def.emoji,
+          emoji: habitDefinition(checkIn.category).emoji,
           kind: checkIn.relapse ? ActivityKind.relapse : ActivityKind.checkIn,
-          headline: checkIn.relapse
-              ? '$name hatte einen Rückfall bei ${def.titleDe}'
-              : '$name: ${def.titleDe} erledigt',
-          detail: _checkInDetail(checkIn, streak),
+          category: checkIn.category,
+          claimedDay: checkIn.day,
+          streakAtTime: (event.payload['streak'] as num?)?.toInt(),
+          note: checkIn.note,
           isVerifiedLive: checkIn.isLive,
           isOwn: isOwn,
-          streakAtTime: streak,
         ));
 
       case FeedEventType.challengeStarted:
-        final statement = event.payload['statement'] as String?;
         items.add(ActivityItem(
           eventHash: event.hash,
           author: event.author,
@@ -96,14 +122,12 @@ List<ActivityItem> buildActivityFeed(
           timestamp: event.timestamp,
           emoji: '🚀',
           kind: ActivityKind.start,
-          headline: '$name hat die Challenge gestartet',
-          detail: statement,
+          statement: event.payload['statement'] as String?,
           isVerifiedLive: true,
           isOwn: isOwn,
         ));
 
       case FeedEventType.challengeAscended:
-        final tier = event.payload['tierName'] as String?;
         items.add(ActivityItem(
           eventHash: event.hash,
           author: event.author,
@@ -112,46 +136,26 @@ List<ActivityItem> buildActivityFeed(
           timestamp: event.timestamp,
           emoji: '👑',
           kind: ActivityKind.ascend,
-          headline: '$name ist auf die nächste Stufe',
-          detail: tier == null ? null : 'Neue Stufe: $tier',
+          tierIndex: (event.payload['cycle'] as num?)?.toInt(),
           isVerifiedLive: true,
           isOwn: isOwn,
         ));
 
       case FeedEventType.nudge:
-        final target = event.payload['target'] as String?;
-        if (target != selfDid && !isOwn) continue;
-        items.add(ActivityItem(
-          eventHash: event.hash,
-          author: event.author,
-          authorName: name,
-          authorEmoji: emoji,
-          timestamp: event.timestamp,
-          emoji: '👀',
-          kind: ActivityKind.nudge,
-          headline: isOwn
-              ? 'Du hast ${_shortName(profiles[target])} angestupst'
-              : '$name stupst dich an',
-          detail: event.payload['text'] as String?,
-          isVerifiedLive: true,
-          isOwn: isOwn,
-        ));
-
       case FeedEventType.cheer:
         final target = event.payload['target'] as String?;
         if (target != selfDid && !isOwn) continue;
+        final isNudge = event.type == FeedEventType.nudge;
         items.add(ActivityItem(
           eventHash: event.hash,
           author: event.author,
           authorName: name,
           authorEmoji: emoji,
           timestamp: event.timestamp,
-          emoji: '🔥',
-          kind: ActivityKind.cheer,
-          headline: isOwn
-              ? 'Du hast ${_shortName(profiles[target])} gefeiert'
-              : '$name feiert dich',
-          detail: event.payload['text'] as String?,
+          emoji: isNudge ? '👀' : '🔥',
+          kind: isNudge ? ActivityKind.nudge : ActivityKind.cheer,
+          message: event.payload['text'] as String?,
+          targetName: profiles[target]?.displayName,
           isVerifiedLive: true,
           isOwn: isOwn,
         ));
@@ -167,30 +171,4 @@ List<ActivityItem> buildActivityFeed(
   items.sort((ActivityItem a, ActivityItem b) =>
       b.timestamp.compareTo(a.timestamp));
   return items.take(limit).toList();
-}
-
-String? _checkInDetail(CheckIn checkIn, int? streak) {
-  final parts = <String>[];
-  if (streak != null && streak > 1) parts.add('$streak Tage Streak');
-  if (checkIn.note != null && checkIn.note!.isNotEmpty) {
-    parts.add(checkIn.note!);
-  }
-  if (!checkIn.isLive) {
-    parts.add('nachgetragen für ${checkIn.day}');
-  }
-  return parts.isEmpty ? null : parts.join(' · ');
-}
-
-String _shortName(PeerProfile? profile) => profile?.displayName ?? 'jemanden';
-
-/// Relative time in German, for feed rows.
-String formatRelative(DateTime timestamp, {DateTime? now}) {
-  final reference = now ?? DateTime.now();
-  final diff = reference.difference(timestamp);
-  if (diff.inMinutes < 1) return 'gerade eben';
-  if (diff.inMinutes < 60) return 'vor ${diff.inMinutes} Min';
-  if (diff.inHours < 24) return 'vor ${diff.inHours} Std';
-  if (diff.inDays == 1) return 'gestern';
-  if (diff.inDays < 7) return 'vor ${diff.inDays} Tagen';
-  return DayKey.fromDateTime(timestamp).toString();
 }

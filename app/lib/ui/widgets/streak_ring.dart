@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../l10n/l10n.dart';
 import '../../theme/theme.dart';
 
 /// The number the whole app exists to make go up.
@@ -25,6 +26,7 @@ class StreakRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     final Color accent = atRisk ? AppColors.danger : AppColors.flame;
     return SizedBox(
       width: size,
@@ -53,7 +55,7 @@ class StreakRing extends StatelessWidget {
                     ),
               ),
               Text(
-                streak == 1 ? 'Tag Streak' : 'Tage Streak',
+                l10n.ringDayStreak(streak),
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -67,7 +69,7 @@ class StreakRing extends StatelessWidget {
                   borderRadius: AppRadius.pill,
                 ),
                 child: Text(
-                  'Tag $dayNumber / $totalDays',
+                  l10n.ringDayOfTotal(dayNumber, totalDays),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontSize: 12.5,
                         color: AppColors.textSecondary,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../state/onboarding_state.dart';
 import '../../../theme/theme.dart';
 import '../../widgets/app_card.dart';
@@ -53,16 +54,16 @@ class _BodyStepState extends ConsumerState<BodyStep> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     final draft = ref.watch(onboardingProvider);
     final preview = draft.body == null || draft.archetype == null
         ? null
         : buildNutritionPlan(draft.toGoal());
 
     return OnboardingScaffold(
-      eyebrow: 'Ernährung',
-      title: 'Ein paar Zahlen.',
-      subtitle: 'Nur für die Kalorien- und Proteinberechnung. Alles bleibt '
-          'auf diesem Gerät.',
+      eyebrow: l10n.obBodyEyebrow,
+      title: l10n.obBodyTitle,
+      subtitle: l10n.obBodySubtitle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -82,7 +83,9 @@ class _BodyStepState extends ConsumerState<BodyStep> {
                           : AppColors.surface,
                       child: Center(
                         child: Text(
-                          sex == BiologicalSex.male ? 'männlich' : 'weiblich',
+                          sex == BiologicalSex.male
+                              ? l10n.obSexMale
+                              : l10n.obSexFemale,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
@@ -93,8 +96,8 @@ class _BodyStepState extends ConsumerState<BodyStep> {
           ),
           const SizedBox(height: AppSpacing.lg),
           _NumberRow(
-            label: 'Alter',
-            value: '$_age Jahre',
+            label: l10n.obBodyAge,
+            value: l10n.obBodyAgeValue(_age),
             slider: Slider(
               value: _age.toDouble(),
               min: 14,
@@ -105,7 +108,7 @@ class _BodyStepState extends ConsumerState<BodyStep> {
             ),
           ),
           _NumberRow(
-            label: 'Größe',
+            label: l10n.obBodyHeight,
             value: '${_height.round()} cm',
             slider: Slider(
               value: _height,
@@ -117,7 +120,7 @@ class _BodyStepState extends ConsumerState<BodyStep> {
             ),
           ),
           _NumberRow(
-            label: 'Gewicht',
+            label: l10n.obBodyWeight,
             value: '${_weight.toStringAsFixed(0)} kg',
             slider: Slider(
               value: _weight,
@@ -129,7 +132,7 @@ class _BodyStepState extends ConsumerState<BodyStep> {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          Text('Alltag & Bewegung',
+          Text(l10n.obBodyActivity,
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: AppSpacing.sm),
           Wrap(
@@ -138,7 +141,7 @@ class _BodyStepState extends ConsumerState<BodyStep> {
             children: <Widget>[
               for (final ActivityLevel level in ActivityLevel.values)
                 ChoiceChip(
-                  label: Text(_activityLabel(level)),
+                  label: Text(l10n.activityLevelTitle(level)),
                   selected: _activity == level,
                   selectedColor: AppColors.flame.withValues(alpha: 0.2),
                   onSelected: (_) => _update(() => _activity = level),
@@ -152,7 +155,7 @@ class _BodyStepState extends ConsumerState<BodyStep> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text('Dein Tagesziel',
+                  Text(l10n.obBodyPreviewTitle,
                       style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: AppSpacing.sm),
                   Row(
@@ -160,34 +163,34 @@ class _BodyStepState extends ConsumerState<BodyStep> {
                       Expanded(
                         child: StatTile(
                           value: '${preview.kcal}',
-                          label: 'kcal',
+                          label: l10n.planKcal,
                           color: AppColors.flame,
                         ),
                       ),
                       Expanded(
                         child: StatTile(
                           value: '${preview.proteinG} g',
-                          label: 'Protein',
+                          label: l10n.planProtein,
                           color: AppColors.lime,
                         ),
                       ),
                       Expanded(
                         child: StatTile(
                           value: '${preview.carbsG} g',
-                          label: 'Kohlenhydrate',
+                          label: l10n.planCarbs,
                         ),
                       ),
                       Expanded(
                         child: StatTile(
                           value: '${preview.fatG} g',
-                          label: 'Fett',
+                          label: l10n.planFat,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    preview.rationaleDe,
+                    l10n.nutritionRationale(preview),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
                           fontSize: 12.5,
@@ -200,21 +203,6 @@ class _BodyStepState extends ConsumerState<BodyStep> {
         ],
       ),
     );
-  }
-
-  String _activityLabel(ActivityLevel level) {
-    switch (level) {
-      case ActivityLevel.sedentary:
-        return 'Sitzend';
-      case ActivityLevel.light:
-        return 'Leicht aktiv';
-      case ActivityLevel.moderate:
-        return 'Moderat';
-      case ActivityLevel.high:
-        return 'Sehr aktiv';
-      case ActivityLevel.athlete:
-        return 'Sportler';
-    }
   }
 }
 

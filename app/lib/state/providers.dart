@@ -3,11 +3,16 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
+import 'dart:ui';
+
 import '../data/app_repository.dart';
 import '../data/lan_transport.dart';
+import '../data/locale_store.dart';
 import '../data/llm_runtime.dart';
 import '../data/notifications.dart';
 import '../data/sync_service.dart';
+import '../l10n/l10n.dart';
+import '../l10n/prompt_l10n.dart';
 
 /// Overridden in `main()` once the database and keystore are open.
 final Provider<AppRepository> repositoryProvider = Provider<AppRepository>(
@@ -30,6 +35,38 @@ final Provider<LanTransport?> lanTransportProvider =
 final Provider<LocalModelManager> modelManagerProvider =
     Provider<LocalModelManager>((Ref ref) => LocalModelManager());
 
+final Provider<LocaleStore> localeStoreProvider = Provider<LocaleStore>(
+  (Ref ref) => throw UnimplementedError('localeStoreProvider not initialised'),
+);
+
+/// The language override, or null to follow the system.
+class LocaleController extends Notifier<Locale?> {
+  @override
+  Locale? build() => ref.watch(localeStoreProvider).read();
+
+  Future<void> set(Locale? locale) async {
+    await ref.read(localeStoreProvider).write(locale);
+    state = locale;
+  }
+}
+
+final NotifierProvider<LocaleController, Locale?> localeProvider =
+    NotifierProvider<LocaleController, Locale?>(LocaleController.new);
+
+/// The locale actually in effect: the explicit choice, or the first system
+/// language the app ships, or German.
+final Provider<Locale> effectiveLocaleProvider = Provider<Locale>((Ref ref) {
+  final Locale? chosen = ref.watch(localeProvider);
+  if (chosen != null) return chosen;
+  for (final Locale system in PlatformDispatcher.instance.locales) {
+    final match = kSupportedLocales
+        .where((Locale l) => l.languageCode == system.languageCode)
+        .firstOrNull;
+    if (match != null) return match;
+  }
+  return kSupportedLocales.first;
+});
+
 /// The coach the app is currently using.
 ///
 /// Falls back to the rule-based engine unless a model *and* an inference
@@ -46,7 +83,15 @@ final FutureProvider<CoachEngine> coachEngineProvider =
   final runtime = GgufLlmRuntime(spec: spec, file: file);
   await runtime.load();
   ref.onDispose(runtime.dispose);
-  return LocalLlmCoach(runtime: runtime);
+
+  // The prompt is written in the user's language, so the coach has to be
+  // rebuilt when that changes.
+  final locale = ref.watch(effectiveLocaleProvider);
+  final l10n = await AppLocalizations.delegate.load(locale);
+  return LocalLlmCoach(
+    runtime: runtime,
+    prompts: LocalizedCoachPrompts(l10n),
+  );
 });
 
 /// The app's single source of truth for the UI.
@@ -183,9 +228,10 @@ class AppController extends AsyncNotifier<AppSnapshot> {
 final AsyncNotifierProvider<AppController, AppSnapshot> appStateProvider =
     AsyncNotifierProvider<AppController, AppSnapshot>(AppController.new);
 
-/// The coach's message for right now.
-final FutureProvider<CoachMessage?> briefingProvider =
-    FutureProvider<CoachMessage?>((Ref ref) async {
+/// The coach's directive for right now. The wording is applied by the widget
+/// that shows it, in whatever language the app is running in.
+final FutureProvider<CoachDirective?> briefingProvider =
+    FutureProvider<CoachDirective?>((Ref ref) async {
   final snapshot = await ref.watch(appStateProvider.future);
   if (!snapshot.hasChallenge) return null;
   final coach = await ref.watch(coachEngineProvider.future);
@@ -193,10 +239,10 @@ final FutureProvider<CoachMessage?> briefingProvider =
 });
 
 /// Concrete plan tweaks, shown on the plan screen.
-final FutureProvider<List<String>> planAdjustmentsProvider =
-    FutureProvider<List<String>>((Ref ref) async {
+final FutureProvider<List<PlanAdvice>> planAdjustmentsProvider =
+    FutureProvider<List<PlanAdvice>>((Ref ref) async {
   final snapshot = await ref.watch(appStateProvider.future);
-  if (!snapshot.hasChallenge) return const <String>[];
+  if (!snapshot.hasChallenge) return const <PlanAdvice>[];
   final coach = await ref.watch(coachEngineProvider.future);
   return coach.planAdjustments(snapshot.toCoachContext());
 });

@@ -10,6 +10,7 @@ export 'src/coach/coach.dart';
 export 'src/coach/heuristic_coach.dart';
 export 'src/coach/llm_coach.dart';
 export 'src/coach/local_llm.dart';
+export 'src/coach/prompts.dart';
 export 'src/domain/challenge.dart';
 export 'src/domain/check_in.dart';
 export 'src/domain/goal.dart';

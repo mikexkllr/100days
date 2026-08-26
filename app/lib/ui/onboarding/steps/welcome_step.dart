@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../theme/theme.dart';
 import '../onboarding_flow.dart';
 
@@ -8,37 +9,33 @@ class WelcomeStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const OnboardingScaffold(
-      eyebrow: '100 Tage und weit darüber hinaus',
-      title: 'Du brauchst kein neues Ich.\nDu brauchst 100 Tage.',
-      subtitle: 'Setz ein Ziel. Bekomm einen Plan. Und danach zählt nur noch '
-          'eins: ob du heute dran warst — und ob deine Leute es sehen.',
+    final AppLocalizations l10n = context.l10n;
+    return OnboardingScaffold(
+      eyebrow: l10n.obWelcomeEyebrow,
+      title: l10n.obWelcomeTitle,
+      subtitle: l10n.obWelcomeSubtitle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _Point(
             emoji: '🎯',
-            title: 'Erst das Ziel',
-            body: 'Ohne Ziel kein Plan. Du sagst, worum es geht — die App '
-                'baut Training, Ernährung oder Streak drumherum.',
+            title: l10n.obPointGoalTitle,
+            body: l10n.obPointGoalBody,
           ),
           _Point(
             emoji: '👀',
-            title: 'Deine Leute sehen alles',
-            body: 'Kein anonymer Zähler. Wenn Marcel heute im Gym war und du '
-                'nicht, steht das da. Genau das ist der Punkt.',
+            title: l10n.obPointSocialTitle,
+            body: l10n.obPointSocialBody,
           ),
           _Point(
             emoji: '🔒',
-            title: 'Niemand sonst',
-            body: 'Kein Konto, kein Server, keine Cloud. Deine Daten liegen '
-                'auf deinem Gerät und gehen direkt zu deinen Freunden.',
+            title: l10n.obPointPrivacyTitle,
+            body: l10n.obPointPrivacyBody,
           ),
           _Point(
             emoji: '♾️',
-            title: 'Tag 100 ist nicht das Ende',
-            body: 'Danach geht es weiter — nächste Stufe, härtere Ziele, '
-                'gleicher Streak.',
+            title: l10n.obPointBeyondTitle,
+            body: l10n.obPointBeyondBody,
           ),
         ],
       ),

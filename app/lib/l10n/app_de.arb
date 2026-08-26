@@ -1,0 +1,1850 @@
+{
+  "@@locale": "de",
+  "actionCancel": "Abbrechen",
+  "actionConnect": "Verbinden",
+  "actionCopy": "Kopieren",
+  "actionCopyLink": "Link kopieren",
+  "actionDelete": "Löschen",
+  "actionNext": "Weiter",
+  "actionRemove": "Entfernen",
+  "actionRetry": "Nochmal versuchen",
+  "actionSave": "Speichern",
+  "actionSend": "Senden",
+  "actionSent": "Gesendet",
+  "actionShare": "Link teilen",
+  "adviceCutScope": "Du triffst nur {percent} % deiner Tage. Nimm eine Gewohnheit raus statt weiter zu scheitern — drei sichere Tage schlagen fünf geplante.",
+  "@adviceCutScope": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "adviceHalveTarget": "{emoji} {habit} läuft nicht. Halbier das Ziel, bis es wieder greift.",
+  "@adviceHalveTarget": {
+    "placeholders": {
+      "emoji": {
+        "type": "String"
+      },
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "adviceInviteSomeone": "Du hast noch niemanden verbunden. Allein durchzuhalten ist messbar schwerer — lade jemanden ein.",
+  "adviceMilestoneAhead": "{emoji} {habit}: noch {days, plural, =1{1 Tag} other{{days} Tage}} bis \"{milestone}\".",
+  "@adviceMilestoneAhead": {
+    "placeholders": {
+      "emoji": {
+        "type": "String"
+      },
+      "habit": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      },
+      "milestone": {
+        "type": "String"
+      }
+    }
+  },
+  "adviceRaiseTarget": "{emoji} {habit} läuft seit {days} Tagen. Erhöh das Tagesziel um 20 %.",
+  "@adviceRaiseTarget": {
+    "placeholders": {
+      "emoji": {
+        "type": "String"
+      },
+      "habit": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "aiBackendMissing": "Aktuell läuft der regelbasierte Coach. Er braucht kein Modell, funktioniert offline und antwortet sofort — die Sprache ist nur weniger variabel.",
+  "aiBackendPresent": "Eine Inferenz-Engine ist eingebunden. Mit installiertem Modell formuliert sie deine Tagesansage.",
+  "aiGigabytes": "{size} GB",
+  "@aiGigabytes": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "aiInstallBody": "Lade die GGUF-Datei am Rechner herunter und leg sie in diesen Ordner:",
+  "aiInstallTitle": "Modell installieren",
+  "aiInstalled": "installiert",
+  "aiLoading": "Wird geladen …",
+  "aiModelGemmaDesc": "Etwas stärker im Deutschen, braucht mehr RAM.",
+  "aiModelQwenDesc": "Guter Kompromiss aus Qualität und Größe. Läuft auf Mittelklasse-Geräten.",
+  "aiModelSmolDesc": "Winzig und schnell, für ältere Geräte.",
+  "aiNoAutoDownload": "Die App lädt nichts von selbst herunter — ein Gigabyte über Mobilfunk ist nichts, was ohne Nachfrage passieren sollte.",
+  "aiNoNetworkBadge": "kein Netzwerkzugriff",
+  "aiSource": "Quelle",
+  "aiSupportedModels": "Unterstützte Modelle",
+  "aiTitle": "KI auf dem Gerät",
+  "aiWhatItSeesBody": "Streak, Tagesnummer, deine Gewohnheiten und ob deine Freunde heute aktiv waren — als Text, direkt an das Modell auf diesem Gerät. Kein Netzwerkaufruf, keine Telemetrie, kein Zwischenspeicher in einer Cloud.",
+  "aiWhatItSeesTitle": "Was das Modell sieht",
+  "appTitle": "100 Tage",
+  "cheerRespectStreak": "{streak, plural, =1{Respekt, 1 Tag!} other{Respekt, {streak} Tage!}}",
+  "@cheerRespectStreak": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "coachBadgeLlm": "on-device KI",
+  "coachBadgeRule": "Coach",
+  "coachCelebrateGeneric": "{day} Tage am Stück. Das ist der Beweis, nicht das Gefühl.",
+  "@coachCelebrateGeneric": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "coachCelebrateHabitFormed": "66 Tage — der Durchschnitt, bis ein Verhalten automatisch läuft. Du bist durch.",
+  "coachCelebrateHundred": "Hundert Tage. Und jetzt kommt der Teil, für den die App gebaut ist: es hört hier nicht auf. Willkommen in \"{tier}\".",
+  "@coachCelebrateHundred": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "coachCelebrateMonth": "30 Tage. Ab jetzt musst du dich weniger überreden.",
+  "coachCelebrateWeek": "Eine Woche. Die meisten hören genau hier auf.",
+  "coachCelebrateYear": "Ein Jahr. Das ist keine Challenge mehr, das bist du.",
+  "coachEngineModel": "{model} (on-device)",
+  "@coachEngineModel": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "coachEngineRuleBased": "Regelbasiert (on-device)",
+  "coachHeadAtStake": "{streak, plural, =1{1 Tag steht auf dem Spiel} other{{streak} Tage stehen auf dem Spiel}}",
+  "@coachHeadAtStake": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "coachHeadCelebrate": "Tag {day} 🎉",
+  "@coachHeadCelebrate": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "coachHeadDayOf": "Tag {day} von {total}",
+  "@coachHeadDayOf": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "coachHeadDayStillOpen": "Heute steht noch offen",
+  "coachHeadFriendActive": "{name} war heute schon dran",
+  "@coachHeadFriendActive": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "coachHeadFriendsActive": "{count} deiner Leute waren heute schon dran",
+  "@coachHeadFriendsActive": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "coachHeadLastChance": "Letzte Chance",
+  "coachHeadLeaderAhead": "{name} liegt vor dir",
+  "@coachHeadLeaderAhead": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "coachHeadNewDayOne": "Neuer Tag 1",
+  "coachHeadStreak": "{streak, plural, =1{1 Tag Streak} other{{streak} Tage Streak}}",
+  "@coachHeadStreak": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "coachHeadTooSmooth": "{streak, plural, =1{1 Tag — zu glatt} other{{streak} Tage — das läuft zu glatt}}",
+  "@coachHeadTooSmooth": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "coachHintAlcoholPattern": "Schreib auf, wo du warst und mit wem. Das Muster ist wichtiger als der eine Abend.",
+  "coachHintDigitalTrigger": "Handy heute Abend aus dem Schlafzimmer. Das ist der Trigger, nicht die Willenskraft.",
+  "coachHintSmallestVersion": "Morgen die kleinste mögliche Version. Nur nicht null.",
+  "coachHintSugarBreakfast": "Mehr Protein zum Frühstück. Heißhunger ist meistens ein Frühstücksproblem.",
+  "coachNamesMore": "{names} und {count} weitere",
+  "@coachNamesMore": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "coachNamesTwo": "{first} und {second}",
+  "@coachNamesTwo": {
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
+  },
+  "coachPressureHoursLeft": "{names} waren heute schon dran. Du stehst noch auf 0. In zwei Stunden ist der Tag durch.",
+  "@coachPressureHoursLeft": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "coachPressureLeaderBody": "{emoji} {name}: {peerStreak} Tage. Du: {streak}. Das ist noch aufholbar — heute.",
+  "@coachPressureLeaderBody": {
+    "placeholders": {
+      "emoji": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "peerStreak": {
+        "type": "int"
+      },
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "coachPressureLeaveIt": "{names} waren heute schon dran. Du stehst noch auf 0. Willst du das so stehen lassen?",
+  "@coachPressureLeaveIt": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "coachPressureTheySee": "{names} waren heute schon dran. Du stehst noch auf 0. Die sehen deinen Feed auch.",
+  "@coachPressureTheySee": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "coachPressureYouLead": "Du führst gerade. Führen heißt, nicht der Erste zu sein, der aufhört.",
+  "coachRaiseBarHarder": "Du triffst {percent} % deiner Tage. Zeit, das Ziel härter zu machen: ein Tag mehr pro Woche oder ein höheres Tagesziel.",
+  "@coachRaiseBarHarder": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "coachRaiseBarNoEffort": "Du triffst {percent} % deiner Tage. Gewohnheiten, die keine Kraft mehr kosten, bringen auch keine mehr. Erhöh eine Zahl.",
+  "@coachRaiseBarNoEffort": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "coachRaiseBarSecondFront": "Du triffst {percent} % deiner Tage. Nimm dir eine zweite Baustelle dazu. Du hast Kapazität.",
+  "@coachRaiseBarSecondFront": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "coachRecoverRelapse": "Rückfall bei {habit}. Das ist Teil der Kurve, nicht ihr Ende. {hint}",
+  "@coachRecoverRelapse": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      },
+      "hint": {
+        "type": "String"
+      }
+    }
+  },
+  "coachRecoverStreakLost": "Streak ist weg, die 100 Tage sind es nicht. Der Unterschied zwischen einem Rückfall und einem Abbruch ist genau das, was du in den nächsten 24 Stunden machst.",
+  "coachSteadyMilestoneConsistency": "{days, plural, =1{Noch 1 Tag bis Tag {milestone}.} other{Noch {days} Tage bis Tag {milestone}.}} Konstanz schlägt Intensität. Immer.",
+  "@coachSteadyMilestoneConsistency": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "milestone": {
+        "type": "int"
+      }
+    }
+  },
+  "coachSteadyMilestoneNothingSpectacular": "{days, plural, =1{Noch 1 Tag bis Tag {milestone}.} other{Noch {days} Tage bis Tag {milestone}.}} Nichts Spektakuläres nötig — nur nicht aufhören.",
+  "@coachSteadyMilestoneNothingSpectacular": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "milestone": {
+        "type": "int"
+      }
+    }
+  },
+  "coachSteadyMilestonePlanWorks": "{days, plural, =1{Noch 1 Tag bis Tag {milestone}.} other{Noch {days} Tage bis Tag {milestone}.}} Der Plan funktioniert, solange du ihn machst.",
+  "@coachSteadyMilestonePlanWorks": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "milestone": {
+        "type": "int"
+      }
+    }
+  },
+  "coachSteadyRunning": "Läuft. Weiter wie gestern.",
+  "coachUrgentLastChance": "{hours, plural, =1{Noch 1 Stunde.} other{Noch {hours} Stunden.}} {streak} Tage Arbeit gegen ein paar Minuten. Rechne selbst.",
+  "@coachUrgentLastChance": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "coachUrgentSmallestVersion": "Der Tag ist fast rum und heute fehlt noch alles. Mach die kleinste Version davon — sie zählt genauso.",
+  "coachWelcomeCheckOff": "Der Anfang ist der einfachste Teil und der wichtigste. Heute nur eine Sache: abhaken.",
+  "coachWelcomeNobodySees": "Niemand sieht Tag {day}. Alle sehen Tag 100. Der eine geht nicht ohne den anderen.",
+  "@coachWelcomeNobodySees": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "coachWelcomeYourWords": "Du hast dir vorgenommen: \"{statement}\". Heute machst du den ersten Beweis daraus.",
+  "@coachWelcomeYourWords": {
+    "placeholders": {
+      "statement": {
+        "type": "String"
+      }
+    }
+  },
+  "ctaAdjustGoal": "Ziel anpassen",
+  "ctaCheckInNow": "Jetzt abhaken",
+  "ctaKeepGoing": "Weitermachen",
+  "ctaRescue": "Retten",
+  "ctaRestart": "Neu starten",
+  "ctaShare": "Teilen",
+  "errorGeneric": "Fehler: {message}",
+  "@errorGeneric": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "exerciseAbWheel": "Bauchroller",
+  "exerciseBackSquat": "Kniebeuge (Langhantel)",
+  "exerciseBandPulldown": "Latzug mit Band",
+  "exerciseBarbellRow": "Langhantelrudern",
+  "exerciseBenchPress": "Bankdrücken",
+  "exerciseBicepsCurl": "Bizepscurls",
+  "exerciseBulgarianSplitSquat": "Bulgarian Split Squat",
+  "exerciseBurpee": "Burpees",
+  "exerciseBwSquat": "Körpergewicht-Kniebeuge",
+  "exerciseCableRow": "Rudern am Kabelzug",
+  "exerciseCalfRaise": "Wadenheben",
+  "exerciseCueBackSquat": "Brust hoch, Knie über die Fußspitzen, kontrolliert runter.",
+  "exerciseCueBenchPress": "Schulterblätter zusammen, Stange zur unteren Brust.",
+  "exerciseCueBwSquat": "Langsam runter, unten kurz halten.",
+  "exerciseCueDeadlift": "Rücken gerade, Hantel am Schienbein entlang.",
+  "exerciseCueGobletSquat": "Kurzhantel vor der Brust, tief und aufrecht.",
+  "exerciseCuePullup": "Schultern runter, Brust zur Stange.",
+  "exerciseCuePushup": "Körper bleibt ein Brett, Ellbogen 45 Grad.",
+  "exerciseCueRdl": "Hüfte nach hinten, Dehnung in den Beinbeugern spüren.",
+  "exerciseDbBench": "Kurzhantel-Bankdrücken",
+  "exerciseDbOhp": "Schulterdrücken (Kurzhantel)",
+  "exerciseDbRow": "Kurzhantelrudern",
+  "exerciseDeadBug": "Dead Bug",
+  "exerciseDeadlift": "Kreuzheben",
+  "exerciseDiamondPushup": "Diamond Push-up",
+  "exerciseDip": "Dips",
+  "exerciseFacePull": "Face Pull",
+  "exerciseFarmersWalk": "Farmer's Walk",
+  "exerciseGluteBridge": "Glute Bridge",
+  "exerciseGobletSquat": "Goblet Squat",
+  "exerciseHammerCurl": "Hammercurls",
+  "exerciseHangingLegRaise": "Hängendes Beinheben",
+  "exerciseHipThrust": "Hip Thrust",
+  "exerciseInvertedRow": "Australian Pull-up",
+  "exerciseJumpRope": "Seilspringen",
+  "exerciseKbSwing": "Kettlebell Swing",
+  "exerciseLatPulldown": "Latzug",
+  "exerciseLateralRaise": "Seitheben",
+  "exerciseLegCurl": "Beinbeuger",
+  "exerciseLegPress": "Beinpresse",
+  "exerciseNordicCurl": "Nordic Curl (assistiert)",
+  "exerciseOhp": "Schulterdrücken (Langhantel)",
+  "exercisePikePushup": "Pike Push-up",
+  "exercisePlank": "Unterarmstütz",
+  "exercisePullup": "Klimmzug",
+  "exercisePushup": "Liegestütz",
+  "exerciseRdl": "Rumänisches Kreuzheben",
+  "exerciseRowingErg": "Rudergerät",
+  "exerciseStepUp": "Step-up",
+  "exerciseTricepsPushdown": "Trizepsdrücken am Kabel",
+  "exerciseWalkingLunge": "Ausfallschritte",
+  "feedAscended": "{name} ist auf die nächste Stufe",
+  "@feedAscended": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "feedAscendedDetail": "Neue Stufe: {tier}",
+  "@feedAscendedDetail": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "feedBackfilled": "nachgetragen für {date}",
+  "@feedBackfilled": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "feedBackfilledBadge": "nachgetragen",
+  "feedCheckIn": "{name}: {habit} erledigt",
+  "@feedCheckIn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "feedCheer": "Feiern",
+  "feedCheerReceived": "{name} feiert dich",
+  "@feedCheerReceived": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "feedCheerSent": "Du hast {name} gefeiert",
+  "@feedCheerSent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "feedCheered": "Gefeiert",
+  "feedEmptyBody": "Sobald du oder deine Freunde etwas abhaken, steht es hier — signiert und nachprüfbar.",
+  "feedEmptyTitle": "Noch nichts im Feed",
+  "feedNudgeReceived": "{name} stupst dich an",
+  "@feedNudgeReceived": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "feedNudgeSent": "Du hast {name} angestupst",
+  "@feedNudgeSent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "feedRelapse": "{name} hatte einen Rückfall bei {habit}",
+  "@feedRelapse": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "feedSomeone": "jemanden",
+  "feedStarted": "{name} hat die Challenge gestartet",
+  "@feedStarted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "feedStreakDetail": "{streak, plural, =1{1 Tag Streak} other{{streak} Tage Streak}}",
+  "@feedStreakDetail": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "feedVerified": "verifiziert",
+  "friendsConnected": "{name} verbunden.",
+  "@friendsConnected": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsDayNumber": "Tag {day}",
+  "@friendsDayNumber": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "friendsEmptyBody": "Die App funktioniert allein — aber sie wirkt erst, wenn jemand zuschaut. Zeig einem Freund deinen QR-Code.",
+  "friendsEmptyTitle": "Noch niemand verbunden",
+  "friendsFallbackName": "Freund",
+  "friendsInvite": "Einladen",
+  "friendsInviteInvalid": "Einladung ungültig: {message}",
+  "@friendsInviteInvalid": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsNetworkNote": "Verbindungen laufen direkt zwischen euren Geräten — im gleichen WLAN sofort, sonst beim nächsten Treffen. Kein Server dazwischen, der eure Streaks kennt.",
+  "friendsNoActivity": "Noch keine Aktivität",
+  "friendsNudgeSection": "Anstupsen",
+  "friendsNudgeSubtitle": "Die hier waren heute noch nicht dran.",
+  "friendsScan": "Scannen",
+  "friendsYourPeople": "Deine Leute",
+  "goalBuildMuscle": "Muskeln aufbauen",
+  "goalBuildMusclePitch": "Schwerer werden, stärker werden. Plan, Protein, Progression.",
+  "goalClarity": "Kopf frei kriegen",
+  "goalClarityPitch": "Dopamin runter, Fokus rauf. Weniger Reiz, mehr Substanz.",
+  "goalCustom": "Eigenes Ziel",
+  "goalCustomPitch": "Du weißt selbst, was ansteht. Bau dir den Plan.",
+  "goalDiscipline": "Disziplin aufbauen",
+  "goalDisciplinePitch": "100 Tage nicht verhandeln. Der Streak ist das Ziel.",
+  "goalGetFit": "Fit werden",
+  "goalGetFitPitch": "Kondition, Kraft, Beweglichkeit. Zurück in Form.",
+  "goalLoseFat": "Fett verlieren",
+  "goalLoseFatPitch": "Defizit halten, Muskeln behalten, Woche für Woche.",
+  "goalSober": "Clean bleiben",
+  "goalSoberPitch": "Alkohol, Nikotin, Zucker — jeder Tag zählt einzeln.",
+  "habitCardio": "Cardio",
+  "habitCardioBlurb": "Ausdauer im lockeren Bereich. Zone 2, nicht kaputt machen.",
+  "habitColdShower": "Kalt duschen",
+  "habitColdShowerBlurb": "Zwei Minuten kalt. Jeden Morgen die erste Entscheidung gewinnen.",
+  "habitCustom": "Eigene Gewohnheit",
+  "habitCustomBlurb": "Dein Ding. Du definierst, was zählt.",
+  "habitDopamineDetox": "Dopamin-Detox",
+  "habitDopamineDetoxBlurb": "Kein Endlos-Scrollen, keine Shorts, kein Binge-Watching.",
+  "habitGym": "Training",
+  "habitGymBlurb": "Krafttraining nach Plan. Progressive Überlastung, kein Zufall.",
+  "habitJournaling": "Journaling",
+  "habitJournalingBlurb": "Drei Sätze reichen. Kopf leeren, Muster sehen.",
+  "habitMeditation": "Meditation",
+  "habitMeditationBlurb": "Still sitzen, atmen, aushalten.",
+  "habitNoAlcohol": "Kein Alkohol",
+  "habitNoAlcoholBlurb": "Null Alkohol. Kein \"nur ein Bier\".",
+  "habitNoFap": "NoFap",
+  "habitNoFapBlurb": "Kein Porno, kein Rückfall. Streak zählt jeden Tag.",
+  "habitNoNicotine": "Kein Nikotin",
+  "habitNoNicotineBlurb": "Keine Zigarette, kein Vape, kein Snus.",
+  "habitNoSugar": "Kein Zucker",
+  "habitNoSugarBlurb": "Kein zugesetzter Zucker. Obst ist erlaubt.",
+  "habitNutrition": "Ernährung",
+  "habitNutritionBlurb": "Kalorien- und Proteinziel getroffen.",
+  "habitReading": "Lesen",
+  "habitReadingBlurb": "Echte Seiten, echtes Buch. Feed liest sich nicht selbst.",
+  "habitSleep": "Schlaf",
+  "habitSleepBlurb": "Mindestens 7,5 Stunden. Der Rest baut darauf auf.",
+  "habitWater": "Wasser",
+  "habitWaterBlurb": "Acht Gläser. Das Billigste, was du für dich tun kannst.",
+  "heatLess": "weniger",
+  "heatMore": "mehr",
+  "homeAscendAction": "Weiter zu {tier}",
+  "@homeAscendAction": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "homeAscendBody": "Hier hören die meisten Apps auf. Deine nächste Stufe: {emoji} {tier}. Streak, XP und Historie bleiben.",
+  "@homeAscendBody": {
+    "placeholders": {
+      "emoji": {
+        "type": "String"
+      },
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "homeAscendTitle": "Zyklus geschafft: {days} Tage.",
+  "@homeAscendTitle": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "homeCheckInToast": "{emoji} {habit} eingetragen.",
+  "@homeCheckInToast": {
+    "placeholders": {
+      "emoji": {
+        "type": "String"
+      },
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "homeCheckOffToday": "Heute abhaken",
+  "homeDayCompleteToast": "🔥 Tag komplett — Streak steht bei {streak}.",
+  "@homeDayCompleteToast": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "homeDayOfTotal": "Tag {day} / {total}",
+  "@homeDayOfTotal": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "homeDoneOfTotal": "{done} von {total} erledigt",
+  "@homeDoneOfTotal": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "homeExercisesCount": "{count} Übungen",
+  "@homeExercisesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeFreezeBody": "Noch {count} übrig. Rettet den Streak, zählt aber nicht als erledigter Tag.",
+  "@homeFreezeBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeFreezeTitle": "Streak einfrieren",
+  "homeFreezeUse": "Nutzen",
+  "homeLevelAndTier": "{emoji} {tier} · Level {level}",
+  "@homeLevelAndTier": {
+    "placeholders": {
+      "emoji": {
+        "type": "String"
+      },
+      "tier": {
+        "type": "String"
+      },
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "homeMinutesApprox": "≈ {count} Min",
+  "@homeMinutesApprox": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeOptional": "Freiwillig",
+  "homeOptionalSubtitle": "Heute nicht eingeplant — zählt trotzdem als XP.",
+  "homeRelapseBody": "Das setzt den Streak zurück und ist für deine Freunde sichtbar. Ehrlich bleiben ist der ganze Sinn — aber nur, wenn es stimmt.",
+  "homeRelapseConfirm": "Eintragen",
+  "homeRelapseTitle": "Rückfall bei {habit}?",
+  "@homeRelapseTitle": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "homeRestDay": "Heute steht nichts an — Pausentag laut Plan.",
+  "homeSetsCount": "{count} Sätze",
+  "@homeSetsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStorageError": "Die App konnte ihren Speicher nicht öffnen.",
+  "homeStreakDays": "{streak, plural, =1{Tag Streak} other{Tage Streak}}",
+  "@homeStreakDays": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "homeTodaysMacros": "Heutige Makros",
+  "homeTodaysWorkout": "Heutiges Training",
+  "homeXp": "{xp} XP",
+  "@homeXp": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "inviteErrorMalformed": "Diese Einladung ist ungültig.",
+  "inviteErrorSelf": "Das bist du selbst.",
+  "inviteHowTitle": "Wie das funktioniert",
+  "inviteLinkCopied": "Link kopiert.",
+  "inviteReachableAt": "Erreichbar unter",
+  "inviteShareSubject": "100 Tage Challenge",
+  "inviteShareText": "Mach die 100 Tage mit mir: {link}",
+  "@inviteShareText": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteStep1": "Dein Gegenüber scannt den Code oder öffnet den Link.",
+  "inviteStep2": "Ihr folgt einander direkt — kein Konto, keine Telefonnummer, keine Freigabe durch einen Anbieter.",
+  "inviteStep3": "Ab dann synchronisieren eure Geräte, sobald sie sich sehen: gleiches WLAN, gleiches Zuhause, gleiches Gym.",
+  "inviteTitle": "Freunde einladen",
+  "leagueActiveToday": "Heute schon aktiv",
+  "leagueBronze": "Bronze",
+  "leagueDiamond": "Diamant",
+  "leagueFooter": "XP gibt es pro Check-in, skaliert mit Schwierigkeit und Streak. Am Sonntag steigen die oberen Plätze auf, die unteren ab.",
+  "leagueGold": "Gold",
+  "leagueNothingToday": "Heute noch nichts",
+  "leagueObsidian": "Obsidian",
+  "leaguePlatinum": "Platin",
+  "leagueSilver": "Silber",
+  "leagueThisWeek": "Diese Woche",
+  "leagueTitle": "{league}-Liga",
+  "@leagueTitle": {
+    "placeholders": {
+      "league": {
+        "type": "String"
+      }
+    }
+  },
+  "leagueTooSmall": "Eine Liga mit einer Person ist nur eine Liste. Verbinde Freunde, dann fängt der Wettkampf an.",
+  "leagueWeekAndPeople": "Woche {week} · {count} Teilnehmer",
+  "@leagueWeekAndPeople": {
+    "placeholders": {
+      "week": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "leagueWood": "Holz",
+  "leagueYouSuffix": "{name} (du)",
+  "@leagueYouSuffix": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leagueYourRank": "dein Platz",
+  "mealBreakfast": "Frühstück",
+  "mealDinner": "Abendessen",
+  "mealIdeaBreakfast1": "Skyr mit Beeren, Haferflocken und Leinsamen",
+  "mealIdeaBreakfast2": "Rührei aus 3 Eiern mit Vollkorntoast",
+  "mealIdeaBreakfast3": "Overnight Oats mit Magerquark und Banane",
+  "mealIdeaBreakfast4": "Proteinporridge mit Erdnussmus",
+  "mealIdeaDinner1": "Putenpfanne mit Zucchini und Feta",
+  "mealIdeaDinner2": "Omelette mit Champignons und Spinat",
+  "mealIdeaDinner3": "Kichererbsencurry mit Naturjoghurt",
+  "mealIdeaDinner4": "Thunfischsalat mit Bohnen und Ei",
+  "mealIdeaLunch1": "Hähnchenbrust, Reis, Brokkoli",
+  "mealIdeaLunch2": "Linsenbolognese mit Vollkornnudeln",
+  "mealIdeaLunch3": "Lachsfilet mit Kartoffeln und Salat",
+  "mealIdeaLunch4": "Rindergeschnetzeltes mit Couscous und Ofengemüse",
+  "mealIdeaSnack1": "Magerquark mit Honig und Walnüssen",
+  "mealIdeaSnack2": "Proteinshake mit Banane",
+  "mealIdeaSnack3": "Handvoll Mandeln und ein Apfel",
+  "mealIdeaSnack4": "Hüttenkäse auf Knäckebrot",
+  "mealLunch": "Mittagessen",
+  "mealSnack": "Snack",
+  "milestoneAlcohol14Body": "Leberfett geht messbar zurück, Entzündungswerte sinken.",
+  "milestoneAlcohol14Title": "Tag 14 — Leber erholt sich",
+  "milestoneAlcohol1Body": "Blutzucker und Schlaf sind noch durcheinander. Viel trinken, früh ins Bett.",
+  "milestoneAlcohol1Title": "Tag 1 — Der Körper räumt auf",
+  "milestoneAlcohol30Body": "Leberwerte deutlich besser, im Schnitt ein paar Kilo weniger, Haut sichtbar ruhiger.",
+  "milestoneAlcohol30Title": "Tag 30 — Haut, Schlaf, Gewicht",
+  "milestoneAlcohol3Body": "Der REM-Schlaf kommt zurück. Du wachst seltener nachts auf.",
+  "milestoneAlcohol3Title": "Tag 3 — Schlaf wird tiefer",
+  "milestoneAlcohol7Body": "Kein Restalkohol mehr. Konzentration und Stimmung stabilisieren sich.",
+  "milestoneAlcohol7Title": "Woche 1 — Klarer Kopf am Morgen",
+  "milestoneAlcohol90Body": "Das Verlangen ist keine tägliche Verhandlung mehr. Blutdruck und Immunsystem profitieren dauerhaft.",
+  "milestoneAlcohol90Title": "Tag 90 — Neue Normalität",
+  "milestoneDopamine1Body": "Du wirst hunderte Male zum Handy greifen wollen. Das ist die Gewohnheit, nicht du.",
+  "milestoneDopamine1Title": "Tag 1 — Der Griff zum Handy",
+  "milestoneDopamine21Body": "Die automatische Handbewegung in der Warteschlange verschwindet.",
+  "milestoneDopamine21Title": "Tag 21 — Der Reflex ist weg",
+  "milestoneDopamine3Body": "Langeweile ist kein Fehler. Sie ist der Zustand, aus dem Ideen kommen.",
+  "milestoneDopamine3Title": "Tag 3 — Langeweile kommt zurück",
+  "milestoneDopamine60Body": "Zwei Stunden konzentriert an einer Sache sind wieder normal.",
+  "milestoneDopamine60Title": "Tag 60 — Tiefe Arbeit",
+  "milestoneDopamine7Body": "Du hältst längere Texte und längere Gespräche aus, ohne wegzuschauen.",
+  "milestoneDopamine7Title": "Woche 1 — Aufmerksamkeitsspanne wächst",
+  "milestoneGeneric21Body": "Die Entscheidung kostet weniger Kraft als noch letzte Woche.",
+  "milestoneGeneric21Title": "Tag 21 — Automatisierung beginnt",
+  "milestoneGeneric3Body": "Der Neuheitsbonus ist weg. Jetzt entscheidet die Gewohnheit.",
+  "milestoneGeneric3Title": "Tag 3 — Der erste echte Test",
+  "milestoneGeneric66Body": "Im Schnitt braucht ein Verhalten 66 Tage, bis es automatisch läuft. Du bist da.",
+  "milestoneGeneric66Title": "Tag 66 — Gewohnheit",
+  "milestoneNicotine14Body": "Bis zu 30 % bessere Lungenfunktion, Treppen fallen leichter.",
+  "milestoneNicotine14Title": "Tag 14 — Lunge arbeitet besser",
+  "milestoneNicotine1Body": "Nach 12 Stunden ist der CO-Spiegel normal, Sauerstoff steigt.",
+  "milestoneNicotine1Title": "Tag 1 — Kohlenmonoxid weg",
+  "milestoneNicotine3Body": "Der körperliche Entzug hat seinen Höhepunkt. Ab hier wird es leichter.",
+  "milestoneNicotine3Title": "Tag 3 — Nikotin ist raus",
+  "milestoneNicotine90Body": "Husten und Kurzatmigkeit gehen deutlich zurück.",
+  "milestoneNicotine90Title": "Tag 90 — Flimmerhärchen erholt",
+  "milestoneNoFap14Body": "Wenn du dich flach und leer fühlst: das ist eine bekannte Phase und sie geht vorbei.",
+  "milestoneNoFap14Title": "Tag 14 — Flatline möglich",
+  "milestoneNoFap30Body": "Weniger Zwangsgedanken, mehr Präsenz im Alltag.",
+  "milestoneNoFap30Title": "Tag 30 — Kopf wird ruhiger",
+  "milestoneNoFap3Body": "Unruhe und Reizbarkeit sind normal. Bewegung hilft mehr als Willenskraft.",
+  "milestoneNoFap3Title": "Tag 3 — Erste Welle",
+  "milestoneNoFap7Body": "Mehr Antrieb, oft auch besserer Schlaf.",
+  "milestoneNoFap7Title": "Woche 1 — Energie steigt",
+  "milestoneNoFap90Body": "Die klassische Reboot-Marke. Ab hier ist es Lebensstil, nicht Kampf.",
+  "milestoneNoFap90Title": "Tag 90 — Der Reboot",
+  "milestoneSugar14Body": "Obst schmeckt plötzlich süß. Das ist der Sensor, der zurückkommt.",
+  "milestoneSugar14Title": "Tag 14 — Geschmack kalibriert sich",
+  "milestoneSugar2Body": "Kopfschmerzen und Heißhunger sind der Peak. Protein und Wasser.",
+  "milestoneSugar2Title": "Tag 2 — Zuckerentzug",
+  "milestoneSugar30Body": "Gesicht und Bauch wirken flacher, Entzündungsmarker sinken.",
+  "milestoneSugar30Title": "Tag 30 — Weniger Wassereinlagerungen",
+  "milestoneSugar5Body": "Kein Nachmittagstief mehr, weil die Blutzuckerachterbahn fehlt.",
+  "milestoneSugar5Title": "Tag 5 — Energie wird gleichmäßig",
+  "muscleBack": "Rücken",
+  "muscleBiceps": "Bizeps",
+  "muscleCalves": "Waden",
+  "muscleChest": "Brust",
+  "muscleCore": "Rumpf",
+  "muscleFullBody": "Ganzkörper",
+  "muscleGlutes": "Gesäß",
+  "muscleHamstrings": "Beinbeuger",
+  "muscleQuads": "Quadrizeps",
+  "muscleShoulders": "Schultern",
+  "muscleTriceps": "Trizeps",
+  "navFriends": "Freunde",
+  "navMore": "Mehr",
+  "navPlan": "Plan",
+  "navSettingsTitle": "Einstellungen",
+  "navStats": "Zahlen",
+  "navToday": "Heute",
+  "notifChannelPressure": "Freunde & Streak-Warnungen",
+  "notifChannelPressureDesc": "Wenn Freunde aktiv waren oder dein Streak auf der Kippe steht.",
+  "notifChannelReminder": "Tägliche Erinnerung",
+  "notifChannelReminderDesc": "Erinnert dich an deine Gewohnheiten für heute.",
+  "notifDayDone": "Tag {day} steht. Morgen wieder.",
+  "@notifDayDone": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "notifDayOpenNoStreak": "Tag {day} von {total}. Heute wieder anfangen.",
+  "@notifDayOpenNoStreak": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "notifDayOpenWithStreak": "Tag {day} von {total}. {streak} Tage Streak wollen verteidigt werden.",
+  "@notifDayOpenWithStreak": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "notifFriendActive": "{name} war heute schon dran",
+  "@notifFriendActive": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notifFriendsActive": "{count} deiner Leute waren heute schon dran",
+  "@notifFriendsActive": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notifFriendsActiveBody": "Du stehst noch auf null. Noch ist der Tag nicht rum.",
+  "notifStreakRiskBody": "{streak} Tage. Ein vergessener Abend, und sie sind weg.",
+  "@notifStreakRiskBody": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "notifStreakRiskTitle": "Dein Streak steht auf dem Spiel",
+  "nudgeCheerRespect": "Respekt für {emoji}",
+  "@nudgeCheerRespect": {
+    "placeholders": {
+      "emoji": {
+        "type": "String"
+      }
+    }
+  },
+  "nudgeDefaultPoke": "Ich war heute schon. Und du?",
+  "nudgeIWentDidYou": "Ich war heute schon. Und du?",
+  "nudgeNoPressure": "Kein Druck. Aber ich sehe deinen Feed.",
+  "nudgeReasonInactive": "Seit zwei Tagen inaktiv",
+  "nudgeReasonNothingToday": "Heute noch nichts gemacht",
+  "nudgeStreakWatching": "Tag {day}. Dein Streak schaut dich an.",
+  "@nudgeStreakWatching": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "nudgeStrongToday": "Stark heute. Morgen wieder?",
+  "nudgeYouWereInForDays": "{streak, plural, =1{1 Tag warst du dabei. Heute auch?} other{{streak} Tage warst du dabei. Heute auch?}}",
+  "@nudgeYouWereInForDays": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "obActivityAthlete": "Sportler",
+  "obActivityHigh": "Sehr aktiv",
+  "obActivityLight": "Leicht aktiv",
+  "obActivityModerate": "Moderat",
+  "obActivitySedentary": "Sitzend",
+  "obBodyActivity": "Alltag & Bewegung",
+  "obBodyAge": "Alter",
+  "obBodyAgeValue": "{years} Jahre",
+  "@obBodyAgeValue": {
+    "placeholders": {
+      "years": {
+        "type": "int"
+      }
+    }
+  },
+  "obBodyEyebrow": "Ernährung",
+  "obBodyHeight": "Größe",
+  "obBodyPreviewTitle": "Dein Tagesziel",
+  "obBodySubtitle": "Nur für die Kalorien- und Proteinberechnung. Alles bleibt auf diesem Gerät.",
+  "obBodyTitle": "Ein paar Zahlen.",
+  "obBodyWeight": "Gewicht",
+  "obCycleDays": "Tage",
+  "obCycleLengthTitle": "Wie lang ist ein Zyklus?",
+  "obCycleNote": "Am Ende des Zyklus ist nicht Schluss: dein Streak läuft weiter und du steigst in die nächste Stufe auf.",
+  "obEquipmentBodyweight": "Nur Körpergewicht",
+  "obEquipmentBodyweightBody": "Kein Equipment. Geht trotzdem.",
+  "obEquipmentFullGym": "Volles Studio",
+  "obEquipmentFullGymBody": "Langhantel, Maschinen, Kabelzug.",
+  "obEquipmentHome": "Home-Gym",
+  "obEquipmentHomeBody": "Kurzhanteln, Bänder, Klimmzugstange.",
+  "obExample1Clarity": "Handyzeit halbieren, Kopf zurückholen",
+  "obExample1Custom": "Mein Ding, meine Regeln",
+  "obExample1Discipline": "100 Tage keine Ausrede",
+  "obExample1Fat": "8 kg runter bis zum Sommer",
+  "obExample1Fit": "5 km unter 25 Minuten laufen",
+  "obExample1Muscle": "In 100 Tagen 5 kg Muskeln drauf",
+  "obExample1Sober": "100 Tage komplett trocken",
+  "obExample2Clarity": "100 Tage ohne Doomscrolling",
+  "obExample2Discipline": "Jeden Morgen um 6 auf, ohne Diskussion",
+  "obExample2Fat": "Wieder in meine alte Hose passen",
+  "obExample2Fit": "Ohne Pause die Treppen hoch",
+  "obExample2Muscle": "Endlich 10 saubere Klimmzüge",
+  "obExample2Sober": "Kein Zucker, kein Alkohol, keine Ausnahme",
+  "obExperienceAdvanced": "Erfahren",
+  "obExperienceAdvancedBody": "Mehr als drei Jahre. Volumen ist dein Hebel.",
+  "obExperienceBeginner": "Anfänger",
+  "obExperienceBeginnerBody": "Unter einem Jahr regelmäßig. Technik vor Gewicht.",
+  "obExperienceIntermediate": "Fortgeschritten",
+  "obExperienceIntermediateBody": "Ein bis drei Jahre. Du weißt, wie sich RPE 8 anfühlt.",
+  "obGoalSubtitle": "Ein Ziel. Alles andere — Trainingsplan, Ernährungsplan, Streak — wird daraus gebaut.",
+  "obGoalTitle": "Worum geht es?",
+  "obHabitDailyTarget": "Tagesziel",
+  "obHabitRecommended": "empfohlen",
+  "obHabitsSubtitlePreselected": "Vorausgewählt ist, was zu deinem Ziel passt. Ändere es, wie du willst.",
+  "obHabitsSubtitleTooMany": "Das sind viele. Erfahrungsgemäß hält man drei bis vier durch — lieber weniger und dafür wirklich.",
+  "obHabitsTitle": "Was zählt jeden Tag?",
+  "obIdentityBoxBody": "Ein Ed25519-Schlüsselpaar auf diesem Gerät, als did:key. Jeder Check-in wird damit signiert — deshalb kann niemand deinen Streak fälschen, und du brauchst niemandem zu vertrauen. Den Wiederherstellungs-Key findest du in den Einstellungen. Sichere ihn.",
+  "obIdentityBoxTitle": "Deine Identität",
+  "obIdentityNameHint": "Dein Name",
+  "obIdentitySubtitle": "Kein Konto, keine E-Mail, kein Passwort. Dein Schlüsselpaar liegt schon auf diesem Gerät.",
+  "obIdentityTitle": "Wie sollen dich deine Leute sehen?",
+  "obPointBeyondBody": "Danach geht es weiter — nächste Stufe, härtere Ziele, gleicher Streak.",
+  "obPointBeyondTitle": "Tag 100 ist nicht das Ende",
+  "obPointGoalBody": "Ohne Ziel kein Plan. Du sagst, worum es geht — die App baut Training, Ernährung oder Streak drumherum.",
+  "obPointGoalTitle": "Erst das Ziel",
+  "obPointPrivacyBody": "Kein Konto, kein Server, keine Cloud. Deine Daten liegen auf deinem Gerät und gehen direkt zu deinen Freunden.",
+  "obPointPrivacyTitle": "Niemand sonst",
+  "obPointSocialBody": "Kein anonymer Zähler. Wenn Marcel heute im Gym war und du nicht, steht das da. Genau das ist der Punkt.",
+  "obPointSocialTitle": "Deine Leute sehen alles",
+  "obSetsAndMinutes": "{sets} Sätze · {minutes} Min",
+  "@obSetsAndMinutes": {
+    "placeholders": {
+      "sets": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "obSexFemale": "weiblich",
+  "obSexMale": "männlich",
+  "obStartChallenge": "Challenge starten",
+  "obStartFailed": "Start fehlgeschlagen: {message}",
+  "@obStartFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "obStatementHint": "Ich will …",
+  "obStatementSubtitle": "Diesen Satz bekommst du an jedem schweren Tag zu sehen. Also schreib den echten, nicht den vorzeigbaren.",
+  "obStatementTitle": "Sag es in einem Satz.",
+  "obStep1": "Schritt 1",
+  "obStep2": "Schritt 2",
+  "obStep3": "Schritt 3",
+  "obStep4": "Schritt 4",
+  "obSummaryAlmostDone": "Fast fertig",
+  "obSummaryDailySection": "Das zählt täglich",
+  "obSummaryDayOne": "{emoji} {goal} · Tag 1 von {days}",
+  "@obSummaryDayOne": {
+    "placeholders": {
+      "emoji": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "obSummaryEyebrow": "Dein Plan",
+  "obSummaryFriendsNote": "Danach: Freunde verbinden. Allein hält es kaum jemand 100 Tage durch — mit Publikum schon.",
+  "obSummaryMissing": "Ein paar Angaben fehlen noch.",
+  "obSummaryNutritionSection": "Ernährungsplan",
+  "obSummaryTitle": "{days} Tage, ab heute.",
+  "@obSummaryTitle": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "obSummaryTrainingSection": "Trainingsplan",
+  "obTrainingDaysPerWeek": "Trainingstage pro Woche",
+  "obTrainingEquipment": "Ausrüstung",
+  "obTrainingExperience": "Erfahrung",
+  "obTrainingEyebrow": "Training",
+  "obTrainingSubtitle": "Daraus baut die App deinen Split — inklusive Deload-Wochen, damit du nach sechs Wochen nicht auf dem Zahnfleisch gehst.",
+  "obTrainingTitle": "Wie oft und womit?",
+  "obWelcomeEyebrow": "100 Tage und weit darüber hinaus",
+  "obWelcomeSubtitle": "Setz ein Ziel. Bekomm einen Plan. Und danach zählt nur noch eins: ob du heute dran warst — und ob deine Leute es sehen.",
+  "obWelcomeTitle": "Du brauchst kein neues Ich.\nDu brauchst 100 Tage.",
+  "peerActivityAscended": "Nächste Stufe erreicht",
+  "peerActivityCheckIn": "{emoji} {habit} erledigt",
+  "@peerActivityCheckIn": {
+    "placeholders": {
+      "emoji": {
+        "type": "String"
+      },
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "peerActivityFreeze": "Streak eingefroren",
+  "peerActivityMissed": "Tag verpasst",
+  "peerActivityNone": "Noch nichts los",
+  "peerActivityRelapse": "Rückfall eingetragen",
+  "peerActivityStarted": "Challenge gestartet",
+  "planAdjustmentsNote": "Ausgewertet auf diesem Gerät, aus deinen letzten Wochen. Nichts davon verlässt dein Handy.",
+  "planBmr": "Grundumsatz (BMR)",
+  "planCarbs": "Kohlenhydrate",
+  "planCarbsShort": "Carbs",
+  "planCleanDays": "{days} Tage clean",
+  "@planCleanDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "planContext": "Kontext",
+  "planCurrentBadge": "aktuell",
+  "planDeloadBadge": "deload",
+  "planExpectedChange": "Erwartete Änderung",
+  "planFat": "Fett",
+  "planFiber": "Ballaststoffe",
+  "planKcal": "kcal",
+  "planKcalPerDay": "{kcal} kcal pro Tag",
+  "@planKcalPerDay": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "planKcalPerDayShort": "kcal / Tag",
+  "planMealMacros": "{kcal} kcal · {protein}g P",
+  "@planMealMacros": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      }
+    }
+  },
+  "planMeals": "Mahlzeiten",
+  "planNutritionDeficit": "{percent} % Defizit unter deinem Verbrauch von {tdee} kcal. Das sind rund 0,5 kg Fett pro Woche — schnell genug, dass du es siehst, langsam genug, dass die Muskeln bleiben.",
+  "@planNutritionDeficit": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "tdee": {
+        "type": "int"
+      }
+    }
+  },
+  "planNutritionMaintain": "Erhaltung bei {tdee} kcal. Erst Gewohnheit und Leistung, dann Körperkomposition.",
+  "@planNutritionMaintain": {
+    "placeholders": {
+      "tdee": {
+        "type": "int"
+      }
+    }
+  },
+  "planNutritionSideGoal": "Erhaltung bei {tdee} kcal. Dein Ziel liegt woanders — Ernährung soll dich hier nur nicht ausbremsen.",
+  "@planNutritionSideGoal": {
+    "placeholders": {
+      "tdee": {
+        "type": "int"
+      }
+    }
+  },
+  "planNutritionSurplus": "{percent} % Überschuss über deinem Verbrauch von {tdee} kcal. Lean Bulk: genug für Aufbau, wenig genug, dass du nicht nur Fett zunimmst.",
+  "@planNutritionSurplus": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      },
+      "tdee": {
+        "type": "int"
+      }
+    }
+  },
+  "planPerWeek": "{value} kg/Woche",
+  "@planPerWeek": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "planProtein": "Protein",
+  "planTabAbstinence": "Clean bleiben",
+  "planTabAdjustments": "Anpassungen",
+  "planTabNutrition": "Ernährung",
+  "planTabTraining": "Training",
+  "planTdee": "Gesamtumsatz (TDEE)",
+  "planWater": "Wasser",
+  "planWeekNumber": "Woche {week}",
+  "@planWeekNumber": {
+    "placeholders": {
+      "week": {
+        "type": "int"
+      }
+    }
+  },
+  "planWorkoutSummary": "{sets} Sätze · ≈ {minutes} Min",
+  "@planWorkoutSummary": {
+    "placeholders": {
+      "sets": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "pressureBodyBehind": "{activity} · {streak, plural, =1{1 Tag Streak} other{{streak} Tage Streak}}. Du stehst heute noch auf null.",
+  "@pressureBodyBehind": {
+    "placeholders": {
+      "activity": {
+        "type": "String"
+      },
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "pressureBodyDone": "Du auch. Weiter so.",
+  "pressureManyActive": "{count} deiner Leute waren heute schon dran",
+  "@pressureManyActive": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pressureOneActive": "{name} war heute schon dran",
+  "@pressureOneActive": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileCheer": "Feiern",
+  "profileCheerSent": "Gefeiert.",
+  "profileDaysCount": "{days} Tage",
+  "@profileDaysCount": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "profileDisconnect": "Verbindung trennen",
+  "profileHabits": "Gewohnheiten",
+  "profileHistory": "Verlauf",
+  "profileNudge": "Anstupsen",
+  "profileNudgeSent": "Anstupser gesendet.",
+  "profileRemoveBody": "Die komplette Historie dieser Person wird von deinem Gerät gelöscht. Rückgängig geht das nur durch erneutes Verbinden.",
+  "profileRemoveTitle": "{name} entfernen?",
+  "@profileRemoveTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileTitle": "Profil",
+  "profileUnknownBody": "Zu dieser Identität liegt nichts auf deinem Gerät.",
+  "profileUnknownTitle": "Unbekannt",
+  "promptAdjustHabitLine": "- {habit}: Ziel {target}, {days}x/Woche, Streak {streak}",
+  "@promptAdjustHabitLine": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      },
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "promptAdjustments": "Du bist Trainings- und Gewohnheitscoach. Sprache: Deutsch, Du-Form.\nDer Nutzer ist bei Tag {day} von {total}.\nTrefferquote: {percent} %.\nZiel: \"{statement}\"\n\n{habits}\n\nGib maximal 4 konkrete Anpassungen, je eine Zeile, je maximal 15 Wörter. Keine Einleitung, keine Nummerierung, keine Emojis.",
+  "@promptAdjustments": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "int"
+      },
+      "statement": {
+        "type": "String"
+      },
+      "habits": {
+        "type": "String"
+      }
+    }
+  },
+  "promptBriefing": "Du bist der Coach in einer 100-Tage-Challenge-App. Sprache: Deutsch, Du-Form.\n{persona}\nMaximal 2 Sätze. Keine Emojis am Zeilenanfang. Keine Anführungszeichen.\n\nZiel des Nutzers: \"{statement}\"\nTag {day} von {total} (Stufe: {tier})\nAktueller Streak: {streak} Tage, längster: {longest}\nHeute erledigt: {doneToday}\nUhrzeit: {hour}:00\n\nGewohnheiten:\n{habits}\n\nFreunde:\n{peers}\n\nAntworte in genau diesem Format:\nTITEL: <maximal 6 Wörter>\nTEXT: <1-2 Sätze>",
+  "@promptBriefing": {
+    "placeholders": {
+      "persona": {
+        "type": "String"
+      },
+      "statement": {
+        "type": "String"
+      },
+      "day": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "tier": {
+        "type": "String"
+      },
+      "streak": {
+        "type": "int"
+      },
+      "longest": {
+        "type": "int"
+      },
+      "doneToday": {
+        "type": "String"
+      },
+      "hour": {
+        "type": "String"
+      },
+      "habits": {
+        "type": "String"
+      },
+      "peers": {
+        "type": "String"
+      }
+    }
+  },
+  "promptHabitLine": "- {emoji} {habit}: {streak} {unit}",
+  "@promptHabitLine": {
+    "placeholders": {
+      "emoji": {
+        "type": "String"
+      },
+      "habit": {
+        "type": "String"
+      },
+      "streak": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "promptNo": "nein",
+  "promptNoFriends": "- keine Freunde verbunden",
+  "promptNudge": "Schreibe eine einzelne, kurze Stichel-Nachricht auf Deutsch an {name}, der oder die heute noch nichts für die eigene Challenge getan hat. Der Absender ist bei Tag {day} mit {streak} Tagen Streak. Maximal 12 Wörter, frech aber freundlich, kein Mobbing, keine Anführungszeichen. Nur die Nachricht, sonst nichts.",
+  "@promptNudge": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "day": {
+        "type": "int"
+      },
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "promptPeerActive": "HEUTE schon aktiv",
+  "promptPeerInactive": "heute noch nichts",
+  "promptPeerLine": "- {name}: {streak} Tage Streak, {status}",
+  "@promptPeerLine": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "streak": {
+        "type": "int"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "promptPersonaCalm": "Du bist ruhig und sachlich.",
+  "promptPersonaCelebrate": "Du bist kurz und stolz, ohne Kitsch.",
+  "promptPersonaDemanding": "Du bist fordernd und konkret.",
+  "promptPersonaDirect": "Du bist direkt und leicht provokant, aber nie beleidigend.",
+  "promptPersonaRecover": "Du bist nüchtern und respektvoll. Kein Mitleid, keine Vorwürfe.",
+  "promptUnitClean": "Tage clean",
+  "promptUnitStreak": "Tage Streak",
+  "promptYes": "ja",
+  "recoveryCopied": "Key kopiert.",
+  "recoveryLookAround": "Schau dich einmal um.",
+  "recoveryShow": "Key anzeigen",
+  "recoveryTip1": "Passwortmanager — der beste Ort dafür.",
+  "recoveryTip2": "Aufschreiben und in die Schublade legen, in der auch dein Ausweis liegt.",
+  "recoveryTip3": "Nicht in einen Chat, nicht in eine Notiz-App mit Cloud-Sync, nicht als Screenshot in der Galerie.",
+  "recoveryTitle": "Wiederherstellungs-Key",
+  "recoveryWarning": "Wer diesen Key hat, ist du. Er kann in deinem Namen Check-ins signieren, und du kannst ihn nicht sperren — es gibt keinen Anbieter, der das könnte.",
+  "recoveryWhereTitle": "Wohin damit",
+  "relativeDays": "vor {count} Tagen",
+  "@relativeDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relativeHours": "vor {count} Std",
+  "@relativeHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relativeJustNow": "gerade eben",
+  "relativeMinutes": "vor {count} Min",
+  "@relativeMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relativeYesterday": "gestern",
+  "ringDayOfTotal": "Tag {day} / {total}",
+  "@ringDayOfTotal": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "ringDayStreak": "{streak, plural, =1{Tag Streak} other{Tage Streak}}",
+  "@ringDayStreak": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "scanCameraUnavailableBody": "Ohne Kamerazugriff geht es auch: lass dir den Einladungslink schicken und füge ihn unten ein.\n\n{code}",
+  "@scanCameraUnavailableBody": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "scanCameraUnavailableTitle": "Kamera nicht verfügbar",
+  "scanHint": "Halte die Kamera auf den QR-Code deines Freundes.",
+  "scanPasteInstead": "Stattdessen Link einfügen",
+  "scanPasteTitle": "Einladungslink",
+  "scanTitle": "Code scannen",
+  "setAboutBody": "Kein Konto, kein Server, keine Werbung, kein Tracking. Deine Daten liegen auf diesem Gerät und gehen nur an die Freunde, die du selbst verbunden hast. Der Quellcode ist offen — prüf es nach, statt es zu glauben.",
+  "setAboutSection": "Über",
+  "setAboutTitle": "100 Tage und weit darüber hinaus",
+  "setCoachSection": "Coach",
+  "setDidCopied": "DID kopiert.",
+  "setIdentitySection": "Identität & Daten",
+  "setLan": "Lokales Netzwerk",
+  "setLanOff": "Nicht aktiv.",
+  "setLanOn": "Aktiv — findet Freunde im gleichen WLAN automatisch.",
+  "setLanguage": "App-Sprache",
+  "setLanguageEnglish": "English",
+  "setLanguageGerman": "Deutsch",
+  "setLanguageSection": "Sprache",
+  "setLanguageSystem": "Systemsprache",
+  "setLanguageSystemSub": "Richtet sich nach deinem Handy. Aktuell: {language}",
+  "@setLanguageSystemSub": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "setNetworkSection": "Netzwerk",
+  "setOnDeviceAi": "KI auf dem Gerät",
+  "setOnThisDevice": "Auf diesem Gerät",
+  "setOnThisDeviceSub": "{events} eigene Einträge · {friends} verbundene Feeds",
+  "@setOnThisDeviceSub": {
+    "placeholders": {
+      "events": {
+        "type": "int"
+      },
+      "friends": {
+        "type": "int"
+      }
+    }
+  },
+  "setRecoveryKey": "Wiederherstellungs-Key",
+  "setRecoveryKeySub": "Der einzige Weg zurück zu deinem Account.",
+  "setSyncFailed": "Letzter Versuch fehlgeschlagen: {message}",
+  "@setSyncFailed": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "setSyncLast": "Zuletzt mit {peer}: {received} empfangen, {sent} gesendet.",
+  "@setSyncLast": {
+    "placeholders": {
+      "peer": {
+        "type": "String"
+      },
+      "received": {
+        "type": "int"
+      },
+      "sent": {
+        "type": "int"
+      }
+    }
+  },
+  "setSyncNever": "Noch keine Runde gelaufen.",
+  "setSyncNow": "Jetzt synchronisieren",
+  "setSyncPeerFallback": "einem Peer",
+  "setSyncStarted": "Sync-Runde gestartet.",
+  "setViewSource": "Quellcode ansehen",
+  "setWipe": "Alles löschen",
+  "setWipeBody": "Ohne deinen Wiederherstellungs-Key ist danach nichts mehr zu retten — es gibt keinen Server, der eine Kopie hat. Das ist der Preis dafür, dass auch sonst niemand eine hat.",
+  "setWipeSub": "Identität, Challenge und alle Freunde entfernen.",
+  "setWipeTitle": "Wirklich alles löschen?",
+  "socialTabFeed": "Feed",
+  "socialTabFriends": "Freunde ({count})",
+  "@socialTabFriends": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "socialTabLeague": "Liga",
+  "splitFullBodyThrice": "Ganzkörper 3x",
+  "splitFullBodyTwice": "Ganzkörper 2x",
+  "splitPplPlusUpperLower": "Push / Pull / Legs + Upper / Lower",
+  "splitPplTwice": "Push / Pull / Legs 2x",
+  "splitPreview2": "Ganzkörper 2x — jede Einheit trifft alles.",
+  "splitPreview3": "Ganzkörper 3x — bester Kompromiss für die meisten.",
+  "splitPreview4": "Upper / Lower — zweimal Oberkörper, zweimal Beine.",
+  "splitPreview5": "Push / Pull / Legs plus Upper / Lower.",
+  "splitPreview6": "Push / Pull / Legs, zweimal die Woche.",
+  "splitUpperLower": "Upper / Lower",
+  "statDay": "Tag",
+  "statRecord": "Rekord",
+  "statStreak": "Streak",
+  "statXp": "XP",
+  "statsCurrentStreak": "Aktueller Streak",
+  "statsFullDays": "Volle Tage",
+  "statsHabitProgress": "{done} von {planned} geplanten Tagen ({percent} %)",
+  "@statsHabitProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "planned": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "statsHistorySince": "Seit {date}",
+  "@statsHistorySince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "statsHitRate": "Trefferquote",
+  "statsLevel": "Level",
+  "statsLevelNumber": "Level {level}",
+  "@statsLevelNumber": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "statsLongestStreak": "Längster Streak",
+  "statsNoXpYet": "Noch keine XP. Die kommen mit dem ersten Haken.",
+  "statsPerHabit": "Pro Gewohnheit",
+  "statsPercent": "{value} %",
+  "@statsPercent": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "statsWeeklyXp": "XP der letzten Wochen",
+  "statsXpToNextLevel": "Noch {remaining} XP bis Level {level} ({current} / {total})",
+  "@statsXpToNextLevel": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "level": {
+        "type": "int"
+      },
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "targetClean": "clean",
+  "targetCount": "{count}x",
+  "@targetCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "targetDone": "erledigt",
+  "targetGrams": "{count} g",
+  "@targetGrams": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "targetKcal": "{count} kcal",
+  "@targetKcal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "targetMinutes": "{count} Min",
+  "@targetMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "targetPages": "{count} Seiten",
+  "@targetPages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "targetSteps": "{count} Schritte",
+  "@targetSteps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tier0": "Die ersten 100",
+  "tier1": "Jenseits der 100",
+  "tier2": "Dreihundert",
+  "tier3": "Das Jahr",
+  "tier4": "Unbeugsam",
+  "tier5": "Legende",
+  "tierNumbered": "Legende {rank}",
+  "@tierNumbered": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
+  "tileCheckOff": "Abhaken",
+  "tileCleanToday": "Heute clean",
+  "tileDone": "Erledigt",
+  "tileDoneWith": "Erledigt · {target}",
+  "@tileDoneWith": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "tileLogAmount": "Eintragen",
+  "tileRelapse": "Rückfall",
+  "tileRelapseLogged": "Rückfall eingetragen — morgen neu.",
+  "tileRestToday": "Heute Pause laut Plan",
+  "tileStreakBadge": "{streak} 🔥",
+  "@tileStreakBadge": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "tileTarget": "Ziel: {target}",
+  "@tileTarget": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "tileUpdateAmount": "Update",
+  "trainingPhaseBuild": "Aufbau {week}/3 · Block {block}",
+  "@trainingPhaseBuild": {
+    "placeholders": {
+      "week": {
+        "type": "int"
+      },
+      "block": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingPhaseDeload": "Deload",
+  "trainingRationale": "{days} Trainingstage pro Woche als \"{split}\". Drei Wochen Aufbau, dann eine Deload-Woche — so hältst du 100 Tage durch, ohne auszubrennen.",
+  "@trainingRationale": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "split": {
+        "type": "String"
+      }
+    }
+  },
+  "weekdayFri": "FR",
+  "weekdayMon": "MO",
+  "weekdaySat": "SA",
+  "weekdayShortFri": "Fr",
+  "weekdayShortMon": "Mo",
+  "weekdayShortSun": "So",
+  "weekdayShortWed": "Mi",
+  "weekdaySun": "SO",
+  "weekdayThu": "DO",
+  "weekdayTue": "DI",
+  "weekdayWed": "MI",
+  "workoutExercises": "Übungen",
+  "workoutFullBodyA": "Ganzkörper A",
+  "workoutFullBodyAFocus": "Knie, Druck, Zug",
+  "workoutFullBodyB": "Ganzkörper B",
+  "workoutFullBodyBFocus": "Hüfte, Überkopf, Klimmzug",
+  "workoutFullBodyC": "Ganzkörper C",
+  "workoutFullBodyCFocus": "Einbeinig, Druck, Zug",
+  "workoutIntensity": "Intensität",
+  "workoutLegs": "Legs",
+  "workoutLegsFocus": "Quads, Hamstrings, Glutes",
+  "workoutLower": "Unterkörper",
+  "workoutLowerFocus": "Beine und Rumpf",
+  "workoutMinutes": "Minuten",
+  "workoutPull": "Pull",
+  "workoutPullFocus": "Rücken, Bizeps, hintere Schulter",
+  "workoutPush": "Push",
+  "workoutPushFocus": "Brust, Schultern, Trizeps",
+  "workoutReps": "Wdh.",
+  "workoutRest": "Pause",
+  "workoutRestSeconds": "{seconds}s",
+  "@workoutRestSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "workoutRpe": "RPE {value}",
+  "@workoutRpe": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "workoutRpeBody": "RPE 8 heißt: nach dem Satz hättest du noch zwei saubere Wiederholungen geschafft. Wähle das Gewicht so, dass das stimmt — nicht das, was letzte Woche im Plan stand.",
+  "workoutRpeTitle": "RPE verstehen",
+  "workoutSets": "Sätze",
+  "workoutUpper": "Oberkörper",
+  "workoutUpperFocus": "Druck und Zug",
+  "workoutWorkingSets": "Arbeitssätze"
+}

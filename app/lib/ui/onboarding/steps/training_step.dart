@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../state/onboarding_state.dart';
 import '../../../theme/theme.dart';
 import '../../widgets/app_card.dart';
@@ -13,18 +14,18 @@ class TrainingStep extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations l10n = context.l10n;
     final draft = ref.watch(onboardingProvider);
     final notifier = ref.read(onboardingProvider.notifier);
 
     return OnboardingScaffold(
-      eyebrow: 'Training',
-      title: 'Wie oft und womit?',
-      subtitle: 'Daraus baut die App deinen Split — inklusive Deload-Wochen, '
-          'damit du nach sechs Wochen nicht auf dem Zahnfleisch gehst.',
+      eyebrow: l10n.obTrainingEyebrow,
+      title: l10n.obTrainingTitle,
+      subtitle: l10n.obTrainingSubtitle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text('Trainingstage pro Woche',
+          Text(l10n.obTrainingDaysPerWeek,
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: AppSpacing.sm),
           Row(
@@ -45,84 +46,49 @@ class TrainingStep extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            _splitPreview(draft.trainingDaysPerWeek),
+            l10n.splitPreview(draft.trainingDaysPerWeek),
             style: Theme.of(context)
                 .textTheme
                 .bodyMedium
                 ?.copyWith(color: AppColors.flameSoft, fontSize: 13),
           ),
           const SizedBox(height: AppSpacing.xl),
-          Text('Erfahrung', style: Theme.of(context).textTheme.titleMedium),
+          Text(l10n.obTrainingExperience,
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: AppSpacing.sm),
           _OptionList<TrainingExperience>(
             value: draft.experience,
             onChanged: notifier.setExperience,
-            options: const <_Option<TrainingExperience>>[
-              _Option<TrainingExperience>(
-                value: TrainingExperience.beginner,
-                emoji: '🌱',
-                title: 'Anfänger',
-                body: 'Unter einem Jahr regelmäßig. Technik vor Gewicht.',
-              ),
-              _Option<TrainingExperience>(
-                value: TrainingExperience.intermediate,
-                emoji: '⚙️',
-                title: 'Fortgeschritten',
-                body: 'Ein bis drei Jahre. Du weißt, wie sich RPE 8 anfühlt.',
-              ),
-              _Option<TrainingExperience>(
-                value: TrainingExperience.advanced,
-                emoji: '🔥',
-                title: 'Erfahren',
-                body: 'Mehr als drei Jahre. Volumen ist dein Hebel.',
-              ),
+            options: <_Option<TrainingExperience>>[
+              for (final TrainingExperience level in TrainingExperience.values)
+                _Option<TrainingExperience>(
+                  value: level,
+                  emoji: const <String>['🌱', '⚙️', '🔥'][level.index],
+                  title: l10n.experienceTitle(level),
+                  body: l10n.experienceBody(level),
+                ),
             ],
           ),
           const SizedBox(height: AppSpacing.xl),
-          Text('Ausrüstung', style: Theme.of(context).textTheme.titleMedium),
+          Text(l10n.obTrainingEquipment,
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: AppSpacing.sm),
           _OptionList<EquipmentAccess>(
             value: draft.equipment,
             onChanged: notifier.setEquipment,
-            options: const <_Option<EquipmentAccess>>[
-              _Option<EquipmentAccess>(
-                value: EquipmentAccess.fullGym,
-                emoji: '🏟️',
-                title: 'Volles Studio',
-                body: 'Langhantel, Maschinen, Kabelzug.',
-              ),
-              _Option<EquipmentAccess>(
-                value: EquipmentAccess.homeBasic,
-                emoji: '🏠',
-                title: 'Home-Gym',
-                body: 'Kurzhanteln, Bänder, Klimmzugstange.',
-              ),
-              _Option<EquipmentAccess>(
-                value: EquipmentAccess.bodyweight,
-                emoji: '🤸',
-                title: 'Nur Körpergewicht',
-                body: 'Kein Equipment. Geht trotzdem.',
-              ),
+            options: <_Option<EquipmentAccess>>[
+              for (final EquipmentAccess access in EquipmentAccess.values)
+                _Option<EquipmentAccess>(
+                  value: access,
+                  emoji: const <String>['🏟️', '🏠', '🤸'][access.index],
+                  title: l10n.equipmentTitle(access),
+                  body: l10n.equipmentBody(access),
+                ),
             ],
           ),
         ],
       ),
     );
-  }
-
-  String _splitPreview(int days) {
-    switch (days) {
-      case 2:
-        return 'Ganzkörper 2x — jede Einheit trifft alles.';
-      case 3:
-        return 'Ganzkörper 3x — bester Kompromiss für die meisten.';
-      case 4:
-        return 'Upper / Lower — zweimal Oberkörper, zweimal Beine.';
-      case 5:
-        return 'Push / Pull / Legs plus Upper / Lower.';
-      default:
-        return 'Push / Pull / Legs, zweimal die Woche.';
-    }
   }
 }
 

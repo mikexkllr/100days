@@ -219,7 +219,8 @@ void main() {
 
       expect(peer.activeToday, isTrue);
       expect(peer.dayNumber, 1);
-      expect(peer.lastActivityLabel, contains('Kein Zucker'));
+      expect(peer.lastActivity.kind, PeerActivityKind.checkIn);
+      expect(peer.lastActivity.category, HabitCategory.noSugar);
       expect(peer.level, greaterThanOrEqualTo(1));
     });
   });
@@ -243,8 +244,10 @@ void main() {
       );
 
       expect(items.first.kind, ActivityKind.checkIn);
-      expect(items.first.headline, contains('Lesen'));
+      expect(items.first.category, HabitCategory.reading);
+      expect(items.first.authorName, 'Lisa');
       expect(items.last.kind, ActivityKind.start);
+      expect(items.last.statement, 'Kopf frei kriegen');
     });
 
     test('marks a backfilled check-in as not verified live', () async {
@@ -274,7 +277,7 @@ void main() {
       final checkIn =
           items.firstWhere((ActivityItem i) => i.kind == ActivityKind.checkIn);
       expect(checkIn.isVerifiedLive, isFalse);
-      expect(checkIn.detail, contains('nachgetragen'));
+      expect(checkIn.claimedDay, _start);
     });
 
     test('hides nudges aimed at third parties', () async {
@@ -313,22 +316,8 @@ void main() {
       );
 
       expect(items.single.kind, ActivityKind.nudge);
-      expect(items.single.headline, contains('stupst dich an'));
-    });
-  });
-
-  group('formatRelative', () {
-    final DateTime now = DateTime(2026, 3, 10, 12);
-
-    test('reads naturally across ranges', () {
-      expect(formatRelative(now.subtract(const Duration(seconds: 20)), now: now),
-          'gerade eben');
-      expect(formatRelative(now.subtract(const Duration(minutes: 5)), now: now),
-          'vor 5 Min');
-      expect(formatRelative(now.subtract(const Duration(hours: 3)), now: now),
-          'vor 3 Std');
-      expect(formatRelative(now.subtract(const Duration(days: 1)), now: now),
-          'gestern');
+      expect(items.single.isOwn, isFalse);
+      expect(items.single.message, 'Ich war heute schon.');
     });
   });
 }

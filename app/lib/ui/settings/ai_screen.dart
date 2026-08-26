@@ -4,6 +4,7 @@ import 'package:hundred_core/hundred_core.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/llm_runtime.dart';
+import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
@@ -49,10 +50,11 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     final AsyncValue<CoachEngine> coach = ref.watch(coachEngineProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('KI auf dem Gerät')),
+      appBar: AppBar(title: Text(l10n.aiTitle)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.md,
@@ -81,8 +83,10 @@ class _AiScreenState extends ConsumerState<AiScreen> {
                     Expanded(
                       child: Text(
                         coach.maybeWhen(
-                          data: (CoachEngine engine) => engine.name,
-                          orElse: () => 'Wird geladen …',
+                          data: (CoachEngine engine) => engine.modelName == null
+                              ? l10n.coachEngineRuleBased
+                              : l10n.coachEngineModel(engine.modelName!),
+                          orElse: () => l10n.aiLoading,
                         ),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
@@ -92,12 +96,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   GgufLlmRuntime.hasBackend
-                      ? 'Eine Inferenz-Engine ist eingebunden. Mit '
-                          'installiertem Modell formuliert sie deine '
-                          'Tagesansage.'
-                      : 'Aktuell läuft der regelbasierte Coach. Er braucht '
-                          'kein Modell, funktioniert offline und antwortet '
-                          'sofort — die Sprache ist nur weniger variabel.',
+                      ? l10n.aiBackendPresent
+                      : l10n.aiBackendMissing,
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium
@@ -106,7 +106,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
               ],
             ),
           ),
-          const SectionHeader('Unterstützte Modelle'),
+          SectionHeader(l10n.aiSupportedModels),
           if (_loading)
             const Center(
               child: Padding(
@@ -123,15 +123,14 @@ class _AiScreenState extends ConsumerState<AiScreen> {
                   installed: _installed?.id == spec.id,
                 ),
               ),
-          const SectionHeader('Modell installieren'),
+          SectionHeader(l10n.aiInstallTitle),
           AppCard(
             color: AppColors.surfaceHigh,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  'Lade die GGUF-Datei am Rechner herunter und leg sie in '
-                  'diesen Ordner:',
+                  l10n.aiInstallBody,
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium
@@ -147,9 +146,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'Die App lädt nichts von selbst herunter — ein Gigabyte '
-                  'über Mobilfunk ist nichts, was ohne Nachfrage passieren '
-                  'sollte.',
+                  l10n.aiNoAutoDownload,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textTertiary,
                         fontSize: 12.5,
@@ -158,23 +155,20 @@ class _AiScreenState extends ConsumerState<AiScreen> {
               ],
             ),
           ),
-          const SectionHeader('Was das Modell sieht'),
+          SectionHeader(l10n.aiWhatItSeesTitle),
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  'Streak, Tagesnummer, deine Gewohnheiten und ob deine '
-                  'Freunde heute aktiv waren — als Text, direkt an das Modell '
-                  'auf diesem Gerät. Kein Netzwerkaufruf, keine Telemetrie, '
-                  'kein Zwischenspeicher in einer Cloud.',
+                  l10n.aiWhatItSeesBody,
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium
                       ?.copyWith(color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                const Pill('kein Netzwerkzugriff',
+                Pill(l10n.aiNoNetworkBadge,
                     color: AppColors.lime, filled: true),
               ],
             ),
@@ -193,6 +187,7 @@ class _ModelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     return AppCard(
       border: installed ? AppColors.lime : null,
       color: installed
@@ -208,15 +203,15 @@ class _ModelCard extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium),
               ),
               if (installed)
-                const Pill('installiert',
-                    color: AppColors.lime, filled: true)
+                Pill(l10n.aiInstalled, color: AppColors.lime, filled: true)
               else
-                Pill('${(spec.approxBytes / 1e9).toStringAsFixed(1)} GB'),
+                Pill(l10n.aiGigabytes(
+                    (spec.approxBytes / 1e9).toStringAsFixed(1))),
             ],
           ),
           const SizedBox(height: 4),
           Text(
-            spec.descriptionDe,
+            l10n.modelDescription(spec.id),
             style: Theme.of(context)
                 .textTheme
                 .bodyMedium
@@ -240,7 +235,7 @@ class _ModelCard extends StatelessWidget {
                   Uri.parse(spec.sourceUrl),
                   mode: LaunchMode.externalApplication,
                 ),
-                child: const Text('Quelle'),
+                child: Text(l10n.aiSource),
               ),
             ],
           ),

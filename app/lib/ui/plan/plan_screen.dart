@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
 import '../../data/app_repository.dart';
+import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
@@ -20,15 +21,17 @@ class PlanScreen extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (Object error, StackTrace _) => Center(child: Text('$error')),
       data: (AppSnapshot snapshot) {
+        final AppLocalizations l10n = context.l10n;
         final List<_Tab> tabs = <_Tab>[
           if (snapshot.plan?.training != null)
-            _Tab('Training', _TrainingTab(snapshot: snapshot)),
+            _Tab(l10n.planTabTraining, _TrainingTab(snapshot: snapshot)),
           if (snapshot.plan?.nutrition != null)
-            _Tab('Ernährung', _NutritionTab(plan: snapshot.plan!.nutrition!)),
+            _Tab(l10n.planTabNutrition,
+                _NutritionTab(plan: snapshot.plan!.nutrition!)),
           if (snapshot.challenge!.habits
               .any((Habit h) => h.kind == HabitKind.abstain))
-            _Tab('Clean bleiben', _AbstinenceTab(snapshot: snapshot)),
-          const _Tab('Anpassungen', _AdjustmentsTab()),
+            _Tab(l10n.planTabAbstinence, _AbstinenceTab(snapshot: snapshot)),
+          _Tab(l10n.planTabAdjustments, const _AdjustmentsTab()),
         ];
 
         return DefaultTabController(
@@ -74,6 +77,7 @@ class _TrainingTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     final TrainingPlan plan = snapshot.plan!.training!;
     final Challenge challenge = snapshot.challenge!;
     final TrainingWeek currentWeek =
@@ -92,11 +96,11 @@ class _TrainingTab extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(plan.splitNameDe,
+              Text(l10n.splitName(plan.split),
                   style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                plan.rationaleDe,
+                l10n.trainingPlanRationale(plan),
                 style: Theme.of(context)
                     .textTheme
                     .bodyMedium
@@ -123,16 +127,18 @@ class _WeekSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         SectionHeader(
-          'Woche ${week.weekNumber}',
-          subtitle: week.phaseDe,
+          l10n.planWeekNumber(week.weekNumber),
+          subtitle: l10n.trainingPhase(week),
           action: isCurrent
-              ? const Pill('aktuell', color: AppColors.flame, filled: true)
+              ? Pill(l10n.planCurrentBadge,
+                  color: AppColors.flame, filled: true)
               : week.isDeload
-                  ? const Pill('deload', color: AppColors.violet)
+                  ? Pill(l10n.planDeloadBadge, color: AppColors.violet)
                   : null,
         ),
         for (final Workout workout in week.workouts)
@@ -154,8 +160,7 @@ class _WeekSection extends StatelessWidget {
                   SizedBox(
                     width: 34,
                     child: Text(
-                      const <String>['MO', 'DI', 'MI', 'DO', 'FR', 'SA', 'SO'][
-                          (workout.weekday - 1).clamp(0, 6)],
+                      l10n.weekdayShort(workout.weekday),
                       style: Theme.of(context)
                           .textTheme
                           .labelSmall
@@ -166,11 +171,11 @@ class _WeekSection extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text(workout.nameDe,
+                        Text(l10n.workoutName(workout.kind),
                             style: Theme.of(context).textTheme.titleMedium),
                         Text(
-                          '${workout.totalSets} Sätze · '
-                          '≈ ${workout.estimatedMinutes} Min',
+                          l10n.planWorkoutSummary(
+                              workout.totalSets, workout.estimatedMinutes),
                           style: Theme.of(context)
                               .textTheme
                               .bodyMedium
@@ -200,6 +205,7 @@ class _NutritionTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.md,
@@ -221,11 +227,11 @@ class _NutritionTab extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text('${plan.kcal} kcal pro Tag',
+              Text(l10n.planKcalPerDay(plan.kcal),
                   style: Theme.of(context).textTheme.headlineMedium),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                plan.rationaleDe,
+                l10n.nutritionRationale(plan),
                 style: Theme.of(context)
                     .textTheme
                     .bodyMedium
@@ -237,47 +243,49 @@ class _NutritionTab extends StatelessWidget {
                   Expanded(
                     child: StatTile(
                       value: '${plan.proteinG}g',
-                      label: 'Protein',
+                      label: l10n.planProtein,
                       color: AppColors.lime,
                     ),
                   ),
                   Expanded(
                     child: StatTile(
-                        value: '${plan.carbsG}g', label: 'Kohlenhydrate'),
+                        value: '${plan.carbsG}g', label: l10n.planCarbs),
                   ),
                   Expanded(
-                    child: StatTile(value: '${plan.fatG}g', label: 'Fett'),
+                    child: StatTile(
+                        value: '${plan.fatG}g', label: l10n.planFat),
                   ),
                 ],
               ),
             ],
           ),
         ),
-        const SectionHeader('Kontext'),
+        SectionHeader(l10n.planContext),
         AppCard(
           child: Column(
             children: <Widget>[
-              _Row(label: 'Grundumsatz (BMR)', value: '${plan.bmr} kcal'),
+              _Row(label: l10n.planBmr, value: '${plan.bmr} kcal'),
               const Divider(height: AppSpacing.lg),
-              _Row(label: 'Gesamtumsatz (TDEE)', value: '${plan.tdee} kcal'),
+              _Row(label: l10n.planTdee, value: '${plan.tdee} kcal'),
               const Divider(height: AppSpacing.lg),
               _Row(
-                label: 'Erwartete Änderung',
-                value:
-                    '${plan.weeklyWeightChangeKg >= 0 ? '+' : ''}'
-                    '${plan.weeklyWeightChangeKg.toStringAsFixed(2)} kg/Woche',
+                label: l10n.planExpectedChange,
+                value: l10n.planPerWeek(
+                  '${plan.weeklyWeightChangeKg >= 0 ? '+' : ''}'
+                  '${plan.weeklyWeightChangeKg.toStringAsFixed(2)}',
+                ),
               ),
               const Divider(height: AppSpacing.lg),
-              _Row(label: 'Ballaststoffe', value: '${plan.fiberG} g'),
+              _Row(label: l10n.planFiber, value: '${plan.fiberG} g'),
               const Divider(height: AppSpacing.lg),
               _Row(
-                label: 'Wasser',
+                label: l10n.planWater,
                 value: '${(plan.waterMl / 1000).toStringAsFixed(1)} l',
               ),
             ],
           ),
         ),
-        const SectionHeader('Mahlzeiten'),
+        SectionHeader(l10n.planMeals),
         for (final MealSlot meal in plan.meals)
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.sm + 2),
@@ -288,14 +296,14 @@ class _NutritionTab extends StatelessWidget {
                   Row(
                     children: <Widget>[
                       Expanded(
-                        child: Text(meal.nameDe,
+                        child: Text(l10n.mealName(meal.kind),
                             style: Theme.of(context).textTheme.titleMedium),
                       ),
-                      Pill('${meal.kcal} kcal · ${meal.proteinG}g P'),
+                      Pill(l10n.planMealMacros(meal.kcal, meal.proteinG)),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  for (final String idea in meal.suggestionsDe)
+                  for (final String idea in l10n.mealIdeas(meal.kind))
                     Padding(
                       padding: const EdgeInsets.only(bottom: 3),
                       child: Row(
@@ -385,13 +393,14 @@ class _MilestoneTrack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
     final List<AbstinenceMilestone> milestones = milestonesFor(habit.category);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         SectionHeader(
-          '${habit.emoji} ${habit.displayTitle}',
-          subtitle: '$streak Tage clean',
+          '${habit.emoji} ${l10n.habitLabel(habit)}',
+          subtitle: l10n.planCleanDays(streak),
         ),
         for (final AbstinenceMilestone milestone in milestones)
           Padding(
@@ -420,11 +429,11 @@ class _MilestoneTrack extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text(milestone.titleDe,
+                        Text(l10n.milestoneTitle(milestone),
                             style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 2),
                         Text(
-                          milestone.bodyDe,
+                          l10n.milestoneBody(milestone),
                           style: Theme.of(context)
                               .textTheme
                               .bodyMedium
@@ -450,7 +459,9 @@ class _AdjustmentsTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AsyncValue<List<String>> tips = ref.watch(planAdjustmentsProvider);
+    final AppLocalizations l10n = context.l10n;
+    final AsyncValue<List<PlanAdvice>> tips =
+        ref.watch(planAdjustmentsProvider);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -468,8 +479,7 @@ class _AdjustmentsTab extends ConsumerWidget {
               const SizedBox(width: AppSpacing.sm + 2),
               Expanded(
                 child: Text(
-                  'Ausgewertet auf diesem Gerät, aus deinen letzten Wochen. '
-                  'Nichts davon verlässt dein Handy.',
+                  l10n.planAdjustmentsNote,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                         fontSize: 12.5,
@@ -487,9 +497,9 @@ class _AdjustmentsTab extends ConsumerWidget {
             child: CircularProgressIndicator(),
           )),
           error: (Object error, StackTrace _) => Text('$error'),
-          data: (List<String> items) => Column(
+          data: (List<PlanAdvice> items) => Column(
             children: <Widget>[
-              for (final String tip in items)
+              for (final PlanAdvice tip in items)
                 Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: AppCard(
@@ -500,7 +510,7 @@ class _AdjustmentsTab extends ConsumerWidget {
                             size: 16, color: AppColors.flame),
                         const SizedBox(width: AppSpacing.sm + 2),
                         Expanded(
-                          child: Text(tip,
+                          child: Text(l10n.adviceText(tip),
                               style: Theme.of(context).textTheme.bodyLarge),
                         ),
                       ],
