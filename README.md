@@ -93,6 +93,10 @@ flutter pub get
 flutter run
 ```
 
+Fertige APK zum Ausprobieren: letzter grüner CI-Lauf → **Actions → CI →
+android-build** → Artefakt `hundred-days-apk`. Ausführlich inklusive iPhone:
+[`docs/testing-on-device.md`](docs/testing-on-device.md).
+
 Analyse und Tests für beide Pakete:
 
 ```bash

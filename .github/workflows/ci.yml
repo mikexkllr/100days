@@ -55,9 +55,13 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - run: flutter build apk --debug
+      # Release, split per ABI: ~25 MB per file instead of ~170 MB for a
+      # universal debug build, which matters when the point is to sideload it
+      # onto a phone. Signed with the debug key — fine for testing, not for
+      # the Play Store.
+      - run: flutter build apk --release --split-per-abi
       - uses: actions/upload-artifact@v4
         with:
-          name: hundred-days-debug-apk
-          path: app/build/app/outputs/flutter-apk/app-debug.apk
+          name: hundred-days-apk
+          path: app/build/app/outputs/flutter-apk/*-release.apk
           if-no-files-found: error
