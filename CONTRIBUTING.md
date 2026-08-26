@@ -1,64 +1,65 @@
-# Mitmachen
+# Contributing
 
-## Aufsetzen
+## Setup
 
 ```bash
 cd packages/hundred_core && dart pub get
 cd ../../app             && flutter pub get
 ```
 
-Flutter 3.27 oder neuer, Dart 3.6 oder neuer.
+Flutter 3.27 or newer, Dart 3.6 or newer.
 
-## Vor jedem Commit
+## Before every commit
 
 ```bash
 cd packages/hundred_core && dart analyze && dart test
 cd ../../app             && flutter analyze && flutter test
 ```
 
-Beides muss ohne Befund durchlaufen. Die CI führt genau diese vier Befehle aus.
+Both must come back clean. CI runs exactly these four commands.
 
-## Wo Code hingehört
+## Where code belongs
 
-**In `hundred_core`**, wenn es ohne Flutter, ohne Netzwerk und ohne
-Dateisystem auskommt: Domänenlogik, Berechnungen, Protokoll, Prüfregeln. Diese
-Grenze ist der Grund, warum sich die Teile testen lassen, die stimmen müssen.
-Wenn du dort einen `import 'package:flutter/…'` brauchst, ist der Code an der
-falschen Stelle oder die Schnittstelle fehlt noch.
+**In `hundred_core`** if it needs no Flutter, no network and no filesystem:
+domain logic, calculations, the protocol, validation rules. That boundary is
+the reason the parts that have to be correct can be tested at all. If you find
+yourself needing `import 'package:flutter/…'` in there, the code is in the
+wrong place or an interface is missing.
 
-**In `app`**, wenn es die Plattform berührt: UI, SQLite, Keystore, Sockets,
-Benachrichtigungen, Kamera.
+**In `app`** if it touches the platform: UI, SQLite, the keystore, sockets,
+notifications, the camera.
 
-Neue Plattformfähigkeiten kommen als Port in den Kern und als Adapter in die
-App — so wie `FeedStore`, `PeerTransport` und `LocalLlmRuntime`.
+New platform capabilities arrive as a port in the core and an adapter in the
+app — the way `FeedStore`, `PeerTransport` and `LocalLlmRuntime` did.
 
-## Was wir bei Änderungen erwarten
+## What we expect from changes
 
-- **Neue Ereignistypen** gehören in `FeedEventType.all`, sonst lehnt jede
-  Gegenstelle sie als `unknownType` ab. Ereignisse sind für immer: Ein Feed,
-  den heute jemand schreibt, muss in zwei Jahren noch prüfbar sein.
-- **Änderungen am kanonischen Format** brechen jede bestehende Signatur. Wenn
-  es sich nicht vermeiden lässt, braucht es eine Protokollversion.
-- **Regeln zu Streaks, XP oder Plänen** brauchen einen Test. Nicht aus
-  Prinzip — sondern weil ein Fehler dort erst nach Wochen sichtbar wird und
-  dann die Historie schon falsch ist.
-- **Kein Dark Pattern.** Die App darf unbequem sein; sie darf nicht täuschen.
-  Keine erfundenen Freundesaktivitäten, keine ausgedachten Zahlen, keine
-  künstliche Verknappung, die es nicht gibt.
-- **Keine Anzeigetexte im Kern.** Neue Inhalte kommen als Bezeichner in
-  `hundred_core` und als Übersetzung in die ARB-Dateien.
+- **New event types** must be added to `FeedEventType.all`, or every peer
+  rejects them as `unknownType`. Events are forever: a feed written today has
+  to still verify in two years.
+- **Changes to the canonical format** break every existing signature. If it
+  cannot be avoided, it needs a protocol version.
+- **Rules about streaks, XP or plans** need a test. Not on principle — because
+  a mistake there only shows up weeks later, by which point the history is
+  already wrong.
+- **No dark patterns.** The app is allowed to be uncomfortable; it is not
+  allowed to deceive. No invented friend activity, no made-up numbers, no
+  artificial scarcity that is not real.
+- **No display text in the core.** New content goes into `hundred_core` as an
+  identifier and into the ARB files as a translation.
 
-## Sprache
+## Language
 
-Code, Kommentare und Commit-Nachrichten sind **englisch**. Ohne Ausnahme.
+Code, comments and commit messages are **English**. No exceptions. That
+includes this documentation.
 
-Anzeigetexte stehen ausschließlich in `app/lib/l10n/*.arb`, in Deutsch und
-Englisch. Ein deutscher String im Dart-Code ist ein Fehler; ein deutscher
-String in `hundred_core` ist ein Architekturfehler — das Paket darf keine
-Anzeigesprache kennen.
+Display text lives exclusively in `app/lib/l10n/*.arb`, in English and German.
+A German string in Dart code is a bug; a German string in `hundred_core` is an
+architectural one — that package must not know about display language.
 
-Der Ton: Duzform, direkt, ohne Kitsch. Auf Englisch dasselbe in zweiter Person.
+The tone in the product: second person, direct, no schmaltz. German uses the
+informal *du*.
 
-Wer eine Zeichenkette hinzufügt, fügt sie in **beiden** Sprachen hinzu.
-`flutter test test/l10n_test.dart` erzwingt das.
+If you add a string, add it in **both** languages.
+`flutter test test/l10n_test.dart` enforces that.
 Details: [`docs/localization.md`](docs/localization.md).

@@ -1,45 +1,45 @@
-# Mehrsprachigkeit
+# Localization
 
-Die App spricht **Deutsch und Englisch** und richtet sich standardmäßig nach der
-Systemsprache des Geräts. Wer das anders will, stellt es unter
-*Einstellungen → Sprache* um; die Wahl überlebt Neustarts.
+The app speaks **English and German** and follows the device language by
+default. Anyone who wants otherwise changes it under *Settings → Language*; the
+choice survives restarts.
 
-Der **Code ist durchgehend englisch** — Bezeichner, Kommentare,
-Commit-Nachrichten. Deutsch existiert nur noch als Übersetzungsdatei.
+**Code is English throughout** — identifiers, comments, commit messages,
+documentation. German exists only as a translation file.
 
-## Die eine Regel
+## The one rule
 
-`hundred_core` enthält **keinen einzigen Anzeigetext**.
+`hundred_core` contains **no display text at all**.
 
-Das Paket liefert Bezeichner und Zahlen — `HabitCategory.noSugar`,
+The package hands out identifiers and numbers — `HabitCategory.noSugar`,
 `exerciseId: 'back_squat'`, `AbstinenceMilestone(track: alcohol, day: 14)`,
-`CoachTemplate.pressureTheySeeYourFeed`. Formuliert wird ausschließlich in der
-App, gegen `AppLocalizations`.
+`CoachTemplate.pressureTheySeeYourFeed`. Wording happens exclusively in the
+app, against `AppLocalizations`.
 
-Das ist keine Stilfrage. Ein Trainingsplan-Generator, der `nameDe` in seine
-Datenstruktur schreibt, ist für englische Nutzer unbrauchbar, und eine
-Streak-Berechnung, die von der Anzeigesprache abhängen kann, ist ein Fehler,
-der erst beim ersten ausländischen Nutzer auffällt. Die Grenze verhindert
-beides bauartbedingt: `hundred_core` importiert `flutter` nicht und kann
-deshalb gar nicht auf Übersetzungen zugreifen.
+This is not a style question. A training plan generator that writes `nameDe`
+into its data structures is unusable for English speakers, and a streak
+calculation that can depend on display language is a bug that only surfaces
+with the first foreign user. The boundary prevents both by construction:
+`hundred_core` does not import `flutter` and therefore cannot reach
+translations at all.
 
-## Wo was liegt
+## Where things live
 
 ```
 app/lib/l10n/
-  app_en.arb            Englisch (Vorlage)
-  app_de.arb            Deutsch
-  generated/            von `flutter gen-l10n` erzeugt, nicht von Hand ändern
-  core_l10n.dart        Gewohnheiten, Ziele, Stufen, Ligen, Einheiten, Zeiten
-  plan_l10n.dart        Workouts, Splits, Mahlzeiten, Meilensteine, Makro-Text
-  exercise_l10n.dart    Übungsnamen und Ausführungshinweise
-  coach_l10n.dart       Coach-Direktiven, Anstupser, Plan-Tipps
-  social_l10n.dart      Feed-Zeilen, Peer-Status
-  prompt_l10n.dart      Prompts für das lokale Sprachmodell
-  l10n.dart             Sammel-Import plus `context.l10n`
+  app_en.arb            English (template)
+  app_de.arb            German
+  generated/            produced by `flutter gen-l10n`, do not hand-edit
+  core_l10n.dart        habits, goals, tiers, leagues, units, times
+  plan_l10n.dart        workouts, splits, meals, milestones, macro copy
+  exercise_l10n.dart    exercise names and form cues
+  coach_l10n.dart       coach directives, nudges, plan advice
+  social_l10n.dart      feed lines, peer status
+  prompt_l10n.dart      prompts for the local language model
+  l10n.dart             one import plus `context.l10n`
 ```
 
-In einem Screen sieht das so aus:
+In a screen it looks like this:
 
 ```dart
 import '../../l10n/l10n.dart';
@@ -49,10 +49,10 @@ Text(l10n.habitTitle(habit.category))
 Text(l10n.coachBody(directive))
 ```
 
-## Der Coach
+## The coach
 
-Der Coach ist der Teil, bei dem „Text raus aus dem Core" am meisten kostet und
-am meisten bringt. Statt fertiger Sätze liefert er eine **Direktive**:
+The coach is where "no text in the core" costs the most and pays off the most.
+Instead of finished sentences it returns a **directive**:
 
 ```dart
 CoachDirective(
@@ -63,54 +63,53 @@ CoachDirective(
 )
 ```
 
-Welcher Satz zur Lage passt, entscheidet der Core — testbar, ohne auf Prosa zu
-prüfen. Wie er klingt, entscheidet die Sprachdatei.
+Which sentence fits the situation is decided by the core — testable without
+asserting on prose. How it sounds is decided by the translation file.
 
-Jede Formulierungsvariante ist ein eigener `CoachTemplate`-Wert und kein Index
-in eine Liste. Sonst könnte eine Übersetzung mit anderer Variantenzahl
-stillschweigend den falschen Satz ziehen.
+Every phrasing variant is its own `CoachTemplate` value rather than an index
+into a list. Otherwise a translation with a different number of variants could
+quietly pull the wrong line.
 
-Auch der **Prompt** für das lokale Modell ist übersetzt: ein deutsches Modell
-mit englischem Prompt nach deutscher Ausgabe zu fragen, funktioniert schlecht.
-Deshalb ist `CoachPromptBuilder` ein Port; die App liefert
-`LocalizedCoachPrompts`, das Paket selbst bringt nur eine englische Fassung
-mit, damit es allein lauffähig und testbar bleibt.
+The **prompt** for the local model is translated too: asking a model for German
+output from an English prompt works badly. That is why `CoachPromptBuilder` is
+a port; the app supplies `LocalizedCoachPrompts`, and the package itself only
+carries an English version so it stays runnable and testable on its own.
 
-## Was nicht übersetzt wird
+## What does not get translated
 
-- **Vom Nutzer geschriebener Text** — der Zielsatz, Notizen, eigene
-  Gewohnheitsnamen, Anstupser-Nachrichten. Wird verbatim angezeigt.
-- **Emoji.** Sprachneutral, bleiben im Core.
-- **Das Wire-Format.** Ereignisse tragen Bezeichner, nie übersetzte Strings.
-  Deshalb steht im `challenge.ascended`-Ereignis nur `cycle: 3` — dein
-  englischer Freund liest daraus „Beyond the 100", du liest „Jenseits der 100",
-  aus demselben signierten Byte-Block.
+- **Text the user wrote** — the goal sentence, notes, custom habit names, nudge
+  messages. Shown verbatim.
+- **Emoji.** Language-neutral, they stay in the core.
+- **The wire format.** Events carry identifiers, never translated strings. That
+  is why a `challenge.ascended` event holds only `cycle: 3` — your English
+  friend reads "Beyond the 100" and you read "Jenseits der 100", from the same
+  signed block of bytes.
 
-## Eine Sprache hinzufügen
+## Adding a language
 
-1. `app/lib/l10n/app_xx.arb` anlegen, `app_en.arb` als Vorlage.
-2. Locale in `kSupportedLocales` (`app/lib/data/locale_store.dart`) ergänzen.
-3. `flutter gen-l10n`.
-4. `flutter test test/l10n_test.dart` — der Test läuft über *jede*
-   Gewohnheit, jedes Ziel, jede Übung, jeden Meilenstein, jedes
-   Coach-Template und meldet, was fehlt.
+1. Create `app/lib/l10n/app_xx.arb`, using `app_en.arb` as the template.
+2. Add the locale to `kSupportedLocales` in `app/lib/data/locale_store.dart`.
+3. Run `flutter gen-l10n`.
+4. Run `flutter test test/l10n_test.dart` — it walks *every* habit, goal,
+   exercise, milestone and coach template and reports what is missing.
 
-Am Code ist nichts zu ändern. Wenn doch, ist etwas an der falschen Stelle.
+Nothing in the code needs changing. If it does, something is in the wrong
+place.
 
-## Wogegen die Tests absichern
+## What the tests guard against
 
-`app/test/l10n_test.dart` prüft:
+`app/test/l10n_test.dart` checks that:
 
-- beide ARB-Dateien haben **exakt dieselben Schlüssel** — eine vergessene
-  Übersetzung ist ein roter Test, kein englischer Fetzen im deutschen UI
-- kein leerer Wert
-- **gleiche Platzhalter** in beiden Sprachen (sonst wirft `gen-l10n` zur
-  Laufzeit)
-- jeder Enum-Wert und jede ID aus `hundred_core` hat in **beiden** Sprachen
-  Text — das fängt den vergessenen `switch`-Fall
-- Plurale beugen tatsächlich („1 Tag" vs. „9 Tage", „1 day" vs. „9 days")
-- Stichproben unterscheiden sich zwischen den Sprachen, sind also übersetzt
-  und nicht kopiert
+- both ARB files define **exactly the same keys** — a forgotten translation is
+  a red test, not an English fragment in the German UI
+- no value is empty
+- **placeholders match** between the two languages (otherwise `gen-l10n` throws
+  at runtime)
+- every enum value and id from `hundred_core` has text in **both** languages —
+  this catches the forgotten `switch` case
+- plurals actually inflect ("1 Tag" vs "9 Tage", "1 day" vs "9 days")
+- sampled strings differ between languages, so they are translated rather than
+  copied
 
-Dazu Widget-Tests, die denselben Zustand einmal auf Deutsch und einmal auf
-Englisch rendern und prüfen, dass nichts von der anderen Sprache stehen bleibt.
+On top of that, widget tests render the same state once in German and once in
+English and assert that nothing from the other language is left on screen.

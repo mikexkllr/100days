@@ -103,7 +103,7 @@ class NotificationService {
   ///
   /// Explicit per-day scheduling instead of a repeating rule: the app rewrites
   /// these on every launch, which lets each day's text reflect the actual
-  /// state ("Tag 41, dein Streak steht") rather than a generic string, and
+  /// state ("day 41, your streak is holding") rather than a generic string, and
   /// sidesteps the timezone drift of a UTC-anchored repeat.
   Future<void> scheduleDailyReminders({
     required NotificationCopy copy,

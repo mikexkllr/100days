@@ -1,56 +1,55 @@
-# Stand und offene Punkte
+# Status and open items
 
-Ehrliche Liste. Was hier steht, ist noch nicht gebaut.
+An honest list. Anything here is not built yet.
 
-## Läuft
+## Working
 
-- Onboarding mit Zielsetzung, abgeleiteten Gewohnheiten und Planvorschau
-- Check-ins, Rückfälle, Streak-Freeze, Zyklusaufstieg — alles signiert
-- Trainingsplan (Mesozyklen mit Deload, RPE, Equipment-Fallback),
-  Ernährungsplan (Mifflin-St Jeor, Makros, Mahlzeitenaufteilung),
-  Abstinenz-Meilensteine
-- Regelbasierter Coach, Modell-Port für lokale Inferenz
-- Feed, Wochenliga, Anstupser, Feiern, QR-/Link-Einladungen
-- LAN-Entdeckung und Replikation, lokale Benachrichtigungen
-- Wiederherstellungs-Key, vollständiges Löschen
-- Deutsch und Englisch nach Systemsprache, umstellbar in den Einstellungen
+- Onboarding with goal setting, derived habits and a plan preview
+- Check-ins, relapses, streak freezes, cycle ascent — all signed
+- Training plan (mesocycles with deloads, RPE, equipment fallback), nutrition
+  plan (Mifflin-St Jeor, macros, meal split), abstinence milestones
+- Rule-based coach, model port for local inference
+- Feed, weekly league, nudges, cheers, QR and link invites
+- LAN discovery and replication, local notifications
+- Recovery key, full wipe
+- English and German following the device language, switchable in settings
 
-## Offen
+## Open
 
-**Weitere Sprachen.** Die Infrastruktur steht — eine neue Sprache ist eine
-ARB-Datei plus ein Eintrag in `kSupportedLocales`, kein Code. Naheliegend:
-Spanisch, Französisch, Türkisch.
+**More languages.** The infrastructure is there — a new language is an ARB file
+plus one entry in `kSupportedLocales`, no code. Obvious candidates: Spanish,
+French, Turkish.
 
-**Inferenz-Engine.** `GgufLlmRuntime.attachBackend` ist der Steckplatz; es
-fehlt die Bindung an llama.cpp (FFI) oder MediaPipe. Bis dahin läuft immer der
-regelbasierte Coach.
+**Inference engine.** `GgufLlmRuntime.attachBackend` is the socket; the binding
+to llama.cpp (FFI) or MediaPipe is missing. Until then the rule-based coach is
+always what runs.
 
-**Relay-Transport.** Freunde außerhalb des eigenen WLANs erreicht man derzeit
-nur, wenn man sich physisch trifft. Ein Nostr-artiges Relay oder WebRTC hinter
-`PeerTransport` würde das lösen, ohne den Serverlos-Anspruch zu brechen — das
-Relay leitet verschlüsselte, signierte Bytes weiter und kann sie nicht lesen.
+**Relay transport.** Friends outside your own Wi-Fi are currently only
+reachable if you physically meet. A Nostr-style relay or WebRTC behind
+`PeerTransport` would fix that without breaking the serverless claim — the
+relay forwards encrypted, signed bytes and cannot read them.
 
-**Hintergrund-Sync.** Aktuell wird beim App-Start und beim Zurückkehren in den
-Vordergrund synchronisiert. Auf Android wäre WorkManager möglich; iOS erlaubt
-im Hintergrund praktisch nichts Verlässliches, was hier ehrlich benannt gehört.
+**Background sync.** Right now syncing happens on app start and when returning
+to the foreground. WorkManager would work on Android; iOS allows practically
+nothing reliable in the background, which deserves saying plainly.
 
-**Bluetooth-Transport.** Für den Fall "gleiche Turnhalle, kein gemeinsames
-WLAN". BLE-Durchsatz reicht für Feed-Deltas locker.
+**Bluetooth transport.** For "same gym, no shared Wi-Fi". BLE throughput is
+more than enough for feed deltas.
 
-**Ende-zu-Ende-Verschlüsselung der Nutzlast.** Ereignisse sind signiert, aber
-im Klartext. Solange nur direkt zwischen Freundesgeräten repliziert wird, ist
-das vertretbar; sobald ein Relay dazwischenliegt, ist es das nicht mehr.
+**End-to-end encryption of payloads.** Events are signed but in the clear. As
+long as replication only happens directly between friends' devices that is
+defensible; the moment a relay sits in between, it is not.
 
-**Gruppen-Challenges.** Mehrere Leute auf dasselbe Ziel, gemeinsamer
-Fortschritt. Datenmodell trägt das bereits, die Oberfläche nicht.
+**Group challenges.** Several people on the same goal, shared progress. The
+data model already supports it, the UI does not.
 
-**Widgets und Wearables.** Ein Homescreen-Widget mit dem Streak wäre die
-billigste Erinnerung, die es gibt.
+**Widgets and wearables.** A home screen widget with the streak would be the
+cheapest reminder there is.
 
-**Import aus Health/Google Fit.** Schritte und Trainingsdauer automatisch statt
-per Hand.
+**Import from Health / Google Fit.** Steps and training duration automatically
+instead of by hand.
 
-**BIP39-Merkphrase.** Der Wiederherstellungs-Key ist Base58 statt zwölf Wörter.
-Funktional gleichwertig, aber schwerer abzuschreiben.
+**BIP39 mnemonic.** The recovery key is base58 rather than twelve words.
+Functionally equivalent, but harder to copy down.
 
-**Signierte Releases.** Die Android-Konfiguration nutzt noch den Debug-Key.
+**Signed releases.** The Android config still uses the debug key.

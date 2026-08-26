@@ -1,21 +1,21 @@
-# Protokoll
+# Protocol
 
-Ziel: Zwei Geräte, die sich sehen, gleichen ihre Feeds in einer Runde ab und
-legen auf. Es gibt keinen Client und keinen Server — beide Seiten führen
-dieselbe Routine aus.
+The goal: two devices that can see each other reconcile their feeds in one
+round and hang up. There is no client and no server — both sides run the same
+routine.
 
-## Identität
+## Identity
 
-Ed25519-Schlüsselpaar, erzeugt auf dem Gerät aus 32 Byte Zufall. Adressiert als
-`did:key:z…` (Multicodec-Präfix `0xed 0x01`, Base58btc). Der Seed liegt im
-Keychain bzw. Android Keystore und ist der gesamte Account — es gibt keinen
-Anbieter, der ihn zurücksetzen könnte.
+An Ed25519 key pair generated on device from 32 bytes of randomness. Addressed
+as `did:key:z…` (multicodec prefix `0xed 0x01`, base58btc). The seed lives in
+the Keychain or Android Keystore and *is* the entire account — there is no
+provider who could reset it.
 
-Der Wiederherstellungs-Key ist derselbe Seed in Base58. Base58 statt Base64,
-weil das Alphabet keine verwechselbaren Zeichen enthält: `0/O` und `1/l/I`
-fehlen, was zählt, sobald jemand die Zeichenkette vom Bildschirm abschreibt.
+The recovery key is that same seed in base58. Base58 rather than base64 because
+the alphabet contains no confusable characters: no `0/O`, no `1/l/I`, which
+matters the moment somebody copies the string off a screen by hand.
 
-## Ereignisformat
+## Event format
 
 ```json
 {
@@ -31,42 +31,45 @@ fehlen, was zählt, sobald jemand die Zeichenkette vom Bildschirm abschreibt.
 }
 ```
 
-- `hash` = SHA-256 über `canonicalJson({author, seq, prev, timestamp, type,
-  payload})`. Kanonisch heißt: Objektschlüssel sortiert, kein Leerraum, ganze
-  Gleitkommazahlen als Ganzzahlen. Ohne diese Festlegung leiten zwei
-  Implementierungen unterschiedliche Bytes ab und keine Signatur prüft mehr.
-- `sig` = Ed25519 über die UTF-8-Bytes von `hash`, Base64.
-- `prev` ist `null` genau beim ersten Ereignis (`seq == 1`).
+- `hash` = SHA-256 over `canonicalJson({author, seq, prev, timestamp, type,
+  payload})`. Canonical means: object keys sorted, no whitespace, whole floats
+  written as integers. Without that rule two implementations derive different
+  bytes and no signature verifies.
+- `sig` = Ed25519 over the UTF-8 bytes of `hash`, base64.
+- `prev` is `null` exactly on the first event (`seq == 1`).
 
-Ereignistypen: `profile`, `challenge.started`, `challenge.ascended`, `checkin`,
+Payloads carry identifiers, never localized strings. A `challenge.ascended`
+event holds `cycle: 3`, so a German and an English reader each see the tier
+named in their own language from the same signed bytes.
+
+Event types: `profile`, `challenge.started`, `challenge.ascended`, `checkin`,
 `missed`, `streak.freeze`, `nudge`, `cheer`, `friend.request`.
 
-## Prüfregeln beim Empfang
+## Validation on receipt
 
-Ein Ereignis wird angenommen, wenn **alle** zutreffen:
+An event is accepted when **all** of these hold:
 
-| Prüfung | Ablehnungsgrund |
+| Check | Rejection reason |
 | --- | --- |
-| Typ ist bekannt | `unknownType` |
-| `hash` entspricht dem kanonischen Rumpf | `badHash` |
-| `timestamp` ≤ jetzt + 10 min | `timestampInFuture` |
-| `seq` == Vorgänger + 1 (bzw. 1) | `seqOutOfOrder` |
-| `prev` == Hash des Vorgängers | `chainBroken` |
-| `timestamp` ≥ Zeitstempel des Vorgängers | `timestampRegression` |
-| Signatur prüft gegen `author` | `badSignature` |
+| Type is known | `unknownType` |
+| `hash` matches the canonical body | `badHash` |
+| `timestamp` ≤ now + 10 min | `timestampInFuture` |
+| `seq` == predecessor + 1 (or 1) | `seqOutOfOrder` |
+| `prev` == hash of the predecessor | `chainBroken` |
+| `timestamp` ≥ the predecessor's | `timestampRegression` |
+| Signature verifies against `author` | `badSignature` |
 
-Nach dem ersten abgelehnten Ereignis eines Autors wird der Rest **dieses**
-Autors in derselben Lieferung verworfen: Hinter einem gebrochenen Glied ist
-nichts mehr überprüfbar, und weiterzumachen hieße, sich einen gefälschten
-Schwanz unterschieben zu lassen.
+After the first rejected event from an author, the rest of **that author's**
+events in the same delivery are dropped: nothing behind a broken link is
+verifiable, and carrying on would mean accepting a forged tail.
 
-Eintreffende Ereignisse, deren Vorgänger fehlt, werden zurückgehalten statt
-abgelehnt — die nächste Runde fordert die Lücke an.
+Incoming events whose predecessor is missing are held back rather than
+rejected — the next round asks for the gap.
 
-## Ablauf einer Runde
+## A round
 
-Rahmung: ein JSON-Objekt pro Zeile (NDJSON) über TCP. Bewusst langweilig,
-damit ein zweiter Client davon implementierbar bleibt.
+Framing: one JSON object per line (NDJSON) over TCP. Deliberately boring, so a
+second client stays implementable.
 
 ```
 A                                        B
@@ -82,45 +85,42 @@ A                                        B
 │◄─────────────────────────────── done ──│
 ```
 
-Die Runde endet, wenn beide Seiten `done` gesendet *und* empfangen haben. Ein
-Gerät, das mitten in der Runde aus dem WLAN läuft, hinterlässt beide Seiten
-konsistent — jedes einzelne Ereignis ist für sich prüfbar, es gibt nichts, was
-"halb angekommen" wäre.
+The round ends when both sides have sent *and* received `done`. A device that
+walks out of Wi-Fi mid-round leaves both sides consistent — every single event
+is independently verifiable, so there is nothing that could arrive "half done".
 
-**Sequentiell verarbeitet.** Ein Rahmen wird vollständig angewandt, bevor der
-nächste gelesen wird. Nebenläufig zu verarbeiten hieße, dass ein `done`
-eintrifft, während ein Stapel Ereignisse noch geschrieben wird — die Runde
-meldete dann Erfolg über einen halb replizierten Feed.
+**Processed sequentially.** One frame is fully applied before the next is read.
+Handling frames concurrently would let a `done` arrive while a batch of events
+is still being written, and the round would report success over a half
+replicated feed.
 
-**Grenzen.** Höchstens 200 Ereignisse pro Rahmen, höchstens 4 MB pro Zeile.
-Ein Gegenüber soll uns nicht dazu bringen können, seine gesamte Historie auf
-einmal im Speicher zu halten.
+**Limits.** At most 200 events per frame, at most 4 MB per line. A peer must not
+be able to make us hold their entire history in memory at once.
 
-**Nur Gefolgte.** Angeboten und angenommen werden ausschließlich Feeds aus der
-eigenen Freundesliste (plus der eigene). Sonst landet die Freundesliste der
-Freundesliste unbemerkt auf dem Gerät.
+**Followed feeds only.** Only feeds from your own friend list (plus your own)
+are offered and accepted. Otherwise your friends' friend lists quietly land on
+your device.
 
-## Transporte
+## Transports
 
-`PeerTransport` liefert Entdeckungen und Sitzungen; der `Syncer` weiß nicht,
-worüber er spricht.
+`PeerTransport` supplies discoveries and sessions; the `Syncer` does not know
+what it is talking over.
 
-**LAN** (mitgeliefert): UDP-Multicast-Beacon auf `239.100.100.1:47101` alle
-fünf Sekunden mit `{did, name, port}`, Replikation über TCP. Braucht keine
-Infrastruktur — Mitbewohner und Trainingspartner sind physisch nah. Scheitert
-das Multicast (Gast-WLAN, Mobilfunk), bleibt der TCP-Teil nutzbar für Adressen
-aus einer gescannten Einladung.
+**LAN** (bundled): a UDP multicast beacon on `239.100.100.1:47101` every five
+seconds carrying `{did, name, port}`, replication over TCP. Needs no
+infrastructure — flatmates and training partners are physically close. If
+multicast is blocked (guest Wi-Fi, mobile networks), the TCP half still works
+for addresses taken from a scanned invite.
 
-Pro Peer greift eine Sperre von 20 Sekunden: Ein Gerät, das sich alle fünf
-Sekunden meldet, darf nicht alle fünf Sekunden eine Runde auslösen.
+A 20-second lock applies per peer: a device announcing itself every five
+seconds must not trigger a round every five seconds.
 
-## Einladungen
+## Invites
 
 ```
 hundreddays://invite?d=<base64url({did, name, emoji, addr[], ts})>
 ```
 
-Es gibt keine Registry, in der man jemanden nachschlägt, also trägt die
-Einladung selbst alles Nötige. Die Adressen sind eine Abkürzung für "wir sind
-gerade im selben WLAN", kein dauerhafter Anker — danach übernimmt die
-Entdeckung.
+There is no registry to look anyone up in, so the invite carries everything
+needed itself. The addresses are shorthand for "we are on the same Wi-Fi right
+now", not a durable locator — discovery takes over afterwards.

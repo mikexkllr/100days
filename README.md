@@ -1,137 +1,127 @@
-# 100 Tage — und weit darüber hinaus
+# 100 Days — and far beyond
 
-Eine offene Challenge-App für iOS und Android. Du setzt am Anfang ein Ziel,
-bekommst daraus einen Trainings- oder Ernährungsplan oder schlicht einen
-Tagesstreak — und deine Freunde sehen jeden Tag, ob du dran warst.
+An open challenge app for iOS and Android. You set a goal up front, get a
+training plan, a nutrition plan or simply a daily streak out of it — and your
+friends see every day whether you showed up.
 
-Kein Konto. Kein Server. Keine Cloud. Deine Daten liegen auf deinem Gerät und
-gehen direkt zu den Leuten, die du selbst verbunden hast.
+No account. No server. No cloud. Your data lives on your device and goes
+directly to the people you connected yourself.
 
-> **English:** A local-first, peer-to-peer habit challenge app built with
-> Flutter. Self-sovereign Ed25519 identity, a signed hash-chained activity feed
-> that makes streaks independently verifiable, an on-device coach, and gossip
-> replication with no backend. Ships in English and German, following the
-> device language.
+The interface ships in **English and German** and follows your device language.
 
 ---
 
-## Warum es anders funktioniert als die anderen
+## Why this works differently
 
-**Der Streak ist beweisbar.** Jeder Check-in ist ein signierter Eintrag in
-einem hash-verketteten Log. Deine Freunde rechnen deinen Streak aus *deinen
-Einträgen* aus — du behauptest ihn nicht, du beweist ihn. Ein nachträglich
-eingeschobenes Training bricht die Kette, ein nachgetragener Tag ist im Feed
-sichtbar als "nachgetragen" markiert.
+**The streak is provable.** Every check-in is a signed entry in a hash-chained
+log. Your friends compute your streak from *your signed entries* — you do not
+claim a number, you prove it. A workout spliced in after the fact breaks the
+chain, and a day logged late is visibly marked as backfilled in the feed.
 
-**Der Druck kommt von echten Leuten.** Nicht "3 Nutzer waren heute aktiv",
-sondern: Marcel war heute im Gym, hat 47 Tage Streak, und du stehst noch auf
-null. Wochenliga mit Auf- und Abstieg, Anstupser, Feiern. Das Duolingo-Prinzip,
-nur ist der Pool deine eigenen Freunde — gegen Fremde zu verlieren kostet
-nichts, gegen den eigenen Mitbewohner schon.
+**The pressure comes from real people.** Not "3 users were active today", but:
+Marcel was at the gym, he is on a 47-day streak, and you are still on zero.
+Weekly league with promotion and relegation, nudges, cheers. The Duolingo
+mechanic, except the pool is your own friends — losing to a stranger costs
+nothing, losing to your flatmate does.
 
-**Es hört bei Tag 100 nicht auf.** Tag 100 schließt einen Zyklus ab. Danach
-steigst du eine Stufe auf, der Streak läuft weiter, die Ziele werden härter.
+**It does not stop at day 100.** Day 100 closes a cycle. After that you ascend
+a tier, the streak keeps counting, and the targets get harder.
 
-**Niemand sieht mit.** Es gibt keinen Server, der deine Rückfälle kennt, weil
-es überhaupt keinen Server gibt. Der Coach läuft auf dem Gerät.
+**Nobody is watching.** There is no server that knows about your relapses,
+because there is no server at all. The coach runs on the device.
 
-**Deutsch und Englisch.** Die App folgt der Systemsprache; umstellen geht in
-den Einstellungen. Details: [`docs/localization.md`](docs/localization.md).
+## What you can track
 
-## Was du tracken kannst
+🏋️ Training · 🏃 Cardio · 🥗 Nutrition · 🚱 No alcohol · 🍬 No sugar ·
+🧠 Dopamine detox · 🛡️ NoFap · 🚭 No nicotine · 📚 Reading · 🧘 Meditation ·
+🧊 Cold showers · 😴 Sleep · 💧 Water · ✍️ Journaling · ⭐ Your own
 
-🏋️ Training · 🏃 Cardio · 🥗 Ernährung · 🚱 Kein Alkohol · 🍬 Kein Zucker ·
-🧠 Dopamin-Detox · 🛡️ NoFap · 🚭 Kein Nikotin · 📚 Lesen · 🧘 Meditation ·
-🧊 Kalt duschen · 😴 Schlaf · 💧 Wasser · ✍️ Journaling · ⭐ Eigenes
+Habits are either **build** (do something) or **abstain** (avoid something),
+and that changes how they are counted: a forgotten tap does not kill an
+abstinence streak, but an admitted relapse does.
 
-Gewohnheiten sind entweder **Aufbau** (etwas tun) oder **Verzicht** (etwas
-lassen), und das ändert, wie gezählt wird: ein vergessener Haken killt keine
-Abstinenz-Serie, ein eingestandener Rückfall schon.
+## What the app generates
 
-## Was die App generiert
-
-| Ziel | Was daraus wird |
+| Goal | What comes out of it |
 | --- | --- |
-| Muskeln aufbauen / Fett verlieren / Fit werden | Trainingsplan mit Split nach Trainingstagen, Mesozyklen aus drei Aufbauwochen plus Deload, RPE statt Wunschgewichten — und Kalorien-/Makroziele nach Mifflin-St Jeor |
-| Disziplin / Kopf frei / Clean bleiben | Tagesstreak mit Meilenstein-Track: was an Tag 3, 14, 30, 90 im Körper und im Kopf passiert |
+| Build muscle / lose fat / get fit | A training plan with a split chosen by training days, mesocycles of three build weeks plus a deload, RPE instead of guessed weights — and calorie and macro targets from Mifflin-St Jeor |
+| Discipline / clarity / staying clean | A daily streak with a milestone track: what happens in your body and your head on day 3, 14, 30, 90 |
 
-Beides wird **deterministisch auf dem Gerät** berechnet. Gleiche Eingaben,
-gleicher Plan — nachvollziehbar statt Blackbox, und funktioniert im Kellergym
-ohne Empfang.
+Both are computed **deterministically on the device**. Same inputs, same plan —
+auditable rather than a black box, and it works in a basement gym with no
+signal.
 
-## Der Coach auf dem Gerät
+## The coach on your device
 
-Zwei Implementierungen hinter einem Interface:
+Two implementations behind one interface:
 
-- **Regelbasiert** (immer aktiv): wählt den Ton aus dem Zustand — Aufbruch,
-  sozialer Druck, "der Tag ist gleich rum", Meilenstein, Rückfall. Braucht kein
-  Modell, antwortet sofort, funktioniert offline.
-- **Lokales Sprachmodell** (optional): ein GGUF-Modell, das du selbst in den
-  Modellordner legst. Der Prompt verlässt das Gerät nie. Fällt bei jedem
-  Fehler — kein Modell, zu langsam, unbrauchbare Ausgabe — lautlos auf den
-  regelbasierten Coach zurück.
+- **Rule-based** (always on): picks its tone from your state — fresh start,
+  social pressure, "the day is nearly over", milestone, relapse. Needs no
+  model, answers instantly, works offline.
+- **Local language model** (optional): a GGUF model you put in the model folder
+  yourself. The prompt never leaves the device. On any failure — no model, too
+  slow, unusable output — it falls back silently to the rule-based coach.
 
-Die App lädt **kein** Modell von selbst herunter. Ein Gigabyte über Mobilfunk
-ist nichts, was ohne Nachfrage passieren sollte. Details:
+The app never downloads a model on its own. A gigabyte over mobile data is not
+something that should happen unasked. Details:
 [`docs/local-ai.md`](docs/local-ai.md).
 
-## Wie das Netzwerk funktioniert
+## How the network works
 
-Deine Identität ist ein Ed25519-Schlüsselpaar, adressiert als W3C
-[`did:key`](https://w3c-ccg.github.io/did-method-key/). Freunde fügst du per
-QR-Code oder Link hinzu — es gibt keine Registry, in der man jemanden
-nachschlägt.
+Your identity is an Ed25519 key pair addressed as a W3C
+[`did:key`](https://w3c-ccg.github.io/did-method-key/). You add friends by QR
+code or link — there is no registry to look anyone up in.
 
-Repliziert wird per Gossip: Zwei Geräte tauschen die Köpfe ihrer Feeds aus,
-fordern an, was fehlt, und legen auf. Kein Client, kein Server, keine Sitzung,
-die jemand offen halten muss. Der mitgelieferte Transport findet Freunde im
-selben WLAN (UDP-Beacon + TCP); weitere Transporte hängen hinter demselben
-Interface. Protokoll: [`docs/protocol.md`](docs/protocol.md).
+Replication is gossip: two devices exchange the heads of their feeds, ask for
+what they are missing, and hang up. No client, no server, no session anyone has
+to keep open. The bundled transport finds friends on the same Wi-Fi (UDP beacon
+plus TCP); further transports plug in behind the same interface. Protocol:
+[`docs/protocol.md`](docs/protocol.md).
 
-## Loslegen
+## Getting started
 
 ```bash
-flutter --version        # 3.27 oder neuer
+flutter --version        # 3.27 or newer
 cd app
 flutter pub get
 flutter run
 ```
 
-Fertige APK zum Ausprobieren: letzter grüner CI-Lauf → **Actions → CI →
-android-build** → Artefakt `hundred-days-apk`. Ausführlich inklusive iPhone:
+A ready-made APK to try: the latest green CI run → **Actions → CI →
+android-build** → artifact `hundred-days-apk`. In detail, including iPhone:
 [`docs/testing-on-device.md`](docs/testing-on-device.md).
 
-Analyse und Tests für beide Pakete:
+Analysis and tests for both packages:
 
 ```bash
 cd packages/hundred_core && dart pub get && dart analyze && dart test
 cd ../../app             && flutter pub get && flutter analyze && flutter test
 ```
 
-## Aufbau
+## Layout
 
 ```
-packages/hundred_core/   Reines Dart: Identität, signierter Feed, Domäne,
-                         Plangenerator, Coach, Sync-Protokoll
-app/                     Flutter: UI, SQLite, Keystore, Transporte,
-                         Benachrichtigungen
+packages/hundred_core/   Pure Dart: identity, signed feed, domain, plan
+                         generator, coach, sync protocol
+app/                     Flutter: UI, SQLite, keystore, transports,
+                         notifications, translations
 ```
 
-Der Kern kennt weder Flutter noch Netzwerk noch Dateisystem — und keine
-Anzeigesprache. Alles, was stimmen *muss* — Kettenprüfung, Streak-Arithmetik,
-Kalorienrechnung, Sync-Runden — ist damit ohne Gerät testbar, und dieselben
-Regeln treiben einen deutschen wie einen englischen Nutzer.
-Mehr dazu: [`docs/architecture.md`](docs/architecture.md).
+The core knows nothing about Flutter, the network, the filesystem — or the
+display language. Everything that has to be *correct* — chain validation,
+streak arithmetic, calorie maths, sync rounds — is therefore testable without a
+device, and the same rules drive a German and an English user.
+More on this: [`docs/architecture.md`](docs/architecture.md).
 
-## Stand
+## Status
 
-Was läuft: Onboarding, Check-ins, Streaks, Pläne, Coach, Feed, Liga, Anstupser,
-Einladungen, LAN-Sync, lokale Benachrichtigungen, Wiederherstellungs-Key.
+Working: onboarding, check-ins, streaks, plans, coach, feed, league, nudges,
+invites, LAN sync, local notifications, recovery key, English and German.
 
-Was noch fehlt, ist ehrlich aufgelistet in [`docs/roadmap.md`](docs/roadmap.md)
-— unter anderem eine echte Inferenz-Engine hinter dem Modell-Port, ein
-Relay-Transport für Freunde außerhalb des WLANs und Hintergrund-Sync auf iOS.
+What is still missing is listed honestly in [`docs/roadmap.md`](docs/roadmap.md)
+— among other things a real inference engine behind the model port, a relay
+transport for friends outside your Wi-Fi, and background sync on iOS.
 
-## Lizenz
+## Licence
 
-MIT — siehe [`LICENSE`](LICENSE).
+MIT — see [`LICENSE`](LICENSE).

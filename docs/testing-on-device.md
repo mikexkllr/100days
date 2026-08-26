@@ -1,43 +1,41 @@
-# Auf dem Handy testen
+# Testing on a phone
 
-## Android — der schnellste Weg
+## Android — the fast way
 
-Nach jedem Push baut die CI installierbare APKs.
+Every push builds installable APKs in CI.
 
-1. Öffne den letzten grünen Lauf unter
-   **Actions → CI → android-build**.
-2. Lade unten das Artefakt **`hundred-days-apk`** herunter (eine ZIP-Datei).
-3. Entpacken. Für praktisch jedes Handy seit 2017 ist
-   **`app-arm64-v8a-release.apk`** die richtige Datei
-   (`armeabi-v7a` nur für sehr alte Geräte, `x86_64` für Emulatoren).
-4. Datei aufs Handy schieben — Kabel, Google Drive, an dich selbst schicken,
-   egal.
-5. Antippen. Android fragt nach der Erlaubnis, Apps aus dieser Quelle zu
-   installieren; erlauben, installieren.
+1. Open the latest green run under **Actions → CI → android-build**.
+2. Download the **`hundred-days-apk`** artifact at the bottom (a ZIP).
+3. Unzip it. For essentially every phone since 2017 the right file is
+   **`app-arm64-v8a-release.apk`** (`armeabi-v7a` only for very old devices,
+   `x86_64` for emulators).
+4. Get the file onto the phone — cable, Drive, send it to yourself, whatever.
+5. Tap it. Android asks for permission to install from this source; allow it,
+   install.
 
-Voraussetzung: **Android 7.0 oder neuer** (minSdk 24).
+Requires **Android 7.0 or newer** (minSdk 24).
 
-Die APK ist mit dem Debug-Schlüssel signiert. Zum Testen ist das in Ordnung —
-für den Play Store bräuchte es einen eigenen Upload-Key.
+The APK is signed with the debug key. That is fine for testing — the Play Store
+would need your own upload key.
 
-## Android — selbst bauen
+## Android — building it yourself
 
 ```bash
-# Einmalig: Flutter SDK und Android Studio installieren, dann
-flutter doctor          # muss "Android toolchain" grün zeigen
+# One-off: install the Flutter SDK and Android Studio, then
+flutter doctor          # "Android toolchain" must be green
 
 cd app
 flutter pub get
 
-# Handy per USB anstecken, USB-Debugging in den Entwickleroptionen an
-flutter devices         # muss dein Handy auflisten
-flutter run --release   # baut, installiert und startet
+# Plug the phone in over USB, enable USB debugging in developer options
+flutter devices         # your phone must be listed
+flutter run --release   # builds, installs and starts
 ```
 
-`flutter run` ohne `--release` gibt dir Hot Reload — praktisch, wenn du am Code
-schraubst, aber spürbar langsamer.
+`flutter run` without `--release` gives you hot reload — handy while working on
+the code, noticeably slower to use.
 
-Nur die Datei bauen, ohne angestecktes Gerät:
+Just the file, with no device attached:
 
 ```bash
 flutter build apk --release --split-per-abi
@@ -46,9 +44,9 @@ flutter build apk --release --split-per-abi
 
 ## iPhone
 
-Hier führt kein Weg an einem **Mac mit Xcode** vorbei — Apple erlaubt das
-Signieren von iOS-Apps nur dort. Ein kostenloser Apple-Account reicht, die App
-läuft dann sieben Tage und muss danach neu installiert werden.
+There is no way around a **Mac with Xcode** — Apple only allows signing iOS
+apps there. A free Apple account is enough; the app then runs for seven days
+and has to be reinstalled after that.
 
 ```bash
 cd app
@@ -58,53 +56,57 @@ cd ios && pod install && cd ..
 open ios/Runner.xcworkspace
 ```
 
-In Xcode: **Runner → Signing & Capabilities → Team** auf deine Apple ID
-setzen und die Bundle-ID auf etwas Eindeutiges ändern
-(z. B. `com.deinname.hundreddays`) — `com.hundreddays.hundred_days` ist
-womöglich schon vergeben.
+In Xcode: set **Runner → Signing & Capabilities → Team** to your Apple ID and
+change the bundle id to something unique (for example
+`com.yourname.hundreddays`) — `com.hundreddays.hundred_days` may already be
+taken.
 
-Dann iPhone anstecken und:
+Then plug in the iPhone and:
 
 ```bash
 flutter devices
 flutter run --release
 ```
 
-Beim ersten Start meldet das iPhone einen nicht vertrauenswürdigen Entwickler.
-**Einstellungen → Allgemein → VPN & Geräteverwaltung → deine Apple ID →
-Vertrauen.**
+On first launch the iPhone reports an untrusted developer.
+**Settings → General → VPN & Device Management → your Apple ID → Trust.**
 
-Ohne Mac bleibt nur TestFlight, und dafür braucht es das
-Apple-Developer-Programm (99 $/Jahr) — plus jemanden mit Mac, der den Build
-hochlädt.
+Without a Mac the only option is TestFlight, and that needs the Apple Developer
+Program ($99/year) plus somebody with a Mac to upload the build.
 
-## Was du zu zweit testen solltest
+## Switching language
 
-Der interessante Teil der App braucht zwei Geräte im **selben WLAN**:
+The app follows the device language. To see the other one without changing your
+phone's settings, use **Settings → Language** in the app: System / Deutsch /
+English.
 
-1. Auf beiden Geräten das Onboarding durchlaufen.
-2. Auf Gerät A: **Freunde → Einladen**, QR-Code anzeigen.
-3. Auf Gerät B: **Freunde → Scannen**, Code scannen.
-4. Auf beiden Geräten etwas abhaken.
-5. Nach unten ziehen zum Aktualisieren — die Einträge des anderen tauchen im
-   Feed auf, mit **VERIFIZIERT**-Badge, und die Liga füllt sich.
+## What to test with two people
 
-Ohne zweites Gerät funktioniert alles außer dem sozialen Teil: Ziel setzen,
-Plan bekommen, abhaken, Streak, Statistiken, Coach.
+The interesting part of the app needs two devices on the **same Wi-Fi**:
 
-Der Coach läuft ohne Modell regelbasiert — das ist der Normalfall, kein
-Fehler. Siehe [`local-ai.md`](local-ai.md).
+1. Run through onboarding on both devices.
+2. On device A: **Friends → Invite**, show the QR code.
+3. On device B: **Friends → Scan**, scan it.
+4. Tick something off on both devices.
+5. Pull to refresh — the other person's entries appear in the feed with a
+   **VERIFIED** badge, and the league fills up.
 
-## Wenn etwas klemmt
+Without a second device everything works except the social part: setting a
+goal, getting a plan, checking in, streaks, statistics, the coach.
 
-**"App nicht installiert"** — meistens die falsche ABI. Nimm `arm64-v8a`.
-Oder es liegt eine ältere Version mit anderem Signaturschlüssel drauf: erst
-deinstallieren.
+With no model installed the coach runs rule-based — that is the normal case,
+not a fault. See [`local-ai.md`](local-ai.md).
 
-**Freunde finden sich nicht** — beide Geräte im selben WLAN? Gäste-WLANs und
-viele Firmennetze blockieren Multicast zwischen Clients. Notfalls den
-Einladungs*link* statt des QR-Codes nutzen: er enthält die IP-Adresse.
+## When something goes wrong
 
-**Keine Benachrichtigungen** — Android 13+ fragt beim ersten Start; wenn du
-abgelehnt hast, hilft nur Systemeinstellungen → Apps → 100 Tage →
-Benachrichtigungen.
+**"App not installed"** — usually the wrong ABI. Take `arm64-v8a`. Or an older
+version with a different signing key is still on the device: uninstall it
+first.
+
+**Friends do not find each other** — are both devices on the same Wi-Fi? Guest
+networks and many corporate networks block multicast between clients. As a
+fallback use the invite *link* instead of the QR code: it contains the IP
+address.
+
+**No notifications** — Android 13+ asks on first launch; if you declined, the
+only fix is system settings → Apps → 100 Days → Notifications.
