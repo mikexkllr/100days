@@ -49,7 +49,10 @@ class HealthPlugin :
 
     private companion object {
         const val CHANNEL = "hundred_days/health"
-        const val PERMISSION_REQUEST_CODE = 0x48435F31 // "HC_1"
+        // Kept inside 16 bits: AndroidX activities reserve the upper half of
+        // a request code, and this must not start throwing if MainActivity
+        // ever changes base class.
+        const val PERMISSION_REQUEST_CODE = 0x4831
 
         /**
          * Sessions a watch labels as lifting. Everything strength-shaped counts,
@@ -272,24 +275,29 @@ class HealthPlugin :
             if (metrics.contains("water")) add(HydrationRecord.VOLUME_TOTAL)
         }
         if (aggregates.isNotEmpty()) {
-            val buckets = client.aggregateGroupByPeriod(
-                AggregateGroupByPeriodRequest(
-                    metrics = aggregates,
-                    timeRangeFilter = TimeRangeFilter.between(start, end),
-                    timeRangeSlicer = Period.ofDays(1),
-                )
-            )
-            for (bucket in buckets) {
-                val day = bucket.startTime.toLocalDate().toString()
-                bucket.result[StepsRecord.COUNT_TOTAL]?.let { count ->
-                    daily += mapOf("metric" to "steps", "day" to day, "value" to count)
-                }
-                bucket.result[HydrationRecord.VOLUME_TOTAL]?.let { volume ->
-                    daily += mapOf(
-                        "metric" to "water",
-                        "day" to day,
-                        "value" to volume.inMilliliters,
+            // Each read is isolated: permission is granted per record type, so
+            // a user who allowed steps but refused hydration must still get
+            // their steps rather than an empty round.
+            ignoringRefusal {
+                val buckets = client.aggregateGroupByPeriod(
+                    AggregateGroupByPeriodRequest(
+                        metrics = aggregates,
+                        timeRangeFilter = TimeRangeFilter.between(start, end),
+                        timeRangeSlicer = Period.ofDays(1),
                     )
+                )
+                for (bucket in buckets) {
+                    val day = bucket.startTime.toLocalDate().toString()
+                    bucket.result[StepsRecord.COUNT_TOTAL]?.let { count ->
+                        daily += mapOf("metric" to "steps", "day" to day, "value" to count)
+                    }
+                    bucket.result[HydrationRecord.VOLUME_TOTAL]?.let { volume ->
+                        daily += mapOf(
+                            "metric" to "water",
+                            "day" to day,
+                            "value" to volume.inMilliliters,
+                        )
+                    }
                 }
             }
         }
@@ -297,48 +305,69 @@ class HealthPlugin :
         val wantsStrength = metrics.contains("strengthMinutes")
         val wantsCardio = metrics.contains("cardioMinutes")
         if (wantsStrength || wantsCardio) {
-            val response = client.readRecords(
-                ReadRecordsRequest(
-                    recordType = ExerciseSessionRecord::class,
-                    timeRangeFilter = TimeRangeFilter.between(start, end),
+            ignoringRefusal {
+                val response = client.readRecords(
+                    ReadRecordsRequest(
+                        recordType = ExerciseSessionRecord::class,
+                        timeRangeFilter = TimeRangeFilter.between(start, end),
+                    )
                 )
-            )
-            for (record in response.records) {
-                val metric = when (record.exerciseType) {
-                    in STRENGTH_TYPES -> if (wantsStrength) "strengthMinutes" else null
-                    in CARDIO_TYPES -> if (wantsCardio) "cardioMinutes" else null
-                    else -> null
-                } ?: continue
-                sessions += session(
-                    metric,
-                    record.startTime.toEpochMilli(),
-                    record.endTime.toEpochMilli(),
-                    deviceName(record.metadata),
-                )
+                for (record in response.records) {
+                    val metric = when (record.exerciseType) {
+                        in STRENGTH_TYPES -> if (wantsStrength) "strengthMinutes" else null
+                        in CARDIO_TYPES -> if (wantsCardio) "cardioMinutes" else null
+                        else -> null
+                    } ?: continue
+                    sessions += session(
+                        metric,
+                        record.startTime.toEpochMilli(),
+                        record.endTime.toEpochMilli(),
+                        deviceName(record.metadata),
+                    )
+                }
             }
         }
 
         if (metrics.contains("sleepMinutes")) {
-            val response = client.readRecords(
-                ReadRecordsRequest(
-                    recordType = SleepSessionRecord::class,
-                    // A night that began the evening before the window still
-                    // belongs to the first day in it, so reach back far enough
-                    // to catch it.
-                    timeRangeFilter = TimeRangeFilter.between(start.minusDays(1), end),
+            ignoringRefusal {
+                val response = client.readRecords(
+                    ReadRecordsRequest(
+                        recordType = SleepSessionRecord::class,
+                        // A night that began the evening before the window
+                        // still belongs to the first day in it, so reach back
+                        // far enough to catch it.
+                        timeRangeFilter = TimeRangeFilter.between(start.minusDays(1), end),
+                    )
                 )
-            )
-            for (record in response.records) {
-                sessions += session(
-                    "sleepMinutes",
-                    record.startTime.toEpochMilli(),
-                    record.endTime.toEpochMilli(),
-                    deviceName(record.metadata),
-                )
+                for (record in response.records) {
+                    sessions += session(
+                        "sleepMinutes",
+                        record.startTime.toEpochMilli(),
+                        record.endTime.toEpochMilli(),
+                        deviceName(record.metadata),
+                    )
+                }
             }
         }
 
         return mapOf("daily" to daily, "sessions" to sessions)
+    }
+
+    /**
+     * Swallows a refusal for one record type. Permission in Health Connect is
+     * per type and can be revoked at any moment from the system settings, so
+     * "you may not read sleep" has to mean exactly that and not "you get
+     * nothing today".
+     */
+    private inline fun ignoringRefusal(body: () -> Unit) {
+        try {
+            body()
+        } catch (error: SecurityException) {
+            // Nothing to report: the settings screen already tells the user
+            // where access is granted and revoked.
+        } catch (error: IllegalStateException) {
+            // Health Connect went away mid-round — same handling.
+        }
     }
 
     private fun session(
@@ -390,12 +419,15 @@ class HealthPlugin :
             permissionFor(metric)?.let { metric to it }
         }
         val allowed = wanted.filter { granted.contains(it.second) }.map { it.first }
-        return mapOf(
-            // Unlike HealthKit, Health Connect answers plainly, so the app can
-            // say "denied" instead of hedging.
-            "status" to if (allowed.isEmpty() && wanted.isNotEmpty()) "denied" else "granted",
-            "granted" to allowed,
-        )
+        // Unlike HealthKit, Health Connect answers plainly, so the app can say
+        // "denied" instead of hedging. Nothing requestable at all is neither
+        // granted nor denied — it is simply not a thing this platform has.
+        val status = when {
+            wanted.isEmpty() -> "unavailable"
+            allowed.isEmpty() -> "denied"
+            else -> "granted"
+        }
+        return mapOf("status" to status, "granted" to allowed)
     }
 
     private fun unavailable(): Map<String, Any> =

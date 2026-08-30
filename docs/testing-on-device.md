@@ -76,8 +76,9 @@ Program ($99/year) plus somebody with a Mac to upload the build.
 
 ## Connecting a watch
 
-**Android.** Health Connect ships with Android 14 and up; below that install it
-from the Play Store. Then open your band's own app — Fitbit, Samsung Health,
+**Android.** The app needs Android 8.0 or newer, which is what the Health
+Connect library requires. Health Connect itself ships with Android 14 and up;
+below that install it from the Play Store. Then open your band's own app — Fitbit, Samsung Health,
 Garmin Connect, Strava — and let it write into Health Connect; that switch
 lives in *their* app, not in this one. In 100 Days: Settings → *Watch & health
 data*, switch on the habits you want filled in, then *Allow access*. The

@@ -121,8 +121,9 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
           if (platform == HealthPlatform.healthConnect && !_loading && !_available)
             _missingProvider(context, l10n)
           else ...<Widget>[
-            SectionHeader(l10n.healthAccessSection),
-            _accessCard(context, l10n),
+            // Habits first, then access: picking a habit is what decides
+            // which permissions are asked for, so the order on screen is the
+            // order the user has to do it in.
             SectionHeader(l10n.healthHabitsSection),
             if (linkable.isEmpty)
               AppCard(
@@ -141,6 +142,8 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                   platform: platform,
                   enabled: enabled.contains(habit.category),
                 ),
+            SectionHeader(l10n.healthAccessSection),
+            _accessCard(context, l10n, anyEnabled: enabled.isNotEmpty),
             SectionHeader(l10n.healthImportSection),
             _importCard(context, l10n, enabled.isNotEmpty),
           ],
@@ -240,7 +243,11 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
         ),
       );
 
-  Widget _accessCard(BuildContext context, AppLocalizations l10n) {
+  Widget _accessCard(
+    BuildContext context,
+    AppLocalizations l10n, {
+    required bool anyEnabled,
+  }) {
     if (_loading) {
       return const AppCard(
         child: Center(
@@ -269,7 +276,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
           AppColors.danger,
         ),
       HealthAuthorization.unavailable => (
-          l10n.healthIntroNone,
+          l10n.setHealthOff,
           null,
           AppColors.textTertiary,
         ),
@@ -304,7 +311,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
           Row(
             children: <Widget>[
               TextButton(
-                onPressed: _busy ? null : _grant,
+                onPressed: _busy || !anyEnabled ? null : _grant,
                 child: Text(l10n.healthGrant),
               ),
               const Spacer(),

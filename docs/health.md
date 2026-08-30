@@ -137,6 +137,11 @@ The app declares four read permissions and no write permission at all:
 `READ_STEPS`, `READ_EXERCISE`, `READ_SLEEP`, `READ_HYDRATION`. A bug in it
 cannot corrupt your health record, because it holds nothing that could.
 
+This raises the app's `minSdk` from Flutter's default of 24 to **26**
+(Android 8.0), which is what the Health Connect client library itself
+requires. Nothing is lost by it: a phone on API 24 or 25 cannot run Health
+Connect at all, so there was no version of this feature it could have had.
+
 **iOS.** Building for a real iPhone needs the HealthKit capability on your
 signing profile; `app/ios/Runner/Runner.entitlements` already declares it. The
 background-delivery entitlement is deliberately absent — the app reads when you

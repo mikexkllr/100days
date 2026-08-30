@@ -14,8 +14,8 @@ import UIKit
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     // Registered by hand: HealthKit lives in the app rather than in a pub
     // package, so the generated registrant knows nothing about it.
-    HealthPlugin.register(
-      with: engineBridge.pluginRegistry.registrar(forPlugin: "HealthPlugin")!
-    )
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "HealthPlugin") {
+      HealthPlugin.register(with: registrar)
+    }
   }
 }

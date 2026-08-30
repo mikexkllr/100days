@@ -22,7 +22,11 @@ android {
         applicationId = "com.hundreddays.hundred_days"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // Health Connect itself requires Android 8.0. Flutter's own default is
+        // still 24, which would leave the manifest merger to fail rather than
+        // the feature to degrade — and a phone on API 24 or 25 could not run
+        // Health Connect anyway, so there is nothing to fall back to.
+        minSdk = maxOf(flutter.minSdkVersion, 26)
         targetSdk = flutter.targetSdkVersion
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
         // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)

@@ -376,8 +376,10 @@ final class HealthPlugin: NSObject, FlutterPlugin {
       return HKCategoryValueSleepAnalysis.allAsleepValues
         .contains { $0.rawValue == sample.value }
     }
-    // Before iOS 16 there was one asleep value and no stages.
-    return sample.value == HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue
+    // Before iOS 16 sleep had no stages and exactly one "asleep" value. Its
+    // raw value is spelled out rather than named because the symbol that
+    // carries it today is annotated iOS 16+, and the deployment target is 15.
+    return sample.value == 1
   }
 
   private static func session(
