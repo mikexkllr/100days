@@ -82,12 +82,23 @@ The core defines interfaces, the app supplies the implementations:
 | `FeedStore` | `SqliteFeedStore` | `MemoryFeedStore` |
 | `PeerTransport` / `PeerSession` | `LanTransport` / `SocketPeerSession` | `LoopbackSession` |
 | `LocalLlmRuntime` | `GgufLlmRuntime` | fake in tests |
+| `HealthDataSource` | `PlatformHealthSource` | `UnavailableHealthSource`, fakes |
 | `CoachPromptBuilder` | `LocalizedCoachPrompts` | `EnglishCoachPrompts` |
 | `CoachEngine` | — | `HeuristicCoach` is itself the fallback layer |
 
 The sync logic is tested against `LoopbackSession` — two nodes in one process,
 running a real protocol round. That leaves only the socket plumbing untested,
 and that is the part you cannot meaningfully simulate anyway.
+
+The health port is worth a second look, because the split there is sharper
+than it first appears. The platform adapters return only what the platform
+knows better than we do: per-day totals for steps and hydration, where
+HealthKit and Health Connect both de-duplicate across the apps that wrote the
+samples, and otherwise raw intervals. Everything with a decision in it —
+merging a run that two apps both recorded, deciding a night's sleep belongs to
+the morning you woke up, refusing to overwrite a number a person typed — is a
+pure function in the core with a test next to it. See
+[`health.md`](health.md).
 
 ## Time
 
@@ -112,6 +123,12 @@ writing (`timestamp`). When they differ it was a backfill, and the feed says so.
 - **Abstinence counts differently.** A forgotten tap does not reset an
   abstinence streak — only an admitted relapse does. Otherwise people quit, and
   that is the worse failure mode.
+- **A sensor never outranks a person.** An imported check-in carries a
+  provenance block in its payload; a manual one does not. The import planner
+  refuses to overwrite a manual entry, refuses to write on a day with a
+  confessed relapse, and never lowers a value it wrote earlier. That is a
+  rule about trust, not about arithmetic: the user is the authority on their
+  own day.
 - **Streak freezes are scarce** (three per cycle) and hold the streak without
   counting as a completed day. If a missed day were free, the whole point of
   the app would collapse.

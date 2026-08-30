@@ -6,6 +6,7 @@ import 'package:hundred_core/hundred_core.dart';
 
 import 'app.dart';
 import 'data/app_repository.dart';
+import 'data/health_preferences.dart';
 import 'data/key_store.dart';
 import 'data/lan_transport.dart';
 import 'data/locale_store.dart';
@@ -38,6 +39,7 @@ Future<void> main() async {
   await notifications.initialize();
 
   final LocaleStore localeStore = await LocaleStore.open();
+  final HealthPreferences healthPreferences = await HealthPreferences.open();
 
   final SyncService sync = SyncService(
     store: store,
@@ -68,6 +70,7 @@ Future<void> main() async {
       syncServiceProvider.overrideWithValue(sync),
       lanTransportProvider.overrideWithValue(lan),
       localeStoreProvider.overrideWithValue(localeStore),
+      healthPreferencesProvider.overrideWithValue(healthPreferences),
     ],
     child: const _Bootstrap(child: HundredDaysApp()),
   ));
@@ -110,14 +113,24 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
 
     _syncSubscription =
         ref.read(syncServiceProvider)?.events.listen(_onSyncEvent);
+
+    unawaited(
+      ref.read(appStateProvider.notifier).importHealth(onlyIfEnabled: true),
+    );
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       // Coming back into the app is the cheapest moment to look for peers:
-      // the user is holding the phone, on a network, right now.
+      // the user is holding the phone, on a network, right now. The same
+      // moment is the right one to ask the watch what it recorded while the
+      // app was closed — neither platform offers background reads worth
+      // relying on, so "on resume" is the honest schedule.
       unawaited(ref.read(appStateProvider.notifier).syncNow());
+      unawaited(
+        ref.read(appStateProvider.notifier).importHealth(onlyIfEnabled: true),
+      );
     }
   }
 

@@ -74,6 +74,28 @@ On first launch the iPhone reports an untrusted developer.
 Without a Mac the only option is TestFlight, and that needs the Apple Developer
 Program ($99/year) plus somebody with a Mac to upload the build.
 
+## Connecting a watch
+
+**Android.** Health Connect ships with Android 14 and up; below that install it
+from the Play Store. Then open your band's own app — Fitbit, Samsung Health,
+Garmin Connect, Strava — and let it write into Health Connect; that switch
+lives in *their* app, not in this one. In 100 Days: Settings → *Watch & health
+data*, switch on the habits you want filled in, then *Allow access*. The
+Health Connect permission sheet appears with exactly the record types those
+habits need and nothing else.
+
+Nothing to import is a perfectly normal result on the first day: the read
+window is a week, and a band that was paired this morning has nothing older.
+
+**iPhone.** Running on a real device needs the HealthKit capability on your
+signing profile — in Xcode, *Runner → Signing & Capabilities → + Capability →
+HealthKit*. The entitlements file already declares it, but a personal team
+profile has to be told once.
+
+iOS will not report whether reading was allowed, by design, so the screen says
+"Apple does not say" rather than guessing. If nothing arrives, check
+*Health → Sharing → Apps → 100 Tage* and confirm the categories are on.
+
 ## Switching language
 
 The app follows the device language. To see the other one without changing your

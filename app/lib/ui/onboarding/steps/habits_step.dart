@@ -15,6 +15,7 @@ class HabitsStep extends ConsumerWidget {
   static const List<HabitCategory> _order = <HabitCategory>[
     HabitCategory.gym,
     HabitCategory.cardio,
+    HabitCategory.steps,
     HabitCategory.nutrition,
     HabitCategory.noAlcohol,
     HabitCategory.noSugar,
@@ -191,6 +192,8 @@ class _HabitRow extends StatelessWidget {
         return 5;
       case HabitUnit.count:
         return 2;
+      case HabitUnit.steps:
+        return 2000;
       default:
         return 1;
     }
@@ -204,6 +207,8 @@ class _HabitRow extends StatelessWidget {
         return 100;
       case HabitUnit.count:
         return 15;
+      case HabitUnit.steps:
+        return 25000;
       default:
         return 10;
     }
@@ -215,6 +220,8 @@ class _HabitRow extends StatelessWidget {
         return definition.category == HabitCategory.sleep ? 15 : 5;
       case HabitUnit.pages:
         return 5;
+      case HabitUnit.steps:
+        return 500;
       default:
         return 1;
     }

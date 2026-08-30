@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Read-only access to Apple Health. There is no
+	     com.apple.developer.healthkit.background-delivery here on purpose:
+	     the app reads when the user opens it, so it never needs to be woken
+	     up to look at their health data. -->
+	<key>com.apple.developer.healthkit</key>
+	<true/>
+</dict>
+</plist>

@@ -846,11 +846,193 @@ class AppLocalizationsEn extends AppLocalizations {
       'At least seven and a half hours. Everything else builds on it.';
 
   @override
+  String get habitSteps => 'Steps';
+
+  @override
+  String get habitStepsBlurb =>
+      'Ten thousand a day. Your watch counts them — you only have to move.';
+
+  @override
   String get habitWater => 'Water';
 
   @override
   String get habitWaterBlurb =>
       'Eight glasses. The cheapest thing you can do for yourself.';
+
+  @override
+  String get healthAccessSection => 'Access';
+
+  @override
+  String get healthAutoImport => 'Import automatically';
+
+  @override
+  String get healthAutoImportBody =>
+      'Runs when you open the app. Switched off, only the button below does anything.';
+
+  @override
+  String get healthBadge => 'Health';
+
+  @override
+  String get healthBadgeApple => 'Apple Health';
+
+  @override
+  String get healthBadgeConnect => 'Health Connect';
+
+  @override
+  String get healthDenied => 'Access refused';
+
+  @override
+  String get healthDeniedBody =>
+      'Nothing can be read until you release the values in the system settings.';
+
+  @override
+  String healthFromDevice(String device) {
+    return 'from $device';
+  }
+
+  @override
+  String get healthGetHealthConnect => 'Get Health Connect';
+
+  @override
+  String get healthGrant => 'Allow access';
+
+  @override
+  String get healthGranted => 'Access granted';
+
+  @override
+  String get healthHabitsEmpty =>
+      'None of the habits you picked can be read from a sensor. Training, cardio, steps, sleep, water and meditation can.';
+
+  @override
+  String get healthHabitsSection => 'Which habits get filled in';
+
+  @override
+  String get healthHonestyBody =>
+      'Less than it looks like. The feed proves that an entry is yours, when it was written and that nobody altered it afterwards — it cannot prove a watch was involved, because nothing Apple or Google hands an app is signed in a way your friends\' phones could check. An imported entry is therefore labelled \"from Health\", never \"verified\".';
+
+  @override
+  String get healthHonestySection => 'What this proves';
+
+  @override
+  String get healthImportNow => 'Import now';
+
+  @override
+  String get healthImportSection => 'Import';
+
+  @override
+  String healthImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count check-ins written',
+      one: '1 check-in written',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthImportedNothing =>
+      'Nothing new — everything is already logged.';
+
+  @override
+  String get healthImporting => 'Reading…';
+
+  @override
+  String get healthIntroApple =>
+      'Your iPhone and your Apple Watch write into Apple Health. The app reads from there — on the device, and only the values you release below.';
+
+  @override
+  String get healthIntroConnect =>
+      'Fitbit, Pixel Watch, Samsung Health, Garmin and Strava all write into Health Connect. The app reads from there — on the device, and only the values you release below.';
+
+  @override
+  String get healthIntroNone =>
+      'This device has no health store to read from. Everything stays manual, which works perfectly well.';
+
+  @override
+  String healthLastImport(String when) {
+    return 'Last import: $when';
+  }
+
+  @override
+  String get healthMetricCardio => 'cardio sessions';
+
+  @override
+  String get healthMetricMindful => 'mindfulness sessions';
+
+  @override
+  String get healthMetricSleep => 'sleep duration';
+
+  @override
+  String get healthMetricSteps => 'step count';
+
+  @override
+  String get healthMetricStrength => 'strength-training sessions';
+
+  @override
+  String get healthMetricWater => 'water intake';
+
+  @override
+  String get healthNever => 'never';
+
+  @override
+  String get healthNoNetworkBadge => 'Never leaves the device';
+
+  @override
+  String get healthNotOnPlatform => 'Not available on this platform';
+
+  @override
+  String get healthOpenSystem => 'Open system settings';
+
+  @override
+  String healthReads(String metric) {
+    return 'Reads: $metric';
+  }
+
+  @override
+  String get healthRuleAbstain =>
+      'It never touches an abstinence habit. No sensor can show that you did not drink.';
+
+  @override
+  String healthRuleBackfill(int days) {
+    return 'It reaches at most $days days back.';
+  }
+
+  @override
+  String get healthRuleManual =>
+      'It never overwrites a number you entered yourself.';
+
+  @override
+  String get healthRuleRelapse =>
+      'It never writes on a day you logged a relapse.';
+
+  @override
+  String get healthRuleRest =>
+      'It leaves rest days empty, so a walk cannot earn XP on a day off.';
+
+  @override
+  String get healthRuleUpwards =>
+      'It only ever raises a value, never lowers one.';
+
+  @override
+  String get healthRulesSection => 'What the import will not do';
+
+  @override
+  String get healthTitle => 'Watch & health data';
+
+  @override
+  String get healthUnavailableBody =>
+      'Health Connect comes with Android 14 and newer; on older phones it is a free app from the Play Store. Without it there is nothing here to read.';
+
+  @override
+  String get healthUnavailableTitle => 'Health Connect is missing';
+
+  @override
+  String get healthUnknown => 'Apple does not say';
+
+  @override
+  String get healthUnknownBody =>
+      'iOS deliberately never tells an app whether reading was allowed — a refusal would otherwise give something away by itself. If nothing arrives, check the release in the Health app.';
 
   @override
   String get heatLess => 'less';
@@ -2148,6 +2330,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setDidCopied => 'DID copied.';
+
+  @override
+  String setHealthConnected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count habits',
+      one: '1 habit',
+    );
+    return 'Filling in $_temp0';
+  }
+
+  @override
+  String get setHealthOff => 'Not connected';
+
+  @override
+  String get setHealthSection => 'Watch & health data';
+
+  @override
+  String get setHealthTitle => 'Apple Health and Health Connect';
 
   @override
   String get setIdentitySection => 'Identity & data';

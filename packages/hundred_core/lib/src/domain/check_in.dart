@@ -1,5 +1,6 @@
 import 'package:meta/meta.dart';
 
+import '../health/health_provenance.dart';
 import '../util/dates.dart';
 import 'habit.dart';
 
@@ -19,6 +20,7 @@ class CheckIn {
     this.note,
     this.relapse = false,
     this.eventHash,
+    this.health,
   });
 
   factory CheckIn.fromPayload(
@@ -35,6 +37,11 @@ class CheckIn {
         note: payload['note'] as String?,
         relapse: payload['relapse'] as bool? ?? false,
         eventHash: eventHash,
+        health: HealthProvenance.fromPayload(
+          payload['health'] == null
+              ? null
+              : Map<String, dynamic>.from(payload['health'] as Map),
+        ),
       );
 
   final String habitId;
@@ -49,6 +56,13 @@ class CheckIn {
 
   final String? eventHash;
 
+  /// Set when the entry was read out of Apple Health or Health Connect rather
+  /// than tapped in. Null means a person entered it, which is also what every
+  /// event written before health import existed looks like.
+  final HealthProvenance? health;
+
+  bool get isFromHealth => health != null;
+
   /// True when the entry was logged on the day it claims. Backfilling
   /// yesterday is allowed but never gets the verified badge.
   bool get isLive => DayKey.fromDateTime(loggedAt) == day;
@@ -60,6 +74,7 @@ class CheckIn {
         'value': value,
         if (note != null) 'note': note,
         if (relapse) 'relapse': true,
+        if (health != null) 'health': health!.toPayload(),
       };
 }
 

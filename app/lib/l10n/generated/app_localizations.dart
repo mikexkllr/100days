@@ -1378,6 +1378,18 @@ abstract class AppLocalizations {
   /// **'At least seven and a half hours. Everything else builds on it.'**
   String get habitSleepBlurb;
 
+  /// No description provided for @habitSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps'**
+  String get habitSteps;
+
+  /// No description provided for @habitStepsBlurb.
+  ///
+  /// In en, this message translates to:
+  /// **'Ten thousand a day. Your watch counts them — you only have to move.'**
+  String get habitStepsBlurb;
+
   /// No description provided for @habitWater.
   ///
   /// In en, this message translates to:
@@ -1389,6 +1401,294 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Eight glasses. The cheapest thing you can do for yourself.'**
   String get habitWaterBlurb;
+
+  /// No description provided for @healthAccessSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Access'**
+  String get healthAccessSection;
+
+  /// No description provided for @healthAutoImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import automatically'**
+  String get healthAutoImport;
+
+  /// No description provided for @healthAutoImportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Runs when you open the app. Switched off, only the button below does anything.'**
+  String get healthAutoImportBody;
+
+  /// No description provided for @healthBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get healthBadge;
+
+  /// No description provided for @healthBadgeApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple Health'**
+  String get healthBadgeApple;
+
+  /// No description provided for @healthBadgeConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect'**
+  String get healthBadgeConnect;
+
+  /// No description provided for @healthDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Access refused'**
+  String get healthDenied;
+
+  /// No description provided for @healthDeniedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing can be read until you release the values in the system settings.'**
+  String get healthDeniedBody;
+
+  /// No description provided for @healthFromDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'from {device}'**
+  String healthFromDevice(String device);
+
+  /// No description provided for @healthGetHealthConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Health Connect'**
+  String get healthGetHealthConnect;
+
+  /// No description provided for @healthGrant.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow access'**
+  String get healthGrant;
+
+  /// No description provided for @healthGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'Access granted'**
+  String get healthGranted;
+
+  /// No description provided for @healthHabitsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'None of the habits you picked can be read from a sensor. Training, cardio, steps, sleep, water and meditation can.'**
+  String get healthHabitsEmpty;
+
+  /// No description provided for @healthHabitsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Which habits get filled in'**
+  String get healthHabitsSection;
+
+  /// No description provided for @healthHonestyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Less than it looks like. The feed proves that an entry is yours, when it was written and that nobody altered it afterwards — it cannot prove a watch was involved, because nothing Apple or Google hands an app is signed in a way your friends\' phones could check. An imported entry is therefore labelled \"from Health\", never \"verified\".'**
+  String get healthHonestyBody;
+
+  /// No description provided for @healthHonestySection.
+  ///
+  /// In en, this message translates to:
+  /// **'What this proves'**
+  String get healthHonestySection;
+
+  /// No description provided for @healthImportNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Import now'**
+  String get healthImportNow;
+
+  /// No description provided for @healthImportSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get healthImportSection;
+
+  /// No description provided for @healthImported.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 check-in written} other{{count} check-ins written}}'**
+  String healthImported(int count);
+
+  /// No description provided for @healthImportedNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing new — everything is already logged.'**
+  String get healthImportedNothing;
+
+  /// No description provided for @healthImporting.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading…'**
+  String get healthImporting;
+
+  /// No description provided for @healthIntroApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Your iPhone and your Apple Watch write into Apple Health. The app reads from there — on the device, and only the values you release below.'**
+  String get healthIntroApple;
+
+  /// No description provided for @healthIntroConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Fitbit, Pixel Watch, Samsung Health, Garmin and Strava all write into Health Connect. The app reads from there — on the device, and only the values you release below.'**
+  String get healthIntroConnect;
+
+  /// No description provided for @healthIntroNone.
+  ///
+  /// In en, this message translates to:
+  /// **'This device has no health store to read from. Everything stays manual, which works perfectly well.'**
+  String get healthIntroNone;
+
+  /// No description provided for @healthLastImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Last import: {when}'**
+  String healthLastImport(String when);
+
+  /// No description provided for @healthMetricCardio.
+  ///
+  /// In en, this message translates to:
+  /// **'cardio sessions'**
+  String get healthMetricCardio;
+
+  /// No description provided for @healthMetricMindful.
+  ///
+  /// In en, this message translates to:
+  /// **'mindfulness sessions'**
+  String get healthMetricMindful;
+
+  /// No description provided for @healthMetricSleep.
+  ///
+  /// In en, this message translates to:
+  /// **'sleep duration'**
+  String get healthMetricSleep;
+
+  /// No description provided for @healthMetricSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'step count'**
+  String get healthMetricSteps;
+
+  /// No description provided for @healthMetricStrength.
+  ///
+  /// In en, this message translates to:
+  /// **'strength-training sessions'**
+  String get healthMetricStrength;
+
+  /// No description provided for @healthMetricWater.
+  ///
+  /// In en, this message translates to:
+  /// **'water intake'**
+  String get healthMetricWater;
+
+  /// No description provided for @healthNever.
+  ///
+  /// In en, this message translates to:
+  /// **'never'**
+  String get healthNever;
+
+  /// No description provided for @healthNoNetworkBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Never leaves the device'**
+  String get healthNoNetworkBadge;
+
+  /// No description provided for @healthNotOnPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available on this platform'**
+  String get healthNotOnPlatform;
+
+  /// No description provided for @healthOpenSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Open system settings'**
+  String get healthOpenSystem;
+
+  /// No description provided for @healthReads.
+  ///
+  /// In en, this message translates to:
+  /// **'Reads: {metric}'**
+  String healthReads(String metric);
+
+  /// No description provided for @healthRuleAbstain.
+  ///
+  /// In en, this message translates to:
+  /// **'It never touches an abstinence habit. No sensor can show that you did not drink.'**
+  String get healthRuleAbstain;
+
+  /// No description provided for @healthRuleBackfill.
+  ///
+  /// In en, this message translates to:
+  /// **'It reaches at most {days} days back.'**
+  String healthRuleBackfill(int days);
+
+  /// No description provided for @healthRuleManual.
+  ///
+  /// In en, this message translates to:
+  /// **'It never overwrites a number you entered yourself.'**
+  String get healthRuleManual;
+
+  /// No description provided for @healthRuleRelapse.
+  ///
+  /// In en, this message translates to:
+  /// **'It never writes on a day you logged a relapse.'**
+  String get healthRuleRelapse;
+
+  /// No description provided for @healthRuleRest.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves rest days empty, so a walk cannot earn XP on a day off.'**
+  String get healthRuleRest;
+
+  /// No description provided for @healthRuleUpwards.
+  ///
+  /// In en, this message translates to:
+  /// **'It only ever raises a value, never lowers one.'**
+  String get healthRuleUpwards;
+
+  /// No description provided for @healthRulesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'What the import will not do'**
+  String get healthRulesSection;
+
+  /// No description provided for @healthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch & health data'**
+  String get healthTitle;
+
+  /// No description provided for @healthUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect comes with Android 14 and newer; on older phones it is a free app from the Play Store. Without it there is nothing here to read.'**
+  String get healthUnavailableBody;
+
+  /// No description provided for @healthUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect is missing'**
+  String get healthUnavailableTitle;
+
+  /// No description provided for @healthUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple does not say'**
+  String get healthUnknown;
+
+  /// No description provided for @healthUnknownBody.
+  ///
+  /// In en, this message translates to:
+  /// **'iOS deliberately never tells an app whether reading was allowed — a refusal would otherwise give something away by itself. If nothing arrives, check the release in the Health app.'**
+  String get healthUnknownBody;
 
   /// No description provided for @heatLess.
   ///
@@ -3550,6 +3850,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'DID copied.'**
   String get setDidCopied;
+
+  /// No description provided for @setHealthConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Filling in {count, plural, =1{1 habit} other{{count} habits}}'**
+  String setHealthConnected(int count);
+
+  /// No description provided for @setHealthOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected'**
+  String get setHealthOff;
+
+  /// No description provided for @setHealthSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch & health data'**
+  String get setHealthSection;
+
+  /// No description provided for @setHealthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple Health and Health Connect'**
+  String get setHealthTitle;
 
   /// No description provided for @setIdentitySection.
   ///

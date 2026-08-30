@@ -1,11 +1,15 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
 import 'dart:ui';
 
 import '../data/app_repository.dart';
+import '../data/health_gateway.dart';
+import '../data/health_import_service.dart';
+import '../data/health_preferences.dart';
 import '../data/lan_transport.dart';
 import '../data/locale_store.dart';
 import '../data/llm_runtime.dart';
@@ -34,6 +38,52 @@ final Provider<LanTransport?> lanTransportProvider =
 
 final Provider<LocalModelManager> modelManagerProvider =
     Provider<LocalModelManager>((Ref ref) => LocalModelManager());
+
+/// The phone's fitness store. Overridden in `main()`; the default is the
+/// "no provider here" stand-in so widget tests and desktop builds work.
+final Provider<HealthDataSource> healthSourceProvider =
+    Provider<HealthDataSource>((Ref ref) => PlatformHealthSource());
+
+final Provider<HealthPreferences> healthPreferencesProvider =
+    Provider<HealthPreferences>(
+  (Ref ref) =>
+      throw UnimplementedError('healthPreferencesProvider not initialised'),
+);
+
+final Provider<HealthImportService> healthImportProvider =
+    Provider<HealthImportService>(
+  (Ref ref) => HealthImportService(
+    source: ref.watch(healthSourceProvider),
+    preferences: ref.watch(healthPreferencesProvider),
+    repository: ref.watch(repositoryProvider),
+  ),
+);
+
+/// Which habits the user released to the watch. Held in a notifier so the
+/// settings screen and the check-in tiles agree without either of them
+/// re-reading preferences on every build.
+class HealthCategoriesController extends Notifier<Set<HabitCategory>> {
+  @override
+  Set<HabitCategory> build() =>
+      ref.watch(healthPreferencesProvider).enabledCategories();
+
+  Future<void> toggle(HabitCategory category, {required bool on}) async {
+    final Set<HabitCategory> next = <HabitCategory>{...state};
+    if (on) {
+      next.add(category);
+    } else {
+      next.remove(category);
+    }
+    await ref.read(healthPreferencesProvider).setEnabledCategories(next);
+    state = next;
+  }
+}
+
+final NotifierProvider<HealthCategoriesController, Set<HabitCategory>>
+    healthCategoriesProvider =
+    NotifierProvider<HealthCategoriesController, Set<HabitCategory>>(
+  HealthCategoriesController.new,
+);
 
 final Provider<LocaleStore> localeStoreProvider = Provider<LocaleStore>(
   (Ref ref) => throw UnimplementedError('localeStoreProvider not initialised'),
@@ -208,6 +258,26 @@ class AppController extends AsyncNotifier<AppSnapshot> {
   Future<void> syncNow() async {
     await ref.read(syncServiceProvider)?.syncNow();
     await refresh();
+  }
+
+  /// Reads the watch and folds whatever it finds into the feed.
+  ///
+  /// Never throws: a missing provider, a revoked permission or a phone with no
+  /// health store at all are all ordinary states, and none of them is a reason
+  /// for the screen the user is looking at to fall over.
+  Future<HealthImportResult> importHealth({bool onlyIfEnabled = false}) async {
+    final HealthImportService service = ref.read(healthImportProvider);
+    HealthImportResult result = HealthImportResult.none;
+    try {
+      result = onlyIfEnabled
+          ? await service.importIfEnabled()
+          : await service.importNow();
+    } on Object catch (error) {
+      debugPrint('Health import failed: $error');
+      return HealthImportResult.none;
+    }
+    if (result.changedSomething) await refresh();
+    return result;
   }
 
   Future<void> _syncWith(Invite invite) async {
