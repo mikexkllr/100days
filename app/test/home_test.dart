@@ -31,8 +31,13 @@ void main() {
     Locale locale = const Locale('de'),
   }) async {
     // A tall phone viewport: the home screen is a scroll view, and the default
-    // 800x600 test surface would leave half the habits unbuilt.
-    tester.view.physicalSize = const Size(1080, 3000);
+    // 800x600 test surface would leave half the habits unbuilt. It has to
+    // clear the *whole* screen, not just most of it: at 1000 logical pixels
+    // the last habit tile began 24 px below the fold, so the lazy list never
+    // built it and an assertion failed on a widget the screen does render.
+    // The margin has to be wide enough that a sentence more from the coach
+    // or the pressure banner cannot eat it.
+    tester.view.physicalSize = const Size(1080, 6000);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
