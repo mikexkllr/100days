@@ -12,6 +12,7 @@ import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
 import 'ai_screen.dart';
+import 'health_screen.dart';
 import 'recovery_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -26,6 +27,8 @@ class SettingsScreen extends ConsumerWidget {
     final AsyncValue<AppSnapshot> async = ref.watch(appStateProvider);
     final AsyncValue<CoachEngine> coach = ref.watch(coachEngineProvider);
     final AsyncValue<SyncEvent> lastSync = ref.watch(syncEventsProvider);
+    final Set<HabitCategory> healthHabits =
+        ref.watch(healthCategoriesProvider);
 
     return async.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -142,6 +145,20 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => Navigator.of(context).push<void>(
               MaterialPageRoute<void>(
                 builder: (BuildContext context) => const AiScreen(),
+              ),
+            ),
+          ),
+          SectionHeader(l10n.setHealthSection),
+          _Row(
+            icon: Icons.watch,
+            iconColor: AppColors.lime,
+            title: l10n.setHealthTitle,
+            subtitle: healthHabits.isEmpty
+                ? l10n.setHealthOff
+                : l10n.setHealthConnected(healthHabits.length),
+            onTap: () => Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => const HealthScreen(),
               ),
             ),
           ),

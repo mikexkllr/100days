@@ -606,8 +606,93 @@
   "habitReadingBlurb": "Echte Seiten, echtes Buch. Feed liest sich nicht selbst.",
   "habitSleep": "Schlaf",
   "habitSleepBlurb": "Mindestens 7,5 Stunden. Der Rest baut darauf auf.",
+  "habitSteps": "Schritte",
+  "habitStepsBlurb": "Zehntausend am Tag. Deine Uhr zählt sie — du musst dich nur bewegen.",
   "habitWater": "Wasser",
   "habitWaterBlurb": "Acht Gläser. Das Billigste, was du für dich tun kannst.",
+  "healthAccessSection": "Zugriff",
+  "healthAutoImport": "Automatisch importieren",
+  "healthAutoImportBody": "Läuft, wenn du die App öffnest. Ausgeschaltet passiert nur noch etwas über den Knopf unten.",
+  "healthBadge": "Health",
+  "healthBadgeApple": "Apple Health",
+  "healthBadgeConnect": "Health Connect",
+  "healthDenied": "Zugriff verweigert",
+  "healthDeniedBody": "Solange du die Werte in den Systemeinstellungen nicht freigibst, kann nichts gelesen werden.",
+  "healthFromDevice": "von {device}",
+  "@healthFromDevice": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "healthGetHealthConnect": "Health Connect holen",
+  "healthGrant": "Zugriff erlauben",
+  "healthGranted": "Zugriff erteilt",
+  "healthHabitsEmpty": "Keine deiner gewählten Gewohnheiten lässt sich aus einem Sensor lesen. Training, Cardio, Schritte, Schlaf, Wasser und Meditation gehen.",
+  "healthHabitsSection": "Welche Gewohnheiten ausgefüllt werden",
+  "healthHonestyBody": "Weniger, als es aussieht. Der Feed beweist, dass ein Eintrag von dir ist, wann er geschrieben wurde und dass ihn danach niemand verändert hat — er kann nicht beweisen, dass eine Uhr im Spiel war, denn nichts, was Apple oder Google einer App geben, ist so signiert, dass die Handys deiner Freunde es prüfen könnten. Ein importierter Eintrag ist deshalb mit „aus Health“ beschriftet, nie mit „verifiziert“.",
+  "healthHonestySection": "Was das beweist",
+  "healthImportNow": "Jetzt importieren",
+  "healthImportSection": "Import",
+  "healthImported": "{count, plural, =1{1 Eintrag geschrieben} other{{count} Einträge geschrieben}}",
+  "@healthImported": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "healthImportedNothing": "Nichts Neues — alles schon eingetragen.",
+  "healthImporting": "Lese …",
+  "healthIntroApple": "Dein iPhone und deine Apple Watch schreiben nach Apple Health. Die App liest von dort — auf dem Gerät, und nur die Werte, die du unten freigibst.",
+  "healthIntroConnect": "Fitbit, Pixel Watch, Samsung Health, Garmin und Strava schreiben alle nach Health Connect. Die App liest von dort — auf dem Gerät, und nur die Werte, die du unten freigibst.",
+  "healthIntroNone": "Dieses Gerät hat keinen Gesundheitsspeicher, aus dem gelesen werden könnte. Alles bleibt manuell, und das funktioniert einwandfrei.",
+  "healthLastImport": "Letzter Import: {when}",
+  "@healthLastImport": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "healthMetricCardio": "Cardio-Einheiten",
+  "healthMetricMindful": "Achtsamkeits-Einheiten",
+  "healthMetricSleep": "Schlafdauer",
+  "healthMetricSteps": "Schrittzahl",
+  "healthMetricStrength": "Krafttrainings-Einheiten",
+  "healthMetricWater": "Wasseraufnahme",
+  "healthNever": "nie",
+  "healthNoNetworkBadge": "Verlässt das Gerät nie",
+  "healthNotOnPlatform": "Auf dieser Plattform nicht verfügbar",
+  "healthOpenSystem": "Systemeinstellungen öffnen",
+  "healthReads": "Liest: {metric}",
+  "@healthReads": {
+    "placeholders": {
+      "metric": {
+        "type": "String"
+      }
+    }
+  },
+  "healthRuleAbstain": "Er fasst keine Verzichts-Gewohnheit an. Kein Sensor kann zeigen, dass du nicht getrunken hast.",
+  "healthRuleBackfill": "Er greift höchstens {days} Tage zurück.",
+  "@healthRuleBackfill": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "healthRuleManual": "Er überschreibt nie eine Zahl, die du selbst eingetragen hast.",
+  "healthRuleRelapse": "Er schreibt nie an einem Tag, an dem du einen Rückfall eingetragen hast.",
+  "healthRuleRest": "Er lässt Ruhetage leer, damit ein Spaziergang an einem freien Tag kein XP bringt.",
+  "healthRuleUpwards": "Er hebt einen Wert nur an, nie ab.",
+  "healthRulesSection": "Was der Import nicht tut",
+  "healthTitle": "Uhr & Gesundheitsdaten",
+  "healthUnavailableBody": "Health Connect ist ab Android 14 dabei; auf älteren Handys ist es eine kostenlose App aus dem Play Store. Ohne sie gibt es hier nichts zu lesen.",
+  "healthUnavailableTitle": "Health Connect fehlt",
+  "healthUnknown": "Apple sagt es nicht",
+  "healthUnknownBody": "iOS verrät einer App bewusst nie, ob Lesen erlaubt wurde — eine Ablehnung würde sonst selbst etwas verraten. Wenn nichts ankommt, prüf die Freigabe in der Health-App.",
   "heatLess": "weniger",
   "heatMore": "mehr",
   "homeAscendAction": "Weiter zu {tier}",
@@ -1525,6 +1610,17 @@
   "setAboutTitle": "100 Tage und weit darüber hinaus",
   "setCoachSection": "Coach",
   "setDidCopied": "DID kopiert.",
+  "setHealthConnected": "Füllt {count, plural, =1{1 Gewohnheit} other{{count} Gewohnheiten}} aus",
+  "@setHealthConnected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "setHealthOff": "Nicht verbunden",
+  "setHealthSection": "Uhr & Gesundheitsdaten",
+  "setHealthTitle": "Apple Health und Health Connect",
   "setIdentitySection": "Identität & Daten",
   "setLan": "Lokales Netzwerk",
   "setLanOff": "Nicht aktiv.",

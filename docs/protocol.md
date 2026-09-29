@@ -42,6 +42,23 @@ Payloads carry identifiers, never localized strings. A `challenge.ascended`
 event holds `cycle: 3`, so a German and an English reader each see the tier
 named in their own language from the same signed bytes.
 
+A check-in read from a watch instead of typed carries one extra block:
+
+```json
+"payload": { "habitId": "steps", "category": "steps", "day": "2026-03-14",
+             "value": 11500,
+             "health": { "platform": "healthConnect", "metric": "steps",
+                         "raw": 11500, "device": "Pixel Watch" } }
+```
+
+Its absence is what "a person entered this" means, on this device and on every
+peer's — which is what lets a later import know it must not overwrite the
+entry. A reader that does not recognise the `platform` or `metric` name treats
+the entry as manual rather than failing, so an older build can still fold a
+feed written by a newer one. The block is a claim about provenance and nothing
+more: the signature proves the entry is the author's and unaltered, not that a
+watch was ever involved.
+
 Event types: `profile`, `challenge.started`, `challenge.ascended`, `checkin`,
 `missed`, `streak.freeze`, `nudge`, `cheer`, `friend.request`.
 

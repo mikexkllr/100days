@@ -849,11 +849,191 @@ class AppLocalizationsDe extends AppLocalizations {
       'Mindestens 7,5 Stunden. Der Rest baut darauf auf.';
 
   @override
+  String get habitSteps => 'Schritte';
+
+  @override
+  String get habitStepsBlurb =>
+      'Zehntausend am Tag. Deine Uhr zählt sie — du musst dich nur bewegen.';
+
+  @override
   String get habitWater => 'Wasser';
 
   @override
   String get habitWaterBlurb =>
       'Acht Gläser. Das Billigste, was du für dich tun kannst.';
+
+  @override
+  String get healthAccessSection => 'Zugriff';
+
+  @override
+  String get healthAutoImport => 'Automatisch importieren';
+
+  @override
+  String get healthAutoImportBody =>
+      'Läuft, wenn du die App öffnest. Ausgeschaltet passiert nur noch etwas über den Knopf unten.';
+
+  @override
+  String get healthBadge => 'Health';
+
+  @override
+  String get healthBadgeApple => 'Apple Health';
+
+  @override
+  String get healthBadgeConnect => 'Health Connect';
+
+  @override
+  String get healthDenied => 'Zugriff verweigert';
+
+  @override
+  String get healthDeniedBody =>
+      'Solange du die Werte in den Systemeinstellungen nicht freigibst, kann nichts gelesen werden.';
+
+  @override
+  String healthFromDevice(String device) {
+    return 'von $device';
+  }
+
+  @override
+  String get healthGetHealthConnect => 'Health Connect holen';
+
+  @override
+  String get healthGrant => 'Zugriff erlauben';
+
+  @override
+  String get healthGranted => 'Zugriff erteilt';
+
+  @override
+  String get healthHabitsEmpty =>
+      'Keine deiner gewählten Gewohnheiten lässt sich aus einem Sensor lesen. Training, Cardio, Schritte, Schlaf, Wasser und Meditation gehen.';
+
+  @override
+  String get healthHabitsSection => 'Welche Gewohnheiten ausgefüllt werden';
+
+  @override
+  String get healthHonestyBody =>
+      'Weniger, als es aussieht. Der Feed beweist, dass ein Eintrag von dir ist, wann er geschrieben wurde und dass ihn danach niemand verändert hat — er kann nicht beweisen, dass eine Uhr im Spiel war, denn nichts, was Apple oder Google einer App geben, ist so signiert, dass die Handys deiner Freunde es prüfen könnten. Ein importierter Eintrag ist deshalb mit „aus Health“ beschriftet, nie mit „verifiziert“.';
+
+  @override
+  String get healthHonestySection => 'Was das beweist';
+
+  @override
+  String get healthImportNow => 'Jetzt importieren';
+
+  @override
+  String get healthImportSection => 'Import';
+
+  @override
+  String healthImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Einträge geschrieben',
+      one: '1 Eintrag geschrieben',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get healthImportedNothing => 'Nichts Neues — alles schon eingetragen.';
+
+  @override
+  String get healthImporting => 'Lese …';
+
+  @override
+  String get healthIntroApple =>
+      'Dein iPhone und deine Apple Watch schreiben nach Apple Health. Die App liest von dort — auf dem Gerät, und nur die Werte, die du unten freigibst.';
+
+  @override
+  String get healthIntroConnect =>
+      'Fitbit, Pixel Watch, Samsung Health, Garmin und Strava schreiben alle nach Health Connect. Die App liest von dort — auf dem Gerät, und nur die Werte, die du unten freigibst.';
+
+  @override
+  String get healthIntroNone =>
+      'Dieses Gerät hat keinen Gesundheitsspeicher, aus dem gelesen werden könnte. Alles bleibt manuell, und das funktioniert einwandfrei.';
+
+  @override
+  String healthLastImport(String when) {
+    return 'Letzter Import: $when';
+  }
+
+  @override
+  String get healthMetricCardio => 'Cardio-Einheiten';
+
+  @override
+  String get healthMetricMindful => 'Achtsamkeits-Einheiten';
+
+  @override
+  String get healthMetricSleep => 'Schlafdauer';
+
+  @override
+  String get healthMetricSteps => 'Schrittzahl';
+
+  @override
+  String get healthMetricStrength => 'Krafttrainings-Einheiten';
+
+  @override
+  String get healthMetricWater => 'Wasseraufnahme';
+
+  @override
+  String get healthNever => 'nie';
+
+  @override
+  String get healthNoNetworkBadge => 'Verlässt das Gerät nie';
+
+  @override
+  String get healthNotOnPlatform => 'Auf dieser Plattform nicht verfügbar';
+
+  @override
+  String get healthOpenSystem => 'Systemeinstellungen öffnen';
+
+  @override
+  String healthReads(String metric) {
+    return 'Liest: $metric';
+  }
+
+  @override
+  String get healthRuleAbstain =>
+      'Er fasst keine Verzichts-Gewohnheit an. Kein Sensor kann zeigen, dass du nicht getrunken hast.';
+
+  @override
+  String healthRuleBackfill(int days) {
+    return 'Er greift höchstens $days Tage zurück.';
+  }
+
+  @override
+  String get healthRuleManual =>
+      'Er überschreibt nie eine Zahl, die du selbst eingetragen hast.';
+
+  @override
+  String get healthRuleRelapse =>
+      'Er schreibt nie an einem Tag, an dem du einen Rückfall eingetragen hast.';
+
+  @override
+  String get healthRuleRest =>
+      'Er lässt Ruhetage leer, damit ein Spaziergang an einem freien Tag kein XP bringt.';
+
+  @override
+  String get healthRuleUpwards => 'Er hebt einen Wert nur an, nie ab.';
+
+  @override
+  String get healthRulesSection => 'Was der Import nicht tut';
+
+  @override
+  String get healthTitle => 'Uhr & Gesundheitsdaten';
+
+  @override
+  String get healthUnavailableBody =>
+      'Health Connect ist ab Android 14 dabei; auf älteren Handys ist es eine kostenlose App aus dem Play Store. Ohne sie gibt es hier nichts zu lesen.';
+
+  @override
+  String get healthUnavailableTitle => 'Health Connect fehlt';
+
+  @override
+  String get healthUnknown => 'Apple sagt es nicht';
+
+  @override
+  String get healthUnknownBody =>
+      'iOS verrät einer App bewusst nie, ob Lesen erlaubt wurde — eine Ablehnung würde sonst selbst etwas verraten. Wenn nichts ankommt, prüf die Freigabe in der Health-App.';
 
   @override
   String get heatLess => 'weniger';
@@ -2154,6 +2334,26 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get setDidCopied => 'DID kopiert.';
+
+  @override
+  String setHealthConnected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Gewohnheiten',
+      one: '1 Gewohnheit',
+    );
+    return 'Füllt $_temp0 aus';
+  }
+
+  @override
+  String get setHealthOff => 'Nicht verbunden';
+
+  @override
+  String get setHealthSection => 'Uhr & Gesundheitsdaten';
+
+  @override
+  String get setHealthTitle => 'Apple Health und Health Connect';
 
   @override
   String get setIdentitySection => 'Identität & Daten';

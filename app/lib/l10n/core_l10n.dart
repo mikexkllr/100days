@@ -14,6 +14,8 @@ extension CoreL10n on AppLocalizations {
         return habitGym;
       case HabitCategory.cardio:
         return habitCardio;
+      case HabitCategory.steps:
+        return habitSteps;
       case HabitCategory.nutrition:
         return habitNutrition;
       case HabitCategory.noAlcohol:
@@ -49,6 +51,8 @@ extension CoreL10n on AppLocalizations {
         return habitGymBlurb;
       case HabitCategory.cardio:
         return habitCardioBlurb;
+      case HabitCategory.steps:
+        return habitStepsBlurb;
       case HabitCategory.nutrition:
         return habitNutritionBlurb;
       case HabitCategory.noAlcohol:

@@ -68,6 +68,10 @@
 			</array>
 		</dict>
 	</dict>
+	<!-- Shown verbatim in the Health permission sheet. Read-only: there is no
+	     NSHealthUpdateUsageDescription because the app never writes back. -->
+	<key>NSHealthShareUsageDescription</key>
+	<string>Reads your steps, workouts, sleep and water from Apple Health so the app can tick off the habits you connected. The data stays on your device and only reaches the friends you added yourself.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

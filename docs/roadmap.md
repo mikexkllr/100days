@@ -12,6 +12,9 @@ An honest list. Anything here is not built yet.
 - Feed, weekly league, nudges, cheers, QR and link invites
 - LAN discovery and replication, local notifications
 - Recovery key, full wipe
+- Import from Apple Health and Health Connect: steps, workouts, sleep, water
+  and (on iOS) mindfulness, with overlapping sessions merged and manual
+  entries never overwritten
 - English and German following the device language, switchable in settings
 
 ## Open
@@ -43,11 +46,23 @@ defensible; the moment a relay sits in between, it is not.
 **Group challenges.** Several people on the same goal, shared progress. The
 data model already supports it, the UI does not.
 
-**Widgets and wearables.** A home screen widget with the streak would be the
-cheapest reminder there is.
+**Widgets and a watch app.** A home screen widget with the streak would be the
+cheapest reminder there is. Reading a watch is done; running *on* one is not.
 
-**Import from Health / Google Fit.** Steps and training duration automatically
-instead of by hand.
+**Background health reads.** The import runs on app start and on resume,
+because that is what both platforms actually support well. Health Connect
+offers `READ_HEALTH_DATA_IN_BACKGROUND`, and it would be worth asking for once
+there is a widget that would show a stale number otherwise. HealthKit's
+background delivery is the same story, and the entitlement is deliberately not
+requested today.
+
+**More health metrics.** Active energy and distance are read by neither the
+app nor its permission set, because no habit consumes them yet. A "distance"
+habit would be one row in `kHealthMetrics`, one in `kHealthBindings` and one
+case per adapter.
+
+**Mindfulness on Android.** Health Connect has no mindfulness record type, so
+the meditation habit stays manual there. Nothing to do until Google adds one.
 
 **BIP39 mnemonic.** The recovery key is base58 rather than twelve words.
 Functionally equivalent, but harder to copy down.

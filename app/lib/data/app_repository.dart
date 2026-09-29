@@ -242,12 +242,19 @@ class AppRepository {
   /// Logs a habit for a day. Re-logging the same habit and day overwrites the
   /// earlier entry at projection time, so a user can correct a number without
   /// the feed growing a contradiction.
+  ///
+  /// [health] is set when the value was read out of Apple Health or Health
+  /// Connect instead of tapped in. It rides along in the payload so the entry
+  /// stays distinguishable from a manual one forever — on this device and on
+  /// every friend's — which is what keeps a later import from quietly
+  /// overwriting something a person typed.
   Future<FeedEvent> checkIn({
     required Habit habit,
     required DayKey day,
     num? value,
     String? note,
     int? streak,
+    HealthProvenance? health,
   }) =>
       writer.append(
         FeedEventType.checkIn,
@@ -259,6 +266,7 @@ class AppRepository {
             value: value ?? habit.target,
             loggedAt: DateTime.now(),
             note: note,
+            health: health,
           ).toPayload(),
           if (streak != null) 'streak': streak,
         },

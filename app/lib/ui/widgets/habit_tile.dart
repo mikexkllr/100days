@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hundred_core/hundred_core.dart';
 
+import '../../l10n/health_l10n.dart';
 import '../../l10n/l10n.dart';
 import '../../theme/theme.dart';
 import 'app_card.dart';
@@ -84,6 +85,32 @@ class HabitTile extends StatelessWidget {
                 ),
             ],
           ),
+          if (entry?.health != null) ...<Widget>[
+            const SizedBox(height: AppSpacing.sm),
+            // "From Health", never "verified": the platform hands the app a
+            // number, not a proof, and the badge has to say only what is true.
+            Row(
+              children: <Widget>[
+                Pill(
+                  l10n.healthPlatformName(entry!.health!.platform),
+                  color: AppColors.lime,
+                  icon: Icons.watch,
+                ),
+                if (entry!.health!.device != null) ...<Widget>[
+                  const SizedBox(width: AppSpacing.sm),
+                  Flexible(
+                    child: Text(
+                      l10n.healthFromDevice(entry!.health!.device!),
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: AppColors.textTertiary,
+                          ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
           const SizedBox(height: AppSpacing.md),
           _control(context, l10n),
         ],

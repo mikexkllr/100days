@@ -32,9 +32,10 @@ because there is no server at all. The coach runs on the device.
 
 ## What you can track
 
-🏋️ Training · 🏃 Cardio · 🥗 Nutrition · 🚱 No alcohol · 🍬 No sugar ·
-🧠 Dopamine detox · 🛡️ NoFap · 🚭 No nicotine · 📚 Reading · 🧘 Meditation ·
-🧊 Cold showers · 😴 Sleep · 💧 Water · ✍️ Journaling · ⭐ Your own
+🏋️ Training · 🏃 Cardio · 👟 Steps · 🥗 Nutrition · 🚱 No alcohol ·
+🍬 No sugar · 🧠 Dopamine detox · 🛡️ NoFap · 🚭 No nicotine · 📚 Reading ·
+🧘 Meditation · 🧊 Cold showers · 😴 Sleep · 💧 Water · ✍️ Journaling ·
+⭐ Your own
 
 Habits are either **build** (do something) or **abstain** (avoid something),
 and that changes how they are counted: a forgotten tap does not kill an
@@ -65,6 +66,23 @@ Two implementations behind one interface:
 The app never downloads a model on its own. A gigabyte over mobile data is not
 something that should happen unasked. Details:
 [`docs/local-ai.md`](docs/local-ai.md).
+
+## Your watch can do the typing
+
+Steps, workouts, sleep and water can come out of **Apple Health** or **Health
+Connect** instead of your thumb — a Fitbit, a Pixel Watch, an Apple Watch,
+Garmin, Strava, anything that writes into either store.
+
+It is read on the device and written into your own signed feed like any other
+check-in. It also refuses to do a number of things: it never overwrites a value
+you typed yourself, never writes on a day you logged a relapse, never touches
+an abstinence habit — no sensor can show that you did not drink — and never
+reaches more than a week back.
+
+An imported entry is labelled *"from Apple Health"*, never *"verified"*. The
+feed can prove an entry is yours and unaltered; it cannot prove a watch was
+involved, and the app does not pretend otherwise.
+[`docs/health.md`](docs/health.md).
 
 ## How the network works
 
@@ -102,9 +120,10 @@ cd ../../app             && flutter pub get && flutter analyze && flutter test
 
 ```
 packages/hundred_core/   Pure Dart: identity, signed feed, domain, plan
-                         generator, coach, sync protocol
+                         generator, coach, sync protocol, health import rules
 app/                     Flutter: UI, SQLite, keystore, transports,
-                         notifications, translations
+                         notifications, translations, HealthKit and
+                         Health Connect adapters
 ```
 
 The core knows nothing about Flutter, the network, the filesystem — or the
@@ -116,7 +135,8 @@ More on this: [`docs/architecture.md`](docs/architecture.md).
 ## Status
 
 Working: onboarding, check-ins, streaks, plans, coach, feed, league, nudges,
-invites, LAN sync, local notifications, recovery key, English and German.
+invites, LAN sync, local notifications, recovery key, import from Apple Health
+and Health Connect, English and German.
 
 What is still missing is listed honestly in [`docs/roadmap.md`](docs/roadmap.md)
 — among other things a real inference engine behind the model port, a relay

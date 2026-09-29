@@ -10,6 +10,16 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
+    <!-- Health Connect, read-only. Exactly the four record types the habit
+         catalogue can consume: steps, workouts, sleep and hydration. The app
+         holds no write permission at all, so it cannot alter the user's
+         health record even by accident, and it never asks for a scope no
+         habit of theirs actually uses. -->
+    <uses-permission android:name="android.permission.health.READ_STEPS"/>
+    <uses-permission android:name="android.permission.health.READ_EXERCISE"/>
+    <uses-permission android:name="android.permission.health.READ_SLEEP"/>
+    <uses-permission android:name="android.permission.health.READ_HYDRATION"/>
+
     <application
         android:label="100 Tage"
         android:name="${applicationName}"
@@ -35,6 +45,12 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Health Connect asks the app to explain itself before it hands
+                 anything over. On Android 13 and below it does so with this
+                 action; on 14 and up through the activity-alias below. -->
+            <intent-filter>
+                <action android:name="androidx.health.connect.action.SHOW_PERMISSIONS_RATIONALE"/>
+            </intent-filter>
             <!-- Friend invites: hundreddays://invite?d=... -->
             <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW"/>
@@ -43,6 +59,18 @@
                 <data android:scheme="hundreddays" android:host="invite"/>
             </intent-filter>
         </activity>
+        <!-- The Android 14+ route to the same rationale screen. -->
+        <activity-alias
+            android:name="ViewPermissionUsageActivity"
+            android:exported="true"
+            android:targetActivity=".MainActivity"
+            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE"/>
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS"/>
+            </intent-filter>
+        </activity-alias>
+
         <!-- Re-registers scheduled local notifications after a reboot. -->
         <receiver
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
@@ -73,5 +101,9 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- Health Connect is a separate APK below Android 14, and package
+             visibility rules hide it unless it is named here. Without this the
+             app reports "not installed" on a phone that has it. -->
+        <package android:name="com.google.android.apps.healthdata"/>
     </queries>
 </manifest>

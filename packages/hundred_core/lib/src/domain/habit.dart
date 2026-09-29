@@ -18,6 +18,7 @@ enum HabitUnit { done, minutes, count, pages, grams, kilocalories, steps }
 enum HabitCategory {
   gym,
   cardio,
+  steps,
   nutrition,
   noAlcohol,
   noSugar,
@@ -89,6 +90,14 @@ const Map<HabitCategory, HabitDefinition> kHabitCatalog =
     defaultTarget: 30,
     defaultDaysPerWeek: 3,
     difficulty: 4,
+  ),
+  HabitCategory.steps: HabitDefinition(
+    category: HabitCategory.steps,
+    kind: HabitKind.build,
+    unit: HabitUnit.steps,
+    emoji: '👟',
+    defaultTarget: 10000,
+    difficulty: 2,
   ),
   HabitCategory.nutrition: HabitDefinition(
     category: HabitCategory.nutrition,
