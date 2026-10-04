@@ -1,0 +1,73 @@
+name: Play Store — internal release
+
+# A release is a deliberate act, not a side effect of a push: this workflow
+# only ever runs when somebody presses the button. It builds a release AAB
+# signed with the upload key and uploads it to the internal track in the Play
+# Console — the track that needs no review and is up on a tester's phone in
+# about two minutes.
+on:
+  workflow_dispatch:
+
+jobs:
+  internal:
+    name: Android AAB → internal track
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+
+      - name: Show the version being shipped
+        # Play rejects a version code it has already seen. When that happens,
+        # bump the build number in app/pubspec.yaml (the +N suffix) and run
+        # again.
+        run: grep '^version:' pubspec.yaml
+
+      - name: Decode the upload keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/upload-keystore.jks"
+          if [ ! -s "$RUNNER_TEMP/upload-keystore.jks" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 is empty or not valid base64 — see docs/play-release.md"
+            exit 1
+          fi
+          echo "HUNDRED_KEYSTORE_PATH=$RUNNER_TEMP/upload-keystore.jks" >> "$GITHUB_ENV"
+
+      - name: Build the release bundle
+        env:
+          HUNDRED_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          HUNDRED_KEY_ALIAS: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
+          HUNDRED_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: flutter build appbundle --release
+
+      # An AAB is for the store, not for sideloading — kept as an artifact
+      # only so a shipped release can be inspected and bit-compared later.
+      - name: Keep the bundle as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hundred-days-aab
+          path: app/build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+
+      - name: Upload to the internal track
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.hundreddays.hundred_days
+          releaseFiles: app/build/app/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
+          # Internal-track releases do not go through review; sending the
+          # changes anyway only adds a pointless review step.
+          changesNotSentForReview: true

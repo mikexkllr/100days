@@ -16,7 +16,8 @@ Every push builds installable APKs in CI.
 Requires **Android 7.0 or newer** (minSdk 24).
 
 The APK is signed with the debug key. That is fine for testing — the Play Store
-would need your own upload key.
+needs your own upload key, and shipping to the store is a separate manual
+pipeline: [`play-release.md`](play-release.md).
 
 ## Android — building it yourself
 

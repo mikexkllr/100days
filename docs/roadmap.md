@@ -12,6 +12,8 @@ An honest list. Anything here is not built yet.
 - Feed, weekly league, nudges, cheers, QR and link invites
 - LAN discovery and replication, local notifications
 - Recovery key, full wipe
+- Manual pipeline that ships a signed AAB to the Google Play internal track
+  ([`docs/play-release.md`](play-release.md))
 - English and German following the device language, switchable in settings
 
 ## Open
@@ -52,4 +54,6 @@ instead of by hand.
 **BIP39 mnemonic.** The recovery key is base58 rather than twelve words.
 Functionally equivalent, but harder to copy down.
 
-**Signed releases.** The Android config still uses the debug key.
+**Tracks beyond internal on Play.** The pipeline ships to the internal track
+only; promotion to closed, open and production — with release notes and
+staged rollout — is a second pipeline that does not exist yet.
