@@ -34,22 +34,51 @@ android {
 
     // Release signing comes from the environment, so the key never lives in
     // the repository: CI decodes it from a secret, a developer can export the
-    // same variables locally. Without them the debug key keeps working, so
-    // `flutter run --release` on a fresh checkout still builds.
-    val ksPath = System.getenv("HUNDRED_KEYSTORE_PATH")
-    val ksStorePassword = System.getenv("HUNDRED_KEYSTORE_PASSWORD")
-    val ksAlias = System.getenv("HUNDRED_KEY_ALIAS")
-    val ksKeyPassword = System.getenv("HUNDRED_KEY_PASSWORD")
+    // same variables locally. With none of them set the debug key keeps
+    // working, so `flutter run --release` on a fresh checkout still builds.
+    // Set any of them — or HUNDRED_REQUIRE_UPLOAD_KEY=true, as the store
+    // pipeline does — and an incomplete setup fails the build by name instead
+    // of quietly signing a "release" with the debug key.
+    //
+    // Blank counts as unset: GitHub hands an unset secret over as "".
+    fun env(name: String): String? = System.getenv(name)?.takeIf { it.isNotBlank() }
+
+    val ksPath = env("HUNDRED_KEYSTORE_PATH")
+    val ksStorePassword = env("HUNDRED_KEYSTORE_PASSWORD")
+    val ksAlias = env("HUNDRED_KEY_ALIAS")
+    // keytool's default PKCS12 keystores have a single password for both.
+    val ksKeyPassword = env("HUNDRED_KEY_PASSWORD") ?: ksStorePassword
+    val ksFile = ksPath?.let { file(it) }
+
+    val signingProblems = buildList {
+        when {
+            ksFile == null -> add("HUNDRED_KEYSTORE_PATH is not set")
+            !ksFile.isFile -> add("HUNDRED_KEYSTORE_PATH: no file at ${ksFile.absolutePath}")
+        }
+        if (ksStorePassword == null) add("HUNDRED_KEYSTORE_PASSWORD is not set")
+        if (ksAlias == null) add("HUNDRED_KEY_ALIAS is not set")
+    }
+    val signingRequested = env("HUNDRED_REQUIRE_UPLOAD_KEY") == "true" ||
+        listOf(
+            "HUNDRED_KEYSTORE_PATH",
+            "HUNDRED_KEYSTORE_PASSWORD",
+            "HUNDRED_KEY_ALIAS",
+            "HUNDRED_KEY_PASSWORD",
+        ).any { env(it) != null }
+    if (signingRequested && signingProblems.isNotEmpty()) {
+        throw GradleException(
+            "Release signing is incomplete (see docs/play-release.md):\n  " +
+                signingProblems.joinToString("\n  "),
+        )
+    }
 
     signingConfigs {
-        if (!ksPath.isNullOrEmpty() && !ksStorePassword.isNullOrEmpty() &&
-            !ksAlias.isNullOrEmpty() && file(ksPath).exists()
-        ) {
+        if (signingProblems.isEmpty()) {
             create("upload") {
-                storeFile = file(ksPath)
+                storeFile = ksFile
                 storePassword = ksStorePassword
                 keyAlias = ksAlias
-                keyPassword = ksKeyPassword ?: ksStorePassword
+                keyPassword = ksKeyPassword
             }
         }
     }
