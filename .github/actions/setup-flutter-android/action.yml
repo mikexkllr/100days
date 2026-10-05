@@ -1,0 +1,22 @@
+name: Set up Flutter for Android
+description: >
+  Java, the Flutter SDK and the app's packages — one toolchain shared by the
+  CI APK and the store AAB, so the two builds cannot drift apart.
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: "17"
+        cache: gradle
+    # Pinned to a commit: a moved tag must not swap the toolchain that later
+    # handles the upload key.
+    - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+      with:
+        channel: stable
+        cache: true
+    - run: flutter pub get
+      shell: bash
+      working-directory: app
