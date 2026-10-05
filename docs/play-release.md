@@ -10,6 +10,29 @@ yourself, no review, and a release reaches a tester's phone within minutes of
 the upload. Promotion to the closed, open and production tracks is a later
 pipeline — deliberately not this one.
 
+## What the internal track does not need
+
+Answering the obvious questions up front, because guides written for the
+older console imply you need all of it before anything can ship:
+
+- **A website.** Never required by Play, on any track.
+- **A privacy policy.** Not required while the app lives on the internal
+  track. It becomes mandatory together with the Data safety form once the
+  app publishes to a closed, open or production track — even for an app
+  that collects nothing. A public URL is enough (no PDFs); it does not have
+  to be a real website.
+- **The Data safety form.** Apps that are exclusively active on the internal
+  track are exempt from it.
+- **A store listing, screenshots, a content rating.** All of that is for
+  the later tracks; an internal test can be started before the app setup in
+  the console is completed at all.
+
+One thing that *does* wait for you later: personal developer accounts
+created after November 2023 cannot publish to production until a **closed
+test with at least 12 testers, opted in continuously for 14 days**, has run
+and a production access application has been answered. The internal track
+does not count toward it — worth knowing before anyone plans a launch date.
+
 ## One-time setup
 
 The pipeline needs an app entry in the Play Console, a service account, four
@@ -43,6 +66,21 @@ keytool -genkeypair -v \
   -alias upload \
   -keyalg RSA -keysize 2048 -validity 10000
 ```
+
+One catch learned the hard way: a stock Mac has **no Java**, so a bare
+`keytool` fails with *Unable to locate a Java Runtime*. Android Studio ships
+its own JDK, so its `keytool` works without installing anything:
+
+```bash
+"/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/keytool" \
+  -genkeypair -v \
+  -keystore upload-keystore.jks \
+  -alias upload \
+  -keyalg RSA -keysize 2048 -validity 10000
+```
+
+`brew install --cask temurin` is the alternative — the same JDK distribution
+CI uses — if you want `keytool` on the `PATH` for everything.
 
 keytool asks for **one** password. Its default keystore format (PKCS12) has no
 separate key password, so that single password is the store password, and the
