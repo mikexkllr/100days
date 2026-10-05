@@ -46,11 +46,31 @@ with, exactly what this pipeline uses it for.
 
 ### 3. The service account
 
-In the Play Console: **Setup → API access → Create new service account**,
-follow the link to the Google Cloud Console, create the account, generate a
-**JSON** key for it, download the JSON file. Back in the Play Console, grant
-the account access to this app — **Admin** is the simplest, **App manager**
-is the smaller role that still suffices for uploads.
+The Play Console used to have a **Setup → API access** page that created and
+linked the service account for you. That page is gone; today the account is
+created in the Google Cloud Console and invited into the Play Console like a
+user.
+
+**In the Google Cloud Console** ([console.cloud.google.com](https://console.cloud.google.com)):
+
+1. Pick or create a project — if you have created the app entry in the Play
+   Console first, the automatically linked project is a fine choice, but any
+   project works.
+2. **IAM & Admin → Service Accounts → Create service account** — a name
+   suffices, roles and access can stay empty.
+3. On the new account: **Keys → Add key → Create new key → JSON** — download
+   the file. This is the `service-account.json` for the secrets.
+4. **APIs & Services → Enabled APIs** — enable the **Google Play Android
+   Developer API** for the project.
+
+**In the Play Console**: leave the app's pages and go to the console home,
+then **Users and permissions → Invite new users** in the left navigation, and
+paste the service account's email address — it is the `client_email` field
+in the JSON key and ends in `.iam.gserviceaccount.com`. Service accounts
+become active immediately, without accepting anything by mail. Grant
+**Admin (all permissions)** — simplest — or the finer-grained app
+permissions that still suffice for uploads, such as manage tracks and
+releases.
 
 ### 4. The secrets
 
