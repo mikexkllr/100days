@@ -116,7 +116,8 @@ More on this: [`docs/architecture.md`](docs/architecture.md).
 ## Status
 
 Working: onboarding, check-ins, streaks, plans, coach, feed, league, nudges,
-invites, LAN sync, local notifications, recovery key, English and German.
+invites, LAN sync, local notifications, recovery key, English and German, and
+a manual pipeline that ships a signed AAB to the Google Play internal track.
 
 What is still missing is listed honestly in [`docs/roadmap.md`](docs/roadmap.md)
 — among other things a real inference engine behind the model port, a relay

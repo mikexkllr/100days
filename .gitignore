@@ -21,3 +21,9 @@ build/
 models/
 *.gguf
 *.task
+
+# Signing material never belongs in the repository (see docs/play-release.md).
+*.jks
+*.keystore
+upload-keystore.b64
+service-account*.json

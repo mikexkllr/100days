@@ -1,0 +1,145 @@
+name: Play Store — internal release
+
+# A release is a deliberate act, not a side effect of a push: this workflow
+# only ever runs when somebody presses the button, and only from main. It
+# runs the full CI first, then builds a release AAB signed with the upload
+# key and uploads it to the internal track in the Play Console — the track
+# that needs no review and reaches testers within minutes.
+on:
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: >-
+          Upload to the internal track. Untick for the very first release:
+          Play only accepts that one by hand (docs/play-release.md).
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+# Two presses of the button queue up instead of racing into the same edit.
+concurrency:
+  group: play-internal
+  cancel-in-progress: false
+
+jobs:
+  main-only:
+    name: Ship from main only
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse other branches
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Store releases ship from main; this run is on ${GITHUB_REF_NAME}."
+          exit 1
+
+  checks:
+    name: CI
+    needs: main-only
+    uses: ./.github/workflows/ci.yml
+
+  internal:
+    name: Android AAB → internal track
+    needs: checks
+    runs-on: ubuntu-latest
+    # The secrets live in this environment, not at repository level, so no
+    # other workflow and no other branch can read the upload key or the Play
+    # credentials (docs/play-release.md).
+    environment: play-internal
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-flutter-android
+
+      - name: Check the secrets are set
+        # Only whether each secret is set reaches this step, never its value.
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD != '' }}
+          ANDROID_KEYSTORE_ALIAS: ${{ secrets.ANDROID_KEYSTORE_ALIAS != '' }}
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' || !inputs.upload }}
+        run: |
+          missing=""
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD \
+                      ANDROID_KEYSTORE_ALIAS PLAY_SERVICE_ACCOUNT_JSON; do
+            [ "${!name}" = "true" ] || missing="$missing $name"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Not set in the play-internal environment:$missing (see docs/play-release.md)"
+            exit 1
+          fi
+
+      - name: Decode and open the upload keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
+        run: |
+          keystore="$RUNNER_TEMP/upload-keystore.jks"
+          if ! printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$keystore" 2>/dev/null; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 is not valid base64 (see docs/play-release.md)"
+            exit 1
+          fi
+          # A wrong password or alias fails here, in seconds, instead of after
+          # the build. The fingerprint printed on success is the one the Play
+          # Console shows as the upload key certificate.
+          if ! keytool -list -keystore "$keystore" -storepass:env KEYSTORE_PASSWORD -alias "$KEY_ALIAS"; then
+            echo "::error::The keystore does not open with ANDROID_KEYSTORE_PASSWORD, or holds no key named by ANDROID_KEYSTORE_ALIAS"
+            exit 1
+          fi
+          echo "HUNDRED_KEYSTORE_PATH=$keystore" >> "$GITHUB_ENV"
+
+      - name: Pick the version code
+        # Play refuses a version code it has seen before. The run number only
+        # goes up, so every press of the button gets a fresh one without a
+        # pubspec bump; the offset keeps clear of the +N in pubspec.yaml that
+        # local builds use.
+        run: |
+          echo "VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
+          echo "Shipping $(sed -n 's/^version: *//p' pubspec.yaml | cut -d+ -f1) as version code $((1000 + GITHUB_RUN_NUMBER))"
+
+      - name: Build the release bundle
+        env:
+          HUNDRED_REQUIRE_UPLOAD_KEY: "true"
+          HUNDRED_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          HUNDRED_KEY_ALIAS: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
+          HUNDRED_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: flutter build appbundle --release --build-number="$VERSION_CODE"
+
+      # An AAB is for the store, not for sideloading — kept as an artifact so
+      # the first release can be uploaded by hand and every later one can be
+      # inspected and bit-compared afterwards.
+      - name: Keep the bundle as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hundred-days-aab-${{ env.VERSION_CODE }}
+          path: app/build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+
+      - name: Upload to the internal track
+        if: inputs.upload
+        # Pinned to a commit: this step holds the Play credentials.
+        # changesNotSentForReview stays at its default on purpose — if Play
+        # ever wants to review a change, the run fails and says so instead of
+        # parking the release in the Console where nobody looks.
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1.1.5
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.hundreddays.hundred_days
+          releaseFiles: app/build/app/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
+
+      - name: Say what to do with a bundle that was not uploaded
+        if: ${{ !inputs.upload }}
+        run: |
+          {
+            echo "### Built, not uploaded"
+            echo
+            echo "Download **hundred-days-aab-$VERSION_CODE** from this run's artifacts, unzip it and upload"
+            echo "\`app-release.aab\` in the Play Console under **Test and release → Testing → Internal testing"
+            echo "→ Create new release**. See docs/play-release.md, *The first release*."
+          } >> "$GITHUB_STEP_SUMMARY"
