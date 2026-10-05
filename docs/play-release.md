@@ -1,9 +1,10 @@
 # Google Play — internal releases
 
-A manual pipeline ships the app to the **internal track** on Google Play:
-**Actions → Play Store — internal release → Run workflow** on `main` runs the
-full CI, builds a release AAB, signs it with the upload key and uploads it to
-the Play Console.
+Every merge to `main` ships the app to the **internal track** on Google
+Play: the **Play Store — internal release** workflow runs the full CI, builds
+a release AAB, signs it with the upload key and uploads it to the Play
+Console. A manual run works from any branch and can build and sign without
+touching the store.
 
 Internal is the right first step on the store: up to 100 testers you name
 yourself, no review, and a release reaches a tester's phone within minutes of
@@ -127,13 +128,14 @@ test build of one app, not run the whole developer account.
 ### 4. The secrets, in an environment
 
 The secrets live in a GitHub **environment** called `play-internal`, not at
-repository level: only the release job names that environment, and the
-environment only lets `main` in. No other workflow, and no workflow on any
-other branch, can read the upload key or the Play credentials.
+repository level: secrets in an environment are readable only by jobs that
+name that environment, and in this repository only the release workflow does.
+No other workflow can read the upload key or the Play credentials.
 
 On GitHub: **Settings → Environments → New environment** → `play-internal`.
-Under **Deployment branches and tags** choose **Selected branches and tags**
-and add `main`.
+Nothing further: manual runs are allowed from every branch, so the
+environment must answer to every branch too — leave its deployment branch
+settings alone.
 
 Then, with the GitHub CLI (`gh auth login` once, if you have not), from
 `~/keys`:
@@ -179,12 +181,16 @@ first bundle goes through the Play Console by hand — but it is still built
 and signed by the pipeline, so the console registers exactly the upload key
 CI will keep using.
 
-1. **Merge the pipeline into `main`.** GitHub only offers the **Run
-   workflow** button for workflows on the default branch.
-2. **Actions → Play Store — internal release → Run workflow**, untick
-   **Upload to the internal track**, run. It runs CI, then builds and signs
-   the bundle and stops there.
-3. From the finished run, download the artifact
+1. **Merge the pipeline into `main`.** The merge itself starts the first
+   run: CI runs, the bundle is built and signed and kept as an artifact —
+   and the upload fails with *Package not found*, which is expected for a
+   brand-new app and is listed under *When a run fails*. To keep the first
+   run green instead, dispatch it by hand with the upload unticked (next
+   step).
+2. Or instead: **Actions → Play Store — internal release → Run workflow**,
+   untick **Upload to the internal track**, run. It runs CI, then builds
+   and signs the bundle and stops there.
+3. From that run, download the artifact
    **`hundred-days-aab-<version code>`** and unzip it: `app-release.aab`.
 4. Play Console → the app → **Test and release → Testing → Internal
    testing → Create new release**. If it asks about app signing, keep
@@ -201,25 +207,26 @@ From here on the button does the whole job.
 
 ## Releasing
 
-**Actions → Play Store — internal release → Run workflow** on `main`, with
-**Upload to the internal track** ticked. That is all.
+**Merge to `main`.** That is all: every push to `main` runs the full CI,
+checks that every secret is set and that the keystore opens with the
+password and alias, then builds, signs, keeps the AAB as a workflow artifact
+and uploads it. A merge and a manual run queue up rather than race.
 
-The run refuses any branch but `main`, runs the full CI, checks that every
-secret is set and that the keystore opens with the password and alias, then
-builds, signs, keeps the AAB as a workflow artifact and uploads it. Two
-presses of the button queue up rather than race.
+A **manual run** works from any branch: **Actions → Play Store — internal
+release → Run workflow**. Unticking **Upload to the internal track** builds
+and signs only — useful for trying the pipeline on a branch without shipping
+anything to testers.
 
 **Version codes take care of themselves**: each run ships version code
 `1000 + run number`, which only ever goes up, so there is nothing to bump
-before pressing the button. The version *name* testers see still comes from
-`version:` in `app/pubspec.yaml` — change it when you want them to see a new
-one. The `+N` there only applies to local builds.
+before merging. The version *name* testers see still comes from `version:`
+in `app/pubspec.yaml` — change it when you want them to see a new one. The
+`+N` there only applies to local builds.
 
 ## When a run fails
 
 The failing step names the problem; the common ones:
 
-- **Ship from main only** — the run was started on another branch.
 - **Not set in the play-internal environment: …** — the named secret is
   missing, misspelt, or set at repository level only; see step 4.
 - **not valid base64 / does not open** — re-encode the keystore and set
@@ -267,5 +274,5 @@ debug key.
   separate pipeline, and a separate decision.
 - **Release notes and staged rollout.** The internal track does not need
   them; a production pipeline would.
-- **Automatic triggers.** No push, tag or schedule starts a release. A store
-  upload should never be a side effect.
+- **Triggers beyond main.** Only a push to `main` and a manual run release.
+  No tag, no schedule, and no push to any other branch ships anything.
