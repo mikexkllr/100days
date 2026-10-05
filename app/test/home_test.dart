@@ -30,9 +30,11 @@ void main() {
     WidgetTester tester, {
     Locale locale = const Locale('de'),
   }) async {
-    // A tall phone viewport: the home screen is a scroll view, and the default
-    // 800x600 test surface would leave half the habits unbuilt.
-    tester.view.physicalSize = const Size(1080, 3000);
+    // Taller than any phone on purpose: the home screen is a lazily built
+    // scroll view, so whatever lies below the fold is unbuilt or offstage and
+    // invisible to finders. At 1000 logical pixels the second habit already
+    // sat just under the fold whenever a friend's pressure banner showed.
+    tester.view.physicalSize = const Size(1080, 4800);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
