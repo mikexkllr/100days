@@ -19,6 +19,13 @@ The APK is signed with the debug key. That is fine for testing — the Play Stor
 needs your own upload key, and shipping to the store is a separate manual
 pipeline: [`play-release.md`](play-release.md).
 
+**Pick one channel per phone.** The CI APK and the Play internal build are
+signed with different keys, so Android will not install one over the other:
+switching means uninstalling first. Uninstalling deletes everything the app
+holds — identity, streaks, check-ins — because there is no server with a copy,
+and the app cannot yet import a recovery key. Whoever switches starts again
+at day 1.
+
 ## Android — building it yourself
 
 ```bash
@@ -100,9 +107,10 @@ not a fault. See [`local-ai.md`](local-ai.md).
 
 ## When something goes wrong
 
-**"App not installed"** — usually the wrong ABI. Take `arm64-v8a`. Or an older
-version with a different signing key is still on the device: uninstall it
-first.
+**"App not installed"** — usually the wrong ABI. Take `arm64-v8a`. Or a
+version with a different signing key is still on the device — typically the
+Play internal build when sideloading the CI APK, or the other way round:
+uninstall it first, which wipes the app's data (see above).
 
 **Friends do not find each other** — are both devices on the same Wi-Fi? Guest
 networks and many corporate networks block multicast between clients. As a

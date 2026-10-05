@@ -26,3 +26,4 @@ models/
 *.jks
 *.keystore
 upload-keystore.b64
+service-account*.json
