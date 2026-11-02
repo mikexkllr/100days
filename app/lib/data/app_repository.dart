@@ -87,6 +87,7 @@ class AppRepository {
     required this.identity,
     required this.store,
     required this.keyStore,
+    required this.box,
   })  : writer = FeedWriter(identity: identity, store: store),
         replicator = FeedReplicator(store);
 
@@ -95,6 +96,9 @@ class AppRepository {
   final KeyStore keyStore;
   final FeedWriter writer;
   final FeedReplicator replicator;
+
+  /// Seals what friends must not read. See `PrivateBox`.
+  final PrivateBox box;
 
   final Set<String> _follows = <String>{};
   ChallengePlan? _cachedPlan;
@@ -116,6 +120,7 @@ class AppRepository {
       identity: identity,
       store: feedStore,
       keyStore: keyStore,
+      box: await PrivateBox.forIdentity(identity),
     );
     await repository.reloadFollows();
     return repository;
@@ -139,7 +144,14 @@ class AppRepository {
   Future<AppSnapshot> snapshot({DayKey? today}) async {
     final day = today ?? DayKey.today();
 
-    final me = projectUser(did, await store.eventsOf(did), today: day);
+    // Our own sealed events are opened before folding; a friend's stay
+    // sealed and are skipped by the projection.
+    final myEvents = await store.eventsOf(did);
+    final me = projectUser(did, await box.openAll(myEvents), today: day);
+    // The league ranks everyone by what everyone can verify. Friends only
+    // see our public events, so our own row is computed the same way —
+    // otherwise every device would rank us differently.
+    final meAsFriendsSeeMe = projectUser(did, myEvents, today: day);
 
     final friends = <UserProjection>[];
     for (final friendDid in _follows) {
@@ -166,8 +178,8 @@ class AppRepository {
       weekKey: weekKey,
       league: leagueForXp(me.lifetimeXp),
       entries: <LeagueEntry>[
-        me.toPeerState(today: day).toLeagueEntry(
-              checkInsThisWeek: me.checkInsInWeek(weekKey),
+        meAsFriendsSeeMe.toPeerState(today: day).toLeagueEntry(
+              checkInsThisWeek: meAsFriendsSeeMe.checkInsInWeek(weekKey),
             ),
         for (final UserProjection f in friends)
           f.toPeerState(today: day).toLeagueEntry(
@@ -176,13 +188,10 @@ class AppRepository {
       ],
     );
 
-    final myEvents = await store.eventsOf(
-      did,
-      types: <String>{FeedEventType.nudge, FeedEventType.cheer},
-    );
     final nudgedToday = <String>{};
     final cheeredEvents = <String>{};
-    for (final event in myEvents) {
+    for (final event in myEvents.where((FeedEvent e) =>
+        e.type == FeedEventType.nudge || e.type == FeedEventType.cheer)) {
       final target = event.payload['target'] as String?;
       if (event.type == FeedEventType.nudge) {
         if (target != null && DayKey.fromDateTime(event.timestamp) == day) {
@@ -227,17 +236,50 @@ class AppRepository {
           did: did,
           displayName: displayName,
           avatarEmoji: avatarEmoji,
-          goalStatement: goalStatement,
+          goalStatement: goalStatement == null || goalStatement.isEmpty
+              ? null
+              : goalStatement,
         ).toPayload(),
       );
 
-  Future<void> startChallenge(Challenge challenge) => writer.append(
-        FeedEventType.challengeStarted,
-        <String, dynamic>{
-          'challenge': challenge.toJson(),
-          'statement': challenge.goal.statement,
-        },
-      );
+  /// Appends [payload] as [type] — in the clear, or sealed when [private].
+  Future<FeedEvent> _append(
+    String type,
+    Map<String, dynamic> payload, {
+    bool private = false,
+  }) async {
+    if (!private) return writer.append(type, payload);
+    return writer.append(FeedEventType.private, await box.seal(type, payload));
+  }
+
+  /// Two events: what friends may see, then the full challenge sealed. The
+  /// owner's projection folds both in order, so the full one wins at home
+  /// while friends only ever get the public view.
+  Future<void> _publishChallenge(String type, Challenge challenge) async {
+    final public = publicViewOf(challenge);
+    await writer.append(type, <String, dynamic>{
+      'challenge': public.toJson(),
+      if (public.goal.statement.isNotEmpty) 'statement': public.goal.statement,
+    });
+    await _append(
+      type,
+      <String, dynamic>{'challenge': challenge.toJson()},
+      private: true,
+    );
+  }
+
+  Future<void> startChallenge(Challenge challenge) =>
+      _publishChallenge(FeedEventType.challengeStarted, challenge);
+
+  /// A new split, own nutrition targets, a sharing change. History stays.
+  Future<void> updateChallenge(Challenge challenge) =>
+      _publishChallenge(FeedEventType.challengeUpdated, challenge);
+
+  bool _isPrivate(Habit habit, Challenge? challenge) =>
+      !(challenge?.sharing.isHabitShared(habit.id) ?? true);
+
+  Future<Challenge?> _currentChallenge() async =>
+      (await snapshot()).challenge;
 
   /// Logs a habit for a day. Re-logging the same habit and day overwrites the
   /// earlier entry at projection time, so a user can correct a number without
@@ -248,8 +290,10 @@ class AppRepository {
     num? value,
     String? note,
     int? streak,
-  }) =>
-      writer.append(
+    bool tracked = false,
+    Challenge? challenge,
+  }) async =>
+      _append(
         FeedEventType.checkIn,
         <String, dynamic>{
           ...CheckIn(
@@ -259,17 +303,20 @@ class AppRepository {
             value: value ?? habit.target,
             loggedAt: DateTime.now(),
             note: note,
+            tracked: tracked,
           ).toPayload(),
           if (streak != null) 'streak': streak,
         },
+        private: _isPrivate(habit, challenge ?? await _currentChallenge()),
       );
 
   Future<FeedEvent> logRelapse({
     required Habit habit,
     required DayKey day,
     String? note,
-  }) =>
-      writer.append(
+    Challenge? challenge,
+  }) async =>
+      _append(
         FeedEventType.checkIn,
         CheckIn(
           habitId: habit.id,
@@ -280,6 +327,43 @@ class AppRepository {
           note: note,
           relapse: true,
         ).toPayload(),
+        private: _isPrivate(habit, challenge ?? await _currentChallenge()),
+      );
+
+  /// A finished session: the log (shared or sealed, as the user chose), then
+  /// the gym check-in it backs — marked tracked, which is what earns the
+  /// plan bonus.
+  Future<void> logWorkout({
+    required WorkoutLog log,
+    required Habit habit,
+    required Challenge challenge,
+    int? streak,
+  }) async {
+    final hideDetails =
+        !challenge.sharing.shareWorkouts || _isPrivate(habit, challenge);
+    await _append(
+      FeedEventType.workoutLogged,
+      log.toPayload(),
+      private: hideDetails,
+    );
+    await checkIn(
+      habit: habit,
+      day: log.day,
+      streak: streak,
+      tracked: true,
+      challenge: challenge,
+    );
+  }
+
+  /// The food diary is always sealed: what someone eats is nobody's
+  /// business but theirs.
+  Future<void> logFood(FoodEntry entry) =>
+      _append(FeedEventType.foodLogged, entry.toPayload(), private: true);
+
+  Future<void> removeFood(String entryId) => _append(
+        FeedEventType.foodRemoved,
+        <String, dynamic>{'id': entryId},
+        private: true,
       );
 
   Future<void> useStreakFreeze(DayKey day) => writer.append(

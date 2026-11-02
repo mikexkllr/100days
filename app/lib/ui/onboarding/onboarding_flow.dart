@@ -5,10 +5,14 @@ import '../../l10n/l10n.dart';
 import '../../state/onboarding_state.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
+import 'steps/ai_step.dart';
 import 'steps/body_step.dart';
 import 'steps/goal_step.dart';
 import 'steps/habits_step.dart';
 import 'steps/identity_step.dart';
+import 'steps/kcal_step.dart';
+import 'steps/privacy_step.dart';
+import 'steps/split_step.dart';
 import 'steps/statement_step.dart';
 import 'steps/summary_step.dart';
 import 'steps/training_step.dart';
@@ -56,12 +60,22 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
         ),
         if (draft.needsTrainingDetails)
           const _Step(id: 'training', child: TrainingStep(), canAdvance: true),
-        if (draft.needsBodyStats)
+        if (draft.usesTrainingPlan)
+          const _Step(id: 'split', child: SplitStep(), canAdvance: true),
+        if (draft.needsBodyStats) ...<_Step>[
           _Step(
             id: 'body',
             child: const BodyStep(),
             canAdvance: draft.body != null,
           ),
+          _Step(
+            id: 'kcal',
+            child: const KcalStep(),
+            canAdvance: draft.body != null,
+          ),
+        ],
+        const _Step(id: 'privacy', child: PrivacyStep(), canAdvance: true),
+        const _Step(id: 'ai', child: AiStep(), canAdvance: true),
         _Step(
           id: 'identity',
           child: const IdentityStep(),
@@ -96,7 +110,10 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
       await controller.saveProfile(
         displayName: draft.displayName.trim(),
         avatarEmoji: draft.avatarEmoji,
-        goalStatement: draft.statement.trim(),
+        // The profile is public to friends; the goal sentence only goes on
+        // it when the user chose to share it.
+        goalStatement:
+            draft.sharing.shareStatement ? draft.statement.trim() : null,
       );
       await controller.startChallenge(draft.toChallenge());
       ref.read(onboardingProvider.notifier).reset();

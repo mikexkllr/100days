@@ -41,6 +41,7 @@ void main() {
     await tester.pumpWidget(ProviderScope(
       overrides: <Override>[
         repositoryProvider.overrideWithValue(repository),
+        ...platformFreeOverrides(),
       ],
       child: MaterialApp(
         locale: locale,
@@ -125,8 +126,97 @@ void main() {
     await next(tester);
     expect(find.text('Wie oft und womit?'), findsOneWidget);
 
+    // The training plan is on by default, so the split comes next.
+    await next(tester);
+    expect(find.text('Dein Split.'), findsOneWidget);
+
+    // Fat loss also switches the nutrition plan on, which needs body stats.
     await next(tester);
     expect(find.text('Ein paar Zahlen.'), findsOneWidget);
+
+    await next(tester);
+    expect(find.text('Dein Tagesziel.'), findsOneWidget);
+  });
+
+  testWidgets('without the optional plans there is no split and no weighing',
+      (WidgetTester tester) async {
+    await pump(tester);
+    await next(tester);
+    await tapText(tester, 'Fett verlieren');
+    await next(tester);
+    await tester.enterText(
+        find.byKey(const Key('statement-field')), '8 kg runter');
+    await tester.pumpAndSettle();
+    await next(tester);
+
+    // Both plans are opt-in, right on the habit rows.
+    for (final String key in <String>['plan-gym', 'plan-nutrition']) {
+      final Finder toggle = find.byKey(Key(key));
+      await tester.ensureVisible(toggle);
+      await tester.pumpAndSettle();
+      await tester.tap(toggle);
+      await tester.pumpAndSettle();
+    }
+    final OnboardingDraft draft = ProviderScope.containerOf(
+      tester.element(find.byType(OnboardingFlow)),
+    ).read(onboardingProvider);
+    expect(draft.usesTrainingPlan, isFalse);
+    expect(draft.usesNutritionPlan, isFalse);
+
+    await next(tester); // habits -> training (days only)
+    expect(find.text('Wie oft und womit?'), findsOneWidget);
+    await next(tester); // training -> privacy, no split, no body stats
+    expect(find.text('Wer sieht was.'), findsOneWidget);
+  });
+
+  testWidgets('the split step proposes exercises that can be swapped',
+      (WidgetTester tester) async {
+    await pump(tester);
+    await next(tester);
+    await tapText(tester, 'Muskeln aufbauen');
+    await next(tester);
+    await tester.enterText(
+        find.byKey(const Key('statement-field')), '5 kg Muskeln');
+    await tester.pumpAndSettle();
+    await next(tester); // statement -> habits
+    await next(tester); // habits -> training
+    await next(tester); // training -> split
+    expect(find.text('Dein Split.'), findsOneWidget);
+
+    await tapText(tester, 'Push / Pull / Beine');
+    final ProviderContainer container = ProviderScope.containerOf(
+      tester.element(find.byType(OnboardingFlow)),
+    );
+    expect(container.read(onboardingProvider).effectiveSplit,
+        SplitKind.pushPullLegs);
+
+    // Open the first exercise of the first session and swap it.
+    final String first = container
+        .read(onboardingProvider)
+        .currentTrainingSetup()
+        .sessions
+        .first
+        .exercises
+        .first
+        .exerciseId;
+    expect(first, 'bench_press');
+    await tapText(tester, 'Bankdrücken');
+    final Finder swap =
+        find.widgetWithText(ActionChip, 'Kurzhantel-Bankdrücken');
+    await tester.ensureVisible(swap);
+    await tester.pumpAndSettle();
+    await tester.tap(swap);
+    await tester.pumpAndSettle();
+    final Finder save = find.widgetWithText(FilledButton, 'Speichern');
+    await tester.ensureVisible(save);
+    await tester.pumpAndSettle();
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    final TrainingSetup setup =
+        container.read(onboardingProvider).currentTrainingSetup();
+    expect(setup.sessions.first.exercises.first.exerciseId, 'db_bench');
+    expect(setup.split, SplitKind.pushPullLegs);
   });
 
   testWidgets('completing the flow writes a signed challenge to the feed',
@@ -140,7 +230,11 @@ void main() {
         find.byKey(const Key('statement-field')), '100 Tage trocken');
     await tester.pumpAndSettle();
     await next(tester); // statement -> habits
-    await next(tester); // habits -> identity
+    await next(tester); // habits -> privacy
+    expect(find.text('Wer sieht was.'), findsOneWidget);
+    await next(tester); // privacy -> on-device AI
+    expect(find.text('KI auf deinem Handy.'), findsOneWidget);
+    await next(tester); // AI -> identity
     await tester.enterText(find.byKey(const Key('name-field')), 'Mike');
     await tester.pumpAndSettle();
     await next(tester); // identity -> summary

@@ -60,7 +60,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String adviceMilestoneAhead(
-      String emoji, String habit, int days, String milestone) {
+    String emoji,
+    String habit,
+    int days,
+    String milestone,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
@@ -77,23 +81,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiBackendMissing =>
-      'The rule-based coach is running. It needs no model, works offline and answers instantly — the language is just less varied.';
+      'The rule-based coach is running. It needs no model, works offline and answers instantly — the language is just less varied. Download a model below and it switches over by itself.';
 
   @override
   String get aiBackendPresent =>
-      'An inference engine is wired in. With a model installed it writes your daily line.';
+      'The model runs on this phone with llama.cpp. It writes your daily line, estimates meals and proposes nutrition targets — and falls back to the rule-based coach whenever it is too slow.';
+
+  @override
+  String aiDeviceLine(String model, int ram) {
+    return '$model · $ram GB RAM';
+  }
+
+  @override
+  String get aiDeviceUnknown => 'Phone not recognised — assuming a modest one.';
+
+  @override
+  String get aiDeviceUnsupported =>
+      'This phone cannot run a language model locally. The coach stays rule-based — it works just as well, it only talks with less variety.';
+
+  @override
+  String get aiDownloadFailed =>
+      'The download stopped. Tap to continue where it left off.';
+
+  @override
+  String get aiDownloadNote =>
+      'Best on Wi-Fi. Keeps running while you finish the setup; afterwards the model runs offline and nothing you type leaves the phone.';
+
+  @override
+  String aiDownloadNow(String size) {
+    return 'Download now ($size GB)';
+  }
+
+  @override
+  String get aiDownloadResume => 'Continue download';
+
+  @override
+  String aiDownloading(String received, String total) {
+    return '$received of $total GB';
+  }
+
+  @override
+  String get aiFits => 'fits';
 
   @override
   String aiGigabytes(String size) {
     return '$size GB';
   }
-
-  @override
-  String get aiInstallBody =>
-      'Download the GGUF file on a computer and put it in this folder:';
-
-  @override
-  String get aiInstallTitle => 'Installing a model';
 
   @override
   String get aiInstalled => 'installed';
@@ -102,21 +135,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiLoading => 'Loading …';
 
   @override
-  String get aiModelGemmaDesc => 'A little stronger in German, needs more RAM.';
+  String get aiModelBalancedDesc =>
+      'The sweet spot for mid-range phones: good German and English, quick answers.';
 
   @override
-  String get aiModelQwenDesc =>
-      'A good balance of quality and size. Runs on mid-range devices.';
+  String get aiModelLightDesc =>
+      'Small and quick. Runs on almost any phone, writes short and simple.';
 
   @override
-  String get aiModelSmolDesc => 'Tiny and fast, for older devices.';
+  String get aiModelMaxDesc =>
+      'The best quality that runs on a phone. Large download, only for flagships with 12 GB or more.';
+
+  @override
+  String get aiModelStrongDesc =>
+      'Google\'s phone model. Clearly better meal estimates and coaching; needs 8 GB of RAM.';
 
   @override
   String get aiNoAutoDownload =>
-      'The app never downloads anything by itself — a gigabyte over mobile data is not something that should happen unasked.';
+      'The app downloads a model only when you tap the button — from a fixed version on Hugging Face, checked against its SHA-256 before it is used. After that, no network.';
 
   @override
   String get aiNoNetworkBadge => 'no network access';
+
+  @override
+  String get aiOtherModels => 'Other models';
+
+  @override
+  String get aiRecommended => 'recommended';
+
+  @override
+  String get aiRemove => 'Remove';
 
   @override
   String get aiSource => 'Source';
@@ -126,6 +174,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiTitle => 'On-device AI';
+
+  @override
+  String get aiTooBig => 'too big';
+
+  @override
+  String get aiVerifying => 'Checking the file …';
 
   @override
   String get aiWhatItSeesBody =>
@@ -287,7 +341,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String coachPressureLeaderBody(
-      String emoji, String name, int peerStreak, int streak) {
+    String emoji,
+    String name,
+    int peerStreak,
+    int streak,
+  ) {
     return '$emoji $name: $peerStreak days. You: $streak. Still catchable — today.';
   }
 
@@ -413,12 +471,146 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ctaShare => 'Share';
 
   @override
+  String get diaryClose => 'Close the day';
+
+  @override
+  String get diaryCloseOnTarget => 'Close the day — on target';
+
+  @override
+  String get diaryClosedPlain => 'Day ticked off.';
+
+  @override
+  String get diaryClosedTracked =>
+      'Day closed on target — tracked, with the plan bonus.';
+
+  @override
+  String diaryEatenOfTarget(int eaten, int target) {
+    return '$eaten of $target kcal eaten';
+  }
+
+  @override
+  String diaryEntryKcal(int kcal) {
+    return '$kcal kcal';
+  }
+
+  @override
+  String get diaryKcalLeft => 'kcal left';
+
+  @override
+  String get diaryKcalOver => 'kcal over';
+
+  @override
+  String diaryMealKcal(int eaten, int target) {
+    return '$eaten / $target kcal';
+  }
+
+  @override
+  String diaryOffTargetBody(int delta) {
+    return 'You are $delta kcal off your target. You can still tick the day off — just without the plan bonus.';
+  }
+
+  @override
+  String get diaryOffTargetConfirm => 'Tick off anyway';
+
+  @override
+  String get diaryOffTargetTitle => 'Not quite on target';
+
+  @override
+  String get diarySuggestions => 'IDEAS THAT FIT';
+
+  @override
+  String get diaryTitle => 'Food diary';
+
+  @override
+  String get diaryToday => 'Today';
+
+  @override
+  String get dietOmnivore => 'Everything';
+
+  @override
+  String get dietVegan => 'Vegan';
+
+  @override
+  String get dietVegetarian => 'Vegetarian';
+
+  @override
+  String get editorAddExercise => 'Add exercise';
+
+  @override
+  String get editorDaysNote =>
+      'Applies from today — past days stay as they were.';
+
+  @override
+  String get editorMoveDown => 'Move down';
+
+  @override
+  String get editorMoveUp => 'Move up';
+
+  @override
+  String get editorRepsHigh => 'Reps, top of range';
+
+  @override
+  String get editorRepsLow => 'Reps, bottom of range';
+
+  @override
+  String get editorReset => 'Restore the suggestion';
+
+  @override
+  String get editorRest => 'Rest';
+
+  @override
+  String get editorRir => 'Reps in reserve (RIR)';
+
+  @override
+  String get editorRirHelp =>
+      'RIR 2 means stopping two clean reps before failure. Lower is harder.';
+
+  @override
+  String get editorSaved => 'Training plan saved';
+
+  @override
+  String get editorSessionEmpty => 'No exercise yet — add one.';
+
+  @override
+  String get editorSessionsSubtitle =>
+      'Tap an exercise to change sets, reps and effort, or to swap it.';
+
+  @override
+  String get editorSessionsTitle => 'Exercises per session';
+
+  @override
+  String get editorSets => 'Sets';
+
+  @override
+  String editorSetsReps(int sets, String reps, int rir) {
+    return '$sets × $reps · RIR $rir';
+  }
+
+  @override
+  String get editorSplitTitle => 'Split';
+
+  @override
+  String get editorSwap => 'Swap for';
+
+  @override
+  String get editorTitle => 'Edit training plan';
+
+  @override
   String errorGeneric(String message) {
     return 'Error: $message';
   }
 
   @override
   String get exerciseAbWheel => 'Ab wheel';
+
+  @override
+  String get exerciseArnoldPress => 'Arnold press';
+
+  @override
+  String get exerciseAssistedPullup => 'Assisted pull-up';
+
+  @override
+  String get exerciseBackExtension => 'Back extension';
 
   @override
   String get exerciseBackSquat => 'Back squat (barbell)';
@@ -445,10 +637,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exerciseBwSquat => 'Bodyweight squat';
 
   @override
+  String get exerciseCableCrunch => 'Cable crunch';
+
+  @override
+  String get exerciseCableCurl => 'Cable curl';
+
+  @override
+  String get exerciseCableFly => 'Cable fly';
+
+  @override
+  String get exerciseCableLateralRaise => 'Cable lateral raise';
+
+  @override
   String get exerciseCableRow => 'Cable row';
 
   @override
   String get exerciseCalfRaise => 'Calf raise';
+
+  @override
+  String get exerciseChestPressMachine => 'Chest press machine';
+
+  @override
+  String get exerciseChestSupportedRow => 'Chest-supported row';
+
+  @override
+  String get exerciseChinUp => 'Chin-up';
 
   @override
   String get exerciseCueBackSquat =>
@@ -482,6 +695,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exerciseDbBench => 'Dumbbell bench press';
 
   @override
+  String get exerciseDbFly => 'Dumbbell fly';
+
+  @override
   String get exerciseDbOhp => 'Overhead press (dumbbell)';
 
   @override
@@ -506,10 +722,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exerciseFarmersWalk => 'Farmer\'s walk';
 
   @override
+  String get exerciseFrontSquat => 'Front squat';
+
+  @override
   String get exerciseGluteBridge => 'Glute bridge';
 
   @override
   String get exerciseGobletSquat => 'Goblet squat';
+
+  @override
+  String get exerciseHackSquat => 'Hack squat';
 
   @override
   String get exerciseHammerCurl => 'Hammer curls';
@@ -518,7 +740,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exerciseHangingLegRaise => 'Hanging leg raise';
 
   @override
+  String get exerciseHipAbduction => 'Hip abduction machine';
+
+  @override
   String get exerciseHipThrust => 'Hip thrust';
+
+  @override
+  String get exerciseInclineBench => 'Incline bench press';
+
+  @override
+  String get exerciseInclineDbPress => 'Incline dumbbell press';
 
   @override
   String get exerciseInvertedRow => 'Inverted row';
@@ -539,7 +770,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exerciseLegCurl => 'Leg curl';
 
   @override
+  String get exerciseLegExtension => 'Leg extension';
+
+  @override
   String get exerciseLegPress => 'Leg press';
+
+  @override
+  String get exerciseMachineShoulderPress => 'Shoulder press machine';
 
   @override
   String get exerciseNordicCurl => 'Nordic curl (assisted)';
@@ -548,10 +785,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exerciseOhp => 'Overhead press (barbell)';
 
   @override
+  String get exerciseOverheadTricepsExtension => 'Overhead triceps extension';
+
+  @override
+  String get exercisePecDeck => 'Pec deck';
+
+  @override
   String get exercisePikePushup => 'Pike push-up';
 
   @override
   String get exercisePlank => 'Plank';
+
+  @override
+  String get exercisePreacherCurl => 'Preacher curl';
 
   @override
   String get exercisePullup => 'Pull-up';
@@ -563,10 +809,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exerciseRdl => 'Romanian deadlift';
 
   @override
+  String get exerciseRearDeltFly => 'Rear delt fly';
+
+  @override
   String get exerciseRowingErg => 'Rowing machine';
 
   @override
+  String get exerciseSeatedCalfRaise => 'Seated calf raise';
+
+  @override
+  String get exerciseSkullCrusher => 'Skull crusher';
+
+  @override
   String get exerciseStepUp => 'Step-up';
+
+  @override
+  String get exerciseTBarRow => 'T-bar row';
 
   @override
   String get exerciseTricepsPushdown => 'Triceps pushdown';
@@ -658,6 +916,179 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedVerified => 'verified';
 
   @override
+  String feedWorkout(String name, String workout) {
+    return '$name: $workout done';
+  }
+
+  @override
+  String feedWorkoutDetail(int sets, String tonnes) {
+    return '$sets sets · $tonnes t moved';
+  }
+
+  @override
+  String foodAddAll(int count, int kcal) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Add $count entries · $kcal kcal',
+      one: 'Add 1 entry · $kcal kcal',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String foodAddTo(String meal) {
+    return 'Add to $meal';
+  }
+
+  @override
+  String foodAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entries added',
+      one: 'Added to the diary',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get foodAiFailed =>
+      'The model could not make sense of that. Try simpler words, or enter it manually.';
+
+  @override
+  String get foodAiNotInstalled =>
+      'Recognises foods from the table. With an on-device model (Settings → On-device AI) it also estimates dishes it does not know.';
+
+  @override
+  String get foodAmountLabel => 'Amount';
+
+  @override
+  String foodAmountPiece(int grams) {
+    return '1 piece ($grams g)';
+  }
+
+  @override
+  String foodAmountPortion(int grams) {
+    return 'Portion ($grams g)';
+  }
+
+  @override
+  String foodAmountResult(int kcal, int protein, int carbs, int fat) {
+    return '$kcal kcal · $protein g protein · $carbs g carbs · $fat g fat';
+  }
+
+  @override
+  String get foodAskAi => 'Estimate with AI';
+
+  @override
+  String get foodBarcodeLabel => 'Or type the barcode number (EAN)';
+
+  @override
+  String get foodBarcodeNoNutrition =>
+      'Found the product, but without nutrition values. Enter it manually.';
+
+  @override
+  String get foodBarcodeNotFound =>
+      'This product is not in Open Food Facts yet. Enter it manually — the numbers are on the label.';
+
+  @override
+  String get foodBarcodeOffline =>
+      'No connection to Open Food Facts. Try again later or enter it manually.';
+
+  @override
+  String get foodBarcodePrivacy =>
+      'The lookup sends only the barcode number to Open Food Facts, the open product database — no account, no diary, nothing about you.';
+
+  @override
+  String get foodDescribeHint =>
+      'What did you eat? e.g. \"2 eggs, a slice of wholegrain bread and a cappuccino\"';
+
+  @override
+  String get foodManualAdd => 'Add';
+
+  @override
+  String get foodManualCarbs => 'Carbs in g (optional)';
+
+  @override
+  String get foodManualFat => 'Fat in g (optional)';
+
+  @override
+  String get foodManualGrams => 'Amount in g (optional)';
+
+  @override
+  String get foodManualKcal => 'Calories (kcal)';
+
+  @override
+  String get foodManualName => 'Name';
+
+  @override
+  String get foodManualProtein => 'Protein in g (optional)';
+
+  @override
+  String foodNotRecognised(String items) {
+    return 'Not recognised: $items. Estimate them with AI, search for them, or enter them manually.';
+  }
+
+  @override
+  String foodPer100(int kcal, int protein, int carbs, int fat) {
+    return '$kcal kcal · $protein g P · $carbs g C · $fat g F per 100 g';
+  }
+
+  @override
+  String get foodRecent => 'Recently logged';
+
+  @override
+  String get foodRecognise => 'Recognise';
+
+  @override
+  String get foodScanButton => 'Scan barcode';
+
+  @override
+  String get foodScanCameraUnavailable =>
+      'The camera is not available. Type the barcode number instead.';
+
+  @override
+  String get foodScanHint => 'Hold the barcode inside the frame.';
+
+  @override
+  String get foodScanTitle => 'Scan a product';
+
+  @override
+  String get foodSearchHint => 'Food, e.g. oats, banana, pizza';
+
+  @override
+  String get foodSearchNothing =>
+      'Nothing in the food table. Describe it instead, scan the barcode or enter the numbers yourself.';
+
+  @override
+  String get foodSourceAi => 'AI estimate';
+
+  @override
+  String get foodSourceBarcode => 'label';
+
+  @override
+  String get foodSourceDatabase => 'food table';
+
+  @override
+  String get foodSourceManual => 'entered';
+
+  @override
+  String get foodSourceParsed => 'recognised';
+
+  @override
+  String get foodTabBarcode => 'Barcode';
+
+  @override
+  String get foodTabDescribe => 'Describe';
+
+  @override
+  String get foodTabManual => 'Manual';
+
+  @override
+  String get foodTabSearch => 'Search';
+
+  @override
   String friendsConnected(String name) {
     return '$name connected.';
   }
@@ -687,7 +1118,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get friendsNetworkNote =>
-      'Connections run directly between your devices — instantly on the same Wi-Fi, otherwise the next time you meet. No server in between that knows your streaks.';
+      'Connections run directly between your devices — instantly on the same Wi-Fi, otherwise the next time you meet. Every connection proves who is on the other end, and only people you accepted get anything. No server in between that knows your streaks.';
 
   @override
   String get friendsNoActivity => 'No activity yet';
@@ -697,6 +1128,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get friendsNudgeSubtitle => 'These people have not been out today.';
+
+  @override
+  String get friendsRequestAccept => 'Accept';
+
+  @override
+  String get friendsRequestDecline => 'Decline';
+
+  @override
+  String friendsRequestFrom(String name) {
+    return '$name';
+  }
+
+  @override
+  String get friendsRequestsSub =>
+      'They scanned your code. Nothing is shared until you accept.';
+
+  @override
+  String get friendsRequestsTitle => 'Wants to connect';
 
   @override
   String get friendsScan => 'Scan';
@@ -752,6 +1201,75 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get goalSoberPitch =>
       'Alcohol, nicotine, sugar — every day counts on its own.';
+
+  @override
+  String get goalsAiApply => 'Apply';
+
+  @override
+  String get goalsAiAsk => 'Get a proposal';
+
+  @override
+  String get goalsAiFailed =>
+      'No usable proposal. Try putting it differently — or set the numbers yourself above.';
+
+  @override
+  String get goalsAiHint => 'e.g. \"fewer carbs, I train in the evening\"';
+
+  @override
+  String goalsAiProposal(int kcal, int protein, int carbs, int fat) {
+    return '$kcal kcal · $protein % protein · $carbs % carbs · $fat % fat';
+  }
+
+  @override
+  String get goalsAiSub =>
+      'Describe what you want; the on-device model proposes new targets. Nothing changes until you apply it.';
+
+  @override
+  String get goalsAiTitle => 'Adjust with AI';
+
+  @override
+  String get goalsAiUnavailable =>
+      'Needs an on-device model — set one up under Settings → On-device AI.';
+
+  @override
+  String get goalsBodySub =>
+      'Only for the suggested target. They stay on this device and are never shared.';
+
+  @override
+  String get goalsBodyTitle => 'Body stats';
+
+  @override
+  String goalsFatRest(int percent) {
+    return 'Fat: $percent % (the rest)';
+  }
+
+  @override
+  String get goalsMacroTitle => 'Macro split';
+
+  @override
+  String get goalsOwnTarget => 'Set my own target';
+
+  @override
+  String get goalsOwnTargetSub =>
+      'Your number wins. The suggestion stays visible next to it.';
+
+  @override
+  String get goalsSaved => 'Targets saved';
+
+  @override
+  String goalsSuggested(int kcal) {
+    return 'Suggested: $kcal kcal a day';
+  }
+
+  @override
+  String get goalsTargetTitle => 'Daily target';
+
+  @override
+  String get goalsTitle => 'Nutrition targets';
+
+  @override
+  String get goalsTooLow =>
+      'That is more than 25% below your expenditure. Deficits that steep cost muscle and sleep — few people last 100 days on them.';
 
   @override
   String get habitCardio => 'Cardio';
@@ -923,6 +1441,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get homeOpenDiary => 'Open the food diary';
+
+  @override
   String get homeOptional => 'Optional';
 
   @override
@@ -950,6 +1471,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String homeStartWorkout(int percent) {
+    return 'Start workout · +$percent % XP';
+  }
+
+  @override
   String get homeStorageError => 'The app could not open its storage.';
 
   @override
@@ -968,6 +1494,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeTodaysWorkout => 'Today\'s training';
+
+  @override
+  String get homeWorkoutLogged => 'Logged today';
 
   @override
   String homeXp(int xp) {
@@ -1023,7 +1552,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leagueFooter =>
-      'XP comes per check-in, scaled by difficulty and streak. On Sunday the top places move up and the bottom ones move down.';
+      'Only friends you connected yourself compete here — no strangers. XP comes per check-in, scaled by difficulty and streak, and tracked workouts and diary days count extra. On Sunday the top places move up and the bottom ones move down.';
 
   @override
   String get leagueGold => 'Gold';
@@ -1069,6 +1598,107 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leagueYourRank => 'your place';
 
   @override
+  String get loggerAddSet => 'Add a set';
+
+  @override
+  String get loggerAdviceAddReps => 'Same weight, one more rep per set';
+
+  @override
+  String loggerAdviceAddWeight(String weight) {
+    return 'Top of the range reached — go to $weight kg';
+  }
+
+  @override
+  String loggerAdviceFirst(int rir) {
+    return 'First time: pick a weight that leaves $rir reps in reserve';
+  }
+
+  @override
+  String get loggerAdviceHold => 'Same weight — get every set into the range';
+
+  @override
+  String loggerAdviceReduce(String weight) {
+    return 'Missed twice — reset to $weight kg and build back up';
+  }
+
+  @override
+  String get loggerDiscard => 'Discard';
+
+  @override
+  String get loggerDiscardBody => 'The sets you entered will be lost.';
+
+  @override
+  String get loggerDiscardTitle => 'Discard this workout?';
+
+  @override
+  String get loggerFinish => 'Finish workout';
+
+  @override
+  String get loggerFinishNoSets => 'Tick off at least one set first.';
+
+  @override
+  String get loggerIntro =>
+      'Log every set. Next time the app tells you what to beat: more reps at the same weight, then more weight.';
+
+  @override
+  String get loggerKg => 'kg';
+
+  @override
+  String loggerLastTime(String sets) {
+    return 'Last time: $sets';
+  }
+
+  @override
+  String get loggerReps => 'reps';
+
+  @override
+  String get loggerSaved => 'Workout saved — tracked, with the plan bonus.';
+
+  @override
+  String loggerSet(int number) {
+    return 'Set $number';
+  }
+
+  @override
+  String loggerTarget(String reps, int rir) {
+    return 'Target: $reps reps · RIR $rir';
+  }
+
+  @override
+  String get macroPresetAuto => 'Automatic';
+
+  @override
+  String get macroPresetAutoBlurb =>
+      'Protein and fat per kilo of body weight, the rest carbs. The best default for training goals.';
+
+  @override
+  String get macroPresetBalanced => 'Balanced';
+
+  @override
+  String get macroPresetBalancedBlurb =>
+      '50 % carbs, 20 % protein, 30 % fat — the classic split.';
+
+  @override
+  String get macroPresetCustom => 'Custom';
+
+  @override
+  String get macroPresetCustomBlurb =>
+      'Set protein and carbs yourself; fat takes the rest.';
+
+  @override
+  String get macroPresetHighProtein => 'High protein';
+
+  @override
+  String get macroPresetHighProteinBlurb =>
+      '35 % protein, 40 % carbs, 25 % fat. Keeps you full in a deficit.';
+
+  @override
+  String get macroPresetLowCarb => 'Low carb';
+
+  @override
+  String get macroPresetLowCarbBlurb => '30 % protein, 20 % carbs, 50 % fat.';
+
+  @override
   String get mealBreakfast => 'Breakfast';
 
   @override
@@ -1087,6 +1717,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealIdeaBreakfast4 => 'Protein porridge with peanut butter';
 
   @override
+  String get mealIdeaBreakfast5 => 'Tofu scramble with wholegrain bread';
+
+  @override
   String get mealIdeaDinner1 => 'Turkey pan with courgette and feta';
 
   @override
@@ -1097,6 +1730,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mealIdeaDinner4 => 'Tuna salad with beans and egg';
+
+  @override
+  String get mealIdeaDinner5 => 'Bean and vegetable chili';
+
+  @override
+  String get mealIdeaDinner6 => 'Wholegrain wrap with chicken and salad';
 
   @override
   String get mealIdeaLunch1 => 'Chicken breast, rice, broccoli';
@@ -1111,6 +1750,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealIdeaLunch4 => 'Beef strips with couscous and roast vegetables';
 
   @override
+  String get mealIdeaLunch5 => 'Tofu and vegetable stir-fry with rice';
+
+  @override
   String get mealIdeaSnack1 => 'Quark with honey and walnuts';
 
   @override
@@ -1121,6 +1763,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mealIdeaSnack4 => 'Cottage cheese on crispbread';
+
+  @override
+  String get mealIdeaSnack5 => 'Hummus with vegetable sticks';
+
+  @override
+  String get mealIdeaSnack6 => 'Rice cakes with peanut butter';
 
   @override
   String get mealLunch => 'Lunch';
@@ -1473,6 +2121,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get obActivitySedentary => 'Sedentary';
 
   @override
+  String get obAiEyebrow => 'Coach';
+
+  @override
+  String get obAiLater =>
+      'Optional. Without a model everything works too — the coach is then rule-based. You can download it later under Settings → On-device AI.';
+
+  @override
+  String get obAiSubtitle =>
+      'The coach and the meal estimates can run on a small language model — on this phone, offline, without any prompt leaving it. We picked the one that fits your phone.';
+
+  @override
+  String get obAiTitle => 'AI on your phone.';
+
+  @override
   String get obBodyActivity => 'Daily life & movement';
 
   @override
@@ -1632,6 +2294,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get obIdentityTitle => 'How should your people see you?';
 
   @override
+  String get obKcalEyebrow => 'Nutrition';
+
+  @override
+  String get obKcalSubtitle =>
+      'Computed from your numbers — or set your own. You can change both at any time.';
+
+  @override
+  String get obKcalTitle => 'Your daily target.';
+
+  @override
+  String obPlanBonus(int percent) {
+    return '+$percent % XP';
+  }
+
+  @override
+  String get obPlanNutrition => 'With nutrition plan';
+
+  @override
+  String get obPlanNutritionBody =>
+      'A calorie target and a food diary with meal ideas. Optional — without it you just tick off the day.';
+
+  @override
+  String get obPlanTraining => 'With training plan';
+
+  @override
+  String get obPlanTrainingBody =>
+      'Your own split and exercises, every set logged with progression tips. Optional — without it you just tick off the workout.';
+
+  @override
   String get obPointBeyondBody =>
       'After that it carries on — next tier, harder targets, same streak.';
 
@@ -1660,6 +2351,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get obPointSocialTitle => 'Your people see everything';
 
   @override
+  String get obPrivacyEyebrow => 'Privacy';
+
+  @override
+  String get obPrivacySubtitle =>
+      'Only friends you connect yourself ever see anything — no strangers, no public profile. And of that, only what you switch on here.';
+
+  @override
+  String get obPrivacyTitle => 'Who sees what.';
+
+  @override
   String obSetsAndMinutes(int sets, int minutes) {
     return '$sets sets · $minutes min';
   }
@@ -1669,6 +2370,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get obSexMale => 'male';
+
+  @override
+  String get obSplitEyebrow => 'Training plan';
+
+  @override
+  String get obSplitSubtitle =>
+      'Pick how your week is arranged. We suggest exercises for it — change any of them.';
+
+  @override
+  String get obSplitTitle => 'Your split.';
 
   @override
   String get obStartChallenge => 'Start the challenge';
@@ -1704,6 +2415,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get obSummaryAlmostDone => 'Almost there';
 
   @override
+  String obSummaryBonusNutrition(int percent) {
+    return 'Nutrition plan on: +$percent % XP for every day closed on target';
+  }
+
+  @override
+  String get obSummaryBonusSection => 'Bonus';
+
+  @override
+  String obSummaryBonusTraining(int percent) {
+    return 'Training plan on: +$percent % XP for every logged workout';
+  }
+
+  @override
   String get obSummaryDailySection => 'This counts daily';
 
   @override
@@ -1723,6 +2447,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get obSummaryNutritionSection => 'Nutrition plan';
+
+  @override
+  String get obSummaryPrivacyAllShared =>
+      'All habits and your streak. Body stats and the food diary stay on this phone.';
+
+  @override
+  String get obSummaryPrivacySection => 'Shared with friends';
+
+  @override
+  String obSummaryPrivacySome(String habits) {
+    return 'Your streak and habits — except $habits, which stays private. Body stats and the food diary stay on this phone.';
+  }
 
   @override
   String obSummaryTitle(int days) {
@@ -1745,8 +2481,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get obTrainingEyebrow => 'Training';
 
   @override
+  String get obTrainingNoPlanHint =>
+      'Without a plan the app only counts whether you trained.';
+
+  @override
+  String obTrainingSplitHint(String split) {
+    return 'Suggested for this: $split. You choose on the next page.';
+  }
+
+  @override
   String get obTrainingSubtitle =>
-      'The app builds your split from this — including deload weeks, so you are not running on empty after six weeks.';
+      'Training days count for the streak. With the training plan you also choose a split and your exercises on the next page.';
 
   @override
   String get obTrainingTitle => 'How often and with what?';
@@ -1785,10 +2530,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get peerActivityStarted => 'Challenge started';
 
   @override
-  String get planAdjustmentsNote =>
-      'Worked out on this device, from your last few weeks. None of it leaves your phone.';
-
-  @override
   String get planBmr => 'Basal metabolic rate (BMR)';
 
   @override
@@ -1810,6 +2551,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planDeloadBadge => 'deload';
+
+  @override
+  String get planEditTraining => 'Edit split and exercises';
+
+  @override
+  String get planEnableNutrition => 'Turn on the nutrition plan';
+
+  @override
+  String planEnableNutritionBody(int percent) {
+    return 'Set a calorie target and keep a food diary — every day closed on target earns +$percent % XP.';
+  }
+
+  @override
+  String get planEnableTraining => 'Turn on the training plan';
+
+  @override
+  String planEnableTrainingBody(int percent) {
+    return 'Choose a split, adjust the exercises and log every set — each logged workout earns +$percent % XP.';
+  }
 
   @override
   String get planExpectedChange => 'Expected change';
@@ -1838,6 +2598,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planMeals => 'Meals';
+
+  @override
+  String get planNothingBody =>
+      'Your habits need no plan — check them off on Today. Training, nutrition and abstinence habits get one here.';
+
+  @override
+  String get planNothingTitle => 'Nothing to plan';
 
   @override
   String planNutritionDeficit(int percent, int tdee) {
@@ -1869,9 +2636,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planTabAbstinence => 'Staying clean';
-
-  @override
-  String get planTabAdjustments => 'Adjustments';
 
   @override
   String get planTabNutrition => 'Nutrition';
@@ -1920,6 +2684,50 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get privacyAlwaysPrivate =>
+      'Always private, no switch needed: body stats, calorie targets and the food diary. They are sealed in your own feed — friends store the encrypted bytes as a backup but cannot read them.';
+
+  @override
+  String get privacyFromNowOn =>
+      'Changes apply from now on. What friends already received stays with them — a habit you make private disappears for new entries, not for old ones.';
+
+  @override
+  String get privacyHabitsSub =>
+      'A private habit is invisible to friends — its check-ins and relapses too. Your streak for them counts the shared ones.';
+
+  @override
+  String get privacyHabitsTitle => 'Habits';
+
+  @override
+  String get privacyMoreTitle => 'More';
+
+  @override
+  String get privacyPrivate => 'Only you';
+
+  @override
+  String get privacySaved => 'Privacy settings saved';
+
+  @override
+  String get privacyShared => 'Friends see it';
+
+  @override
+  String get privacyStatement => 'Goal sentence';
+
+  @override
+  String get privacyStatementSub =>
+      'Your goal in your own words, shown on your profile.';
+
+  @override
+  String get privacyTitle => 'Privacy';
+
+  @override
+  String get privacyWorkouts => 'Workout details';
+
+  @override
+  String get privacyWorkoutsSub =>
+      'Session, sets and weights. Off: friends only see that you trained.';
+
+  @override
   String get profileCheer => 'Cheer';
 
   @override
@@ -1966,35 +2774,70 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String promptAdjustHabitLine(
-      String habit, String target, int days, int streak) {
+    String habit,
+    String target,
+    int days,
+    int streak,
+  ) {
     return '- $habit: target $target, ${days}x per week, streak $streak';
   }
 
   @override
+  String promptAdjustTargets(
+    int kcal,
+    int protein,
+    int carbs,
+    int fat,
+    int tdee,
+    String wish,
+    int min,
+    int max,
+    String format,
+  ) {
+    return 'You are a nutrition coach. Current daily target: $kcal kcal, $protein g protein, $carbs g carbs, $fat g fat. Energy expenditure: $tdee kcal.\nThe user wants: \"$wish\"\n\nPropose new targets. Stay between $min and $max kcal and never more than 25% below the expenditure.\nAnswer with JSON only, exactly in this form, the reason in English:\n$format';
+  }
+
+  @override
   String promptAdjustments(
-      int day, int total, int percent, String statement, String habits) {
+    int day,
+    int total,
+    int percent,
+    String statement,
+    String habits,
+  ) {
     return 'You are a training and habit coach. Write in English, second person.\nThe user is on day $day of $total.\nHit rate: $percent%.\nGoal: \"$statement\"\n\n$habits\n\nGive at most 4 concrete adjustments, one per line, at most 15 words each. No preamble, no numbering, no emoji.';
   }
 
   @override
   String promptBriefing(
-      String persona,
-      String statement,
-      int day,
-      int total,
-      String tier,
-      int streak,
-      int longest,
-      String doneToday,
-      String hour,
-      String habits,
-      String peers) {
+    String persona,
+    String statement,
+    int day,
+    int total,
+    String tier,
+    int streak,
+    int longest,
+    String doneToday,
+    String hour,
+    String habits,
+    String peers,
+  ) {
     return 'You are the coach in a 100-day challenge app. Write in English, second person.\n$persona\nTwo sentences at most. No emoji at the start of a line. No quotation marks.\n\nThe goal: \"$statement\"\nDay $day of $total (tier: $tier)\nCurrent streak: $streak days, longest: $longest\nDone today: $doneToday\nTime of day: $hour:00\n\nHabits:\n$habits\n\nFriends:\n$peers\n\nAnswer in exactly this format:\nTITLE: <at most 6 words>\nTEXT: <1-2 sentences>';
+  }
+
+  @override
+  String promptFoodEstimate(String text, String format) {
+    return 'You are a nutrition assistant. Estimate what this person ate:\n\"$text\"\n\nFor each food, estimate the amount in grams and its calories and macros.\nAnswer with JSON only, exactly in this form, names in English:\n$format';
   }
 
   @override
   String promptHabitLine(String emoji, String habit, int streak, String unit) {
     return '- $emoji $habit: $streak $unit';
+  }
+
+  @override
+  String promptMealIdeas(String meal, int kcal, int protein, String wish) {
+    return 'Suggest 3 simple ideas for $meal with about $kcal kcal and at least $protein g protein each. Wish: $wish\nOne idea per line, at most 12 words each, with the estimated kcal at the end. In English. No numbering, no preamble.';
   }
 
   @override
@@ -2197,6 +3040,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get setPrivacy => 'Privacy';
+
+  @override
+  String get setPrivacySub => 'What your friends see';
+
+  @override
   String get setRecoveryKey => 'Recovery key';
 
   @override
@@ -2252,32 +3101,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get socialTabLeague => 'League';
 
   @override
-  String get splitFullBodyThrice => 'Full body 3x';
+  String get splitBlurbBroSplit =>
+      'Chest, back, legs, shoulders, arms — one muscle group per day. For five days or more.';
 
   @override
-  String get splitFullBodyTwice => 'Full body 2x';
+  String get splitBlurbFullBody =>
+      'Every session hits everything. The best trade-off on two or three days.';
 
   @override
-  String get splitPplPlusUpperLower => 'Push / Pull / Legs + Upper / Lower';
+  String get splitBlurbPplUpperLower =>
+      'Five sessions: PPL plus an upper and a lower day. Made for five days.';
 
   @override
-  String get splitPplTwice => 'Push / Pull / Legs 2x';
+  String get splitBlurbPushPullLegs =>
+      'Pushing, pulling, legs — rotating. Strong on three or six days.';
 
   @override
-  String get splitPreview2 => 'Full body 2x — every session hits everything.';
+  String get splitBlurbUpperLower =>
+      'Upper body and legs alternate. Ideal on four days.';
 
   @override
-  String get splitPreview3 =>
-      'Full body 3x — the best trade-off for most people.';
+  String get splitBroSplit => 'Body-part split';
 
   @override
-  String get splitPreview4 => 'Upper / Lower — upper body twice, legs twice.';
+  String get splitFullBody => 'Full body';
 
   @override
-  String get splitPreview5 => 'Push / Pull / Legs plus Upper / Lower.';
+  String get splitPplUpperLower => 'Push / Pull / Legs + Upper / Lower';
 
   @override
-  String get splitPreview6 => 'Push / Pull / Legs, twice a week.';
+  String get splitPushPullLegs => 'Push / Pull / Legs';
+
+  @override
+  String get splitRecommended => 'recommended';
 
   @override
   String get splitUpperLower => 'Upper / Lower';
@@ -2488,6 +3344,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weekdayWed => 'WED';
 
   @override
+  String get workoutArms => 'Arms';
+
+  @override
+  String get workoutArmsFocus => 'Biceps and triceps';
+
+  @override
+  String get workoutBack => 'Back';
+
+  @override
+  String get workoutBackFocus => 'Lats, upper back and biceps';
+
+  @override
+  String get workoutChest => 'Chest';
+
+  @override
+  String get workoutChestFocus => 'Chest and triceps';
+
+  @override
   String get workoutExercises => 'Exercises';
 
   @override
@@ -2550,19 +3424,29 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String workoutRpe(String value) {
-    return 'RPE $value';
+  String workoutRir(int rir) {
+    return 'RIR $rir';
   }
 
   @override
   String get workoutRpeBody =>
-      'RPE 8 means: after the set you could have done two more clean reps. Pick the weight that makes that true — not the one that was in the plan last week.';
+      'RIR 2 means: after the set you could have done two more clean reps. Pick the weight that makes that true — the logger then tells you each time whether to add reps or weight.';
 
   @override
-  String get workoutRpeTitle => 'Understanding RPE';
+  String get workoutRpeTitle => 'Understanding RIR';
 
   @override
   String get workoutSets => 'Sets';
+
+  @override
+  String get workoutShoulders => 'Shoulders';
+
+  @override
+  String get workoutShouldersFocus =>
+      'All three heads of the shoulder, plus core';
+
+  @override
+  String get workoutStart => 'Start workout';
 
   @override
   String get workoutUpper => 'Upper body';

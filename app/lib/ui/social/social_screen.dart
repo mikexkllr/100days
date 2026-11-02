@@ -186,7 +186,9 @@ class _ActivityRow extends ConsumerWidget {
                     else
                       Pill(l10n.feedBackfilledBadge,
                           color: AppColors.textTertiary),
-                    if (!item.isOwn && item.kind == ActivityKind.checkIn)
+                    if (!item.isOwn &&
+                        (item.kind == ActivityKind.checkIn ||
+                            item.kind == ActivityKind.workout))
                       _CheerButton(
                         item: item,
                         alreadyCheered:
@@ -215,6 +217,7 @@ class _ActivityRow extends ConsumerWidget {
         return AppColors.flame;
       case ActivityKind.checkIn:
       case ActivityKind.start:
+      case ActivityKind.workout:
         return AppColors.textPrimary;
     }
   }

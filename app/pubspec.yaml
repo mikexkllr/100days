@@ -6,7 +6,8 @@ publish_to: none
 version: 0.1.0+1
 
 environment:
-  sdk: ">=3.6.0 <4.0.0"
+  # llamadart, the on-device inference engine, needs Dart 3.10.7.
+  sdk: ">=3.10.7 <4.0.0"
 
 dependencies:
   flutter:
@@ -28,6 +29,13 @@ dependencies:
   mobile_scanner: ^5.2.3
   share_plus: ^10.0.2
   url_launcher: ^6.3.0
+  # Which phone this is and how much memory it has, to pick a model that fits.
+  device_info_plus: 12.4.0
+  # llama.cpp for Dart: runs the GGUF model on the device. Pinned exactly —
+  # it moves fast, and its build hook fetches native runtimes per version.
+  llamadart: 0.13.2
+  # Verifies a downloaded model against its published SHA-256.
+  crypto: ^3.0.3
 
 dev_dependencies:
   flutter_test:
@@ -37,3 +45,10 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+
+# Only the llama.cpp runtime: the app loads GGUF models and nothing else, and
+# leaving out LiteRT-LM keeps the APK tens of megabytes smaller.
+hooks:
+  user_defines:
+    llamadart:
+      llamadart_native_runtimes: [llama_cpp]

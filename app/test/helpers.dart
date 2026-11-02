@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 import 'package:hundred_days/data/app_repository.dart';
+import 'package:hundred_days/data/device_profile.dart';
 import 'package:hundred_days/data/key_store.dart';
 import 'package:hundred_days/data/locale_store.dart';
 import 'package:hundred_days/l10n/l10n.dart';
@@ -97,6 +98,17 @@ Future<Identity> seedFriend(
   return friend;
 }
 
+/// Keeps widget tests off the platform: no model on disk, an unknown phone.
+/// Both would otherwise go through platform channels that answer outside
+/// the test's fake clock.
+List<Override> platformFreeOverrides({
+  DeviceProfile device = DeviceProfile.unknown,
+}) =>
+    <Override>[
+      installedModelProvider.overrideWith((Ref ref) async => null),
+      deviceProfileProvider.overrideWith((Ref ref) async => device),
+    ];
+
 /// Wraps [child] in the providers, theme and localizations the real app
 /// supplies. Defaults to German so the tests read like the product does; pass
 /// [locale] to check the other language.
@@ -109,6 +121,7 @@ Widget wrapForTest({
   return ProviderScope(
     overrides: <Override>[
       repositoryProvider.overrideWithValue(repository),
+      ...platformFreeOverrides(),
       ...overrides,
     ],
     child: MaterialApp(

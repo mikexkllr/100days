@@ -31,7 +31,9 @@ class AppCard extends StatelessWidget {
         borderRadius: AppRadius.cardAll,
         border: Border.all(color: border ?? AppColors.outline),
       ),
-      child: child,
+      // List tiles, switches and chips inside a card paint their ink on the
+      // nearest Material; without one here the card's own fill would hide it.
+      child: Material(type: MaterialType.transparency, child: child),
     );
 
     if (onTap == null) return content;

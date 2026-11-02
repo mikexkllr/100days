@@ -1,7 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Peer-to-peer replication over the local network. There is no backend
          server: INTERNET is needed for direct socket connections to peers,
-         and multicast for discovering them on the same Wi-Fi. -->
+         and multicast for discovering them on the same Wi-Fi. Besides that,
+         exactly two requests ever leave the phone, both on a tap: the
+         on-device model download (a pinned file from Hugging Face) and a
+         barcode lookup in Open Food Facts (the barcode number only). -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>

@@ -1,14 +1,18 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
 import 'dart:ui';
 
 import '../data/app_repository.dart';
+import '../data/device_profile.dart';
 import '../data/lan_transport.dart';
+import '../data/llama_runtime.dart';
 import '../data/locale_store.dart';
 import '../data/llm_runtime.dart';
+import '../data/model_download.dart';
 import '../data/notifications.dart';
 import '../data/sync_service.dart';
 import '../l10n/l10n.dart';
@@ -67,22 +71,52 @@ final Provider<Locale> effectiveLocaleProvider = Provider<Locale>((Ref ref) {
   return kSupportedLocales.first;
 });
 
+/// The phone the app runs on. Falls back to [DeviceProfile.unknown] where
+/// the platform will not say (tests, desktop).
+final FutureProvider<DeviceProfile> deviceProfileProvider =
+    FutureProvider<DeviceProfile>((Ref ref) => DeviceProfile.detect());
+
+/// The model file on disk, if any. Invalidated after a download or removal.
+final FutureProvider<LocalModelSpec?> installedModelProvider =
+    FutureProvider<LocalModelSpec?>((Ref ref) async {
+  try {
+    return await ref.watch(modelManagerProvider).installedModel();
+  } on Object {
+    // No file system to look at (widget tests): no model.
+    return null;
+  }
+});
+
+/// The loaded on-device model, shared by the coach and the nutrition
+/// assistant — loading it twice would cost twice the memory. Null when no
+/// model is installed or it fails to load.
+final FutureProvider<LocalLlmRuntime?> llmRuntimeProvider =
+    FutureProvider<LocalLlmRuntime?>((Ref ref) async {
+  final spec = await ref.watch(installedModelProvider.future);
+  if (spec == null) return null;
+  final file = await ref.read(modelManagerProvider).fileFor(spec);
+  if (file == null) return null;
+  final runtime = LlamaCppRuntime(spec: spec, file: file);
+  ref.onDispose(runtime.dispose);
+  try {
+    await runtime.load();
+  } on Object catch (error) {
+    // A model that will not load must never take the app down with it.
+    debugPrint('Local model failed to load: $error');
+    return null;
+  }
+  return runtime;
+});
+
 /// The coach the app is currently using.
 ///
-/// Falls back to the rule-based engine unless a model *and* an inference
-/// backend are both present, so the app is never in a state where it cannot
-/// say something useful.
+/// Falls back to the rule-based engine unless a model is installed and
+/// loads, so the app is never in a state where it cannot say something
+/// useful.
 final FutureProvider<CoachEngine> coachEngineProvider =
     FutureProvider<CoachEngine>((Ref ref) async {
-  if (!GgufLlmRuntime.hasBackend) return const HeuristicCoach();
-  final manager = ref.watch(modelManagerProvider);
-  final spec = await manager.installedModel();
-  if (spec == null) return const HeuristicCoach();
-  final file = await manager.fileFor(spec);
-  if (file == null) return const HeuristicCoach();
-  final runtime = GgufLlmRuntime(spec: spec, file: file);
-  await runtime.load();
-  ref.onDispose(runtime.dispose);
+  final runtime = await ref.watch(llmRuntimeProvider.future);
+  if (runtime == null) return const HeuristicCoach();
 
   // The prompt is written in the user's language, so the coach has to be
   // rebuilt when that changes.
@@ -91,7 +125,125 @@ final FutureProvider<CoachEngine> coachEngineProvider =
   return LocalLlmCoach(
     runtime: runtime,
     prompts: LocalizedCoachPrompts(l10n),
+    // A phone CPU writes ten to twenty tokens a second.
+    timeout: const Duration(seconds: 40),
   );
+});
+
+/// Meal estimates, suggestions and target proposals — or null without a
+/// model, in which case the diary works from the food table alone.
+final FutureProvider<NutritionAssistant?> nutritionAssistantProvider =
+    FutureProvider<NutritionAssistant?>((Ref ref) async {
+  final runtime = await ref.watch(llmRuntimeProvider.future);
+  if (runtime == null) return null;
+  final locale = ref.watch(effectiveLocaleProvider);
+  final l10n = await AppLocalizations.delegate.load(locale);
+  return NutritionAssistant(
+    runtime: runtime,
+    prompts: LocalizedNutritionPrompts(l10n),
+  );
+});
+
+enum DownloadPhase { idle, downloading, verifying, done, failed, cancelled }
+
+class ModelDownloadState {
+  const ModelDownloadState({
+    this.phase = DownloadPhase.idle,
+    this.spec,
+    this.received = 0,
+    this.total = 0,
+    this.error,
+  });
+
+  final DownloadPhase phase;
+  final LocalModelSpec? spec;
+  final int received;
+  final int total;
+  final Object? error;
+
+  bool get isActive =>
+      phase == DownloadPhase.downloading || phase == DownloadPhase.verifying;
+
+  double? get fraction => total <= 0 ? null : (received / total).clamp(0, 1);
+}
+
+/// One model download at a time, started from onboarding or settings and
+/// running while the user does other things.
+class ModelDownloadController extends Notifier<ModelDownloadState> {
+  ModelDownloader? _active;
+
+  @override
+  ModelDownloadState build() => const ModelDownloadState();
+
+  Future<void> start(LocalModelSpec spec) async {
+    if (state.isActive) return;
+    final downloader = _active = ModelDownloader();
+    state = ModelDownloadState(
+      phase: DownloadPhase.downloading,
+      spec: spec,
+      total: spec.sizeBytes,
+    );
+    try {
+      final manager = ref.read(modelManagerProvider);
+      await downloader.download(
+        spec,
+        await manager.targetFile(spec),
+        onProgress: (int received, int total) {
+          // Repainting per network chunk would be thousands of frames.
+          final step = total ~/ 400;
+          if (received - state.received < step && received < total) return;
+          state = ModelDownloadState(
+            phase: DownloadPhase.downloading,
+            spec: spec,
+            received: received,
+            total: total,
+          );
+        },
+        onVerifying: () => state = ModelDownloadState(
+          phase: DownloadPhase.verifying,
+          spec: spec,
+          received: spec.sizeBytes,
+          total: spec.sizeBytes,
+        ),
+      );
+      state = ModelDownloadState(
+        phase: DownloadPhase.done,
+        spec: spec,
+        received: spec.sizeBytes,
+        total: spec.sizeBytes,
+      );
+      ref.invalidate(installedModelProvider);
+    } on ModelDownloadCancelled {
+      state = ModelDownloadState(phase: DownloadPhase.cancelled, spec: spec);
+    } on Object catch (error) {
+      state = ModelDownloadState(
+        phase: DownloadPhase.failed,
+        spec: spec,
+        error: error,
+      );
+    } finally {
+      _active = null;
+    }
+  }
+
+  void cancel() => _active?.cancel();
+}
+
+final NotifierProvider<ModelDownloadController, ModelDownloadState>
+    modelDownloadProvider =
+    NotifierProvider<ModelDownloadController, ModelDownloadState>(
+        ModelDownloadController.new);
+
+/// Strangers who connected and want in.
+final StreamProvider<List<FriendRequest>> friendRequestsProvider =
+    StreamProvider<List<FriendRequest>>((Ref ref) async* {
+  final sync = ref.watch(syncServiceProvider);
+  if (sync == null) {
+    yield const <FriendRequest>[];
+    return;
+  }
+  yield sync.friendRequests;
+  yield* sync.friendRequestChanges;
 });
 
 /// The app's single source of truth for the UI.
@@ -143,29 +295,90 @@ class AppController extends AsyncNotifier<AppSnapshot> {
     await refresh();
   }
 
-  Future<void> checkIn(Habit habit, {num? value, String? note}) async {
+  /// Saves an edited challenge: a new split, own nutrition targets, a
+  /// sharing change.
+  Future<void> updateChallenge(Challenge challenge) async {
+    await _repository.updateChallenge(challenge);
+    await refresh();
+  }
+
+  Future<void> checkIn(
+    Habit habit, {
+    num? value,
+    String? note,
+    bool tracked = false,
+    DayKey? day,
+  }) async {
     final snapshot = state.valueOrNull;
-    final day = snapshot?.today ?? DayKey.today();
     await _repository.checkIn(
       habit: habit,
-      day: day,
+      day: day ?? snapshot?.today ?? DayKey.today(),
       value: value,
       note: note,
       streak: snapshot?.me.habitStreaks[habit.id],
+      tracked: tracked,
+      challenge: snapshot?.challenge,
     );
     await refresh();
   }
 
   Future<void> checkInOn(Habit habit, DayKey day, {num? value}) async {
-    await _repository.checkIn(habit: habit, day: day, value: value);
+    await _repository.checkIn(
+      habit: habit,
+      day: day,
+      value: value,
+      challenge: state.valueOrNull?.challenge,
+    );
     await refresh();
   }
 
   Future<void> logRelapse(Habit habit, {String? note}) async {
-    final day = state.valueOrNull?.today ?? DayKey.today();
-    await _repository.logRelapse(habit: habit, day: day, note: note);
+    final snapshot = state.valueOrNull;
+    await _repository.logRelapse(
+      habit: habit,
+      day: snapshot?.today ?? DayKey.today(),
+      note: note,
+      challenge: snapshot?.challenge,
+    );
     await refresh();
   }
+
+  Future<void> logWorkout(WorkoutLog log, Habit habit) async {
+    final snapshot = state.valueOrNull;
+    final challenge = snapshot?.challenge;
+    if (challenge == null) return;
+    await _repository.logWorkout(
+      log: log,
+      habit: habit,
+      challenge: challenge,
+      streak: snapshot?.me.habitStreaks[habit.id],
+    );
+    await refresh();
+  }
+
+  Future<void> logFood(FoodEntry entry) async {
+    await _repository.logFood(entry);
+    await refresh();
+  }
+
+  Future<void> removeFood(String entryId) async {
+    await _repository.removeFood(entryId);
+    await refresh();
+  }
+
+  Future<void> acceptFriendRequest(FriendRequest request) async {
+    ref.read(syncServiceProvider)?.resolveRequest(request.did, accepted: true);
+    await _repository.addFriend(Invite(
+      did: request.did,
+      displayName: request.displayName,
+      avatarEmoji: request.avatarEmoji,
+    ));
+    await refresh();
+    unawaited(syncNow());
+  }
+
+  void declineFriendRequest(FriendRequest request) =>
+      ref.read(syncServiceProvider)?.resolveRequest(request.did, accepted: false);
 
   Future<void> useStreakFreeze() async {
     final day = state.valueOrNull?.today ?? DayKey.today();
@@ -228,32 +441,37 @@ class AppController extends AsyncNotifier<AppSnapshot> {
 final AsyncNotifierProvider<AppController, AppSnapshot> appStateProvider =
     AsyncNotifierProvider<AppController, AppSnapshot>(AppController.new);
 
-/// The coach's directive for right now. The wording is applied by the widget
-/// that shows it, in whatever language the app is running in.
+/// The rule-based coach's directive for right now — instant, so the home
+/// screen never waits on a model. The wording is applied by the widget that
+/// shows it, in whatever language the app is running in.
 final FutureProvider<CoachDirective?> briefingProvider =
     FutureProvider<CoachDirective?>((Ref ref) async {
   final snapshot = await ref.watch(appStateProvider.future);
   if (!snapshot.hasChallenge) return null;
-  final coach = await ref.watch(coachEngineProvider.future);
-  return coach.dailyBriefing(snapshot.toCoachContext());
+  return const HeuristicCoach().dailyBriefing(snapshot.toCoachContext());
 });
 
-/// Concrete plan tweaks, shown on the plan screen.
-final FutureProvider<List<PlanAdvice>> planAdjustmentsProvider =
-    FutureProvider<List<PlanAdvice>>((Ref ref) async {
+/// The same moment phrased by the on-device model, when there is one. Takes
+/// seconds on a phone; the card swaps it in once it arrives.
+final FutureProvider<CoachDirective?> modelBriefingProvider =
+    FutureProvider<CoachDirective?>((Ref ref) async {
   final snapshot = await ref.watch(appStateProvider.future);
-  if (!snapshot.hasChallenge) return const <PlanAdvice>[];
+  if (!snapshot.hasChallenge) return null;
   final coach = await ref.watch(coachEngineProvider.future);
-  return coach.planAdjustments(snapshot.toCoachContext());
+  if (coach.modelName == null) return null;
+  final directive = await coach.dailyBriefing(snapshot.toCoachContext());
+  return directive.source == CoachSource.llm ? directive : null;
 });
 
 /// Ready-made jabs for friends who have not moved today.
+///
+/// Templates, not the model: a phone writes a sentence in seconds, and a
+/// list of friends must not sit empty while it does — once per friend.
 final FutureProvider<List<NudgeSuggestion>> nudgeSuggestionsProvider =
     FutureProvider<List<NudgeSuggestion>>((Ref ref) async {
   final snapshot = await ref.watch(appStateProvider.future);
   if (!snapshot.hasChallenge) return const <NudgeSuggestion>[];
-  final coach = await ref.watch(coachEngineProvider.future);
-  return coach.nudgeSuggestions(snapshot.toCoachContext());
+  return const HeuristicCoach().nudgeSuggestions(snapshot.toCoachContext());
 });
 
 /// Live sync activity for the status strip.

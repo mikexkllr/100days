@@ -96,6 +96,56 @@ extension ExerciseL10n on AppLocalizations {
         return exerciseJumpRope;
       case 'rowing_erg':
         return exerciseRowingErg;
+      case 'hack_squat':
+        return exerciseHackSquat;
+      case 'front_squat':
+        return exerciseFrontSquat;
+      case 'back_extension':
+        return exerciseBackExtension;
+      case 'incline_bench':
+        return exerciseInclineBench;
+      case 'incline_db_press':
+        return exerciseInclineDbPress;
+      case 'chest_press_machine':
+        return exerciseChestPressMachine;
+      case 'machine_shoulder_press':
+        return exerciseMachineShoulderPress;
+      case 'arnold_press':
+        return exerciseArnoldPress;
+      case 'chest_supported_row':
+        return exerciseChestSupportedRow;
+      case 't_bar_row':
+        return exerciseTBarRow;
+      case 'chin_up':
+        return exerciseChinUp;
+      case 'assisted_pullup':
+        return exerciseAssistedPullup;
+      case 'pec_deck':
+        return exercisePecDeck;
+      case 'cable_fly':
+        return exerciseCableFly;
+      case 'db_fly':
+        return exerciseDbFly;
+      case 'preacher_curl':
+        return exercisePreacherCurl;
+      case 'cable_curl':
+        return exerciseCableCurl;
+      case 'skull_crusher':
+        return exerciseSkullCrusher;
+      case 'overhead_triceps_extension':
+        return exerciseOverheadTricepsExtension;
+      case 'rear_delt_fly':
+        return exerciseRearDeltFly;
+      case 'cable_lateral_raise':
+        return exerciseCableLateralRaise;
+      case 'leg_extension':
+        return exerciseLegExtension;
+      case 'seated_calf_raise':
+        return exerciseSeatedCalfRaise;
+      case 'hip_abduction':
+        return exerciseHipAbduction;
+      case 'cable_crunch':
+        return exerciseCableCrunch;
       default:
         return exerciseId;
     }

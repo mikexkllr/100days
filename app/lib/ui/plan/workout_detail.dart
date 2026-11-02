@@ -4,8 +4,9 @@ import 'package:hundred_core/hundred_core.dart';
 import '../../l10n/l10n.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
+import 'workout_logger.dart';
 
-/// One session, exercise by exercise.
+/// One session, exercise by exercise, and the button that starts logging it.
 class WorkoutDetailScreen extends StatelessWidget {
   const WorkoutDetailScreen({
     super.key,
@@ -15,6 +16,17 @@ class WorkoutDetailScreen extends StatelessWidget {
 
   final Workout workout;
   final String? titleSuffix;
+
+  /// Opens the logger for [workout], today. Returns true once it was saved.
+  static Future<bool> startLogging(BuildContext context, Workout workout) async {
+    final bool? saved = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (BuildContext context) =>
+            WorkoutLoggerScreen(workout: workout, day: DayKey.today()),
+      ),
+    );
+    return saved ?? false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +82,18 @@ class WorkoutDetailScreen extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: AppSpacing.sm + 2),
               child: _ExerciseCard(index: i + 1, block: workout.blocks[i]),
             ),
+          const SizedBox(height: AppSpacing.md),
+          FilledButton.icon(
+            key: const Key('start-workout'),
+            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+            onPressed: () async {
+              if (await startLogging(context, workout) && context.mounted) {
+                Navigator.of(context).pop();
+              }
+            },
+            icon: const Icon(Icons.play_arrow),
+            label: Text(l10n.workoutStart),
+          ),
           const SizedBox(height: AppSpacing.md),
           AppCard(
             color: AppColors.surfaceHigh,
@@ -165,7 +189,7 @@ class _ExerciseCard extends StatelessWidget {
               ),
               Expanded(
                 child: StatTile(
-                  value: l10n.workoutRpe(block.rpe.toStringAsFixed(1)),
+                  value: l10n.workoutRir(block.rir),
                   label: l10n.workoutIntensity,
                 ),
               ),

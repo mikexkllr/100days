@@ -6,6 +6,7 @@ import '../../data/app_repository.dart';
 import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
+import '../nutrition/diary_view.dart';
 import '../plan/workout_detail.dart';
 import '../widgets/app_card.dart';
 import '../widgets/habit_tile.dart';
@@ -101,11 +102,19 @@ class _HomeBody extends ConsumerWidget {
           ],
           if (workout != null) ...<Widget>[
             SectionHeader(l10n.homeTodaysWorkout),
-            _WorkoutCard(workout: workout, challenge: challenge, day: today),
+            _WorkoutCard(
+              workout: workout,
+              challenge: challenge,
+              day: today,
+              logged: snapshot.me.workoutLogOn(today) != null,
+            ),
           ],
           if (snapshot.plan?.nutrition != null) ...<Widget>[
             SectionHeader(l10n.homeTodaysMacros),
-            _MacroCard(plan: snapshot.plan!.nutrition!),
+            _MacroCard(
+              plan: snapshot.plan!.nutrition!,
+              eaten: snapshot.me.intakeOn(today).total,
+            ),
           ],
           SectionHeader(
             l10n.homeCheckOffToday,
@@ -281,11 +290,13 @@ class _WorkoutCard extends StatelessWidget {
     required this.workout,
     required this.challenge,
     required this.day,
+    required this.logged,
   });
 
   final Workout workout;
   final Challenge challenge;
   final DayKey day;
+  final bool logged;
 
   @override
   Widget build(BuildContext context) {
@@ -336,6 +347,20 @@ class _WorkoutCard extends StatelessWidget {
               Pill(l10n.homeMinutesApprox(workout.estimatedMinutes)),
             ],
           ),
+          const SizedBox(height: AppSpacing.sm + 4),
+          if (logged)
+            Pill(l10n.homeWorkoutLogged,
+                color: AppColors.lime, icon: Icons.check_circle)
+          else
+            FilledButton.icon(
+              key: const Key('home-start-workout'),
+              style:
+                  FilledButton.styleFrom(minimumSize: const Size.fromHeight(46)),
+              onPressed: () => WorkoutDetailScreen.startLogging(context, workout),
+              icon: const Icon(Icons.play_arrow, size: 19),
+              label: Text(l10n.homeStartWorkout(
+                  ((kTrackedMultiplier - 1) * 100).round())),
+            ),
         ],
       ),
     );
@@ -343,36 +368,59 @@ class _WorkoutCard extends StatelessWidget {
 }
 
 class _MacroCard extends StatelessWidget {
-  const _MacroCard({required this.plan});
+  const _MacroCard({required this.plan, required this.eaten});
 
   final NutritionPlan plan;
+  final Nutrients eaten;
 
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
+    String of(double value, int target, [String unit = '']) =>
+        '${value.round()}$unit / $target$unit';
     return AppCard(
-      child: Row(
+      onTap: () => Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (BuildContext context) => const DiaryScreen(),
+        ),
+      ),
+      child: Column(
         children: <Widget>[
-          Expanded(
-            child: StatTile(
-              value: '${plan.kcal}',
-              label: l10n.planKcal,
-              color: AppColors.flame,
-            ),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: StatTile(
+                  value: of(eaten.kcal, plan.kcal),
+                  label: l10n.planKcal,
+                  color: AppColors.flame,
+                ),
+              ),
+              Expanded(
+                child: StatTile(
+                  value: of(eaten.proteinG, plan.proteinG, 'g'),
+                  label: l10n.planProtein,
+                  color: AppColors.lime,
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            child: StatTile(
-              value: '${plan.proteinG}g',
-              label: l10n.planProtein,
-              color: AppColors.lime,
-            ),
-          ),
-          Expanded(
-            child: StatTile(
-                value: '${plan.carbsG}g', label: l10n.planCarbsShort),
-          ),
-          Expanded(
-            child: StatTile(value: '${plan.fatG}g', label: l10n.planFat),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: <Widget>[
+              const Icon(Icons.restaurant_menu,
+                  size: 16, color: AppColors.textTertiary),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  l10n.homeOpenDiary,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: AppColors.textSecondary, fontSize: 12.5),
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+            ],
           ),
         ],
       ),

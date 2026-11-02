@@ -21,6 +21,7 @@ import 'state/providers.dart';
 /// projected, and the user can rename themselves at any time afterwards.
 class _LocalName {
   String value = 'Jemand';
+  String emoji = '🙂';
 }
 
 final _LocalName _localName = _LocalName();
@@ -40,10 +41,11 @@ Future<void> main() async {
   final LocaleStore localeStore = await LocaleStore.open();
 
   final SyncService sync = SyncService(
+    identity: repository.identity,
     store: store,
     replicator: repository.replicator,
-    localDid: repository.did,
     localDisplayName: () => _localName.value,
+    localAvatarEmoji: () => _localName.emoji,
     followedDids: () => repository.follows,
   );
 
@@ -101,6 +103,7 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
         final AppSnapshot? snapshot = next.valueOrNull;
         if (snapshot == null) return;
         _localName.value = snapshot.me.profile.displayName;
+        _localName.emoji = snapshot.me.profile.avatarEmoji;
         if (snapshot.hasChallenge) {
           unawaited(_scheduleReminders(snapshot));
         }

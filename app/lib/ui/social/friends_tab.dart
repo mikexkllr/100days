@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
 import '../../data/app_repository.dart';
+import '../../data/sync_service.dart';
 import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
@@ -22,6 +23,9 @@ class FriendsTab extends ConsumerWidget {
     final AppLocalizations l10n = context.l10n;
     final AsyncValue<List<NudgeSuggestion>> nudges =
         ref.watch(nudgeSuggestionsProvider);
+    final List<FriendRequest> requests =
+        ref.watch(friendRequestsProvider).valueOrNull ??
+            const <FriendRequest>[];
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -58,6 +62,42 @@ class FriendsTab extends ConsumerWidget {
             ),
           ],
         ),
+        if (requests.isNotEmpty) ...<Widget>[
+          SectionHeader(l10n.friendsRequestsTitle,
+              subtitle: l10n.friendsRequestsSub),
+          for (final FriendRequest request in requests)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: AppCard(
+                child: Row(
+                  children: <Widget>[
+                    EmojiAvatar(request.avatarEmoji, size: 40),
+                    const SizedBox(width: AppSpacing.sm + 4),
+                    Expanded(
+                      child: Text(
+                        l10n.friendsRequestFrom(request.displayName),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => ref
+                          .read(appStateProvider.notifier)
+                          .declineFriendRequest(request),
+                      child: Text(l10n.friendsRequestDecline),
+                    ),
+                    FilledButton(
+                      style: FilledButton.styleFrom(
+                          minimumSize: const Size(90, 40)),
+                      onPressed: () => ref
+                          .read(appStateProvider.notifier)
+                          .acceptFriendRequest(request),
+                      child: Text(l10n.friendsRequestAccept),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
         if (snapshot.friends.isEmpty)
           Padding(
             padding: const EdgeInsets.only(top: AppSpacing.xxl),

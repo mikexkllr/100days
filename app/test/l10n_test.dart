@@ -4,6 +4,8 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hundred_core/hundred_core.dart';
+import 'package:hundred_days/data/llm_runtime.dart';
+import 'package:hundred_days/l10n/food_names.dart';
 import 'package:hundred_days/l10n/l10n.dart';
 
 import 'helpers.dart';
@@ -137,10 +139,81 @@ void main() {
       for (final SplitKind split in SplitKind.values) {
         bothLanguages(split.name, (AppLocalizations l) => l.splitName(split));
       }
-      for (int days = 2; days <= 6; days++) {
-        bothLanguages('$days-day preview', (AppLocalizations l) =>
-            l.splitPreview(days));
+      for (final SplitKind split in SplitKind.values) {
+        bothLanguages('${split.name} blurb', (AppLocalizations l) =>
+            l.splitBlurb(split));
       }
+    });
+
+    test('the food table is named in both languages', () {
+      for (final FoodItem food in kFoodLibrary) {
+        final FoodNames? names = kFoodNames[food.id];
+        expect(names, isNotNull, reason: '${food.id} has no names');
+        expect(names!.en, isNotEmpty, reason: '${food.id} en');
+        expect(names.de, isNotEmpty, reason: '${food.id} de');
+      }
+      // And nothing is named that is not in the table.
+      expect(kFoodNames.keys.toSet(),
+          kFoodLibrary.map((FoodItem f) => f.id).toSet());
+    });
+
+    test('the parser finds what people actually type', () {
+      for (final (Locale locale, String text, List<String> ids)
+          in <(Locale, String, List<String>)>[
+        (
+          const Locale('de'),
+          '2 Eier, eine Scheibe Vollkornbrot und Kaffee mit Milch',
+          <String>['egg', 'wholegrain_bread', 'coffee', 'milk'],
+        ),
+        (
+          const Locale('de'),
+          '200g Hähnchenbrust mit Reis und Brokkoli',
+          <String>['chicken_breast', 'rice', 'broccoli'],
+        ),
+        (
+          const Locale('en'),
+          'two bananas and a greek yogurt',
+          <String>['banana', 'greek_yogurt'],
+        ),
+      ]) {
+        final FoodIndex index = FoodIndex(locale);
+        final List<ParsedFood> parsed = parseFoodText(
+          text,
+          vocabulary: foodVocabularyFor(locale),
+          lookup: index.lookup,
+        );
+        expect(parsed.map((ParsedFood p) => p.food?.id), ids, reason: text);
+      }
+    });
+
+    test('nutrition identifiers', () {
+      for (final MacroPreset preset in MacroPreset.values) {
+        bothLanguages(preset.name, (AppLocalizations l) =>
+            l.macroPresetName(preset));
+        bothLanguages('${preset.name} blurb', (AppLocalizations l) =>
+            l.macroPresetBlurb(preset));
+      }
+      for (final FoodSource source in FoodSource.values) {
+        bothLanguages(source.name, (AppLocalizations l) =>
+            l.foodSourceLabel(source));
+      }
+      for (final FoodDiet diet in FoodDiet.values) {
+        bothLanguages(diet.name, (AppLocalizations l) => l.dietName(diet));
+      }
+      for (final MealIdea idea in kMealIdeas) {
+        expect(en.mealIdeaName(idea), isNot(idea.id), reason: idea.id);
+        expect(de.mealIdeaName(idea), isNot(idea.id), reason: idea.id);
+      }
+    });
+
+    test('every downloadable model is described', () {
+      final Set<String> descriptions = <String>{};
+      for (final LocalModelSpec spec in kModelCatalog) {
+        bothLanguages(spec.id, (AppLocalizations l) =>
+            l.modelDescription(spec.id));
+        descriptions.add(en.modelDescription(spec.id));
+      }
+      expect(descriptions, hasLength(kModelCatalog.length));
     });
 
     test('meals', () {

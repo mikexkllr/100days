@@ -2,6 +2,7 @@ import 'package:hundred_core/hundred_core.dart';
 
 import 'core_l10n.dart';
 import 'generated/app_localizations.dart';
+import 'plan_l10n.dart';
 
 /// Wording for the feed and for peer state.
 extension SocialL10n on AppLocalizations {
@@ -30,6 +31,11 @@ extension SocialL10n on AppLocalizations {
         return item.isOwn
             ? feedCheerSent(item.targetName ?? feedSomeone)
             : feedCheerReceived(item.authorName);
+      case ActivityKind.workout:
+        return feedWorkout(
+          item.authorName,
+          workoutName(item.workoutKind ?? WorkoutKind.fullBodyA),
+        );
     }
   }
 
@@ -56,6 +62,11 @@ extension SocialL10n on AppLocalizations {
       case ActivityKind.nudge:
       case ActivityKind.cheer:
         return item.message;
+      case ActivityKind.workout:
+        return feedWorkoutDetail(
+          item.workoutSets ?? 0,
+          ((item.workoutVolumeKg ?? 0) / 1000).toStringAsFixed(1),
+        );
     }
   }
 
