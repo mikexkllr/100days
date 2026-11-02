@@ -47,8 +47,13 @@ flutter:
   generate: true
 
 # Only the llama.cpp runtime: the app loads GGUF models and nothing else, and
-# leaving out LiteRT-LM keeps the APK tens of megabytes smaller.
+# leaving out LiteRT-LM keeps the APK tens of megabytes smaller. On Android
+# only the CPU backend: llama.cpp's Vulkan path is experimental there and
+# would add 26 MB that the app never uses.
 hooks:
   user_defines:
     llamadart:
       llamadart_native_runtimes: [llama_cpp]
+      llamadart_native_backends:
+        platforms:
+          android: [cpu]
