@@ -98,6 +98,7 @@ class _FakeRuntime implements LocalLlmRuntime {
     int maxTokens = 200,
     double temperature = 0.8,
     Duration timeout = const Duration(seconds: 20),
+    bool json = false,
   }) async {
     calls++;
     if (throwOnGenerate) throw StateError('model crashed');

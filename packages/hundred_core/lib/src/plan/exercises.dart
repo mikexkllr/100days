@@ -15,6 +15,7 @@ enum MovementPattern {
   isolationArms,
   isolationShoulders,
   isolationLegs,
+  isolationChest,
   conditioning,
 }
 
@@ -361,6 +362,171 @@ const List<Exercise> kExerciseLibrary = <Exercise>[
     primary: MuscleGroup.fullBody,
     minEquipment: EquipmentAccess.fullGym,
   ),
+  // Full-gym additions. Appended after the original entries so the default
+  // pick for every pattern stays what it always was.
+  Exercise(
+    id: 'hack_squat',
+    pattern: MovementPattern.squat,
+    primary: MuscleGroup.quads,
+    minEquipment: EquipmentAccess.fullGym,
+  ),
+  Exercise(
+    id: 'front_squat',
+    pattern: MovementPattern.squat,
+    primary: MuscleGroup.quads,
+    minEquipment: EquipmentAccess.fullGym,
+  ),
+  Exercise(
+    id: 'back_extension',
+    pattern: MovementPattern.hinge,
+    primary: MuscleGroup.hamstrings,
+    minEquipment: EquipmentAccess.fullGym,
+  ),
+  Exercise(
+    id: 'incline_bench',
+    pattern: MovementPattern.horizontalPush,
+    primary: MuscleGroup.chest,
+    minEquipment: EquipmentAccess.fullGym,
+  ),
+  Exercise(
+    id: 'incline_db_press',
+    pattern: MovementPattern.horizontalPush,
+    primary: MuscleGroup.chest,
+    minEquipment: EquipmentAccess.homeBasic,
+  ),
+  Exercise(
+    id: 'chest_press_machine',
+    pattern: MovementPattern.horizontalPush,
+    primary: MuscleGroup.chest,
+    minEquipment: EquipmentAccess.fullGym,
+  ),
+  Exercise(
+    id: 'machine_shoulder_press',
+    pattern: MovementPattern.verticalPush,
+    primary: MuscleGroup.shoulders,
+    minEquipment: EquipmentAccess.fullGym,
+  ),
+  Exercise(
+    id: 'arnold_press',
+    pattern: MovementPattern.verticalPush,
+    primary: MuscleGroup.shoulders,
+    minEquipment: EquipmentAccess.homeBasic,
+  ),
+  Exercise(
+    id: 'chest_supported_row',
+    pattern: MovementPattern.horizontalPull,
+    primary: MuscleGroup.back,
+    minEquipment: EquipmentAccess.fullGym,
+  ),
+  Exercise(
+    id: 't_bar_row',
+    pattern: MovementPattern.horizontalPull,
+    primary: MuscleGroup.back,
+    minEquipment: EquipmentAccess.fullGym,
+  ),
+  Exercise(
+    id: 'chin_up',
+    pattern: MovementPattern.verticalPull,
+    primary: MuscleGroup.back,
+    minEquipment: EquipmentAccess.bodyweight,
+  ),
+  Exercise(
+    id: 'assisted_pullup',
+    pattern: MovementPattern.verticalPull,
+    primary: MuscleGroup.back,
+    minEquipment: EquipmentAccess.fullGym,
+  ),
+  Exercise(
+    id: 'pec_deck',
+    pattern: MovementPattern.isolationChest,
+    primary: MuscleGroup.chest,
+    minEquipment: EquipmentAccess.fullGym,
+    isCompound: false,
+  ),
+  Exercise(
+    id: 'cable_fly',
+    pattern: MovementPattern.isolationChest,
+    primary: MuscleGroup.chest,
+    minEquipment: EquipmentAccess.fullGym,
+    isCompound: false,
+  ),
+  Exercise(
+    id: 'db_fly',
+    pattern: MovementPattern.isolationChest,
+    primary: MuscleGroup.chest,
+    minEquipment: EquipmentAccess.homeBasic,
+    isCompound: false,
+  ),
+  Exercise(
+    id: 'preacher_curl',
+    pattern: MovementPattern.isolationArms,
+    primary: MuscleGroup.biceps,
+    minEquipment: EquipmentAccess.fullGym,
+    isCompound: false,
+  ),
+  Exercise(
+    id: 'cable_curl',
+    pattern: MovementPattern.isolationArms,
+    primary: MuscleGroup.biceps,
+    minEquipment: EquipmentAccess.fullGym,
+    isCompound: false,
+  ),
+  Exercise(
+    id: 'skull_crusher',
+    pattern: MovementPattern.isolationArms,
+    primary: MuscleGroup.triceps,
+    minEquipment: EquipmentAccess.fullGym,
+    isCompound: false,
+  ),
+  Exercise(
+    id: 'overhead_triceps_extension',
+    pattern: MovementPattern.isolationArms,
+    primary: MuscleGroup.triceps,
+    minEquipment: EquipmentAccess.homeBasic,
+    isCompound: false,
+  ),
+  Exercise(
+    id: 'rear_delt_fly',
+    pattern: MovementPattern.isolationShoulders,
+    primary: MuscleGroup.shoulders,
+    minEquipment: EquipmentAccess.homeBasic,
+    isCompound: false,
+  ),
+  Exercise(
+    id: 'cable_lateral_raise',
+    pattern: MovementPattern.isolationShoulders,
+    primary: MuscleGroup.shoulders,
+    minEquipment: EquipmentAccess.fullGym,
+    isCompound: false,
+  ),
+  Exercise(
+    id: 'leg_extension',
+    pattern: MovementPattern.isolationLegs,
+    primary: MuscleGroup.quads,
+    minEquipment: EquipmentAccess.fullGym,
+    isCompound: false,
+  ),
+  Exercise(
+    id: 'seated_calf_raise',
+    pattern: MovementPattern.isolationLegs,
+    primary: MuscleGroup.calves,
+    minEquipment: EquipmentAccess.fullGym,
+    isCompound: false,
+  ),
+  Exercise(
+    id: 'hip_abduction',
+    pattern: MovementPattern.isolationLegs,
+    primary: MuscleGroup.glutes,
+    minEquipment: EquipmentAccess.fullGym,
+    isCompound: false,
+  ),
+  Exercise(
+    id: 'cable_crunch',
+    pattern: MovementPattern.core,
+    primary: MuscleGroup.core,
+    minEquipment: EquipmentAccess.fullGym,
+    isCompound: false,
+  ),
 ];
 
 final Map<String, Exercise> kExerciseById = <String, Exercise>{
@@ -370,23 +536,92 @@ final Map<String, Exercise> kExerciseById = <String, Exercise>{
 /// The best available exercise for [pattern] given the user's equipment.
 ///
 /// Falls back through the equipment tiers rather than returning null, so a
-/// bodyweight-only user still gets a complete plan instead of gaps.
+/// bodyweight-only user still gets a complete plan instead of gaps. With
+/// [muscle] set, an exercise for that muscle wins over the pattern's default —
+/// a push day wants a triceps movement, a pull day a biceps one — and the
+/// pattern's default is the fallback when no such exercise is available.
+///
+/// Deterministic: among equally equipment-hungry candidates the one listed
+/// first in [kExerciseLibrary] wins, so every device builds the same plan.
 Exercise? pickExercise(
   MovementPattern pattern,
   EquipmentAccess access, {
   Set<String> exclude = const <String>{},
+  MuscleGroup? muscle,
 }) {
-  final candidates = kExerciseLibrary
-      .where((Exercise e) =>
-          e.pattern == pattern &&
-          e.availableWith(access) &&
-          !exclude.contains(e.id))
-      .toList();
-  if (candidates.isEmpty) return null;
-  // EquipmentAccess is ordered fullGym → homeBasic → bodyweight, so the
-  // lowest index is the most equipment-hungry — and the best variant for
-  // someone who has that equipment. Filtering already removed the rest.
-  candidates.sort((Exercise a, Exercise b) =>
-      a.minEquipment.index.compareTo(b.minEquipment.index));
-  return candidates.first;
+  Exercise? best;
+  Exercise? bestForMuscle;
+  for (final Exercise e in kExerciseLibrary) {
+    if (e.pattern != pattern ||
+        !e.availableWith(access) ||
+        exclude.contains(e.id)) {
+      continue;
+    }
+    // EquipmentAccess is ordered fullGym → homeBasic → bodyweight, so the
+    // lowest index is the most equipment-hungry — and the best variant for
+    // someone who has that equipment.
+    if (best == null || e.minEquipment.index < best.minEquipment.index) {
+      best = e;
+    }
+    if (muscle != null &&
+        e.primary == muscle &&
+        (bestForMuscle == null ||
+            e.minEquipment.index < bestForMuscle.minEquipment.index)) {
+      bestForMuscle = e;
+    }
+  }
+  return bestForMuscle ?? best;
+}
+
+/// Exercises that can replace [exerciseId] in a session: the same movement
+/// pattern first, then anything else that trains the same primary muscle.
+///
+/// This is what the "swap exercise" sheet lists. Only movements the user's
+/// equipment allows are offered, and the exercise itself is not.
+List<Exercise> alternativesFor(String exerciseId, EquipmentAccess access) {
+  final current = kExerciseById[exerciseId];
+  if (current == null) return const <Exercise>[];
+  final samePattern = <Exercise>[];
+  final sameMuscle = <Exercise>[];
+  for (final Exercise e in kExerciseLibrary) {
+    if (e.id == exerciseId || !e.availableWith(access)) continue;
+    if (e.pattern == MovementPattern.conditioning) continue;
+    if (e.pattern == current.pattern) {
+      samePattern.add(e);
+    } else if (e.primary == current.primary) {
+      sameMuscle.add(e);
+    }
+  }
+  return <Exercise>[...samePattern, ...sameMuscle];
+}
+
+/// Every strength movement available with [access], grouped by primary
+/// muscle in a stable order — the "add exercise" picker.
+Map<MuscleGroup, List<Exercise>> exercisesByMuscle(EquipmentAccess access) {
+  final result = <MuscleGroup, List<Exercise>>{};
+  for (final MuscleGroup group in MuscleGroup.values) {
+    final items = kExerciseLibrary
+        .where((Exercise e) =>
+            e.primary == group &&
+            e.availableWith(access) &&
+            e.pattern != MovementPattern.conditioning)
+        .toList();
+    if (items.isNotEmpty) result[group] = items;
+  }
+  return result;
+}
+
+/// The smallest load jump the progression recommender suggests.
+///
+/// Bodyweight movements progress in reps only. Dumbbell work moves in the
+/// 2 kg steps most racks have; barbells, cables and machines in 2.5 kg.
+double progressionIncrementKg(Exercise exercise) {
+  switch (exercise.minEquipment) {
+    case EquipmentAccess.bodyweight:
+      return 0;
+    case EquipmentAccess.homeBasic:
+      return 2;
+    case EquipmentAccess.fullGym:
+      return 2.5;
+  }
 }

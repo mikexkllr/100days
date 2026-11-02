@@ -8,10 +8,30 @@ import '../feed/feed_store.dart';
 /// session on, and a phone that walks out of Wi-Fi range mid-sync must leave
 /// both sides in a consistent state — which it does, because every event is
 /// independently verifiable.
-const int kProtocolVersion = 1;
+///
+/// Version 2 added the handshake: each side proves it holds the key of the
+/// DID it claims before the other side sends anything. A name in a `hello`
+/// is a claim; a signature over the other side's fresh nonce is proof.
+const int kProtocolVersion = 2;
+
+/// Sent instead of heads when the peer is not someone we follow.
+const String kNotFriendsError = 'not-friends';
+
+/// Sent when a peer's handshake signature does not verify.
+const String kAuthFailedError = 'auth-failed';
+
+/// What a peer signs to prove it holds [signerDid]'s key in this round.
+/// Binding both DIDs keeps a signature from being replayed to someone else.
+String authChallenge({
+  required String nonce,
+  required String signerDid,
+  required String verifierDid,
+}) =>
+    'hundred-days-sync-v2|$nonce|$signerDid|$verifierDid';
 
 class SyncMessageType {
   static const String hello = 'hello';
+  static const String auth = 'auth';
   static const String have = 'have';
   static const String want = 'want';
   static const String events = 'events';
@@ -34,6 +54,8 @@ abstract class SyncMessage {
     switch (json['t'] as String?) {
       case SyncMessageType.hello:
         return HelloMessage.fromJson(json);
+      case SyncMessageType.auth:
+        return AuthMessage(json['sig'] as String? ?? '');
       case SyncMessageType.have:
         return HaveMessage.fromJson(json);
       case SyncMessageType.want:
@@ -54,17 +76,27 @@ class HelloMessage extends SyncMessage {
   const HelloMessage({
     required this.did,
     required this.displayName,
+    this.nonce = '',
+    this.avatarEmoji,
     this.protocolVersion = kProtocolVersion,
   });
 
   factory HelloMessage.fromJson(Map<String, dynamic> json) => HelloMessage(
         did: json['did'] as String,
         displayName: json['name'] as String? ?? 'Anonym',
+        nonce: json['nonce'] as String? ?? '',
+        avatarEmoji: json['emoji'] as String?,
         protocolVersion: (json['v'] as num?)?.toInt() ?? 1,
       );
 
   final String did;
   final String displayName;
+
+  /// Fresh randomness the other side has to sign.
+  final String nonce;
+
+  /// Shown on a friend request, so "Marcel wants to connect" has a face.
+  final String? avatarEmoji;
   final int protocolVersion;
 
   @override
@@ -75,8 +107,25 @@ class HelloMessage extends SyncMessage {
         't': type,
         'did': did,
         'name': displayName,
+        'nonce': nonce,
+        if (avatarEmoji != null) 'emoji': avatarEmoji,
         'v': protocolVersion,
       };
+}
+
+/// Proof of key possession: a signature over [authChallenge] for the other
+/// side's nonce.
+class AuthMessage extends SyncMessage {
+  const AuthMessage(this.signature);
+
+  final String signature;
+
+  @override
+  String get type => SyncMessageType.auth;
+
+  @override
+  Map<String, dynamic> toJson() =>
+      <String, dynamic>{'t': type, 'sig': signature};
 }
 
 class HaveMessage extends SyncMessage {

@@ -41,9 +41,12 @@ ChallengePlan buildPlan(Challenge challenge) {
   final categories =
       challenge.habits.map((Habit h) => h.category).toSet();
 
-  final wantsTraining = categories.contains(HabitCategory.gym) ||
-      categories.contains(HabitCategory.cardio);
-  final wantsNutrition = categories.contains(HabitCategory.nutrition) &&
+  // Both plans are opt-in: without them the habit is a plain tick.
+  final wantsTraining = goal.trainingPlanEnabled &&
+      (categories.contains(HabitCategory.gym) ||
+          categories.contains(HabitCategory.cardio));
+  final wantsNutrition = goal.nutritionPlanEnabled &&
+      categories.contains(HabitCategory.nutrition) &&
       goal.body != null;
 
   return ChallengePlan(

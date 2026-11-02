@@ -43,11 +43,14 @@ const Map<int, List<int>> kWeekdaySpread = <int, List<int>>{
   ],
 };
 
-List<int> scheduledWeekdays(Habit habit) =>
-    kWeekdaySpread[habit.daysPerWeek.clamp(1, 7)]!;
+/// The weekdays [habit] is expected on — as of [day] when given, since the
+/// weekly frequency can change during a challenge.
+List<int> scheduledWeekdays(Habit habit, [DayKey? day]) => kWeekdaySpread[
+    (day == null ? habit.daysPerWeek : habit.daysPerWeekOn(day)).clamp(1, 7)]!;
 
 bool isHabitScheduledOn(Habit habit, DayKey day) =>
-    scheduledWeekdays(habit).contains(day.toDateTime().weekday);
+    habit.isActiveOn(day) &&
+    scheduledWeekdays(habit, day).contains(day.toDateTime().weekday);
 
 /// The habits that must be logged on [day] for it to count as a complete day.
 List<Habit> requiredHabitsOn(Challenge challenge, DayKey day) => challenge.habits

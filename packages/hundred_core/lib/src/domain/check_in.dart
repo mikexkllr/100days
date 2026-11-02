@@ -18,6 +18,7 @@ class CheckIn {
     required this.loggedAt,
     this.note,
     this.relapse = false,
+    this.tracked = false,
     this.eventHash,
   });
 
@@ -34,6 +35,7 @@ class CheckIn {
         loggedAt: loggedAt,
         note: payload['note'] as String?,
         relapse: payload['relapse'] as bool? ?? false,
+        tracked: payload['tracked'] as bool? ?? false,
         eventHash: eventHash,
       );
 
@@ -46,6 +48,10 @@ class CheckIn {
 
   /// For abstinence habits: this entry is a confessed relapse, not a win.
   final bool relapse;
+
+  /// Backed by the full tool rather than a tick: a workout logged set by set,
+  /// or a food diary closed on target. Earns the plan bonus in XP.
+  final bool tracked;
 
   final String? eventHash;
 
@@ -60,6 +66,7 @@ class CheckIn {
         'value': value,
         if (note != null) 'note': note,
         if (relapse) 'relapse': true,
+        if (tracked) 'tracked': true,
       };
 }
 

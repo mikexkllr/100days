@@ -125,9 +125,11 @@ int habitStreak({
   DayKey? today,
 }) {
   final now = today ?? DayKey.today();
+  final from = habit.activeFrom;
+  final floor = from != null && from.isAfter(startDay) ? from : startDay;
   var streak = 0;
   var day = now;
-  while (!day.isBefore(startDay)) {
+  while (!day.isBefore(floor)) {
     final log = logsByDay[day.toString()];
     final entry = log?.entryFor(habit.id);
     if (entry != null && entry.relapse) break;

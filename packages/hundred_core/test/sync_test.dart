@@ -15,9 +15,9 @@ class _Node {
   final FeedReplicator replicator;
 
   Syncer syncer({Set<String>? follows}) => Syncer(
+        identity: identity,
         store: store,
         replicator: replicator,
-        localDid: identity.did,
         localDisplayName: 'peer',
         followedDids: follows,
         timeout: const Duration(seconds: 5),
@@ -178,6 +178,7 @@ void main() {
       await right.send(const HelloMessage(
         did: 'did:key:zFuture',
         displayName: 'Future',
+        nonce: 'aaaaaaaaaaaaaaaaaaaaaaaa',
         protocolVersion: 99,
       ).toJson());
 
