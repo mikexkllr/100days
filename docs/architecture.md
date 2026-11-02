@@ -81,8 +81,10 @@ The core defines interfaces, the app supplies the implementations:
 | --- | --- | --- |
 | `FeedStore` | `SqliteFeedStore` | `MemoryFeedStore` |
 | `PeerTransport` / `PeerSession` | `LanTransport` / `SocketPeerSession` | `LoopbackSession` |
-| `LocalLlmRuntime` | `GgufLlmRuntime` | fake in tests |
+| `LocalLlmRuntime` | `LlamaCppRuntime` (llamadart) | fake in tests |
 | `CoachPromptBuilder` | `LocalizedCoachPrompts` | `EnglishCoachPrompts` |
+| `NutritionPromptBuilder` | `LocalizedNutritionPrompts` | `EnglishNutritionPrompts` |
+| `FoodLookup` / `FoodVocabulary` | `FoodIndex`, `foodVocabularyFor` | English fixture |
 | `CoachEngine` | — | `HeuristicCoach` is itself the fallback layer |
 
 The sync logic is tested against `LoopbackSession` — two nodes in one process,
@@ -116,15 +118,50 @@ writing (`timestamp`). When they differ it was a backfill, and the feed says so.
   counting as a completed day. If a missed day were free, the whole point of
   the app would collapse.
 
+## Private data in a shared log
+
+"The feed is the only truth" holds for private data too. Body stats,
+nutrition targets, the food diary and habits the user keeps to themselves go
+into the same feed as **sealed** events — ChaCha20-Poly1305 under a key
+derived from the identity seed. Friends replicate and verify them like any
+other event but cannot read them; the owner's device opens them before
+folding. The chain stays complete, and a restore from the recovery key brings
+the diary back from friends' copies. Details:
+[`protocol.md`](protocol.md#sealed-events).
+
+A challenge is published twice: a public view (no body stats, no targets, no
+private habits) and the full one, sealed. A friend's device computes the
+streak from the public view — the shared habits only.
+
 ## XP, levels, league
 
 XP per check-in scales with difficulty (1–5 from the catalogue), streak length
-(up to 2× at 50 days) and a bonus for logging on the day itself. On top of that
-comes a bonus for a complete day and for milestone days.
+(up to 2× at 50 days), a ×1.5 bonus for **tracked** check-ins — a workout
+logged set by set, a diary day closed on target — and a bonus for logging on
+the day itself. On top of that comes a bonus for a complete day and for
+milestone days. The tracked flag is part of the signed check-in, so every
+device computes the same XP.
 
 Importantly, `_computeXpByDay` replays the challenge day by day so each
 check-in is scored with the streak the user had *at the time*. Using today's
 streak would retroactively inflate the entire past.
 
 The weekly league buckets XP by ISO week. Promotion and relegation only kick in
-from six participants — below that a rank says nothing.
+from six participants — below that a rank says nothing. The league is friends
+only, by construction: there is no server that knows anyone else.
+
+## Plans
+
+Both plans are optional and stored on the goal, so they are part of the
+signed challenge and survive a restore.
+
+- **Training.** The user picks a split; sessions rotate across training days
+  rather than being pinned to weekdays, so any split works with any number of
+  days. Each session's exercises start as a suggestion (by movement pattern,
+  equipment and experience) and are then the user's to edit. Periodisation —
+  three build weeks, a deload — is applied on top. Logged sessions feed a
+  double-progression recommender: more reps at the same weight until every
+  set reaches the top of the range, then the smallest load jump.
+- **Nutrition.** Mifflin-St Jeor for the suggestion, the user's own number if
+  they set one (bounded to 1000–6000 kcal, with a warning more than 25 % under
+  expenditure), macros from body weight or a preset split.

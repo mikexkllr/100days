@@ -4,79 +4,105 @@
 
 A coach that is useful has to know that you relapsed yesterday, what you weigh
 and who around you already trained today. That is exactly the data that has no
-business on someone else's server. So the coach path has no network access —
-not as a setting, but by construction.
+business on someone else's server. So the AI has no network access — not as a
+setting, but by construction: the model file is loaded from the app's own
+folder and runs in a worker isolate through llama.cpp. There is no request
+anywhere in that path.
 
-## Two implementations, one interface
+## What it does
 
-```dart
-abstract class CoachEngine {
-  Future<CoachDirective> dailyBriefing(CoachContext context);
-  Future<List<NudgeSuggestion>> nudgeSuggestions(CoachContext context);
-  Future<List<PlanAdvice>> planAdjustments(CoachContext context);
-}
-```
+| Feature | With a model | Without one |
+| --- | --- | --- |
+| Daily coach line | Phrased by the model, in your language | Rule-based template |
+| Nudges for friends | Written by the model | Templates |
+| "Describe what you ate" | Estimates dishes the food table does not know | Food table and parser only |
+| Nutrition targets | Proposes new targets from a wish ("fewer carbs") | Manual editor |
 
-### `HeuristicCoach` — the floor
+Every model path falls back silently. A model that is missing, slow, crashes
+or returns something unparseable never surfaces as an error: the coach falls
+back to its rules, the diary to the food table. Model output that is not
+plausible — 5000 kcal for an apple, a target 40 % under maintenance — is
+discarded rather than shown.
 
-Rule-based, no model, no network, instant answer. It picks the **tone** from
-your state first:
+## Which model, on which phone
 
-| Tone | When |
-| --- | --- |
-| `welcome` | day 1–3 |
-| `socialPressure` | today still open, friends already went |
-| `urgent` | today still open, after 7pm |
-| `celebrate` | milestone day, already done |
-| `recover` | relapse or a broken streak |
-| `raiseTheBar` | 21+ days at over 90% hit rate |
-| `steady` | otherwise |
+Onboarding detects the phone (model name and physical RAM through
+`device_info_plus`) and proposes the strongest model that fits:
 
-The tone is not cosmetic: congratulating someone who just relapsed reads as
-mockery, and being gentle with someone who is coasting is precisely why habit
-apps stop working after two weeks.
+| Phone memory | Model | Download | Why |
+| --- | --- | --- | --- |
+| 3–5 GB | Qwen3.5 0.8B (Q4_K_M) | 0.53 GB | Runs on almost anything; short, simple sentences |
+| 6–7 GB | Qwen3.5 2B (Q4_K_M) | 1.28 GB | The sweet spot for mid-range phones |
+| 8 GB and up | Gemma 4 E2B (Q4_K_M) | 3.1 GB | Google's edge model: clearly better estimates and coaching |
+| 12 GB and up, opt-in | Gemma 4 E4B (Q4_K_M) | 5.0 GB | Best quality on a phone; never proposed by default |
 
-From the tone it picks a `CoachTemplate` — seeded with the day's date so the
-message stays stable within a day. The coach returns **no sentence**, only a
-directive made of a template, numbers and names; the wording happens in the
-app. That is what lets the same rules drive a German and an English user.
+Unknown memory gets the smallest model; a 32-bit-only Android phone gets none
+and stays on the rule-based coach.
 
-### `LocalLlmCoach` — the upgrade
+Why these: in late 2026 Qwen3.5 and Gemma 4 are the strongest open models at
+phone sizes, both are properly multilingual — which matters, because the app
+speaks German as well as English and an English-only model writes poor German
+— and both are Apache 2.0. Q4_K_M is the usual phone trade-off between size,
+speed and quality. The thresholds leave room for the context cache and for
+everything else the phone keeps in memory: a model that does not fit gets the
+app killed in the background.
 
-Uses the same tone selection but phrases it with a local model. It falls back
-to the rule-based coach on **every** failure: no model installed, timeout,
-empty or unparseable output, engine crash. A motivation screen that says
-"generation failed" is worse than a slightly generic sentence.
+The table lives in `app/lib/data/llm_runtime.dart` (`kModelCatalog`).
 
-## Installing a model
+## The download
 
-The app downloads nothing by itself. Fetch the GGUF file on a computer and drop
-it in the model folder shown under *Settings → On-device AI*
-(`<Application Support>/models/`). Supported filenames are listed there too —
-currently Qwen2.5 1.5B Instruct, Gemma 2 2B IT and SmolLM2 360M, quantised.
+Nothing downloads without a tap — in onboarding, or later under *Settings →
+On-device AI*. Then:
 
-## Wiring up an engine
+- **Pinned.** Every model is a fixed Hugging Face revision plus the file's
+  SHA-256. What lands on the phone is exactly the file that was reviewed, not
+  whatever the repository holds that day.
+- **Resumable.** Bytes go to `<file>.part`; an interrupted download continues
+  with an HTTP range request.
+- **Verified before use.** The SHA-256 is computed in an isolate and checked
+  before the file gets its real name. A mismatch deletes it. A model file is
+  input to a native library; a swapped one is not something to load.
+- **Visible.** Size, progress and licence are shown; the download keeps
+  running while you finish the setup.
 
-Model management is done; the inference engine is a socket. Anyone binding
-llama.cpp over FFI, MediaPipe LLM Inference or Core ML calls this once:
+The model folder is `<Application Support>/models/`; deleting the model frees
+the space and the app falls back to the rule-based coach.
 
-```dart
-GgufLlmRuntime.attachBackend((prompt, maxTokens, temperature) async {
-  return myEngine.complete(prompt, maxTokens: maxTokens, temp: temperature);
-});
-```
+## The engine
 
-From then on `coachEngineProvider` yields a `LocalLlmCoach` as soon as a model
-is present in the folder. With no backend everything stays on the rule-based
-coach — the app is fully usable, it just talks with less variety.
+[`llamadart`](https://pub.dev/packages/llamadart) (MIT, pinned to an exact
+version) binds llama.cpp for Android and iOS. Its build hook fetches the
+prebuilt native runtime for each target and checks it against a pinned digest;
+the app bundles the llama.cpp runtime only. `LlamaCppRuntime` implements the
+core's `LocalLlmRuntime` port:
+
+- one model, one 2 k context, generations queued rather than run side by side;
+- thinking mode off — a coach line does not need a visible chain of thought,
+  and on a phone it would triple the wait;
+- JSON-constrained output for meal estimates and target proposals where the
+  runtime supports it, defensive parsing either way;
+- a hard timeout that cancels the generation instead of letting it hold the
+  queue.
+
+The home screen never waits for the model: the rule-based line shows at once,
+and the model's version replaces it when it arrives.
 
 ## What is in the prompt
 
-The goal sentence, day number, streak, hit rate, the habits with their runs,
-the time of day, and for each friend their name, streak and whether they were
-active today. As text, straight to the model on this device. No telemetry, no
-intermediate storage, no network call.
+The coach: the goal sentence (if you have one), day number, streak, hit rate,
+the habits with their runs, the time of day, and for each friend their name,
+streak and whether they were active today. The nutrition assistant: what you
+typed, or your current targets and your wish. As text, straight to the model
+on this device. No telemetry, no intermediate storage, no network call.
 
 The prompt is written in the language the user reads — asking a model for
 German output while the prompt is English works measurably worse. That is why
-`CoachPromptBuilder` is a port and the app supplies `LocalizedCoachPrompts`.
+`CoachPromptBuilder` and `NutritionPromptBuilder` are ports and the app
+supplies localized implementations.
+
+## The two network requests
+
+For completeness, since "local" is the claim: the only requests the AI and
+nutrition features ever make are the model download above and, when you scan
+or type a barcode, an Open Food Facts lookup that carries the barcode number
+and nothing else.
