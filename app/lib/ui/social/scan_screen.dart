@@ -68,7 +68,6 @@ class _ScanInviteScreenState extends State<ScanInviteScreen> {
                   errorBuilder: (
                     BuildContext context,
                     MobileScannerException error,
-                    Widget? _,
                   ) =>
                       _CameraUnavailable(error: error),
                 ),
