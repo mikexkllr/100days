@@ -13,6 +13,7 @@ class StreakStats {
     required this.doneToday,
     required this.atRisk,
     required this.freezesUsed,
+    this.previousBest = 0,
   });
 
   static const StreakStats empty = StreakStats(
@@ -35,6 +36,16 @@ class StreakStats {
   final bool atRisk;
 
   final int freezesUsed;
+
+  /// The longest run that ended before the current one — the record the
+  /// current streak has to beat. 0 when the streak never broke.
+  final int previousBest;
+
+  /// Today's check-in carried the streak past the best run that came before
+  /// it. True on exactly one day per comeback, not on every day of a streak
+  /// that has never broken.
+  bool get beatPreviousBestToday =>
+      doneToday && previousBest > 0 && current == previousBest + 1;
 
   double get completionRate =>
       scheduledDays == 0 ? 0 : completedDays / scheduledDays;
@@ -79,6 +90,7 @@ StreakStats computeStreak({
   var scheduled = 0;
   var longest = 0;
   var running = 0;
+  var previousBest = 0;
 
   // Walk forward from day 1 so `longest` is a true historical maximum.
   for (var i = 0; i < totalDays; i++) {
@@ -98,6 +110,7 @@ StreakStats computeStreak({
       // Today is still open — the streak is not broken until midnight.
       break;
     } else {
+      if (running > previousBest) previousBest = running;
       running = 0;
     }
   }
@@ -113,6 +126,7 @@ StreakStats computeStreak({
     doneToday: doneToday,
     atRisk: !isRestDay(challenge, now) && !doneToday,
     freezesUsed: frozenDays.length,
+    previousBest: previousBest,
   );
 }
 

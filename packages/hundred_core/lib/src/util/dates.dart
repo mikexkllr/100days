@@ -37,6 +37,9 @@ class DayKey implements Comparable<DayKey> {
 
   bool isAfter(DayKey other) => compareTo(other) > 0;
 
+  /// The Monday of this day's week — where a week strip starts.
+  DayKey get weekStart => addDays(1 - toDateTime().weekday);
+
   bool isBefore(DayKey other) => compareTo(other) < 0;
 
   /// ISO-8601 week key (`2026-W12`), the bucket the weekly league scores over.
