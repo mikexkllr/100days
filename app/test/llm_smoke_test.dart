@@ -97,15 +97,26 @@ void main() {
         _log('${spec.name}: raw meal answer in ${clock.elapsedMilliseconds} '
             'ms: ${raw.replaceAll('\n', ' ')}');
 
-        clock.reset();
-        final List<FoodEstimate>? foods = await NutritionAssistant(
+        // Sampling varies, so ask a few times and report how often the
+        // estimate survives the parser and the plausibility checks.
+        final NutritionAssistant assistant = NutritionAssistant(
           runtime: runtime,
           prompts: LocalizedNutritionPrompts(de),
           timeout: const Duration(minutes: 3),
-        ).estimateFoods(meal);
-        _log('${spec.name}: meal estimate in ${clock.elapsedMilliseconds} ms:'
-            ' ${foods?.map((FoodEstimate f) => '${f.name} ${f.grams.round()} g '
-                '${f.nutrients.kcal.round()} kcal').join('; ') ?? 'none'}');
+        );
+        final int runs =
+            int.tryParse(Platform.environment['LLM_SMOKE_RUNS'] ?? '') ?? 3;
+        int hits = 0;
+        for (int run = 0; run < runs; run++) {
+          clock.reset();
+          final List<FoodEstimate>? foods = await assistant.estimateFoods(meal);
+          if (foods != null) hits++;
+          _log('${spec.name}: meal estimate ${run + 1}/$runs in '
+              '${clock.elapsedMilliseconds} ms: '
+              '${foods?.map((FoodEstimate f) => '${f.name} ${f.grams.round()} g '
+                  '${f.nutrients.kcal.round()} kcal').join('; ') ?? 'none'}');
+        }
+        _log('${spec.name}: meal estimates usable $hits/$runs');
 
         await runtime.dispose();
         if (Platform.environment['LLM_SMOKE_KEEP'] != '1') {
