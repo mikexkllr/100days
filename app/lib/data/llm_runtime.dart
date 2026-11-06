@@ -28,6 +28,7 @@ class LocalModelSpec {
     required this.license,
     required this.quantization,
     this.recommendable = true,
+    this.writesCoach = true,
   });
 
   /// Stable identifier; the app's localizations describe the model under it.
@@ -57,6 +58,14 @@ class LocalModelSpec {
   /// False for variants that are offered but never proposed by default —
   /// a smaller cut of a model the app already recommends elsewhere.
   final bool recommendable;
+
+  /// Whether the coach lets this model write its daily line. Meal estimates
+  /// and target proposals are checked and confirmed before they count; a
+  /// coach line is shown as it comes, so it needs a model that stays on
+  /// topic. Run on the real files, the Qwen models wandered off ("your
+  /// friends have lapsed") and dropped the informal "du"; with them the coach
+  /// stays rule-based.
+  final bool writesCoach;
 
   Uri get downloadUri => Uri.parse(
       'https://huggingface.co/$repository/resolve/$revision/$fileName');
@@ -105,6 +114,7 @@ const List<LocalModelSpec> kModelCatalog = <LocalModelSpec>[
     minRamMb: 2560,
     license: 'Apache-2.0',
     quantization: 'Q4_K_M',
+    writesCoach: false,
   ),
   LocalModelSpec(
     id: 'qwen3.5-2b-q4',
@@ -120,6 +130,7 @@ const List<LocalModelSpec> kModelCatalog = <LocalModelSpec>[
     minRamMb: 5 * 1024,
     license: 'Apache-2.0',
     quantization: 'Q4_K_M',
+    writesCoach: false,
   ),
   LocalModelSpec(
     id: 'gemma-4-e2b-qat-mobile',

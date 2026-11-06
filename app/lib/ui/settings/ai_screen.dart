@@ -340,6 +340,8 @@ class AiScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations l10n = context.l10n;
     final AsyncValue<CoachEngine> coach = ref.watch(coachEngineProvider);
+    final LocalModelSpec? installed =
+        ref.watch(installedModelProvider).valueOrNull;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.aiTitle)),
@@ -384,9 +386,11 @@ class AiScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   coach.maybeWhen(
-                    data: (CoachEngine engine) => engine.modelName == null
-                        ? l10n.aiBackendMissing
-                        : l10n.aiBackendPresent,
+                    data: (CoachEngine engine) => engine.modelName != null
+                        ? l10n.aiBackendPresent
+                        : installed != null
+                            ? l10n.aiCoachStaysRuleBased(installed.name)
+                            : l10n.aiBackendMissing,
                     orElse: () => '',
                   ),
                   style: Theme.of(context)

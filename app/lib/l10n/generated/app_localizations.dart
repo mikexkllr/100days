@@ -217,6 +217,12 @@ abstract class AppLocalizations {
   /// **'The model runs on this phone with llama.cpp. It writes your daily line, estimates meals and proposes nutrition targets — and falls back to the rule-based coach whenever it is too slow.'**
   String get aiBackendPresent;
 
+  /// No description provided for @aiCoachStaysRuleBased.
+  ///
+  /// In en, this message translates to:
+  /// **'{model} estimates meals and proposes nutrition targets — answers the app checks before you confirm them. The coach\'s daily line stays rule-based with it: in tests a model this small wandered off topic too often.'**
+  String aiCoachStaysRuleBased(String model);
+
   /// No description provided for @aiDeviceLine.
   ///
   /// In en, this message translates to:
@@ -310,7 +316,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiModelBalancedDesc.
   ///
   /// In en, this message translates to:
-  /// **'The sweet spot for mid-range phones: good German and English, quick answers.'**
+  /// **'Small and quick, good German and English. Estimates meals and proposes targets; the coach stays rule-based with it.'**
   String get aiModelBalancedDesc;
 
   /// No description provided for @aiModelE2bMobileDesc.
@@ -322,7 +328,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiModelLightDesc.
   ///
   /// In en, this message translates to:
-  /// **'Small and quick. Runs on almost any phone, writes short and simple.'**
+  /// **'The smallest, for phones nothing else fits. It helps little: the coach stays rule-based, and in tests its meal estimates mostly failed the plausibility check, so you will often enter meals yourself.'**
   String get aiModelLightDesc;
 
   /// No description provided for @aiModelMaxDesc.

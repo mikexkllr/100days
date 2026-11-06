@@ -65,6 +65,14 @@
   },
   "aiBackendMissing": "The rule-based coach is running. It needs no model, works offline and answers instantly — the language is just less varied. Download a model below and it switches over by itself.",
   "aiBackendPresent": "The model runs on this phone with llama.cpp. It writes your daily line, estimates meals and proposes nutrition targets — and falls back to the rule-based coach whenever it is too slow.",
+  "aiCoachStaysRuleBased": "{model} estimates meals and proposes nutrition targets — answers the app checks before you confirm them. The coach's daily line stays rule-based with it: in tests a model this small wandered off topic too often.",
+  "@aiCoachStaysRuleBased": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
   "aiDeviceLine": "{model} · {ram} GB RAM",
   "@aiDeviceLine": {
     "placeholders": {
@@ -121,9 +129,9 @@
   "aiLargerModels": "Larger",
   "aiLargerModelsSub": "Fits this phone, but takes more storage and is slower to answer.",
   "aiLoading": "Loading …",
-  "aiModelBalancedDesc": "The sweet spot for mid-range phones: good German and English, quick answers.",
+  "aiModelBalancedDesc": "Small and quick, good German and English. Estimates meals and proposes targets; the coach stays rule-based with it.",
   "aiModelE2bMobileDesc": "Google's phone model in its compact mobile cut, with 2-bit layers mixed in. A little rougher than the full version, half a gigabyte smaller.",
-  "aiModelLightDesc": "Small and quick. Runs on almost any phone, writes short and simple.",
+  "aiModelLightDesc": "The smallest, for phones nothing else fits. It helps little: the coach stays rule-based, and in tests its meal estimates mostly failed the plausibility check, so you will often enter meals yourself.",
   "aiModelMaxDesc": "The strongest model that runs on a phone, in its mobile cut. For flagships with 12 GB or more; takes longer to answer.",
   "aiModelStrongDesc": "Google's phone model, trained for 4-bit: close to full quality at 2.6 GB. Clearly better meal estimates and coaching; needs 8 GB of RAM.",
   "aiNoAutoDownload": "The app downloads a model only when you tap the button — from a fixed version on Hugging Face, checked against its SHA-256 before it is used. After that, no network.",

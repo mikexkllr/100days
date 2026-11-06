@@ -88,6 +88,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'The model runs on this phone with llama.cpp. It writes your daily line, estimates meals and proposes nutrition targets — and falls back to the rule-based coach whenever it is too slow.';
 
   @override
+  String aiCoachStaysRuleBased(String model) {
+    return '$model estimates meals and proposes nutrition targets — answers the app checks before you confirm them. The coach\'s daily line stays rule-based with it: in tests a model this small wandered off topic too often.';
+  }
+
+  @override
   String aiDeviceLine(String model, int ram) {
     return '$model · $ram GB RAM';
   }
@@ -148,7 +153,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiModelBalancedDesc =>
-      'The sweet spot for mid-range phones: good German and English, quick answers.';
+      'Small and quick, good German and English. Estimates meals and proposes targets; the coach stays rule-based with it.';
 
   @override
   String get aiModelE2bMobileDesc =>
@@ -156,7 +161,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiModelLightDesc =>
-      'Small and quick. Runs on almost any phone, writes short and simple.';
+      'The smallest, for phones nothing else fits. It helps little: the coach stays rule-based, and in tests its meal estimates mostly failed the plausibility check, so you will often enter meals yourself.';
 
   @override
   String get aiModelMaxDesc =>

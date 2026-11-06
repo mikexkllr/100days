@@ -338,6 +338,22 @@ void main() {
       expect(runtime.calls, 1);
     });
 
+    test('drops a line that slides into another script', () async {
+      final runtime = _FakeRuntime('TITEL: Start der Challenge\n'
+          'TEXT: Sei konsequent bei den kleinen Zलक्ष цель.');
+      final directive = await LocalLlmCoach(runtime: runtime)
+          .dailyBriefing(_context(currentStreak: 5, doneToday: false));
+
+      expect(directive.source, CoachSource.heuristic);
+    });
+
+    test('script check: one script passes, a mix does not', () {
+      expect(mixesScripts('Bleib dran — 💪 Tag 12, äöüß.'), isFalse);
+      expect(mixesScripts('Продолжай в том же духе'), isFalse);
+      expect(mixesScripts('Bleib dran цель'), isTrue);
+      expect(mixesScripts('Fokus 目标'), isTrue);
+    });
+
     test('gives the model its whole time budget', () async {
       final runtime = _FakeRuntime('TITLE: Go\nTEXT: Now.');
       await LocalLlmCoach(

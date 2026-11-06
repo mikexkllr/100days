@@ -88,6 +88,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Das Modell läuft mit llama.cpp auf diesem Handy. Es formuliert deine Tagesansage, schätzt Mahlzeiten und schlägt Ernährungsziele vor — und fällt auf den regelbasierten Coach zurück, wenn es zu langsam ist.';
 
   @override
+  String aiCoachStaysRuleBased(String model) {
+    return '$model schätzt Mahlzeiten und schlägt Ernährungsziele vor — Antworten, die die App prüft, bevor du sie bestätigst. Die Tagesansage des Coachs bleibt damit regelbasiert: Im Test ist ein so kleines Modell zu oft vom Thema abgekommen.';
+  }
+
+  @override
   String aiDeviceLine(String model, int ram) {
     return '$model · $ram GB RAM';
   }
@@ -149,7 +154,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiModelBalancedDesc =>
-      'Der beste Kompromiss für Mittelklasse-Handys: gutes Deutsch und Englisch, schnelle Antworten.';
+      'Klein und schnell, gutes Deutsch und Englisch. Schätzt Mahlzeiten und schlägt Ziele vor; der Coach bleibt damit regelbasiert.';
 
   @override
   String get aiModelE2bMobileDesc =>
@@ -157,7 +162,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiModelLightDesc =>
-      'Klein und schnell. Läuft auf fast jedem Handy, formuliert kurz und einfach.';
+      'Das kleinste, für Geräte, auf die sonst nichts passt. Es hilft wenig: Der Coach bleibt regelbasiert, und im Test fielen seine Mahlzeiten-Schätzungen meist durch die Plausibilitätsprüfung — du trägst dann oft selbst ein.';
 
   @override
   String get aiModelMaxDesc =>

@@ -148,14 +148,53 @@ class LocalLlmCoach implements CoachEngine {
     }
     final body = bodyLines.join(' ').trim();
     if (title == null || title.isEmpty || body.isEmpty) return null;
+    if (mixesScripts(title) || mixesScripts(body)) return null;
     return (title, body);
   }
 
   String? _firstLine(String raw) {
     for (final line in raw.split('\n')) {
       final trimmed = line.trim().replaceAll('"', '');
-      if (trimmed.length > 3) return trimmed;
+      if (trimmed.length > 3) return mixesScripts(trimmed) ? null : trimmed;
     }
     return null;
   }
 }
+
+/// True when [text] mixes Latin letters with letters of another script —
+/// the way a small model's output degrades ("… bei den kleinen Zलक्ष цель").
+///
+/// Text entirely in one script passes, whichever it is, so this says nothing
+/// about the language; emoji, digits and punctuation are not letters and do
+/// not count.
+bool mixesScripts(String text) {
+  var latin = false;
+  var other = false;
+  for (final rune in text.runes) {
+    if (_isLatinLetter(rune)) {
+      latin = true;
+    } else if (_isOtherScriptLetter(rune)) {
+      other = true;
+    }
+    if (latin && other) return true;
+  }
+  return false;
+}
+
+bool _isLatinLetter(int r) =>
+    (r >= 0x41 && r <= 0x5A) ||
+    (r >= 0x61 && r <= 0x7A) ||
+    (r >= 0xC0 && r <= 0x24F && r != 0xD7 && r != 0xF7) ||
+    (r >= 0x1E00 && r <= 0x1EFF);
+
+/// Greek, Cyrillic, Armenian, Hebrew, Arabic, the Indic scripts, Thai, and
+/// the CJK and Hangul blocks — scripts a Latin-language answer has no reason
+/// to contain.
+bool _isOtherScriptLetter(int r) =>
+    (r >= 0x370 && r <= 0x52F) ||
+    (r >= 0x530 && r <= 0x6FF) ||
+    (r >= 0x900 && r <= 0xDFF) ||
+    (r >= 0xE00 && r <= 0xE7F) ||
+    (r >= 0x3040 && r <= 0x30FF) ||
+    (r >= 0x4E00 && r <= 0x9FFF) ||
+    (r >= 0xAC00 && r <= 0xD7AF);

@@ -117,6 +117,11 @@ final FutureProvider<CoachEngine> coachEngineProvider =
     FutureProvider<CoachEngine>((Ref ref) async {
   final runtime = await ref.watch(llmRuntimeProvider.future);
   if (runtime == null) return const HeuristicCoach();
+  // Small models help with the diary, where every answer is checked; the
+  // coach's line is shown as it comes, so only models that stay on topic
+  // write it.
+  final spec = await ref.watch(installedModelProvider.future);
+  if (spec == null || !spec.writesCoach) return const HeuristicCoach();
 
   // The prompt is written in the user's language, so the coach has to be
   // rebuilt when that changes.
