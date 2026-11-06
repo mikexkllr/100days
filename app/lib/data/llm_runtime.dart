@@ -26,6 +26,8 @@ class LocalModelSpec {
     required this.sha256,
     required this.minRamMb,
     required this.license,
+    required this.quantization,
+    this.recommendable = true,
   });
 
   /// Stable identifier; the app's localizations describe the model under it.
@@ -42,11 +44,19 @@ class LocalModelSpec {
   final int sizeBytes;
   final String sha256;
 
-  /// Physical memory a phone needs before the app suggests this model. The
-  /// file sits in RAM, plus the context cache, plus everything else running.
+  /// Physical memory a phone needs before the app offers this model as
+  /// fitting. The file sits in RAM, plus the context cache, plus everything
+  /// else the phone is running.
   final int minRamMb;
 
   final String license;
+
+  /// How the weights were squeezed, as shown next to the size.
+  final String quantization;
+
+  /// False for variants that are offered but never proposed by default —
+  /// a smaller cut of a model the app already recommends elsewhere.
+  final bool recommendable;
 
   Uri get downloadUri => Uri.parse(
       'https://huggingface.co/$repository/resolve/$revision/$fileName');
@@ -66,11 +76,20 @@ class LocalModelSpec {
 
 /// Small instruction-tuned models that run on a phone, smallest first.
 ///
-/// Chosen for 2026 phones: Qwen3.5 (0.8B, 2B) and Gemma 4 (E2B, E4B) are the
-/// strongest open models at these sizes, both multilingual — which matters,
-/// because this app talks German as well as English — and both under
-/// Apache 2.0. Q4_K_M quantisation is the usual phone trade-off between
-/// size, speed and quality.
+/// Checked in November 2026. Qwen3.5 Small (March 2026) is still Qwen's
+/// newest small line — Qwen3.6 and 3.8 only come in large sizes — and
+/// Gemma 4 E2B/E4B is still Google's on-device line. Both are multilingual,
+/// which matters for an app that speaks German, and Apache 2.0.
+///
+/// Gemma ships as Google's quantisation-aware-trained (QAT) checkpoints in
+/// Unsloth's GGUF builds rather than plain post-training Q4_K_M: smaller
+/// files that agree with the full-precision model on the next token about
+/// 98 % of the time (Unsloth's measurements). The "mobile" builds mix 2-bit
+/// layers in for phones.
+///
+/// Every architecture here is one the bundled llama.cpp knows (`qwen35`,
+/// `gemma4`). Liquid AI's LFM3 (October 2026) needs a newer engine than the
+/// one pinned, and is under its own licence rather than Apache 2.0.
 const List<LocalModelSpec> kModelCatalog = <LocalModelSpec>[
   LocalModelSpec(
     id: 'qwen3.5-0.8b-q4',
@@ -85,6 +104,7 @@ const List<LocalModelSpec> kModelCatalog = <LocalModelSpec>[
     // "3 GB" phones report about 2.7 GiB.
     minRamMb: 2560,
     license: 'Apache-2.0',
+    quantization: 'Q4_K_M',
   ),
   LocalModelSpec(
     id: 'qwen3.5-2b-q4',
@@ -99,33 +119,54 @@ const List<LocalModelSpec> kModelCatalog = <LocalModelSpec>[
     // "6 GB" phones report about 5.5 GiB.
     minRamMb: 5 * 1024,
     license: 'Apache-2.0',
+    quantization: 'Q4_K_M',
   ),
   LocalModelSpec(
-    id: 'gemma-4-e2b-q4',
+    id: 'gemma-4-e2b-qat-mobile',
+    name: 'Gemma 4 E2B Mobile',
+    tier: ModelTier.balanced,
+    repository: 'unsloth/gemma-4-E2B-it-qat-mobile-GGUF',
+    revision: '46af839dc23aceb4b965ab640dae7fc1bea39bba',
+    fileName: 'gemma-4-E2B-it-qat-UD-Q2_K_XL.gguf',
+    sizeBytes: 2186186784,
+    sha256:
+        '0a5bbc20f91f92da96ab4870fa71b356c45b8500a7b8b9c3e0eb48359b72da28',
+    minRamMb: 5 * 1024,
+    license: 'Apache-2.0',
+    quantization: 'QAT 2-bit mix',
+    // Offered as the smaller Gemma, never proposed over Qwen3.5 2B, which
+    // is half the size on the phones this would fit.
+    recommendable: false,
+  ),
+  LocalModelSpec(
+    id: 'gemma-4-e2b-qat',
     name: 'Gemma 4 E2B',
     tier: ModelTier.strong,
-    repository: 'unsloth/gemma-4-E2B-it-GGUF',
-    revision: '0314792d7f1f7e229411f620751375812bb9faf2',
-    fileName: 'gemma-4-E2B-it-Q4_K_M.gguf',
-    sizeBytes: 3106738272,
+    repository: 'unsloth/gemma-4-E2B-it-qat-GGUF',
+    revision: '66a399f68ddd113b06dff02fca9523e55465d11d',
+    fileName: 'gemma-4-E2B-it-qat-UD-Q4_K_XL.gguf',
+    sizeBytes: 2620370976,
     sha256:
-        '740185b21d22ceb83a11c3aa62ad5842ef32c70f6096d756bbee85a1e4ec34b8',
+        'e531007218dfab990486a5de7676a6932d6ea8dea233d1f698d7c21cf8a16889',
     // "8 GB" phones report about 7.4 GiB.
     minRamMb: 7 * 1024,
     license: 'Apache-2.0',
+    quantization: 'QAT Q4',
   ),
   LocalModelSpec(
-    id: 'gemma-4-e4b-q4',
-    name: 'Gemma 4 E4B',
+    id: 'gemma-4-e4b-qat-mobile',
+    name: 'Gemma 4 E4B Mobile',
     tier: ModelTier.max,
-    repository: 'unsloth/gemma-4-E4B-it-GGUF',
-    revision: 'bfc15c382204943c3a8fff0c750b94ae2364d7a3',
-    fileName: 'gemma-4-E4B-it-Q4_K_M.gguf',
-    sizeBytes: 4977171584,
+    repository: 'unsloth/gemma-4-E4B-it-qat-mobile-GGUF',
+    revision: '6a6e7121b977cefd85daa8fbc538fa485e7e8b1b',
+    fileName: 'gemma-4-E4B-it-qat-UD-Q2_K_XL.gguf',
+    sizeBytes: 3219532192,
     sha256:
-        '85a896a047553e842f25297ee5b031d64ff30147d9c4af17b1e4b394cd1fab87',
+        '79dde517866cfbb5c00230b530de17910fc7fc78f8827554d0e14281ce5faf03',
+    // Twice the compute of E2B: for "12 GB" flagships (about 11.2 GiB).
     minRamMb: 11 * 1024,
     license: 'Apache-2.0',
+    quantization: 'QAT 2-bit mix',
   ),
 ];
 
@@ -136,16 +177,43 @@ LocalModelSpec? modelById(String id) {
   return null;
 }
 
-/// The model the app proposes for [device]: the strongest one that fits,
-/// but never the five-gigabyte one by default — that is an opt-in for
-/// people who know they want it.
+/// The model the app proposes for [device]: the strongest recommendable
+/// one that fits.
 LocalModelSpec? recommendedModel(DeviceProfile device) {
   LocalModelSpec? best;
   for (final spec in kModelCatalog) {
-    if (spec.tier == ModelTier.max) continue;
-    if (spec.fits(device)) best = spec;
+    if (spec.recommendable && spec.fits(device)) best = spec;
   }
   return best;
+}
+
+/// What else the user can pick instead of [shown]: the smaller models that
+/// fit (less storage, less battery, quicker answers), the larger ones that
+/// still fit, and the ones that are too big for this phone.
+({
+  List<LocalModelSpec> smaller,
+  List<LocalModelSpec> larger,
+  List<LocalModelSpec> tooBig,
+}) modelAlternatives(DeviceProfile device, LocalModelSpec shown) {
+  final smaller = <LocalModelSpec>[];
+  final larger = <LocalModelSpec>[];
+  final tooBig = <LocalModelSpec>[];
+  for (final spec in kModelCatalog) {
+    if (spec.id == shown.id) continue;
+    if (!spec.fits(device)) {
+      tooBig.add(spec);
+    } else if (spec.sizeBytes < shown.sizeBytes) {
+      smaller.add(spec);
+    } else {
+      larger.add(spec);
+    }
+  }
+  // Closest to the proposal first: the next size down is the likeliest pick.
+  return (
+    smaller: smaller.reversed.toList(),
+    larger: larger,
+    tooBig: tooBig,
+  );
 }
 
 /// Finds model files in the app's model directory.
@@ -180,6 +248,14 @@ class LocalModelManager {
       if (await fileFor(spec) != null) return spec;
     }
     return null;
+  }
+
+  /// Deletes every other model, so one model at a time sits on the phone:
+  /// switching models must not quietly double the storage used.
+  Future<void> keepOnly(LocalModelSpec spec) async {
+    for (final other in kModelCatalog) {
+      if (other.id != spec.id) await remove(other);
+    }
   }
 
   Future<void> remove(LocalModelSpec spec) async {

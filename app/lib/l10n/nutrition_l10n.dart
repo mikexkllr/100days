@@ -114,8 +114,8 @@ extension NutritionL10n on AppLocalizations {
 
 /// The JSON shapes the prompts ask for. Kept out of the translations: they
 /// are code, not language, and ICU would read their braces as placeholders.
-const String kFoodEstimateFormat =
-    '[{"name":"...","grams":0,"kcal":0,"protein":0,"carbs":0,"fat":0}]';
+/// The meal estimate's shape comes from the core, which parses it.
+const String kFoodEstimateFormat = kFoodEstimateJson;
 const String kTargetProposalFormat =
     '{"kcal":0,"protein_pct":0,"carbs_pct":0,"fat_pct":0,"reason":"..."}';
 

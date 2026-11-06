@@ -313,6 +313,19 @@ void main() {
       expect(result.single.nutrients.kcal, 320);
     });
 
+    test('reads every shape a model answers in', () async {
+      for (final String answer in <String>[
+        '{"foods":[{"name":"Rührei","grams":120,"kcal":180,"protein":12}]}',
+        '{"name":"Rührei","grams":120,"kcal":180,"protein":12}',
+        '[{"name":"Rührei","grams":120,"kcal":180,"protein":12}]',
+      ]) {
+        final result = await NutritionAssistant(runtime: _FakeRuntime(answer))
+            .estimateFoods('Rührei');
+        expect(result!.single.name, 'Rührei', reason: answer);
+        expect(result.single.nutrients.proteinG, 12, reason: answer);
+      }
+    });
+
     test('drops estimates that break physics', () async {
       final assistant = NutritionAssistant(
         runtime: _FakeRuntime(

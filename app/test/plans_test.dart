@@ -192,6 +192,35 @@ void main() {
     );
   });
 
+  testWidgets('onboarding offers the smaller models, not the too-big ones',
+      (WidgetTester tester) async {
+    await repository.startChallenge(_fitChallenge());
+    await pump(
+      tester,
+      const SingleChildScrollView(
+        child: ModelSetupCard(showAlternatives: false),
+      ),
+      device: const DeviceProfile(
+        model: 'Galaxy A55',
+        ramMb: 5700,
+        supportsLocalAi: true,
+      ),
+    );
+
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('ai-recommended')),
+        matching: find.text('Qwen3.5 2B'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('ai-option-qwen3.5-0.8b-q4')), findsOneWidget);
+    // Larger and too-big models stay out of onboarding.
+    expect(find.byKey(const Key('ai-option-gemma-4-e2b-qat')), findsNothing);
+    expect(find.byKey(const Key('ai-option-gemma-4-e2b-qat-mobile')),
+        findsNothing);
+  });
+
   testWidgets('the AI card names the phone and the model that fits it',
       (WidgetTester tester) async {
     await repository.startChallenge(_fitChallenge());
@@ -213,7 +242,21 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.textContaining('Jetzt laden (3.1 GB)'), findsOneWidget);
+    expect(find.textContaining('Jetzt laden (2.6 GB)'), findsOneWidget);
+
+    // Smaller models are offered next to the proposal, ready to download.
+    expect(find.text('Kleiner und schneller'), findsOneWidget);
+    for (final String id in <String>[
+      'gemma-4-e2b-qat-mobile',
+      'qwen3.5-2b-q4',
+      'qwen3.5-0.8b-q4',
+    ]) {
+      expect(find.byKey(Key('ai-option-$id')), findsOneWidget, reason: id);
+    }
+    // The one that does not fit is listed in settings, marked.
+    expect(find.byKey(const Key('ai-option-gemma-4-e4b-qat-mobile')),
+        findsOneWidget);
+    expect(find.text('ZU GROß'), findsOneWidget);
   });
 
   testWidgets('hiding a habit seals its check-ins from then on',

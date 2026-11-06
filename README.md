@@ -82,8 +82,8 @@ Two implementations behind one interface:
   social pressure, "the day is nearly over", milestone, relapse. Needs no
   model, answers instantly, works offline.
 - **Local language model** (optional): onboarding detects your phone and its
-  memory and proposes the model that fits — Qwen3.5 0.8B or 2B, Gemma 4 E2B
-  (E4B on request) — and downloads it on a tap. It runs through llama.cpp on
+  memory, proposes the model that fits — Qwen3.5 0.8B or 2B, Gemma 4 E2B or
+  E4B — and offers every smaller one right next to it; one tap downloads. It runs through llama.cpp on
   the phone; the prompt never leaves it. It also estimates meals you describe
   and proposes nutrition targets. On any failure — too slow, unusable output —
   it falls back silently to the rule-based coach.
@@ -108,7 +108,7 @@ plus TCP); further transports plug in behind the same interface. Protocol:
 ## Getting started
 
 ```bash
-flutter --version        # 3.27 or newer
+flutter --version        # 3.38 or newer
 cd app
 flutter pub get
 flutter run

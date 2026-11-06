@@ -89,6 +89,14 @@
     }
   },
   "aiDownloadResume": "Continue download",
+  "aiDownloadThis": "Get · {size} GB",
+  "@aiDownloadThis": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "aiDownloading": "{received} of {total} GB",
   "@aiDownloading": {
     "placeholders": {
@@ -110,20 +118,28 @@
     }
   },
   "aiInstalled": "installed",
+  "aiLargerModels": "Larger",
+  "aiLargerModelsSub": "Fits this phone, but takes more storage and is slower to answer.",
   "aiLoading": "Loading …",
   "aiModelBalancedDesc": "The sweet spot for mid-range phones: good German and English, quick answers.",
+  "aiModelE2bMobileDesc": "Google's phone model in its compact mobile cut, with 2-bit layers mixed in. A little rougher than the full version, half a gigabyte smaller.",
   "aiModelLightDesc": "Small and quick. Runs on almost any phone, writes short and simple.",
-  "aiModelMaxDesc": "The best quality that runs on a phone. Large download, only for flagships with 12 GB or more.",
-  "aiModelStrongDesc": "Google's phone model. Clearly better meal estimates and coaching; needs 8 GB of RAM.",
+  "aiModelMaxDesc": "The strongest model that runs on a phone, in its mobile cut. For flagships with 12 GB or more; takes longer to answer.",
+  "aiModelStrongDesc": "Google's phone model, trained for 4-bit: close to full quality at 2.6 GB. Clearly better meal estimates and coaching; needs 8 GB of RAM.",
   "aiNoAutoDownload": "The app downloads a model only when you tap the button — from a fixed version on Hugging Face, checked against its SHA-256 before it is used. After that, no network.",
   "aiNoNetworkBadge": "no network access",
-  "aiOtherModels": "Other models",
+  "aiOneAtATime": "Only one model stays on the phone: a new one replaces the old one once it has finished downloading.",
   "aiRecommended": "recommended",
   "aiRemove": "Remove",
+  "aiSmallerModels": "Smaller and quicker",
+  "aiSmallerModelsSub": "Less storage and battery, quicker answers — the sentences get simpler.",
   "aiSource": "Source",
   "aiSupportedModels": "Supported models",
+  "aiSwitchSmaller": "Switch to a smaller one",
   "aiTitle": "On-device AI",
   "aiTooBig": "too big",
+  "aiTooBigModels": "Too big for this phone",
+  "aiTooBigModelsSub": "Needs more memory than this phone has. It may load, or the system may close the app.",
   "aiVerifying": "Checking the file …",
   "aiWhatItSeesBody": "Streak, day number, your habits and whether your friends were active today — as text, straight to the model on this device. No network call, no telemetry, no copy in anyone’s cloud.",
   "aiWhatItSeesTitle": "What the model sees",
@@ -1961,7 +1977,7 @@
       }
     }
   },
-  "promptFoodEstimate": "You are a nutrition assistant. Estimate what this person ate:\n\"{text}\"\n\nFor each food, estimate the amount in grams and its calories and macros.\nAnswer with JSON only, exactly in this form, names in English:\n{format}",
+  "promptFoodEstimate": "You are a nutrition assistant. Estimate what this person ate:\n\"{text}\"\n\nFor each food, estimate the total weight in grams (2 eggs are about 110 g, not 2) and the calories and macros of that whole amount.\nAnswer with JSON only, in this form, names in English:\n{format}",
   "@promptFoodEstimate": {
     "placeholders": {
       "text": {

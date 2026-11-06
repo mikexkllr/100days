@@ -117,6 +117,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get aiDownloadResume => 'Download fortsetzen';
 
   @override
+  String aiDownloadThis(String size) {
+    return 'Laden · $size GB';
+  }
+
+  @override
   String aiDownloading(String received, String total) {
     return '$received von $total GB';
   }
@@ -133,6 +138,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get aiInstalled => 'installiert';
 
   @override
+  String get aiLargerModels => 'Größer';
+
+  @override
+  String get aiLargerModelsSub =>
+      'Passt auf dieses Gerät, braucht aber mehr Speicher und antwortet langsamer.';
+
+  @override
   String get aiLoading => 'Wird geladen …';
 
   @override
@@ -140,16 +152,20 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der beste Kompromiss für Mittelklasse-Handys: gutes Deutsch und Englisch, schnelle Antworten.';
 
   @override
+  String get aiModelE2bMobileDesc =>
+      'Googles Handy-Modell im kompakten Mobile-Zuschnitt mit eingemischten 2-Bit-Schichten. Etwas gröber als die volle Fassung, ein halbes Gigabyte kleiner.';
+
+  @override
   String get aiModelLightDesc =>
       'Klein und schnell. Läuft auf fast jedem Handy, formuliert kurz und einfach.';
 
   @override
   String get aiModelMaxDesc =>
-      'Die beste Qualität, die auf einem Handy läuft. Großer Download, nur für Flaggschiffe ab 12 GB.';
+      'Das stärkste Modell, das auf einem Handy läuft, im Mobile-Zuschnitt. Für Flaggschiffe ab 12 GB; antwortet langsamer.';
 
   @override
   String get aiModelStrongDesc =>
-      'Googles Modell fürs Handy. Deutlich bessere Schätzungen und Coaching; braucht 8 GB RAM.';
+      'Googles Handy-Modell, auf 4 Bit hin trainiert: nahe an voller Qualität bei 2,6 GB. Deutlich bessere Schätzungen und Coaching; braucht 8 GB RAM.';
 
   @override
   String get aiNoAutoDownload =>
@@ -159,7 +175,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get aiNoNetworkBadge => 'kein Netzwerkzugriff';
 
   @override
-  String get aiOtherModels => 'Andere Modelle';
+  String get aiOneAtATime =>
+      'Es bleibt immer nur ein Modell auf dem Gerät: ein neues ersetzt das alte, sobald es fertig geladen ist.';
 
   @override
   String get aiRecommended => 'empfohlen';
@@ -168,16 +185,33 @@ class AppLocalizationsDe extends AppLocalizations {
   String get aiRemove => 'Entfernen';
 
   @override
+  String get aiSmallerModels => 'Kleiner und schneller';
+
+  @override
+  String get aiSmallerModelsSub =>
+      'Weniger Speicher und Akku, schnellere Antworten — dafür einfachere Sätze.';
+
+  @override
   String get aiSource => 'Quelle';
 
   @override
   String get aiSupportedModels => 'Unterstützte Modelle';
 
   @override
+  String get aiSwitchSmaller => 'Zu einem kleineren wechseln';
+
+  @override
   String get aiTitle => 'KI auf dem Gerät';
 
   @override
   String get aiTooBig => 'zu groß';
+
+  @override
+  String get aiTooBigModels => 'Zu groß für dieses Gerät';
+
+  @override
+  String get aiTooBigModelsSub =>
+      'Braucht mehr Arbeitsspeicher, als das Gerät hat. Es kann laufen — oder das System beendet die App.';
 
   @override
   String get aiVerifying => 'Datei wird geprüft …';
@@ -2838,7 +2872,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String promptFoodEstimate(String text, String format) {
-    return 'Du bist Ernährungsassistent. Schätze, was diese Person gegessen hat:\n\"$text\"\n\nSchätze für jedes Lebensmittel die Menge in Gramm, die Kalorien und die Makros.\nAntworte nur mit JSON, genau in dieser Form, Namen auf Deutsch:\n$format';
+    return 'Du bist Ernährungsassistent. Schätze, was diese Person gegessen hat:\n\"$text\"\n\nSchätze für jedes Lebensmittel das Gesamtgewicht in Gramm (2 Eier sind etwa 110 g, nicht 2) und die Kalorien und Makros dieser ganzen Menge.\nAntworte nur mit JSON, in dieser Form, Namen auf Deutsch:\n$format';
   }
 
   @override

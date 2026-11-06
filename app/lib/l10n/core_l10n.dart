@@ -285,7 +285,9 @@ extension CoreL10n on AppLocalizations {
         return aiModelLightDesc;
       case 'qwen3.5-2b-q4':
         return aiModelBalancedDesc;
-      case 'gemma-4-e2b-q4':
+      case 'gemma-4-e2b-qat-mobile':
+        return aiModelE2bMobileDesc;
+      case 'gemma-4-e2b-qat':
         return aiModelStrongDesc;
       default:
         return aiModelMaxDesc;

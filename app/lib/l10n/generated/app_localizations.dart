@@ -259,6 +259,12 @@ abstract class AppLocalizations {
   /// **'Continue download'**
   String get aiDownloadResume;
 
+  /// No description provided for @aiDownloadThis.
+  ///
+  /// In en, this message translates to:
+  /// **'Get · {size} GB'**
+  String aiDownloadThis(String size);
+
   /// No description provided for @aiDownloading.
   ///
   /// In en, this message translates to:
@@ -283,6 +289,18 @@ abstract class AppLocalizations {
   /// **'installed'**
   String get aiInstalled;
 
+  /// No description provided for @aiLargerModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Larger'**
+  String get aiLargerModels;
+
+  /// No description provided for @aiLargerModelsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Fits this phone, but takes more storage and is slower to answer.'**
+  String get aiLargerModelsSub;
+
   /// No description provided for @aiLoading.
   ///
   /// In en, this message translates to:
@@ -295,6 +313,12 @@ abstract class AppLocalizations {
   /// **'The sweet spot for mid-range phones: good German and English, quick answers.'**
   String get aiModelBalancedDesc;
 
+  /// No description provided for @aiModelE2bMobileDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Google\'s phone model in its compact mobile cut, with 2-bit layers mixed in. A little rougher than the full version, half a gigabyte smaller.'**
+  String get aiModelE2bMobileDesc;
+
   /// No description provided for @aiModelLightDesc.
   ///
   /// In en, this message translates to:
@@ -304,13 +328,13 @@ abstract class AppLocalizations {
   /// No description provided for @aiModelMaxDesc.
   ///
   /// In en, this message translates to:
-  /// **'The best quality that runs on a phone. Large download, only for flagships with 12 GB or more.'**
+  /// **'The strongest model that runs on a phone, in its mobile cut. For flagships with 12 GB or more; takes longer to answer.'**
   String get aiModelMaxDesc;
 
   /// No description provided for @aiModelStrongDesc.
   ///
   /// In en, this message translates to:
-  /// **'Google\'s phone model. Clearly better meal estimates and coaching; needs 8 GB of RAM.'**
+  /// **'Google\'s phone model, trained for 4-bit: close to full quality at 2.6 GB. Clearly better meal estimates and coaching; needs 8 GB of RAM.'**
   String get aiModelStrongDesc;
 
   /// No description provided for @aiNoAutoDownload.
@@ -325,11 +349,11 @@ abstract class AppLocalizations {
   /// **'no network access'**
   String get aiNoNetworkBadge;
 
-  /// No description provided for @aiOtherModels.
+  /// No description provided for @aiOneAtATime.
   ///
   /// In en, this message translates to:
-  /// **'Other models'**
-  String get aiOtherModels;
+  /// **'Only one model stays on the phone: a new one replaces the old one once it has finished downloading.'**
+  String get aiOneAtATime;
 
   /// No description provided for @aiRecommended.
   ///
@@ -343,6 +367,18 @@ abstract class AppLocalizations {
   /// **'Remove'**
   String get aiRemove;
 
+  /// No description provided for @aiSmallerModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Smaller and quicker'**
+  String get aiSmallerModels;
+
+  /// No description provided for @aiSmallerModelsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Less storage and battery, quicker answers — the sentences get simpler.'**
+  String get aiSmallerModelsSub;
+
   /// No description provided for @aiSource.
   ///
   /// In en, this message translates to:
@@ -355,6 +391,12 @@ abstract class AppLocalizations {
   /// **'Supported models'**
   String get aiSupportedModels;
 
+  /// No description provided for @aiSwitchSmaller.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to a smaller one'**
+  String get aiSwitchSmaller;
+
   /// No description provided for @aiTitle.
   ///
   /// In en, this message translates to:
@@ -366,6 +408,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'too big'**
   String get aiTooBig;
+
+  /// No description provided for @aiTooBigModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Too big for this phone'**
+  String get aiTooBigModels;
+
+  /// No description provided for @aiTooBigModelsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs more memory than this phone has. It may load, or the system may close the app.'**
+  String get aiTooBigModelsSub;
 
   /// No description provided for @aiVerifying.
   ///
@@ -4680,7 +4734,7 @@ abstract class AppLocalizations {
   /// No description provided for @promptFoodEstimate.
   ///
   /// In en, this message translates to:
-  /// **'You are a nutrition assistant. Estimate what this person ate:\n\"{text}\"\n\nFor each food, estimate the amount in grams and its calories and macros.\nAnswer with JSON only, exactly in this form, names in English:\n{format}'**
+  /// **'You are a nutrition assistant. Estimate what this person ate:\n\"{text}\"\n\nFor each food, estimate the total weight in grams (2 eggs are about 110 g, not 2) and the calories and macros of that whole amount.\nAnswer with JSON only, in this form, names in English:\n{format}'**
   String promptFoodEstimate(String text, String format);
 
   /// No description provided for @promptHabitLine.

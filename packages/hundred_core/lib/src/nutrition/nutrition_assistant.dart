@@ -7,6 +7,16 @@ import '../coach/local_llm.dart';
 import '../plan/nutrition.dart';
 import 'foods.dart';
 
+/// The JSON shape the meal estimate asks for. An object rather than a bare
+/// list: a runtime that constrains its output to JSON (llama.cpp's
+/// `json_object`) only produces objects.
+///
+/// The example carries real numbers on purpose: with zeros, small models
+/// copied the shape and put the piece count into `grams` ("2 eggs" → 2 g).
+const String kFoodEstimateJson =
+    '{"foods":[{"name":"Pizza","grams":100,"kcal":266,"protein":11,'
+    '"carbs":33,"fat":10}]}';
+
 /// A food the on-device model recognised in free text, with its estimate.
 @immutable
 class FoodEstimate {
@@ -74,9 +84,10 @@ class EnglishNutritionPrompts implements NutritionPromptBuilder {
 You are a nutrition assistant. Estimate what this person ate:
 "$text"
 
-For each food, estimate the amount in grams and its calories and macros.
-Answer with JSON only, exactly in this form:
-[{"name":"...","grams":0,"kcal":0,"protein":0,"carbs":0,"fat":0}]
+For each food, estimate the total weight in grams (2 eggs are about 110 g,
+not 2) and the calories and macros of that whole amount.
+Answer with JSON only, in this form:
+$kFoodEstimateJson
 ''';
 
   @override
@@ -135,10 +146,8 @@ class NutritionAssistant {
           .generate(prompts.estimateFoods(text.trim()),
               maxTokens: 400, temperature: 0.2, json: true)
           .timeout(timeout);
-      final decoded = _decode(raw, '[', ']');
-      if (decoded is! List) return null;
       final result = <FoodEstimate>[];
-      for (final Object? item in decoded) {
+      for (final Object? item in _foodItems(raw)) {
         if (item is! Map) continue;
         final name = item['name'];
         final grams = _num(item['grams']);
@@ -231,6 +240,26 @@ class NutritionAssistant {
     } on Object {
       return null;
     }
+  }
+
+  /// The food objects in [raw], whichever shape the model chose: the asked
+  /// for `{"foods": [...]}`, a bare list (a runtime without JSON mode), or a
+  /// single food object (a JSON mode that forces one object).
+  List<Object?> _foodItems(String raw) {
+    final start = raw.indexOf(RegExp(r'[\[{]'));
+    if (start < 0) return const <Object?>[];
+    final Object? decoded = raw[start] == '['
+        ? _decode(raw, '[', ']')
+        : _decode(raw, '{', '}');
+    if (decoded is List) return decoded;
+    if (decoded is Map) {
+      for (final String key in const <String>['foods', 'items', 'food']) {
+        final Object? list = decoded[key];
+        if (list is List) return list;
+      }
+      if (decoded.containsKey('name')) return <Object?>[decoded];
+    }
+    return const <Object?>[];
   }
 
   /// Small models wrap JSON in prose or code fences; take the outermost

@@ -27,27 +27,63 @@ discarded rather than shown.
 ## Which model, on which phone
 
 Onboarding detects the phone (model name and physical RAM through
-`device_info_plus`) and proposes the strongest model that fits:
+`device_info_plus`), proposes the strongest model that fits — and lists every
+**smaller** model that fits right underneath, one tap away: less storage,
+less battery, quicker answers, simpler sentences. Settings also list the
+larger ones and, marked, the ones that are too big.
 
-| Phone memory | Model | Download | Why |
-| --- | --- | --- | --- |
-| 3–5 GB | Qwen3.5 0.8B (Q4_K_M) | 0.53 GB | Runs on almost anything; short, simple sentences |
-| 6–7 GB | Qwen3.5 2B (Q4_K_M) | 1.28 GB | The sweet spot for mid-range phones |
-| 8 GB and up | Gemma 4 E2B (Q4_K_M) | 3.1 GB | Google's edge model: clearly better estimates and coaching |
-| 12 GB and up, opt-in | Gemma 4 E4B (Q4_K_M) | 5.0 GB | Best quality on a phone; never proposed by default |
+| Model | Download | Quantisation | Offered from | Proposed for |
+| --- | --- | --- | --- | --- |
+| Qwen3.5 0.8B | 0.53 GB | Q4_K_M | 3 GB | 3–5 GB phones |
+| Qwen3.5 2B | 1.28 GB | Q4_K_M | 6 GB | 6–7 GB phones |
+| Gemma 4 E2B Mobile | 2.19 GB | QAT, 2-bit mix | 6 GB | never — the compact alternative |
+| Gemma 4 E2B | 2.62 GB | QAT Q4 | 8 GB | 8–11 GB phones |
+| Gemma 4 E4B Mobile | 3.22 GB | QAT, 2-bit mix | 12 GB | 12 GB and up |
 
 Unknown memory gets the smallest model; a 32-bit-only Android phone gets none
-and stays on the rule-based coach.
+and stays on the rule-based coach. Only one model stays on the phone: a new
+one replaces the old one once its download has been verified.
 
-Why these: in late 2026 Qwen3.5 and Gemma 4 are the strongest open models at
-phone sizes, both are properly multilingual — which matters, because the app
-speaks German as well as English and an English-only model writes poor German
-— and both are Apache 2.0. Q4_K_M is the usual phone trade-off between size,
-speed and quality. The thresholds leave room for the context cache and for
-everything else the phone keeps in memory: a model that does not fit gets the
-app killed in the background.
+**Checked in November 2026.** Qwen3.5 Small (March 2026) is still Qwen's
+newest small line — Qwen3.6 and 3.8 only come in large sizes. Gemma 4 E2B and
+E4B are still Google's on-device line; since June there are
+quantisation-aware-trained (QAT) checkpoints, used here in Unsloth's GGUF
+builds. They are smaller than a plain Q4_K_M and closer to the original:
+by Unsloth's measurements the E2B QAT file picks the same next token as the
+full-precision model 98.2 % of the time (a naive Q4_0: 89.3 %), and the E4B
+mobile file 98.8 % at 3.2 GB instead of 5 GB. All five are multilingual —
+which matters, because the app speaks German as well as English — and
+Apache 2.0.
 
-The table lives in `app/lib/data/llm_runtime.dart` (`kModelCatalog`).
+Not in the catalog, and why:
+
+- **Liquid AI LFM3-1.7B** (October 2026): a new architecture (`lfm3`) the
+  bundled llama.cpp does not know yet, and a licence of its own (LFM 1.0)
+  rather than Apache 2.0. A candidate once the engine is updated.
+- **IBM Granite 4.2 3B** (August 2026, Apache 2.0): the bundled engine
+  knows its architecture, but at 2.2 GB it overlaps with Gemma 4 E2B and has
+  not been run through the smoke test below.
+- **Gemma 4 E4B QAT Q4** (4.2 GB): larger than the E4B mobile file and, by
+  the same measurements, no better.
+
+The thresholds leave room for the context cache and for everything else the
+phone keeps in memory: a model that does not fit gets the app killed in the
+background. The table lives in `app/lib/data/llm_runtime.dart`
+(`kModelCatalog`).
+
+## Trying the models for real
+
+`app/test/llm_smoke_test.dart` downloads catalog models with the app's own
+downloader (SHA-256 check included), loads them through llamadart and asks
+for a German sentence, a coach line and a meal estimate. It is skipped
+unless you name the models:
+
+```bash
+LLM_SMOKE_MODELS=qwen3.5-2b-q4,gemma-4-e2b-qat flutter test test/llm_smoke_test.dart
+```
+
+It runs on the host's CPU (Linux, macOS), not on a phone, so its timings are
+an indication rather than a promise.
 
 ## The download
 

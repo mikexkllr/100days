@@ -21,6 +21,8 @@ String _gb(num bytes) => (bytes / 1e9).toStringAsFixed(1);
 class ModelSetupCard extends ConsumerWidget {
   const ModelSetupCard({super.key, this.showAlternatives = true});
 
+  /// Settings show every model; onboarding keeps it to the proposal and the
+  /// smaller ones that fit.
   final bool showAlternatives;
 
   @override
@@ -38,6 +40,36 @@ class ModelSetupCard extends ConsumerWidget {
         : device.advertisedRamGb == null
             ? device.model
             : l10n.aiDeviceLine(device.model, device.advertisedRamGb!);
+
+    final LocalModelSpec? downloading =
+        download.isActive ? download.spec : null;
+    // What the big card shows: the model being downloaded, the one on the
+    // phone, or the proposal — in that order.
+    final LocalModelSpec? shown = downloading ?? installed ?? recommended;
+
+    Widget alternative(LocalModelSpec spec, {required bool fits}) => Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+          child: _ModelTile(
+            key: Key('ai-option-${spec.id}'),
+            spec: spec,
+            badge: !fits
+                ? l10n.aiTooBig
+                : spec.id == recommended?.id
+                    ? l10n.aiRecommended
+                    : l10n.aiFits,
+            badgeColor: fits ? AppColors.textSecondary : AppColors.danger,
+            trailing: TextButton(
+              onPressed: download.isActive
+                  ? null
+                  : () => ref.read(modelDownloadProvider.notifier).start(spec),
+              child: Text(l10n.aiDownloadThis(_gb(spec.sizeBytes))),
+            ),
+          ),
+        );
+
+    final alternatives = shown == null
+        ? null
+        : modelAlternatives(device, shown);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,7 +89,7 @@ class ModelSetupCard extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        if (!device.supportsLocalAi || recommended == null)
+        if (!device.supportsLocalAi || shown == null)
           AppCard(
             child: Text(
               l10n.aiDeviceUnsupported,
@@ -67,8 +99,9 @@ class ModelSetupCard extends ConsumerWidget {
                   ?.copyWith(color: AppColors.textSecondary),
             ),
           )
-        else if (installed != null)
+        else if (downloading == null && installed != null)
           _ModelTile(
+            key: const Key('ai-installed'),
             spec: installed,
             badge: l10n.aiInstalled,
             badgeColor: AppColors.lime,
@@ -84,40 +117,43 @@ class ModelSetupCard extends ConsumerWidget {
         else
           _ModelTile(
             key: const Key('ai-recommended'),
-            spec: download.isActive && download.spec != null
-                ? download.spec!
-                : recommended,
-            badge: l10n.aiRecommended,
+            spec: shown,
+            badge: shown.id == recommended?.id
+                ? l10n.aiRecommended
+                : l10n.aiFits,
             badgeColor: AppColors.flame,
-            footer: _DownloadControls(
-              spec: download.isActive && download.spec != null
-                  ? download.spec!
-                  : recommended,
-              state: download,
-            ),
+            footer: _DownloadControls(spec: shown, state: download),
           ),
-        if (showAlternatives &&
-            device.supportsLocalAi &&
-            installed == null &&
-            !download.isActive) ...<Widget>[
-          SectionHeader(l10n.aiOtherModels),
-          for (final LocalModelSpec spec in kModelCatalog)
-            if (spec.id != recommended?.id)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: _ModelTile(
-                  spec: spec,
-                  badge: spec.fits(device) ? l10n.aiFits : l10n.aiTooBig,
-                  badgeColor: spec.fits(device)
-                      ? AppColors.textSecondary
-                      : AppColors.danger,
-                  trailing: TextButton(
-                    onPressed: () =>
-                        ref.read(modelDownloadProvider.notifier).start(spec),
-                    child: Text(l10n.aiGigabytes(_gb(spec.sizeBytes))),
+        if (device.supportsLocalAi && alternatives != null) ...<Widget>[
+          if (alternatives.smaller.isNotEmpty) ...<Widget>[
+            SectionHeader(
+              installed != null ? l10n.aiSwitchSmaller : l10n.aiSmallerModels,
+              subtitle: l10n.aiSmallerModelsSub,
+            ),
+            for (final LocalModelSpec spec in alternatives.smaller)
+              alternative(spec, fits: true),
+          ],
+          if (showAlternatives && alternatives.larger.isNotEmpty) ...<Widget>[
+            SectionHeader(l10n.aiLargerModels,
+                subtitle: l10n.aiLargerModelsSub),
+            for (final LocalModelSpec spec in alternatives.larger)
+              alternative(spec, fits: true),
+          ],
+          if (showAlternatives && alternatives.tooBig.isNotEmpty) ...<Widget>[
+            SectionHeader(l10n.aiTooBigModels,
+                subtitle: l10n.aiTooBigModelsSub),
+            for (final LocalModelSpec spec in alternatives.tooBig)
+              alternative(spec, fits: false),
+          ],
+          if (alternatives.smaller.isNotEmpty ||
+              (showAlternatives && alternatives.larger.isNotEmpty))
+            Text(
+              l10n.aiOneAtATime,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textTertiary,
+                    fontSize: 12,
                   ),
-                ),
-              ),
+            ),
         ],
       ],
     );
@@ -239,20 +275,15 @@ class _ModelTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Row(
+          // Name and badge get the whole width: on a narrow phone a button
+          // in the same row squeezed the badge until it overflowed.
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.xs,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: <Widget>[
-              Expanded(
-                child: Wrap(
-                  spacing: AppSpacing.sm,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: <Widget>[
-                    Text(spec.name,
-                        style: Theme.of(context).textTheme.titleMedium),
-                    Pill(badge, color: badgeColor),
-                  ],
-                ),
-              ),
-              if (trailing != null) trailing!,
+              Text(spec.name, style: Theme.of(context).textTheme.titleMedium),
+              Pill(badge, color: badgeColor),
             ],
           ),
           const SizedBox(height: 4),
@@ -264,23 +295,31 @@ class _ModelTile extends StatelessWidget {
                 ?.copyWith(color: AppColors.textSecondary, fontSize: 12.5),
           ),
           const SizedBox(height: 4),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Text(
-                  '${l10n.aiGigabytes(_gb(spec.sizeBytes))} · ${spec.license}',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppColors.textTertiary,
-                      ),
+          Text(
+            '${l10n.aiGigabytes(_gb(spec.sizeBytes))} · '
+            '${spec.quantization} · ${spec.license}',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: AppColors.textTertiary,
                 ),
-              ),
+          ),
+          // A Wrap, not a Row: two buttons side by side do not fit every
+          // phone in every language, and then the second moves down.
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: <Widget>[
               TextButton(
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(0, 40),
+                ),
                 onPressed: () => launchUrl(
                   spec.pageUri,
                   mode: LaunchMode.externalApplication,
                 ),
                 child: Text(l10n.aiSource),
               ),
+              if (trailing != null) trailing!,
             ],
           ),
           if (footer != null) ...<Widget>[

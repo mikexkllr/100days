@@ -206,6 +206,8 @@ class ModelDownloadController extends Notifier<ModelDownloadState> {
           total: spec.sizeBytes,
         ),
       );
+      // One model at a time: the new one replaces whatever was there.
+      await manager.keepOnly(spec);
       state = ModelDownloadState(
         phase: DownloadPhase.done,
         spec: spec,

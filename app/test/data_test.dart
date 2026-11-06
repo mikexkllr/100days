@@ -25,12 +25,56 @@ DeviceProfile _phone(int gb) =>
 
 void main() {
   group('model choice', () {
-    test('picks the strongest model that fits, never the huge one', () {
+    test('picks the strongest recommendable model that fits', () {
       expect(recommendedModel(_phone(3))!.id, 'qwen3.5-0.8b-q4');
       expect(recommendedModel(_phone(4))!.id, 'qwen3.5-0.8b-q4');
+      // The compact Gemma fits a 6 GB phone too, but is offered, not pushed.
       expect(recommendedModel(_phone(6))!.id, 'qwen3.5-2b-q4');
-      expect(recommendedModel(_phone(8))!.id, 'gemma-4-e2b-q4');
-      expect(recommendedModel(_phone(16))!.id, 'gemma-4-e2b-q4');
+      expect(recommendedModel(_phone(8))!.id, 'gemma-4-e2b-qat');
+      expect(recommendedModel(_phone(12))!.id, 'gemma-4-e4b-qat-mobile');
+      expect(recommendedModel(_phone(16))!.id, 'gemma-4-e4b-qat-mobile');
+    });
+
+    test('smaller models are always on offer, closest size first', () {
+      final LocalModelSpec proposal = recommendedModel(_phone(8))!;
+      final alternatives = modelAlternatives(_phone(8), proposal);
+      expect(alternatives.smaller.map((LocalModelSpec s) => s.id), <String>[
+        'gemma-4-e2b-qat-mobile',
+        'qwen3.5-2b-q4',
+        'qwen3.5-0.8b-q4',
+      ]);
+      expect(alternatives.larger, isEmpty);
+      expect(alternatives.tooBig.map((LocalModelSpec s) => s.id),
+          <String>['gemma-4-e4b-qat-mobile']);
+      // A phone that only fits the smallest has nothing smaller to offer.
+      expect(
+        modelAlternatives(_phone(3), recommendedModel(_phone(3))!).smaller,
+        isEmpty,
+      );
+    });
+
+    test('the catalog is ordered smallest first', () {
+      for (int i = 1; i < kModelCatalog.length; i++) {
+        expect(kModelCatalog[i].sizeBytes,
+            greaterThan(kModelCatalog[i - 1].sizeBytes));
+      }
+    });
+
+    test('only one model stays on the phone', () async {
+      final Directory base = await Directory.systemTemp.createTemp('models');
+      addTearDown(() => base.delete(recursive: true));
+      final LocalModelManager manager =
+          LocalModelManager(baseDirectory: () async => base);
+      for (final LocalModelSpec spec in kModelCatalog) {
+        await (await manager.targetFile(spec)).writeAsString('x');
+      }
+      final LocalModelSpec keep = modelById('qwen3.5-2b-q4')!;
+      await manager.keepOnly(keep);
+      expect((await manager.installedModel())!.id, keep.id);
+      for (final LocalModelSpec spec in kModelCatalog) {
+        expect(await manager.fileFor(spec) != null, spec.id == keep.id,
+            reason: spec.id);
+      }
     });
 
     test('unknown memory gets the smallest, unsupported hardware none', () {
@@ -102,6 +146,7 @@ void main() {
           sha256: sha,
           minRamMb: 0,
           license: 'MIT',
+          quantization: 'Q4',
         );
 
     Uri source() => Uri.parse('http://127.0.0.1:${server.port}/model');
