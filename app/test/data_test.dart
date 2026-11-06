@@ -26,8 +26,12 @@ DeviceProfile _phone(int gb) =>
 void main() {
   group('model choice', () {
     test('picks the strongest recommendable model that fits', () {
-      expect(recommendedModel(_phone(3))!.id, 'qwen3.5-0.8b-q4');
-      expect(recommendedModel(_phone(4))!.id, 'qwen3.5-0.8b-q4');
+      // On a small phone the only model that fits barely helps: offered,
+      // not proposed.
+      expect(recommendedModel(_phone(3)), isNull);
+      expect(recommendedModel(_phone(4)), isNull);
+      expect(modelAlternatives(_phone(4), null).smaller.single.id,
+          'qwen3.5-0.8b-q4');
       // The compact Gemma fits a 6 GB phone too, but is offered, not pushed.
       expect(recommendedModel(_phone(6))!.id, 'qwen3.5-2b-q4');
       expect(recommendedModel(_phone(8))!.id, 'gemma-4-e2b-qat');
@@ -46,10 +50,12 @@ void main() {
       expect(alternatives.larger, isEmpty);
       expect(alternatives.tooBig.map((LocalModelSpec s) => s.id),
           <String>['gemma-4-e4b-qat-mobile']);
-      // A phone that only fits the smallest has nothing smaller to offer.
+      // From a 6 GB phone's proposal, only the smallest is smaller.
       expect(
-        modelAlternatives(_phone(3), recommendedModel(_phone(3))!).smaller,
-        isEmpty,
+        modelAlternatives(_phone(6), recommendedModel(_phone(6))!)
+            .smaller
+            .map((LocalModelSpec s) => s.id),
+        <String>['qwen3.5-0.8b-q4'],
       );
     });
 
@@ -77,8 +83,15 @@ void main() {
       }
     });
 
-    test('unknown memory gets the smallest, unsupported hardware none', () {
-      expect(recommendedModel(DeviceProfile.unknown)!.tier, ModelTier.light);
+    test('unknown memory is offered the smallest, unsupported hardware none',
+        () {
+      expect(recommendedModel(DeviceProfile.unknown), isNull);
+      expect(
+        modelAlternatives(DeviceProfile.unknown, null)
+            .smaller
+            .map((LocalModelSpec s) => s.tier),
+        <ModelTier>[ModelTier.light],
+      );
       expect(
         recommendedModel(const DeviceProfile(
           model: 'Old',

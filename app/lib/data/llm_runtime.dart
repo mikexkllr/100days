@@ -115,6 +115,9 @@ const List<LocalModelSpec> kModelCatalog = <LocalModelSpec>[
     license: 'Apache-2.0',
     quantization: 'Q4_K_M',
     writesCoach: false,
+    // Offered on small phones, never proposed: run on the real file, its
+    // meal estimates failed the plausibility check every time.
+    recommendable: false,
   ),
   LocalModelSpec(
     id: 'qwen3.5-2b-q4',
@@ -189,7 +192,8 @@ LocalModelSpec? modelById(String id) {
 }
 
 /// The model the app proposes for [device]: the strongest recommendable
-/// one that fits.
+/// one that fits. Null on a phone where only models that barely help would
+/// fit — the app then offers them without pushing any.
 LocalModelSpec? recommendedModel(DeviceProfile device) {
   LocalModelSpec? best;
   for (final spec in kModelCatalog) {
@@ -205,15 +209,15 @@ LocalModelSpec? recommendedModel(DeviceProfile device) {
   List<LocalModelSpec> smaller,
   List<LocalModelSpec> larger,
   List<LocalModelSpec> tooBig,
-}) modelAlternatives(DeviceProfile device, LocalModelSpec shown) {
+}) modelAlternatives(DeviceProfile device, LocalModelSpec? shown) {
   final smaller = <LocalModelSpec>[];
   final larger = <LocalModelSpec>[];
   final tooBig = <LocalModelSpec>[];
   for (final spec in kModelCatalog) {
-    if (spec.id == shown.id) continue;
+    if (spec.id == shown?.id) continue;
     if (!spec.fits(device)) {
       tooBig.add(spec);
-    } else if (spec.sizeBytes < shown.sizeBytes) {
+    } else if (shown == null || spec.sizeBytes < shown.sizeBytes) {
       smaller.add(spec);
     } else {
       larger.add(spec);

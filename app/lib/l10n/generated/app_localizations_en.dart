@@ -157,7 +157,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiModelE2bMobileDesc =>
-      'Google\'s phone model in its compact mobile cut, with 2-bit layers mixed in. A little rougher than the full version, half a gigabyte smaller.';
+      'Google\'s phone model in its compact mobile cut, with 2-bit layers mixed in: half a gigabyte smaller than the full version, but noticeably rougher — in tests its meal estimates often missed.';
 
   @override
   String get aiModelLightDesc =>
@@ -179,8 +179,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiNoNetworkBadge => 'no network access';
 
   @override
+  String get aiNoRecommendation =>
+      'This phone has little memory for a language model. The app works fully without one — the coach is rule-based, meals come from the food table. If you want to try anyway:';
+
+  @override
   String get aiOneAtATime =>
       'Only one model stays on the phone: a new one replaces the old one once it has finished downloading.';
+
+  @override
+  String get aiOptionalModels => 'Optional';
 
   @override
   String get aiRecommended => 'recommended';

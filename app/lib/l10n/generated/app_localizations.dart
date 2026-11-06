@@ -322,7 +322,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiModelE2bMobileDesc.
   ///
   /// In en, this message translates to:
-  /// **'Google\'s phone model in its compact mobile cut, with 2-bit layers mixed in. A little rougher than the full version, half a gigabyte smaller.'**
+  /// **'Google\'s phone model in its compact mobile cut, with 2-bit layers mixed in: half a gigabyte smaller than the full version, but noticeably rougher — in tests its meal estimates often missed.'**
   String get aiModelE2bMobileDesc;
 
   /// No description provided for @aiModelLightDesc.
@@ -355,11 +355,23 @@ abstract class AppLocalizations {
   /// **'no network access'**
   String get aiNoNetworkBadge;
 
+  /// No description provided for @aiNoRecommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone has little memory for a language model. The app works fully without one — the coach is rule-based, meals come from the food table. If you want to try anyway:'**
+  String get aiNoRecommendation;
+
   /// No description provided for @aiOneAtATime.
   ///
   /// In en, this message translates to:
   /// **'Only one model stays on the phone: a new one replaces the old one once it has finished downloading.'**
   String get aiOneAtATime;
+
+  /// No description provided for @aiOptionalModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get aiOptionalModels;
 
   /// No description provided for @aiRecommended.
   ///

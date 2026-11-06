@@ -158,7 +158,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiModelE2bMobileDesc =>
-      'Googles Handy-Modell im kompakten Mobile-Zuschnitt mit eingemischten 2-Bit-Schichten. Etwas gröber als die volle Fassung, ein halbes Gigabyte kleiner.';
+      'Googles Handy-Modell im kompakten Mobile-Zuschnitt mit eingemischten 2-Bit-Schichten: ein halbes Gigabyte kleiner als die volle Fassung, aber merklich gröber — im Test lagen die Mahlzeiten-Schätzungen oft daneben.';
 
   @override
   String get aiModelLightDesc =>
@@ -180,8 +180,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get aiNoNetworkBadge => 'kein Netzwerkzugriff';
 
   @override
+  String get aiNoRecommendation =>
+      'Dieses Gerät hat wenig Arbeitsspeicher für ein Sprachmodell. Die App funktioniert ohne eins vollständig — der Coach ist regelbasiert, Mahlzeiten kommen aus der Lebensmitteltabelle. Wenn du es trotzdem ausprobieren willst:';
+
+  @override
   String get aiOneAtATime =>
       'Es bleibt immer nur ein Modell auf dem Gerät: ein neues ersetzt das alte, sobald es fertig geladen ist.';
+
+  @override
+  String get aiOptionalModels => 'Optional';
 
   @override
   String get aiRecommended => 'empfohlen';

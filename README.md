@@ -82,8 +82,9 @@ Two implementations behind one interface:
   social pressure, "the day is nearly over", milestone, relapse. Needs no
   model, answers instantly, works offline.
 - **Local language model** (optional): onboarding detects your phone and its
-  memory, proposes the model that fits — Qwen3.5 0.8B or 2B, Gemma 4 E2B or
-  E4B — and offers every smaller one right next to it; one tap downloads. It runs through llama.cpp on
+  memory, proposes the model that fits — Qwen3.5 2B, Gemma 4 E2B or E4B —
+  and offers every smaller one right next to it, down to Qwen3.5 0.8B; one
+  tap downloads. Each was run for real before it went into the list. It runs through llama.cpp on
   the phone; the prompt never leaves it. It also estimates meals you describe
   and proposes nutrition targets. On any failure — too slow, unusable output —
   it falls back silently to the rule-based coach.

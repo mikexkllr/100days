@@ -67,9 +67,9 @@ class ModelSetupCard extends ConsumerWidget {
           ),
         );
 
-    final alternatives = shown == null
-        ? null
-        : modelAlternatives(device, shown);
+    final alternatives = modelAlternatives(device, shown);
+    final bool nothingFits = !device.supportsLocalAi ||
+        (shown == null && alternatives.smaller.isEmpty);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,10 +89,23 @@ class ModelSetupCard extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        if (!device.supportsLocalAi || shown == null)
+        if (nothingFits)
           AppCard(
             child: Text(
               l10n.aiDeviceUnsupported,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: AppColors.textSecondary),
+            ),
+          )
+        else if (shown == null)
+          // Something fits, but nothing worth proposing: say so, and leave
+          // the choice to the user.
+          AppCard(
+            key: const Key('ai-no-recommendation'),
+            child: Text(
+              l10n.aiNoRecommendation,
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
@@ -124,10 +137,14 @@ class ModelSetupCard extends ConsumerWidget {
             badgeColor: AppColors.flame,
             footer: _DownloadControls(spec: shown, state: download),
           ),
-        if (device.supportsLocalAi && alternatives != null) ...<Widget>[
+        if (device.supportsLocalAi) ...<Widget>[
           if (alternatives.smaller.isNotEmpty) ...<Widget>[
             SectionHeader(
-              installed != null ? l10n.aiSwitchSmaller : l10n.aiSmallerModels,
+              shown == null
+                  ? l10n.aiOptionalModels
+                  : installed != null
+                      ? l10n.aiSwitchSmaller
+                      : l10n.aiSmallerModels,
               subtitle: l10n.aiSmallerModelsSub,
             ),
             for (final LocalModelSpec spec in alternatives.smaller)

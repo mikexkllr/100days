@@ -221,6 +221,26 @@ void main() {
         findsNothing);
   });
 
+  testWidgets('a small phone gets no push, only an optional model',
+      (WidgetTester tester) async {
+    await repository.startChallenge(_fitChallenge());
+    await pump(
+      tester,
+      const SingleChildScrollView(
+        child: ModelSetupCard(showAlternatives: false),
+      ),
+      device: const DeviceProfile(
+        model: 'Galaxy A15',
+        ramMb: 3700,
+        supportsLocalAi: true,
+      ),
+    );
+
+    expect(find.byKey(const Key('ai-no-recommendation')), findsOneWidget);
+    expect(find.byKey(const Key('ai-recommended')), findsNothing);
+    expect(find.byKey(const Key('ai-option-qwen3.5-0.8b-q4')), findsOneWidget);
+  });
+
   testWidgets('the AI card names the phone and the model that fits it',
       (WidgetTester tester) async {
     await repository.startChallenge(_fitChallenge());

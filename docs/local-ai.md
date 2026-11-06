@@ -32,15 +32,17 @@ Onboarding detects the phone (model name and physical RAM through
 less battery, quicker answers, simpler sentences. Settings also list the
 larger ones and, marked, the ones that are too big.
 
-| Model | Download | Quantisation | Offered from | Proposed for |
-| --- | --- | --- | --- | --- |
-| Qwen3.5 0.8B | 0.53 GB | Q4_K_M | 3 GB | 3–5 GB phones |
-| Qwen3.5 2B | 1.28 GB | Q4_K_M | 6 GB | 6–7 GB phones |
-| Gemma 4 E2B Mobile | 2.19 GB | QAT, 2-bit mix | 6 GB | never — the compact alternative |
-| Gemma 4 E2B | 2.62 GB | QAT Q4 | 8 GB | 8–11 GB phones |
-| Gemma 4 E4B Mobile | 3.22 GB | QAT, 2-bit mix | 12 GB | 12 GB and up |
+| Model | Download | Quantisation | Offered from | Proposed for | Writes the coach line |
+| --- | --- | --- | --- | --- | --- |
+| Qwen3.5 0.8B | 0.53 GB | Q4_K_M | 3 GB | never — optional on small phones | no |
+| Qwen3.5 2B | 1.28 GB | Q4_K_M | 6 GB | 6–7 GB phones | no |
+| Gemma 4 E2B Mobile | 2.19 GB | QAT, 2-bit mix | 6 GB | never — the compact alternative | yes |
+| Gemma 4 E2B | 2.62 GB | QAT Q4 | 8 GB | 8–11 GB phones | yes |
+| Gemma 4 E4B Mobile | 3.22 GB | QAT, 2-bit mix | 12 GB | 12 GB and up | yes |
 
-Unknown memory gets the smallest model; a 32-bit-only Android phone gets none
+On a phone where only the smallest model fits (3–5 GB, or memory unknown)
+nothing is proposed: the screen says the app works fully without a model and
+offers Qwen3.5 0.8B as an option. A 32-bit-only Android phone gets no model
 and stays on the rule-based coach. Only one model stays on the phone: a new
 one replaces the old one once its download has been verified.
 
@@ -84,6 +86,25 @@ LLM_SMOKE_MODELS=qwen3.5-2b-q4,gemma-4-e2b-qat flutter test test/llm_smoke_test.
 
 It runs on the host's CPU (Linux, macOS), not on a phone, so its timings are
 an indication rather than a promise.
+
+Results from 6 November 2026, four x86 cores, the meal "2 Rühreier und eine
+Scheibe Vollkornbrot mit Butter" asked three times per model:
+
+| Model | Load | Usable meal estimates | Coach line |
+| --- | --- | --- | --- |
+| Qwen3.5 0.8B | 0.8–1.5 s | 0 of 3 | often off topic |
+| Qwen3.5 2B | 2.4 s | 3 of 3 (22–43 s) | off topic, formal "Sie" |
+| Gemma 4 E2B Mobile | 2.3 s | 1 of 3 | fine; once trailed into another script |
+| Gemma 4 E2B | 5.5 s | 3 of 3 (12–16 s) | fine |
+| Gemma 4 E4B Mobile | 6.7 s | 3 of 3 (20–22 s) | fine, slower |
+
+That is why the Qwen models do not write the coach's line — with them it
+stays rule-based, and they help with the diary, where every answer is
+checked — and why the coach drops any line that mixes scripts. The same
+runs found two bugs the unit tests could not: llama.cpp's JSON mode only
+produces objects (the prompt had asked for a list), and the coach and the
+assistant never passed their time budget to the runtime, whose 20 s default
+cut most answers off.
 
 ## The download
 
