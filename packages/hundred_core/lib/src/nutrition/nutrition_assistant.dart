@@ -135,6 +135,9 @@ class NutritionAssistant {
 
   final LocalLlmRuntime runtime;
   final NutritionPromptBuilder prompts;
+
+  /// The whole budget for one answer, handed down to the runtime — whose
+  /// own default (20 s) cut off most meal estimates on a slower CPU.
   final Duration timeout;
 
   bool get isAvailable => runtime.isReady;
@@ -144,7 +147,7 @@ class NutritionAssistant {
     try {
       final raw = await runtime
           .generate(prompts.estimateFoods(text.trim()),
-              maxTokens: 400, temperature: 0.2, json: true)
+              maxTokens: 400, temperature: 0.2, json: true, timeout: timeout)
           .timeout(timeout);
       final result = <FoodEstimate>[];
       for (final Object? item in _foodItems(raw)) {
@@ -189,6 +192,7 @@ class NutritionAssistant {
                 slot: slot, kcal: kcal, proteinG: proteinG, wish: wish),
             maxTokens: 160,
             temperature: 0.7,
+            timeout: timeout,
           )
           .timeout(timeout);
       final lines = raw
@@ -212,7 +216,7 @@ class NutritionAssistant {
     try {
       final raw = await runtime
           .generate(prompts.adjustTargets(plan: plan, wish: wish.trim()),
-              maxTokens: 160, temperature: 0.3, json: true)
+              maxTokens: 160, temperature: 0.3, json: true, timeout: timeout)
           .timeout(timeout);
       final decoded = _decode(raw, '{', '}');
       if (decoded is! Map) return null;

@@ -52,6 +52,7 @@ class _FakeRuntime implements LocalLlmRuntime {
   _FakeRuntime(this.response);
 
   final String response;
+  Duration? lastTimeout;
 
   @override
   String get modelName => 'fake';
@@ -72,8 +73,10 @@ class _FakeRuntime implements LocalLlmRuntime {
     double temperature = 0.8,
     Duration timeout = const Duration(seconds: 20),
     bool json = false,
-  }) async =>
-      response;
+  }) async {
+    lastTimeout = timeout;
+    return response;
+  }
 
   @override
   Future<void> dispose() async {}
@@ -311,6 +314,16 @@ void main() {
       final result = await assistant.estimateFoods('porridge');
       expect(result!.single.name, 'Porridge');
       expect(result.single.nutrients.kcal, 320);
+    });
+
+    test('gives the runtime the whole time budget, not its default', () async {
+      final runtime = _FakeRuntime(
+          '{"foods":[{"name":"Rührei","grams":120,"kcal":180}]}');
+      await NutritionAssistant(
+        runtime: runtime,
+        timeout: const Duration(seconds: 45),
+      ).estimateFoods('Rührei');
+      expect(runtime.lastTimeout, const Duration(seconds: 45));
     });
 
     test('reads every shape a model answers in', () async {

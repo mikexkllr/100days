@@ -83,6 +83,8 @@ class _FakeRuntime implements LocalLlmRuntime {
   @override
   String get modelName => 'Fake-1B';
 
+  Duration? lastTimeout;
+
   @override
   bool get isReady => ready;
 
@@ -101,6 +103,7 @@ class _FakeRuntime implements LocalLlmRuntime {
     bool json = false,
   }) async {
     calls++;
+    lastTimeout = timeout;
     if (throwOnGenerate) throw StateError('model crashed');
     return _response;
   }
@@ -333,6 +336,16 @@ void main() {
       expect(directive.freeformHeadline, 'Today counts');
       expect(directive.freeformBody, contains('tick it off'));
       expect(runtime.calls, 1);
+    });
+
+    test('gives the model its whole time budget', () async {
+      final runtime = _FakeRuntime('TITLE: Go\nTEXT: Now.');
+      await LocalLlmCoach(
+        runtime: runtime,
+        timeout: const Duration(seconds: 40),
+      ).dailyBriefing(_context(currentStreak: 5, doneToday: false));
+
+      expect(runtime.lastTimeout, const Duration(seconds: 40));
     });
 
     test('accepts a localized TITEL header too', () async {

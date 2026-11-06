@@ -24,6 +24,9 @@ class LocalLlmCoach implements CoachEngine {
   final LocalLlmRuntime runtime;
   final CoachPromptBuilder prompts;
   final CoachEngine fallback;
+
+  /// Handed to the runtime too: its own default is shorter, and a phone
+  /// that needs 25 seconds for a line would otherwise never get to show it.
   final Duration timeout;
 
   @override
@@ -38,7 +41,8 @@ class LocalLlmCoach implements CoachEngine {
     final tone = selectTone(context);
     try {
       final raw = await runtime
-          .generate(prompts.briefing(context, tone), maxTokens: 140)
+          .generate(prompts.briefing(context, tone),
+              maxTokens: 140, timeout: timeout)
           .timeout(timeout);
       final parsed = _parseHeadlineBody(raw);
       if (parsed == null) return await fallback.dailyBriefing(context);
@@ -78,7 +82,8 @@ class LocalLlmCoach implements CoachEngine {
       }
       try {
         final raw = await runtime
-            .generate(prompts.nudge(context, peer), maxTokens: 40)
+            .generate(prompts.nudge(context, peer),
+                maxTokens: 40, timeout: timeout)
             .timeout(timeout);
         final line = _firstLine(raw);
         result.add(line == null
@@ -104,7 +109,8 @@ class LocalLlmCoach implements CoachEngine {
     if (!runtime.isReady) return base;
     try {
       final raw = await runtime
-          .generate(prompts.adjustments(context), maxTokens: 180)
+          .generate(prompts.adjustments(context),
+              maxTokens: 180, timeout: timeout)
           .timeout(timeout);
       final lines = raw
           .split('\n')
