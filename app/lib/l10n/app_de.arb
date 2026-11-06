@@ -113,6 +113,102 @@
   "aiWhatItSeesBody": "Streak, Tagesnummer, deine Gewohnheiten und ob deine Freunde heute aktiv waren — als Text, direkt an das Modell auf diesem Gerät. Kein Netzwerkaufruf, keine Telemetrie, kein Zwischenspeicher in einer Cloud.",
   "aiWhatItSeesTitle": "Was das Modell sieht",
   "appTitle": "100 Tage",
+  "celebrateBonusCycle": "ZYKLUS",
+  "celebrateBonusEvolution": "EVOLUTION",
+  "celebrateBonusLevel": "LEVEL UP",
+  "celebrateBonusMilestone": "MEILENSTEIN",
+  "celebrateBonusPerfect": "PERFEKT",
+  "celebrateBonusRecord": "REKORD",
+  "celebrateContinue": "Weiter brennen",
+  "celebrateHighlightCycle": "Zyklus geschafft: {days} Tage",
+  "@celebrateHighlightCycle": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "celebrateHighlightEvolution": "Neue Form: {stage}",
+  "@celebrateHighlightEvolution": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "celebrateHighlightLevel": "Level {level} erreicht",
+  "@celebrateHighlightLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "celebrateHighlightMilestone": "Meilenstein: Tag {day}",
+  "@celebrateHighlightMilestone": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "celebrateHighlightPerfect": "Perfekter Tag: +{xp} XP Bonus",
+  "@celebrateHighlightPerfect": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "celebrateHighlightRecord": "Neuer Rekord: {streak, plural, =1{1 Tag} other{{streak} Tage}}",
+  "@celebrateHighlightRecord": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "celebrateJackpot": "JACKPOT!",
+  "celebrateNextLevel": "Level {level} in {xp} XP",
+  "@celebrateNextLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "celebrateNextMilestone": "Tag {day} in {days, plural, =1{1 Tag} other{{days} Tagen}}",
+  "@celebrateNextMilestone": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "celebrateNextUp": "Als Nächstes",
+  "celebrateReelBonus": "BONUS",
+  "celebrateReelStreak": "STREAK",
+  "celebrateReelXp": "XP HEUTE",
+  "celebrateShare": "Angeben",
+  "celebrateShareText": "{streak, plural, =1{🔥 1 Tag Streak} other{🔥 {streak} Tage Streak}}, Tag {day} meiner Challenge. Hol mich doch ein.",
+  "@celebrateShareText": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "celebrateSkip": "Tippen zum Überspringen",
+  "celebrateTitle": "TAG GESCHAFFT!",
   "cheerRespectStreak": "{streak, plural, =1{Respekt, 1 Tag!} other{Respekt, {streak} Tage!}}",
   "@cheerRespectStreak": {
     "placeholders": {
@@ -440,6 +536,12 @@
       }
     }
   },
+  "evolutionCurrent": "Du bist hier",
+  "evolutionLocked": "Gesperrt",
+  "evolutionOpen": "Alle Formen ansehen",
+  "evolutionSubtitle": "Dein Streak bestimmt die Form. Ein Abbruch nimmt sie dir wieder.",
+  "evolutionTitle": "Flammen-Evolution",
+  "evolutionUnlocked": "Freigeschaltet",
   "exerciseAbWheel": "Bauchroller",
   "exerciseArnoldPress": "Arnold Press",
   "exerciseAssistedPullup": "Klimmzug mit Unterstützung",
@@ -765,6 +867,35 @@
   "habitWaterBlurb": "Acht Gläser. Das Billigste, was du für dich tun kannst.",
   "heatLess": "weniger",
   "heatMore": "mehr",
+  "heroBest": "Rekord: {days}",
+  "@heroBest": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "heroCountdownFirst": "Noch {time} für den ersten Funken",
+  "@heroCountdownFirst": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "heroCountdownSave": "Noch {time}, um deinen Streak zu retten",
+  "@heroCountdownSave": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "heroFedToday": "Heute gefüttert. Bis morgen.",
+  "heroFrozen": "Heute eingefroren. Der Streak hält.",
+  "heroRelapse": "Rückfall eingetragen. Morgen gibt es einen neuen Funken.",
+  "heroRestDay": "Pausentag. Der Streak wartet.",
+  "heroThisWeek": "Diese Woche",
   "homeAscendAction": "Weiter zu {tier}",
   "@homeAscendAction": {
     "placeholders": {
@@ -1003,6 +1134,74 @@
   "macroPresetHighProteinBlurb": "35 % Eiweiß, 40 % Kohlenhydrate, 25 % Fett. Macht im Defizit satt.",
   "macroPresetLowCarb": "Low Carb",
   "macroPresetLowCarbBlurb": "30 % Eiweiß, 20 % Kohlenhydrate, 50 % Fett.",
+  "mascotHappy1": "Gefüttert. Ich brenne für dich.",
+  "mascotHappy2": "Erledigt. So entstehen Legenden.",
+  "mascotHappy3": "Wieder ein Tag im Sack. Bis morgen.",
+  "mascotHappy4": "{streak, plural, =1{Ein Tag} other{{streak} Tage}}. Mir wird richtig heiß.",
+  "@mascotHappy4": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "mascotHappy5": "Geschafft. Schon wieder. Ich feier das.",
+  "mascotHappy6": "Jetzt Pause. Morgen hab ich wieder Hunger.",
+  "mascotHopeful1": "Jedes Feuer beginnt mit einem Funken. Heute?",
+  "mascotHopeful2": "Ich bin nur Glut. Mach eine Flamme aus mir.",
+  "mascotHopeful3": "Null ist nur eine Startnummer.",
+  "mascotHopeful4": "Ein Tag. Dann reden wir weiter.",
+  "mascotHungry1": "Ich hab Hunger. Füttere mich mit einem Tag.",
+  "mascotHungry2": "Heute zählt. Nur heute.",
+  "mascotHungry3": "Ein Tap und ich wachse. Du bist dran.",
+  "mascotHungry4": "Dein zukünftiges Ich schaut zu. Ich auch.",
+  "mascotHungry5": "Auftauchen. Das ist der ganze Trick.",
+  "mascotHungry6": "Tag {day}. Lass ihn zählen.",
+  "@mascotHungry6": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "mascotHyped1": "JAAA! Du bist on fire. Wortwörtlich.",
+  "mascotHyped2": "Schau, wie ich brenne!",
+  "mascotHyped3": "Genau DAS meine ich!",
+  "mascotHyped4": "Nicht zu stoppen. Morgen genauso.",
+  "mascotName": "Funki",
+  "mascotPoke1": "Hey! Das kitzelt.",
+  "mascotPoke2": "Vorsicht, heiß!",
+  "mascotPoke3": "Nochmal! 🔥",
+  "mascotPoke4": "Weniger stupsen, mehr abhaken.",
+  "mascotPoke5": "Ich beiß nicht. Ich brenn.",
+  "mascotPoke6": "Boop.",
+  "mascotPokeCombo": "Okay, okay, ich brenn ja schon!",
+  "mascotSad1": "Passiert. Ehrlich schlägt perfekt.",
+  "mascotSad2": "Am Boden, nicht raus. Morgen geht's wieder los.",
+  "mascotSad3": "Heute bin ich klein. Ich komm zurück.",
+  "mascotSemantics": "Funki, deine Flamme. Tippen zum Anstupsen.",
+  "mascotSleepy1": "Pausentag. Ich glühe nur leise vor mich hin.",
+  "mascotSleepy2": "Heute nichts geplant. Ich lade auf. Zzz.",
+  "mascotSleepy3": "Pause gehört zum Plan. Der Streak wartet.",
+  "mascotWorried1": "Psst. Noch {hours} Std. Mir wird kalt.",
+  "@mascotWorried1": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "mascotWorried2": "{streak, plural, =1{Ein Tag} other{{streak} Tage}}. Lass mich heute Nacht nicht ausgehen.",
+  "@mascotWorried2": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "mascotWorried3": "Lass mich nicht ausgehen. Bitte?",
+  "mascotWorried4": "Mitternacht verhandelt nicht. Du schon noch.",
+  "mascotWorried5": "Ich flackere. Das ist kein gutes Zeichen.",
   "mealBreakfast": "Frühstück",
   "mealDinner": "Abendessen",
   "mealIdeaBreakfast1": "Skyr mit Beeren, Haferflocken und Leinsamen",
@@ -1353,6 +1552,7 @@
   "obTrainingSubtitle": "Trainingstage zählen für den Streak. Mit Trainingsplan wählst du auf der nächsten Seite auch Split und Übungen.",
   "obTrainingTitle": "Wie oft und womit?",
   "obWelcomeEyebrow": "100 Tage und weit darüber hinaus",
+  "obWelcomeMascot": "Hi, ich bin Funki, deine Flamme. Füttere mich jeden Tag, dann wachse ich.",
   "obWelcomeSubtitle": "Setz ein Ziel. Bekomm einen Plan. Und danach zählt nur noch eins: ob du heute dran warst — und ob deine Leute es sehen.",
   "obWelcomeTitle": "Du brauchst kein neues Ich.\nDu brauchst 100 Tage.",
   "peerActivityAscended": "Nächste Stufe erreicht",
@@ -1851,11 +2051,42 @@
   "splitPushPullLegs": "Push / Pull / Beine",
   "splitRecommended": "empfohlen",
   "splitUpperLower": "Oberkörper / Unterkörper",
+  "stageBlaze": "Lagerfeuer",
+  "stageBlue": "Blaue Flamme",
+  "stageEmber": "Glut",
+  "stageFinal": "Endform. Jetzt heißt es nur noch: weiterbrennen.",
+  "stageFlame": "Flamme",
+  "stageFlicker": "Flämmchen",
+  "stageFrom": "{days, plural, =0{Ohne Streak} =1{Ab 1 Tag} other{Ab {days} Tagen}}",
+  "@stageFrom": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "stageInferno": "Inferno",
+  "stageNext": "{stage} in {days, plural, =1{1 Tag} other{{days} Tagen}}",
+  "@stageNext": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "stageNova": "Supernova",
+  "stagePlasma": "Plasma",
+  "stageSpark": "Funke",
+  "stageSun": "Sonne",
   "statDay": "Tag",
   "statRecord": "Rekord",
   "statStreak": "Streak",
   "statXp": "XP",
   "statsCurrentStreak": "Aktueller Streak",
+  "statsFlameTitle": "Deine Flamme",
   "statsFullDays": "Volle Tage",
   "statsHabitProgress": "{done} von {planned} geplanten Tagen ({percent} %)",
   "@statsHabitProgress": {
@@ -2042,12 +2273,25 @@
   "weekdaySat": "SA",
   "weekdayShortFri": "Fr",
   "weekdayShortMon": "Mo",
+  "weekdayShortSat": "Sa",
   "weekdayShortSun": "So",
+  "weekdayShortThu": "Do",
+  "weekdayShortTue": "Di",
   "weekdayShortWed": "Mi",
   "weekdaySun": "SO",
   "weekdayThu": "DO",
   "weekdayTue": "DI",
   "weekdayWed": "MI",
+  "widgetCold": "Zünde heute den ersten Funken.",
+  "widgetDone": "Heute gefüttert ✓",
+  "widgetFrozen": "Eingefroren. Der Streak ist sicher.",
+  "widgetGoesOutIn": "Geht aus in",
+  "widgetOpen": "Füttere mich heute noch!",
+  "widgetPromoAction": "Widget hinzufügen",
+  "widgetPromoBody": "Sieh Funki bei jedem Entsperren. Satt, hungrig oder kurz vorm Ausgehen.",
+  "widgetPromoManual": "Halte den Homescreen gedrückt, tippe auf Widgets und wähle 100 Tage.",
+  "widgetPromoTitle": "Dein Streak auf dem Homescreen",
+  "widgetRest": "Pausentag. Ich spare Energie.",
   "workoutArms": "Arme",
   "workoutArmsFocus": "Bizeps und Trizeps",
   "workoutBack": "Rücken",

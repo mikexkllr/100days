@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:hundred_core/hundred_core.dart';
 
 import '../../../l10n/l10n.dart';
 import '../../../theme/theme.dart';
+import '../../mascot/flame_mascot.dart';
+import '../../mascot/speech_bubble.dart';
 import '../onboarding_flow.dart';
 
 class WelcomeStep extends StatelessWidget {
@@ -17,6 +20,22 @@ class WelcomeStep extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          // The spark every flame starts from — and a first poke.
+          Center(
+            child: Column(
+              children: <Widget>[
+                SpeechBubble(text: l10n.obWelcomeMascot),
+                FlameMascot(
+                  stage: FlameStage.spark,
+                  mood: MascotMood.happy,
+                  size: 150,
+                  onPoke: (_) {},
+                  semanticLabel: l10n.mascotSemantics,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
           _Point(
             emoji: '🎯',
             title: l10n.obPointGoalTitle,

@@ -8,6 +8,8 @@ import '../../data/app_repository.dart';
 import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
+import '../home/flame_evolution_sheet.dart';
+import '../mascot/flame_painter.dart';
 import '../widgets/app_card.dart';
 import '../widgets/heatmap.dart';
 
@@ -37,6 +39,8 @@ class StatsScreen extends ConsumerWidget {
             AppSpacing.xxl,
           ),
           children: <Widget>[
+            _FlameCard(streak: streak.current),
+            const SizedBox(height: AppSpacing.md),
             AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,6 +154,76 @@ class StatsScreen extends ConsumerWidget {
   }
 }
 
+/// The current form of the flame and the way to the next one.
+class _FlameCard extends StatelessWidget {
+  const _FlameCard({required this.streak});
+
+  final int streak;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    final FlameStage stage = flameStageFor(streak);
+    final FlameStage? next = stage.next;
+    final int? toNext = daysToNextStage(streak);
+    return AppCard(
+      onTap: () => showFlameEvolution(context, streak: streak),
+      border: AppColors.flame.withValues(alpha: 0.5),
+      glow: AppColors.flame.withValues(alpha: 0.6),
+      child: Row(
+        children: <Widget>[
+          CustomPaint(
+            size: const Size.square(84),
+            painter: FlamePainter(
+              stage: stage,
+              mood: MascotMood.happy,
+              seconds: 1.2,
+              blink: false,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  l10n.statsFlameTitle.toUpperCase(),
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelSmall
+                      ?.copyWith(color: AppColors.textTertiary),
+                ),
+                Text(l10n.stageName(stage),
+                    style: Theme.of(context).textTheme.headlineMedium),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  next == null || toNext == null
+                      ? l10n.stageFinal
+                      : l10n.stageNext(l10n.stageName(next), toNext),
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: AppColors.flameSoft),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                ClipRRect(
+                  borderRadius: AppRadius.pill,
+                  child: LinearProgressIndicator(
+                    value: stageProgress(streak),
+                    minHeight: 8,
+                    backgroundColor: AppColors.surfaceHigh,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+        ],
+      ),
+    );
+  }
+}
+
 class _LevelCard extends StatelessWidget {
   const _LevelCard({required this.xp, required this.level});
 
@@ -172,7 +246,7 @@ class _LevelCard extends StatelessWidget {
               Text(l10n.statsLevelNumber(level),
                   style: Theme.of(context).textTheme.headlineMedium),
               const Spacer(),
-              Pill(l10n.homeXp(xp), color: AppColors.lime, filled: true),
+              Pill(l10n.homeXp(xp), color: AppColors.gold, filled: true),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -183,7 +257,7 @@ class _LevelCard extends StatelessWidget {
               minHeight: 10,
               backgroundColor: AppColors.surfaceHigh,
               valueColor:
-                  const AlwaysStoppedAnimation<Color>(AppColors.lime),
+                  const AlwaysStoppedAnimation<Color>(AppColors.gold),
             ),
           ),
           const SizedBox(height: AppSpacing.sm),

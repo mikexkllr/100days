@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../theme/theme.dart';
 
-/// The one container style the whole app uses.
+/// The one container style the whole app uses: lit from the top left, with
+/// an optional coloured glow for the things that should feel alive.
 class AppCard extends StatelessWidget {
   const AppCard({
     super.key,
@@ -12,6 +13,7 @@ class AppCard extends StatelessWidget {
     this.border,
     this.onTap,
     this.gradient,
+    this.glow,
   });
 
   final Widget child;
@@ -20,16 +22,18 @@ class AppCard extends StatelessWidget {
   final Color? border;
   final VoidCallback? onTap;
   final Gradient? gradient;
+  final Color? glow;
 
   @override
   Widget build(BuildContext context) {
     final Widget content = Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: gradient == null ? (color ?? AppColors.surface) : null,
-        gradient: gradient,
+        color: gradient == null ? color : null,
+        gradient: gradient ?? (color == null ? AppGradients.card() : null),
         borderRadius: AppRadius.cardAll,
         border: Border.all(color: border ?? AppColors.outline),
+        boxShadow: glow == null ? null : AppShadows.glow(glow!, strength: 0.7),
       ),
       // List tiles, switches and chips inside a card paint their ink on the
       // nearest Material; without one here the card's own fill would hide it.

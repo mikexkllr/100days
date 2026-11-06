@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
@@ -28,6 +30,12 @@ final _LocalName _localName = _LocalName();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks(
+      <String>['Lilita One'],
+      await rootBundle.loadString('assets/fonts/OFL.txt'),
+    );
+  });
 
   final SqliteFeedStore store = await SqliteFeedStore.open();
   final AppRepository repository = await AppRepository.open(
@@ -106,6 +114,7 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
         _localName.emoji = snapshot.me.profile.avatarEmoji;
         if (snapshot.hasChallenge) {
           unawaited(_scheduleReminders(snapshot));
+          unawaited(_publishWidget(snapshot));
         }
       },
       fireImmediately: true,
@@ -159,6 +168,11 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
               : l10n.notifFriendsActive(active.length),
           body: l10n.notifFriendsActiveBody,
         );
+  }
+
+  /// Hands the home screen widget today's state and the next two weeks.
+  Future<void> _publishWidget(AppSnapshot snapshot) async {
+    await ref.read(streakWidgetProvider).publish(snapshot, await _strings());
   }
 
   /// Rewrites the next two weeks of reminders on every state change.

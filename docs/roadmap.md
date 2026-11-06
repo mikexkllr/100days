@@ -15,6 +15,11 @@ An honest list. Anything here is not built yet.
 - Abstinence milestones
 - Rule-based coach; on-device model (llama.cpp) chosen by phone memory and
   downloaded on a tap, verified by SHA-256
+- Funki, the flame mascot: ten forms by streak, moods, lines in both
+  languages; the day-complete slot machine with real-number reels
+  ([`docs/design.md`](design.md))
+- Home screen widget on Android with a live countdown to midnight
+  ([`docs/home-screen-widget.md`](home-screen-widget.md))
 - Privacy: per-habit sharing, sealed private events, body stats and diary
   never readable by friends
 - Friends-only sync with a signed handshake; friend requests
@@ -68,8 +73,11 @@ a relay sits in between, it is not.
 **Group challenges.** Several people on the same goal, shared progress. The
 data model already supports it, the UI does not.
 
-**Widgets and wearables.** A home screen widget with the streak would be the
-cheapest reminder there is.
+**The widget on iOS.** The WidgetKit code is in `app/ios/StreakWidget/`; the
+extension target and the App Group still have to be added in Xcode
+([`docs/home-screen-widget.md`](home-screen-widget.md#ios)).
+
+**Wearables.** A complication with the streak and the countdown.
 
 **Import from Health / Google Fit.** Steps and training duration automatically
 instead of by hand.

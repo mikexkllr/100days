@@ -14,6 +14,7 @@ import '../data/locale_store.dart';
 import '../data/llm_runtime.dart';
 import '../data/model_download.dart';
 import '../data/notifications.dart';
+import '../data/streak_widget.dart';
 import '../data/sync_service.dart';
 import '../l10n/l10n.dart';
 import '../l10n/prompt_l10n.dart';
@@ -35,6 +36,16 @@ final Provider<SyncService?> syncServiceProvider =
 /// where it could not start.
 final Provider<LanTransport?> lanTransportProvider =
     Provider<LanTransport?>((Ref ref) => null);
+
+/// The streak on the home screen. Talks to a platform plugin, so widget tests
+/// leave it alone: off Android and iOS it does nothing.
+final Provider<StreakWidgetSync> streakWidgetProvider =
+    Provider<StreakWidgetSync>((Ref ref) => StreakWidgetSync());
+
+/// Whether to offer putting the widget on the home screen: Android, a
+/// launcher that supports it, and no widget there yet.
+final FutureProvider<bool> canPinStreakWidgetProvider =
+    FutureProvider<bool>((Ref ref) => ref.watch(streakWidgetProvider).canPin());
 
 final Provider<LocalModelManager> modelManagerProvider =
     Provider<LocalModelManager>((Ref ref) => LocalModelManager());

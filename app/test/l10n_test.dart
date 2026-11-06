@@ -7,6 +7,7 @@ import 'package:hundred_core/hundred_core.dart';
 import 'package:hundred_days/data/llm_runtime.dart';
 import 'package:hundred_days/l10n/food_names.dart';
 import 'package:hundred_days/l10n/l10n.dart';
+import 'package:hundred_days/ui/mascot/mascot_mood.dart';
 
 import 'helpers.dart';
 
@@ -100,6 +101,84 @@ void main() {
         bothLanguages('${category.name} blurb', (AppLocalizations l) =>
             l.habitBlurb(category));
       }
+    });
+
+    test('every form of the flame, and everything Funki says', () {
+      for (final FlameStage stage in FlameStage.values) {
+        bothLanguages(stage.name, (AppLocalizations l) => l.stageName(stage));
+      }
+      // Distinct names in each language: a stage that reads like another
+      // would make the evolution meaningless.
+      for (final AppLocalizations l10n in <AppLocalizations>[en, de]) {
+        expect(
+          FlameStage.values.map(l10n.stageName).toSet(),
+          hasLength(FlameStage.values.length),
+        );
+      }
+      for (final MascotMood mood in MascotMood.values) {
+        for (final AppLocalizations l10n in <AppLocalizations>[en, de]) {
+          final List<String> lines =
+              l10n.mascotLines(mood, day: 12, streak: 11, hoursLeft: 3);
+          expect(lines, isNotEmpty, reason: '${mood.name} has no lines');
+          for (final String line in lines) {
+            expect(line.trim(), isNotEmpty, reason: mood.name);
+          }
+        }
+        // Same number of lines in both languages, so a day picks the same
+        // line in either.
+        expect(
+          en.mascotLines(mood, day: 1, streak: 1, hoursLeft: 1).length,
+          de.mascotLines(mood, day: 1, streak: 1, hoursLeft: 1).length,
+          reason: mood.name,
+        );
+      }
+      expect(en.mascotPokes.length, de.mascotPokes.length);
+      expect(en.mascotHopeful2, isNot(de.mascotHopeful2));
+    });
+
+    test('lines about numbers say the true number', () {
+      expect(de.mascotWorried1(3), contains('3'));
+      expect(en.mascotHappy4(42), contains('42 days'));
+      expect(de.mascotHappy4(42), contains('42 Tage'));
+      expect(de.mascotHappy4(1), contains('Ein Tag'));
+      // Where the hours left are unknown or under one, no line names them.
+      expect(
+        de.mascotLines(MascotMood.worried, day: 5, streak: 4, hoursLeft: 0),
+        isNot(contains(de.mascotWorried1(0))),
+      );
+      expect(
+        de.mascotLines(MascotMood.worried, day: 5, streak: 4, hoursLeft: 2),
+        contains(de.mascotWorried1(2)),
+      );
+      expect(en.stageNext(en.stageBlue, 1), 'Blue flame in 1 day');
+      expect(de.stageNext(de.stageBlue, 8), 'Blaue Flamme in 8 Tagen');
+    });
+
+    test('every reward has a label and a sentence', () {
+      const DayReward reward = DayReward(
+        dayNumber: 30,
+        streakBefore: 29,
+        streak: 30,
+        xpToday: 120,
+        levelBefore: 7,
+        level: 8,
+        stageBefore: FlameStage.blaze,
+        stage: FlameStage.inferno,
+        highlights: RewardHighlight.values,
+      );
+      for (final RewardHighlight highlight in RewardHighlight.values) {
+        bothLanguages('${highlight.name} label',
+            (AppLocalizations l) => l.rewardBonusLabel(highlight));
+        bothLanguages(
+          '${highlight.name} text',
+          (AppLocalizations l) =>
+              l.rewardHighlightText(highlight, reward, cycleLength: 100),
+        );
+      }
+      expect(de.rewardHighlightText(RewardHighlight.evolution, reward,
+          cycleLength: 100), 'Neue Form: Inferno');
+      expect(en.rewardHighlightText(RewardHighlight.milestone, reward,
+          cycleLength: 100), 'Milestone: day 30');
     });
 
     test('goals', () {

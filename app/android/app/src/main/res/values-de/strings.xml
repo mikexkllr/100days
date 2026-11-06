@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="streak_widget_label">Streak</string>
+    <string name="streak_widget_description">Dein Streak und Funki auf einen Blick.</string>
+    <string name="streak_widget_open_app">Öffne die App und entzünde deine Flamme</string>
+</resources>

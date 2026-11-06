@@ -2,8 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hundred_core/hundred_core.dart';
 import 'package:hundred_days/data/app_repository.dart';
+import 'package:hundred_days/l10n/l10n.dart';
+import 'package:hundred_days/ui/celebration/day_complete.dart';
 import 'package:hundred_days/ui/home/home_screen.dart';
+import 'package:hundred_days/ui/home/streak_hero.dart';
+import 'package:hundred_days/ui/home/week_strip.dart';
+import 'package:hundred_days/ui/mascot/flame_mascot.dart';
 import 'package:hundred_days/ui/widgets/habit_tile.dart';
+import 'package:hundred_days/ui/widgets/juicy_button.dart';
 import 'package:hundred_days/ui/widgets/pressure_banner.dart';
 import 'package:hundred_days/ui/widgets/streak_ring.dart';
 
@@ -32,9 +38,9 @@ void main() {
   }) async {
     // Taller than any phone on purpose: the home screen is a lazily built
     // scroll view, so whatever lies below the fold is unbuilt or offstage and
-    // invisible to finders. At 1000 logical pixels the second habit already
-    // sat just under the fold whenever a friend's pressure banner showed.
-    tester.view.physicalSize = const Size(1080, 4800);
+    // invisible to finders. The flame takes the first screen to itself, so
+    // the coach card at the bottom only fits from about 1600 logical pixels.
+    tester.view.physicalSize = const Size(1080, 7200);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -53,6 +59,7 @@ void main() {
     await pump(tester);
 
     expect(find.byType(StreakRing), findsOneWidget);
+    expect(find.byType(FlameMascot), findsOneWidget);
     expect(find.text('Tag 1 / 100'), findsOneWidget);
     expect(find.byType(HabitTile), findsNWidgets(2));
     expect(find.text('Kein Zucker'), findsOneWidget);
@@ -64,7 +71,7 @@ void main() {
     await startChallenge(habits: <HabitCategory>[HabitCategory.noSugar]);
     await pump(tester);
 
-    final Finder button = find.widgetWithText(FilledButton, 'Heute clean');
+    final Finder button = find.widgetWithText(JuicyButton, 'Heute clean');
     await tester.ensureVisible(button);
     await tester.pumpAndSettle();
     await tester.tap(button);
@@ -88,7 +95,7 @@ void main() {
       expect(result.isValid, isTrue, reason: 'event ${all[i].type} at $i');
     }
 
-    expect(find.widgetWithText(FilledButton, 'Erledigt'), findsOneWidget);
+    expect(find.widgetWithText(DoneBadge, 'Erledigt'), findsOneWidget);
   });
 
   testWidgets('a completed day is reflected in the streak',
@@ -98,7 +105,7 @@ void main() {
 
     expect(find.text('0'), findsWidgets);
 
-    final Finder button = find.widgetWithText(FilledButton, 'Heute clean');
+    final Finder button = find.widgetWithText(JuicyButton, 'Heute clean');
     await tester.ensureVisible(button);
     await tester.pumpAndSettle();
     await tester.tap(button);
@@ -166,11 +173,11 @@ void main() {
     await startChallenge(habits: <HabitCategory>[HabitCategory.noSugar]);
 
     await pump(tester);
-    expect(find.widgetWithText(FilledButton, 'Heute clean'), findsOneWidget);
+    expect(find.widgetWithText(JuicyButton, 'Heute clean'), findsOneWidget);
 
     await pump(tester, locale: const Locale('en'));
-    expect(find.widgetWithText(FilledButton, 'Clean today'), findsOneWidget);
-    expect(find.widgetWithText(FilledButton, 'Heute clean'), findsNothing);
+    expect(find.widgetWithText(JuicyButton, 'Clean today'), findsOneWidget);
+    expect(find.widgetWithText(JuicyButton, 'Heute clean'), findsNothing);
   });
 
   testWidgets('the coach speaks on the home screen',
@@ -204,5 +211,119 @@ void main() {
       // The habit is still offered as an optional extra rather than hidden.
       expect(find.text('Freiwillig'), findsOneWidget);
     }
+  });
+
+  testWidgets('completing the day rolls the machine with the real numbers',
+      (WidgetTester tester) async {
+    await startChallenge(habits: <HabitCategory>[HabitCategory.noSugar]);
+    await pump(tester);
+
+    final Finder button = find.widgetWithText(JuicyButton, 'Heute clean');
+    await tester.ensureVisible(button);
+    await tester.pumpAndSettle();
+    await tester.tap(button);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(DayCompleteCelebration), findsOneWidget);
+    final AppSnapshot snapshot = await repository.snapshot();
+    final Finder machine = find.byType(DayCompleteCelebration);
+    // The reels land on what the feed proves: a one-day streak and exactly
+    // the XP the day scored.
+    expect(
+      find.descendant(of: machine, matching: find.text('1')),
+      findsWidgets,
+    );
+    expect(
+      find.descendant(
+        of: machine,
+        matching: find.text('+${snapshot.me.xpByDay[snapshot.today.toString()]}'),
+      ),
+      findsOneWidget,
+    );
+    // Day 1 is a milestone and the ember's first evolution: a real jackpot.
+    expect(find.text('JACKPOT!'), findsOneWidget);
+    expect(find.text('Meilenstein: Tag 1'), findsOneWidget);
+    expect(find.text('Neue Form: Funke'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('celebration-continue')));
+    await tester.pumpAndSettle();
+    expect(find.byType(DayCompleteCelebration), findsNothing);
+    expect(find.widgetWithText(DoneBadge, 'Erledigt'), findsOneWidget);
+  });
+
+  testWidgets('a check-in that leaves the day open rolls nothing',
+      (WidgetTester tester) async {
+    await startChallenge();
+    await pump(tester);
+
+    final Finder button = find.widgetWithText(JuicyButton, 'Heute clean');
+    await tester.ensureVisible(button);
+    await tester.pumpAndSettle();
+    await tester.tap(button);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(DayCompleteCelebration), findsNothing);
+    expect(find.text('1 von 2 erledigt'), findsOneWidget);
+  });
+
+  testWidgets('Funki waits on an open day and grins when it is done',
+      (WidgetTester tester) async {
+    await startChallenge(habits: <HabitCategory>[HabitCategory.noSugar]);
+    await pump(tester);
+
+    FlameMascot mascot() =>
+        tester.widget<FlameMascot>(find.byType(FlameMascot).first);
+    // No streak yet: a small ember, hoping.
+    expect(mascot().stage, FlameStage.ember);
+    expect(mascot().mood, MascotMood.hopeful);
+    expect(find.byType(DayCountdown), findsOneWidget);
+
+    final Finder button = find.widgetWithText(JuicyButton, 'Heute clean');
+    await tester.ensureVisible(button);
+    await tester.pumpAndSettle();
+    await tester.tap(button);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('celebration-continue')));
+    await tester.pumpAndSettle();
+
+    expect(mascot().mood, MascotMood.happy);
+    expect(mascot().stage, FlameStage.spark);
+    expect(find.byType(DayCountdown), findsNothing);
+    expect(find.text('Heute gefüttert. Bis morgen.'), findsOneWidget);
+  });
+
+  testWidgets('the week strip shows today and the days around it',
+      (WidgetTester tester) async {
+    await startChallenge();
+    await pump(tester);
+
+    final WeekStrip strip = tester.widget<WeekStrip>(find.byType(WeekStrip));
+    final int todayIndex = DayKey.today().toDateTime().weekday - 1;
+    expect(strip.marks[todayIndex], DayMark.open);
+    for (int i = 0; i < todayIndex; i++) {
+      expect(strip.marks[i], DayMark.none, reason: 'before the start');
+    }
+  });
+
+  testWidgets('poking Funki gets an answer', (WidgetTester tester) async {
+    await startChallenge();
+    await pump(tester);
+
+    final List<String> pokes = (await localizationsFor(const Locale('de')))
+        .mascotPokes;
+    await tester.tap(find.byType(FlameMascot).first);
+    await tester.pump(const Duration(milliseconds: 1500));
+    expect(
+      pokes.any((String line) => find.text(line).evaluate().isNotEmpty),
+      isTrue,
+    );
+    // The line goes back to the day's own after a moment.
+    await tester.pumpAndSettle(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+    expect(
+      pokes.any((String line) => find.text(line).evaluate().isNotEmpty),
+      isFalse,
+    );
   });
 }

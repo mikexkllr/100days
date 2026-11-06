@@ -463,6 +463,150 @@ abstract class AppLocalizations {
   /// **'100 Days'**
   String get appTitle;
 
+  /// No description provided for @celebrateBonusCycle.
+  ///
+  /// In en, this message translates to:
+  /// **'CYCLE'**
+  String get celebrateBonusCycle;
+
+  /// No description provided for @celebrateBonusEvolution.
+  ///
+  /// In en, this message translates to:
+  /// **'EVOLVED'**
+  String get celebrateBonusEvolution;
+
+  /// No description provided for @celebrateBonusLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'LEVEL UP'**
+  String get celebrateBonusLevel;
+
+  /// No description provided for @celebrateBonusMilestone.
+  ///
+  /// In en, this message translates to:
+  /// **'MILESTONE'**
+  String get celebrateBonusMilestone;
+
+  /// No description provided for @celebrateBonusPerfect.
+  ///
+  /// In en, this message translates to:
+  /// **'PERFECT'**
+  String get celebrateBonusPerfect;
+
+  /// No description provided for @celebrateBonusRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'RECORD'**
+  String get celebrateBonusRecord;
+
+  /// No description provided for @celebrateContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep burning'**
+  String get celebrateContinue;
+
+  /// No description provided for @celebrateHighlightCycle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cycle complete: {days} days'**
+  String celebrateHighlightCycle(int days);
+
+  /// No description provided for @celebrateHighlightEvolution.
+  ///
+  /// In en, this message translates to:
+  /// **'New form: {stage}'**
+  String celebrateHighlightEvolution(String stage);
+
+  /// No description provided for @celebrateHighlightLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Level {level} reached'**
+  String celebrateHighlightLevel(int level);
+
+  /// No description provided for @celebrateHighlightMilestone.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestone: day {day}'**
+  String celebrateHighlightMilestone(int day);
+
+  /// No description provided for @celebrateHighlightPerfect.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect day: +{xp} XP bonus'**
+  String celebrateHighlightPerfect(int xp);
+
+  /// No description provided for @celebrateHighlightRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'New record: {streak, plural, =1{1 day} other{{streak} days}}'**
+  String celebrateHighlightRecord(int streak);
+
+  /// No description provided for @celebrateJackpot.
+  ///
+  /// In en, this message translates to:
+  /// **'JACKPOT!'**
+  String get celebrateJackpot;
+
+  /// No description provided for @celebrateNextLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Level {level} in {xp} XP'**
+  String celebrateNextLevel(int level, int xp);
+
+  /// No description provided for @celebrateNextMilestone.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day} in {days, plural, =1{1 day} other{{days} days}}'**
+  String celebrateNextMilestone(int day, int days);
+
+  /// No description provided for @celebrateNextUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Next up'**
+  String get celebrateNextUp;
+
+  /// No description provided for @celebrateReelBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'BONUS'**
+  String get celebrateReelBonus;
+
+  /// No description provided for @celebrateReelStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'STREAK'**
+  String get celebrateReelStreak;
+
+  /// No description provided for @celebrateReelXp.
+  ///
+  /// In en, this message translates to:
+  /// **'XP TODAY'**
+  String get celebrateReelXp;
+
+  /// No description provided for @celebrateShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Brag about it'**
+  String get celebrateShare;
+
+  /// No description provided for @celebrateShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'{streak, plural, =1{🔥 1 day streak} other{🔥 {streak} days streak}}, day {day} of my challenge. Catch me if you can.'**
+  String celebrateShareText(int streak, int day);
+
+  /// No description provided for @celebrateSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to skip'**
+  String get celebrateSkip;
+
+  /// No description provided for @celebrateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'DAY COMPLETE!'**
+  String get celebrateTitle;
+
   /// No description provided for @cheerRespectStreak.
   ///
   /// In en, this message translates to:
@@ -1013,6 +1157,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error: {message}'**
   String errorGeneric(String message);
+
+  /// No description provided for @evolutionCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'You are here'**
+  String get evolutionCurrent;
+
+  /// No description provided for @evolutionLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked'**
+  String get evolutionLocked;
+
+  /// No description provided for @evolutionOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'See all forms'**
+  String get evolutionOpen;
+
+  /// No description provided for @evolutionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak decides the form. A break takes it back.'**
+  String get evolutionSubtitle;
+
+  /// No description provided for @evolutionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Flame evolution'**
+  String get evolutionTitle;
+
+  /// No description provided for @evolutionUnlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocked'**
+  String get evolutionUnlocked;
 
   /// No description provided for @exerciseAbWheel.
   ///
@@ -2340,6 +2520,54 @@ abstract class AppLocalizations {
   /// **'more'**
   String get heatMore;
 
+  /// No description provided for @heroBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Best: {days}'**
+  String heroBest(int days);
+
+  /// No description provided for @heroCountdownFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} left to light the first spark'**
+  String heroCountdownFirst(String time);
+
+  /// No description provided for @heroCountdownSave.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} left to save your streak'**
+  String heroCountdownSave(String time);
+
+  /// No description provided for @heroFedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Fed today. See you tomorrow.'**
+  String get heroFedToday;
+
+  /// No description provided for @heroFrozen.
+  ///
+  /// In en, this message translates to:
+  /// **'Frozen today. The streak holds.'**
+  String get heroFrozen;
+
+  /// No description provided for @heroRelapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Relapse logged. Tomorrow is a fresh spark.'**
+  String get heroRelapse;
+
+  /// No description provided for @heroRestDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest day. The streak waits.'**
+  String get heroRestDay;
+
+  /// No description provided for @heroThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get heroThisWeek;
+
   /// No description provided for @homeAscendAction.
   ///
   /// In en, this message translates to:
@@ -2843,6 +3071,246 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'30 % protein, 20 % carbs, 50 % fat.'**
   String get macroPresetLowCarbBlurb;
+
+  /// No description provided for @mascotHappy1.
+  ///
+  /// In en, this message translates to:
+  /// **'Fed. I\'m burning for you.'**
+  String get mascotHappy1;
+
+  /// No description provided for @mascotHappy2.
+  ///
+  /// In en, this message translates to:
+  /// **'Done. That\'s how legends are made.'**
+  String get mascotHappy2;
+
+  /// No description provided for @mascotHappy3.
+  ///
+  /// In en, this message translates to:
+  /// **'Another day in the bag. See you tomorrow.'**
+  String get mascotHappy3;
+
+  /// No description provided for @mascotHappy4.
+  ///
+  /// In en, this message translates to:
+  /// **'{streak, plural, =1{One day} other{{streak} days}}. It\'s getting hot in here.'**
+  String mascotHappy4(int streak);
+
+  /// No description provided for @mascotHappy5.
+  ///
+  /// In en, this message translates to:
+  /// **'You did it. Again. I love that for us.'**
+  String get mascotHappy5;
+
+  /// No description provided for @mascotHappy6.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest now. Tomorrow I\'m hungry again.'**
+  String get mascotHappy6;
+
+  /// No description provided for @mascotHopeful1.
+  ///
+  /// In en, this message translates to:
+  /// **'Every fire starts with a spark. Today?'**
+  String get mascotHopeful1;
+
+  /// No description provided for @mascotHopeful2.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m just an ember. Make me a flame.'**
+  String get mascotHopeful2;
+
+  /// No description provided for @mascotHopeful3.
+  ///
+  /// In en, this message translates to:
+  /// **'Zero is just a starting number.'**
+  String get mascotHopeful3;
+
+  /// No description provided for @mascotHopeful4.
+  ///
+  /// In en, this message translates to:
+  /// **'One day. Then we\'ll talk.'**
+  String get mascotHopeful4;
+
+  /// No description provided for @mascotHungry1.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m hungry. Feed me one day.'**
+  String get mascotHungry1;
+
+  /// No description provided for @mascotHungry2.
+  ///
+  /// In en, this message translates to:
+  /// **'Today counts. Only today.'**
+  String get mascotHungry2;
+
+  /// No description provided for @mascotHungry3.
+  ///
+  /// In en, this message translates to:
+  /// **'One tap and I grow. Your move.'**
+  String get mascotHungry3;
+
+  /// No description provided for @mascotHungry4.
+  ///
+  /// In en, this message translates to:
+  /// **'Your future self is watching. So am I.'**
+  String get mascotHungry4;
+
+  /// No description provided for @mascotHungry5.
+  ///
+  /// In en, this message translates to:
+  /// **'Show up. That\'s the whole trick.'**
+  String get mascotHungry5;
+
+  /// No description provided for @mascotHungry6.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day}. Let\'s make it count.'**
+  String mascotHungry6(int day);
+
+  /// No description provided for @mascotHyped1.
+  ///
+  /// In en, this message translates to:
+  /// **'YES! You\'re on fire. Literally.'**
+  String get mascotHyped1;
+
+  /// No description provided for @mascotHyped2.
+  ///
+  /// In en, this message translates to:
+  /// **'Look at me burn!'**
+  String get mascotHyped2;
+
+  /// No description provided for @mascotHyped3.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s what I\'m talking about!'**
+  String get mascotHyped3;
+
+  /// No description provided for @mascotHyped4.
+  ///
+  /// In en, this message translates to:
+  /// **'Unstoppable. Same again tomorrow.'**
+  String get mascotHyped4;
+
+  /// No description provided for @mascotName.
+  ///
+  /// In en, this message translates to:
+  /// **'Funki'**
+  String get mascotName;
+
+  /// No description provided for @mascotPoke1.
+  ///
+  /// In en, this message translates to:
+  /// **'Hey! That tickles.'**
+  String get mascotPoke1;
+
+  /// No description provided for @mascotPoke2.
+  ///
+  /// In en, this message translates to:
+  /// **'Careful, hot!'**
+  String get mascotPoke2;
+
+  /// No description provided for @mascotPoke3.
+  ///
+  /// In en, this message translates to:
+  /// **'Again! 🔥'**
+  String get mascotPoke3;
+
+  /// No description provided for @mascotPoke4.
+  ///
+  /// In en, this message translates to:
+  /// **'Poke me less, check in more.'**
+  String get mascotPoke4;
+
+  /// No description provided for @mascotPoke5.
+  ///
+  /// In en, this message translates to:
+  /// **'I don\'t bite. I burn.'**
+  String get mascotPoke5;
+
+  /// No description provided for @mascotPoke6.
+  ///
+  /// In en, this message translates to:
+  /// **'Boop.'**
+  String get mascotPoke6;
+
+  /// No description provided for @mascotPokeCombo.
+  ///
+  /// In en, this message translates to:
+  /// **'Okay, okay, I\'m burning already!'**
+  String get mascotPokeCombo;
+
+  /// No description provided for @mascotSad1.
+  ///
+  /// In en, this message translates to:
+  /// **'It happens. Honest beats perfect.'**
+  String get mascotSad1;
+
+  /// No description provided for @mascotSad2.
+  ///
+  /// In en, this message translates to:
+  /// **'Down, not out. Tomorrow we go again.'**
+  String get mascotSad2;
+
+  /// No description provided for @mascotSad3.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m small today. I\'ll be back.'**
+  String get mascotSad3;
+
+  /// No description provided for @mascotSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Funki, your flame. Tap to poke.'**
+  String get mascotSemantics;
+
+  /// No description provided for @mascotSleepy1.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest day. I\'m just glowing quietly.'**
+  String get mascotSleepy1;
+
+  /// No description provided for @mascotSleepy2.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing scheduled. Recharging. Zzz.'**
+  String get mascotSleepy2;
+
+  /// No description provided for @mascotSleepy3.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest is part of the plan. The streak waits.'**
+  String get mascotSleepy3;
+
+  /// No description provided for @mascotWorried1.
+  ///
+  /// In en, this message translates to:
+  /// **'Psst. {hours} h left. I\'m getting cold.'**
+  String mascotWorried1(int hours);
+
+  /// No description provided for @mascotWorried2.
+  ///
+  /// In en, this message translates to:
+  /// **'{streak, plural, =1{One day} other{{streak} days}}. Don\'t let me go out tonight.'**
+  String mascotWorried2(int streak);
+
+  /// No description provided for @mascotWorried3.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t let me go out. Please?'**
+  String get mascotWorried3;
+
+  /// No description provided for @mascotWorried4.
+  ///
+  /// In en, this message translates to:
+  /// **'Midnight doesn\'t negotiate. You still can.'**
+  String get mascotWorried4;
+
+  /// No description provided for @mascotWorried5.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m flickering. That\'s not a good sign.'**
+  String get mascotWorried5;
 
   /// No description provided for @mealBreakfast.
   ///
@@ -4248,6 +4716,12 @@ abstract class AppLocalizations {
   /// **'100 days and far beyond'**
   String get obWelcomeEyebrow;
 
+  /// No description provided for @obWelcomeMascot.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi, I\'m Funki, your flame. Feed me one day at a time and watch me grow.'**
+  String get obWelcomeMascot;
+
   /// No description provided for @obWelcomeSubtitle.
   ///
   /// In en, this message translates to:
@@ -5271,6 +5745,84 @@ abstract class AppLocalizations {
   /// **'Upper / Lower'**
   String get splitUpperLower;
 
+  /// No description provided for @stageBlaze.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonfire'**
+  String get stageBlaze;
+
+  /// No description provided for @stageBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue flame'**
+  String get stageBlue;
+
+  /// No description provided for @stageEmber.
+  ///
+  /// In en, this message translates to:
+  /// **'Ember'**
+  String get stageEmber;
+
+  /// No description provided for @stageFinal.
+  ///
+  /// In en, this message translates to:
+  /// **'Final form. Nothing left but to keep burning.'**
+  String get stageFinal;
+
+  /// No description provided for @stageFlame.
+  ///
+  /// In en, this message translates to:
+  /// **'Flame'**
+  String get stageFlame;
+
+  /// No description provided for @stageFlicker.
+  ///
+  /// In en, this message translates to:
+  /// **'Little flame'**
+  String get stageFlicker;
+
+  /// No description provided for @stageFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =0{No streak} =1{From 1 day} other{From {days} days}}'**
+  String stageFrom(int days);
+
+  /// No description provided for @stageInferno.
+  ///
+  /// In en, this message translates to:
+  /// **'Inferno'**
+  String get stageInferno;
+
+  /// No description provided for @stageNext.
+  ///
+  /// In en, this message translates to:
+  /// **'{stage} in {days, plural, =1{1 day} other{{days} days}}'**
+  String stageNext(String stage, int days);
+
+  /// No description provided for @stageNova.
+  ///
+  /// In en, this message translates to:
+  /// **'Supernova'**
+  String get stageNova;
+
+  /// No description provided for @stagePlasma.
+  ///
+  /// In en, this message translates to:
+  /// **'Plasma'**
+  String get stagePlasma;
+
+  /// No description provided for @stageSpark.
+  ///
+  /// In en, this message translates to:
+  /// **'Spark'**
+  String get stageSpark;
+
+  /// No description provided for @stageSun.
+  ///
+  /// In en, this message translates to:
+  /// **'Sun'**
+  String get stageSun;
+
   /// No description provided for @statDay.
   ///
   /// In en, this message translates to:
@@ -5300,6 +5852,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Current streak'**
   String get statsCurrentStreak;
+
+  /// No description provided for @statsFlameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your flame'**
+  String get statsFlameTitle;
 
   /// No description provided for @statsFullDays.
   ///
@@ -5577,11 +6135,29 @@ abstract class AppLocalizations {
   /// **'Mo'**
   String get weekdayShortMon;
 
+  /// No description provided for @weekdayShortSat.
+  ///
+  /// In en, this message translates to:
+  /// **'Sa'**
+  String get weekdayShortSat;
+
   /// No description provided for @weekdayShortSun.
   ///
   /// In en, this message translates to:
   /// **'Su'**
   String get weekdayShortSun;
+
+  /// No description provided for @weekdayShortThu.
+  ///
+  /// In en, this message translates to:
+  /// **'Th'**
+  String get weekdayShortThu;
+
+  /// No description provided for @weekdayShortTue.
+  ///
+  /// In en, this message translates to:
+  /// **'Tu'**
+  String get weekdayShortTue;
 
   /// No description provided for @weekdayShortWed.
   ///
@@ -5612,6 +6188,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'WED'**
   String get weekdayWed;
+
+  /// No description provided for @widgetCold.
+  ///
+  /// In en, this message translates to:
+  /// **'Light the first spark today.'**
+  String get widgetCold;
+
+  /// No description provided for @widgetDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Fed today ✓'**
+  String get widgetDone;
+
+  /// No description provided for @widgetFrozen.
+  ///
+  /// In en, this message translates to:
+  /// **'Frozen. The streak is safe.'**
+  String get widgetFrozen;
+
+  /// No description provided for @widgetGoesOutIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Goes out in'**
+  String get widgetGoesOutIn;
+
+  /// No description provided for @widgetOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Feed me before midnight!'**
+  String get widgetOpen;
+
+  /// No description provided for @widgetPromoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add widget'**
+  String get widgetPromoAction;
+
+  /// No description provided for @widgetPromoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'See Funki every time you unlock your phone. Fed, hungry or about to go out.'**
+  String get widgetPromoBody;
+
+  /// No description provided for @widgetPromoManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-press your home screen, tap Widgets and pick 100 Days.'**
+  String get widgetPromoManual;
+
+  /// No description provided for @widgetPromoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak on the home screen'**
+  String get widgetPromoTitle;
+
+  /// No description provided for @widgetRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest day. I\'m saving energy.'**
+  String get widgetRest;
 
   /// No description provided for @workoutArms.
   ///

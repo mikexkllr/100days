@@ -33,6 +33,18 @@ a tier, the streak keeps counting, and the targets get harder.
 **Nobody is watching.** There is no server that knows about your relapses,
 because there is no server at all. The coach runs on the device.
 
+**Showing up feels like winning.** Your streak is Funki, a flame with a face
+that grows through ten forms — from an ember to a sun — and goes hungry,
+worried or proud with your day. A clock runs to midnight while today is open.
+Finishing the day rolls a slot machine: streak, XP and bonus reels, and a
+jackpot when something rare really happened — a milestone, a level-up, a new
+form, a record. Every reel lands on a real number; only the size of the
+moment varies. More: [`docs/design.md`](docs/design.md).
+
+**It is on your home screen.** A widget with Funki, the streak, the countdown
+and the week, which turns over at midnight and turns worried in the evening
+without the app having to run. [`docs/home-screen-widget.md`](docs/home-screen-widget.md).
+
 ## What you can track
 
 🏋️ Training · 🏃 Cardio · 🥗 Nutrition · 🚱 No alcohol · 🍬 No sugar ·
@@ -143,11 +155,13 @@ More on this: [`docs/architecture.md`](docs/architecture.md).
 
 ## Status
 
-Working: onboarding, check-ins, streaks, editable training plans with set-by-set
-logging, nutrition targets and a food diary, privacy settings, the on-device
-model with download, coach, feed, league, nudges, invites and friend requests,
-LAN sync, local notifications, recovery key, English and German, and a manual
-pipeline that ships a signed AAB to the Google Play internal track.
+Working: onboarding, check-ins, streaks, Funki and the flame evolution, the
+day-complete slot machine, the home screen widget on Android, editable
+training plans with set-by-set logging, nutrition targets and a food diary,
+privacy settings, the on-device model with download, coach, feed, league,
+nudges, invites and friend requests, LAN sync, local notifications, recovery
+key, English and German, and a manual pipeline that ships a signed AAB to the
+Google Play internal track.
 
 What is still missing is listed honestly in [`docs/roadmap.md`](docs/roadmap.md)
 — among other things a relay transport for friends outside your Wi-Fi, an

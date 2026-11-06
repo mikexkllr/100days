@@ -109,6 +109,16 @@ List<Override> platformFreeOverrides({
       deviceProfileProvider.overrideWith((Ref ref) async => device),
     ];
 
+/// Widget tests run with the system's "reduce motion" switched on. The
+/// flame flickers, embers rise and buttons shimmer for as long as they are on
+/// screen, and `pumpAndSettle` would wait for them forever; the app honours
+/// the setting for people who ask for less motion, and the tests ride on
+/// that. Everything that carries meaning still animates and finishes.
+Widget reducedMotion(BuildContext context, Widget? child) => MediaQuery(
+      data: MediaQuery.of(context).copyWith(disableAnimations: true),
+      child: child!,
+    );
+
 /// Wraps [child] in the providers, theme and localizations the real app
 /// supplies. Defaults to German so the tests read like the product does; pass
 /// [locale] to check the other language.
@@ -126,6 +136,7 @@ Widget wrapForTest({
     ],
     child: MaterialApp(
       theme: buildAppTheme(),
+      builder: reducedMotion,
       locale: locale,
       supportedLocales: kSupportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,

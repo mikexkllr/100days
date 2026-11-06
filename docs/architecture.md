@@ -150,6 +150,24 @@ The weekly league buckets XP by ISO week. Promotion and relegation only kick in
 from six participants — below that a rank says nothing. The league is friends
 only, by construction: there is no server that knows anyone else.
 
+## Flame, outlook, rewards
+
+Three small pure functions carry the reward design
+([`design.md`](design.md)), and they live in the core for the same reason as
+the streak: they have to be right.
+
+- **`flameStageFor`** maps the current streak to one of ten forms. A pure
+  function of the streak, so a friend's device draws the same flame.
+- **`projectOutlook`** projects the streak over the coming days *if nothing
+  more is logged*, by the same rules `computeStreak` counts with. It is the
+  timetable the home screen widget reads, since the widget cannot run the
+  core itself.
+- **`rewardForDay`** compares the streak and lifetime XP just before and just
+  after the check-in that completed a day, and lists what the day earned:
+  cycle complete, milestone, evolution, record (`StreakStats.previousBest`),
+  level-up, perfect day. The celebration only decides how loud to be about
+  it.
+
 ## Plans
 
 Both plans are optional and stored on the goal, so they are part of the

@@ -1,0 +1,6 @@
+/* The only display text outside the ARB files: the widget gallery reads it
+   before the app has ever run. Keep in step with de.lproj and the Android
+   values/strings.xml. */
+"widget.label" = "Streak";
+"widget.description" = "Your streak and Funki, at a glance.";
+"widget.openApp" = "Open the app to light your flame";

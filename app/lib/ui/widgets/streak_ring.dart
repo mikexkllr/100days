@@ -1,82 +1,78 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:hundred_core/hundred_core.dart';
 
-import '../../l10n/l10n.dart';
 import '../../theme/theme.dart';
+import '../mascot/flame_mascot.dart';
+import '../motion/motion.dart';
 
-/// The number the whole app exists to make go up.
+/// The cycle as a ring of fire around Funki.
+///
+/// The arc is how far through the current cycle you are; the dots on it are
+/// the milestone days — gold once passed, the next one pulsing. The flame in
+/// the middle is the streak itself.
 class StreakRing extends StatelessWidget {
   const StreakRing({
     super.key,
-    required this.streak,
     required this.progress,
-    required this.dayNumber,
-    required this.totalDays,
+    required this.dayInCycle,
+    required this.cycleLength,
+    required this.stage,
+    required this.mood,
     this.atRisk = false,
-    this.size = 210,
+    this.size = 260,
+    this.onPoke,
+    this.mascotLabel,
   });
 
-  final int streak;
+  /// 0..1 through the current cycle.
   final double progress;
-  final int dayNumber;
-  final int totalDays;
+  final int dayInCycle;
+  final int cycleLength;
+  final FlameStage stage;
+  final MascotMood mood;
   final bool atRisk;
   final double size;
+  final ValueChanged<int>? onPoke;
+  final String? mascotLabel;
 
   @override
   Widget build(BuildContext context) {
-    final AppLocalizations l10n = context.l10n;
-    final Color accent = atRisk ? AppColors.danger : AppColors.flame;
-    return SizedBox(
-      width: size,
-      height: size,
+    return SizedBox.square(
+      dimension: size,
       child: Stack(
         alignment: Alignment.center,
         children: <Widget>[
-          TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0, end: progress.clamp(0.0, 1.0)),
-            duration: const Duration(milliseconds: 900),
-            curve: Curves.easeOutCubic,
-            builder: (BuildContext context, double value, Widget? _) =>
-                CustomPaint(
-              size: Size.square(size),
-              painter: _RingPainter(progress: value, accent: accent),
+          Positioned.fill(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0, end: progress.clamp(0.0, 1.0)),
+              duration: const Duration(milliseconds: 1400),
+              curve: Curves.easeOutCubic,
+              builder: (BuildContext context, double value, Widget? _) =>
+                  AmbientClock(
+                builder: (BuildContext context, double seconds, Widget? _) =>
+                    CustomPaint(
+                  painter: _RingPainter(
+                    progress: value,
+                    dayInCycle: dayInCycle,
+                    cycleLength: cycleLength,
+                    seconds: seconds,
+                    headColor: atRisk ? AppColors.danger : AppColors.spark,
+                  ),
+                ),
+              ),
             ),
           ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                streak.toString(),
-                style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      color: accent,
-                      fontSize: size * 0.34,
-                    ),
-              ),
-              Text(
-                l10n.ringDayStreak(streak),
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-              ),
-              const SizedBox(height: 6),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: const BoxDecoration(
-                  color: AppColors.surfaceHigh,
-                  borderRadius: AppRadius.pill,
-                ),
-                child: Text(
-                  l10n.ringDayOfTotal(dayNumber, totalDays),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontSize: 12.5,
-                        color: AppColors.textSecondary,
-                      ),
-                ),
-              ),
-            ],
+          Padding(
+            padding: EdgeInsets.only(bottom: size * 0.04),
+            child: FlameMascot(
+              stage: stage,
+              mood: mood,
+              size: size * 0.74,
+              onPoke: onPoke,
+              semanticLabel: mascotLabel,
+            ),
           ),
         ],
       ),
@@ -85,47 +81,140 @@ class StreakRing extends StatelessWidget {
 }
 
 class _RingPainter extends CustomPainter {
-  const _RingPainter({required this.progress, required this.accent});
+  _RingPainter({
+    required this.progress,
+    required this.dayInCycle,
+    required this.cycleLength,
+    required this.seconds,
+    required this.headColor,
+  });
 
   final double progress;
-  final Color accent;
+  final int dayInCycle;
+  final int cycleLength;
+  final double seconds;
+  final Color headColor;
+
+  static const double _stroke = 13;
+  static const double _start = -math.pi / 2;
+
+  Offset _onRing(Offset center, double radius, double fraction) {
+    final double a = _start + math.pi * 2 * fraction;
+    return center + Offset(math.cos(a), math.sin(a)) * radius;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
     final Offset center = size.center(Offset.zero);
-    final double radius = size.width / 2 - 12;
+    final double radius = size.width / 2 - _stroke;
     final Rect rect = Rect.fromCircle(center: center, radius: radius);
-    const double start = -math.pi / 2;
 
-    final Paint track = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 14
-      ..strokeCap = StrokeCap.round
-      ..color = AppColors.surfaceHigh;
-    canvas.drawArc(rect, start, math.pi * 2, false, track);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = _stroke
+        ..color = AppColors.surfaceHigh,
+    );
+    // A thin inner rim, so the track reads as a groove.
+    canvas.drawCircle(
+      center,
+      radius - _stroke / 2 - 2,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1
+        ..color = AppColors.outline.withValues(alpha: 0.6),
+    );
 
-    if (progress <= 0) return;
-
-    final Paint arc = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 14
-      ..strokeCap = StrokeCap.round
-      ..shader = SweepGradient(
-        startAngle: 0,
-        endAngle: math.pi * 2,
-        transform: const GradientRotation(start),
+    if (progress > 0) {
+      final Shader shader = const SweepGradient(
+        transform: GradientRotation(_start),
         colors: <Color>[
-          accent.withValues(alpha: 0.35),
-          accent,
-          AppColors.flameSoft,
+          AppColors.flameHot,
+          AppColors.flame,
+          AppColors.amber,
+          AppColors.spark,
         ],
-        stops: const <double>[0, 0.6, 1],
+        stops: <double>[0, 0.35, 0.75, 1],
       ).createShader(rect);
+      final double sweep = math.pi * 2 * progress;
+      canvas.drawArc(
+        rect,
+        _start,
+        sweep,
+        false,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = _stroke + 8
+          ..strokeCap = StrokeCap.round
+          ..shader = shader
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
+      );
+      canvas.drawArc(
+        rect,
+        _start,
+        sweep,
+        false,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = _stroke
+          ..strokeCap = StrokeCap.round
+          ..shader = shader,
+      );
+    }
 
-    canvas.drawArc(rect, start, math.pi * 2 * progress, false, arc);
+    // Milestones on the ring: gold when passed, the next one pulsing.
+    int? next;
+    for (final int m in kMilestoneDays) {
+      if (m > cycleLength) break;
+      if (m > dayInCycle && next == null) next = m;
+    }
+    final double pulse = 0.5 + 0.5 * math.sin(seconds * 4);
+    for (final int m in kMilestoneDays) {
+      if (m > cycleLength) break;
+      final Offset p = _onRing(center, radius, m / cycleLength);
+      if (m <= dayInCycle) {
+        canvas.drawCircle(
+            p,
+            7,
+            Paint()
+              ..color = AppColors.gold.withValues(alpha: 0.6)
+              ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5));
+        canvas.drawCircle(p, 4.2, Paint()..color = const Color(0xFFFFF4C2));
+      } else if (m == next) {
+        canvas.drawCircle(
+          p,
+          5.5 + pulse * 2.5,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2
+            ..color = Colors.white.withValues(alpha: 0.35 + 0.5 * pulse),
+        );
+        canvas.drawCircle(p, 3.2, Paint()..color = Colors.white);
+      } else {
+        canvas.drawCircle(p, 2.6, Paint()..color = AppColors.textTertiary);
+      }
+    }
+
+    // The comet head where the arc ends.
+    if (progress > 0) {
+      final Offset head = _onRing(center, radius, progress);
+      canvas.drawCircle(
+        head,
+        11 + pulse * 3,
+        Paint()
+          ..color = headColor.withValues(alpha: 0.55)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+      );
+      canvas.drawCircle(head, 5.5, Paint()..color = Colors.white);
+    }
   }
 
   @override
   bool shouldRepaint(_RingPainter oldDelegate) =>
-      oldDelegate.progress != progress || oldDelegate.accent != accent;
+      oldDelegate.progress != progress ||
+      oldDelegate.seconds != seconds ||
+      oldDelegate.dayInCycle != dayInCycle ||
+      oldDelegate.headColor != headColor;
 }

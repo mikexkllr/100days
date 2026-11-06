@@ -44,6 +44,7 @@ void main() {
         ...platformFreeOverrides(),
       ],
       child: MaterialApp(
+        builder: reducedMotion,
         locale: locale,
         supportedLocales: kSupportedLocales,
         localizationsDelegates: AppLocalizations.localizationsDelegates,

@@ -1,4 +1,7 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
@@ -6,13 +9,16 @@ import '../../data/app_repository.dart';
 import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
+import '../celebration/day_complete.dart';
+import '../motion/rolling_number.dart';
 import '../nutrition/diary_view.dart';
 import '../plan/workout_detail.dart';
 import '../widgets/app_card.dart';
 import '../widgets/habit_tile.dart';
+import '../widgets/juicy_button.dart';
 import '../widgets/pressure_banner.dart';
-import '../widgets/streak_ring.dart';
 import 'coach_card.dart';
+import 'streak_hero.dart';
 
 /// Today. The only screen most users open on most days.
 class HomeScreen extends ConsumerWidget {
@@ -40,14 +46,38 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _HomeBody extends ConsumerWidget {
+class _HomeBody extends ConsumerStatefulWidget {
   const _HomeBody({required this.snapshot, this.onOpenSocial});
 
   final AppSnapshot snapshot;
   final VoidCallback? onOpenSocial;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_HomeBody> createState() => _HomeBodyState();
+}
+
+class _HomeBodyState extends ConsumerState<_HomeBody> {
+  final GlobalKey _habitsKey = GlobalKey();
+
+  /// What each habit's last check-in earned, and a counter per habit that
+  /// replays its celebration.
+  final Map<String, int> _xpGain = <String, int>{};
+  final Map<String, int> _celebrations = <String, int>{};
+
+  void _scrollToHabits() {
+    final BuildContext? target = _habitsKey.currentContext;
+    if (target == null) return;
+    Scrollable.ensureVisible(
+      target,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOutCubic,
+      alignment: 0.05,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppSnapshot snapshot = widget.snapshot;
     final AppLocalizations l10n = context.l10n;
     final Challenge challenge = snapshot.challenge!;
     final DayKey today = snapshot.today;
@@ -63,6 +93,21 @@ class _HomeBody extends ConsumerWidget {
         challenge.dayInCycle(today) >= challenge.lengthDays &&
         snapshot.me.streak.doneToday;
 
+    Widget tile(Habit habit, {bool scheduled = true}) => Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm + 4),
+          child: HabitTile(
+            key: ValueKey<String>('habit-${habit.id}'),
+            habit: habit,
+            streak: snapshot.me.habitStreaks[habit.id] ?? 0,
+            entry: log?.entryFor(habit.id),
+            scheduledToday: scheduled,
+            xpGain: _xpGain[habit.id],
+            celebration: _celebrations[habit.id] ?? 0,
+            onCheckIn: (num value) => _checkIn(habit, value),
+            onRelapse: () => _confirmRelapse(habit),
+          ),
+        );
+
     return RefreshIndicator(
       color: AppColors.flame,
       backgroundColor: AppColors.surface,
@@ -76,25 +121,14 @@ class _HomeBody extends ConsumerWidget {
         ),
         children: <Widget>[
           _Header(snapshot: snapshot),
+          StreakHero(snapshot: snapshot, onTapStatus: _scrollToHabits),
           const SizedBox(height: AppSpacing.md),
-          Center(
-            child: StreakRing(
-              streak: snapshot.me.streak.current,
-              progress: challenge.progressInCycle(today),
-              dayNumber: challenge.dayNumber(today),
-              totalDays: challenge.lengthDays * (challenge.cycle + 1),
-              atRisk: snapshot.me.streak.atRisk,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          const CoachCard(),
-          const SizedBox(height: AppSpacing.sm + 4),
           PressureBanner(
             activePeers: snapshot.peerStates
                 .where((PeerState p) => p.activeToday)
                 .toList(),
             doneToday: snapshot.me.streak.doneToday,
-            onTap: onOpenSocial,
+            onTap: widget.onOpenSocial,
           ),
           if (cycleDone) ...<Widget>[
             const SizedBox(height: AppSpacing.sm + 4),
@@ -118,41 +152,27 @@ class _HomeBody extends ConsumerWidget {
           ],
           SectionHeader(
             l10n.homeCheckOffToday,
+            key: _habitsKey,
             subtitle: todayHabits.isEmpty
                 ? l10n.homeRestDay
                 : l10n.homeDoneOfTotal(
                     _doneCount(todayHabits, log), todayHabits.length),
           ),
-          for (final Habit habit in todayHabits)
+          if (todayHabits.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm + 2),
-              child: HabitTile(
-                habit: habit,
-                streak: snapshot.me.habitStreaks[habit.id] ?? 0,
-                entry: log?.entryFor(habit.id),
-                onCheckIn: (num value) =>
-                    _checkIn(context, ref, habit, value, snapshot),
-                onRelapse: () => _confirmRelapse(context, ref, habit),
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              child: _DayProgress(
+                done: _doneCount(todayHabits, log),
+                total: todayHabits.length,
               ),
             ),
+          for (final Habit habit in todayHabits) tile(habit),
           if (otherHabits.isNotEmpty) ...<Widget>[
             SectionHeader(
               l10n.homeOptional,
               subtitle: l10n.homeOptionalSubtitle,
             ),
-            for (final Habit habit in otherHabits)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm + 2),
-                child: HabitTile(
-                  habit: habit,
-                  streak: snapshot.me.habitStreaks[habit.id] ?? 0,
-                  entry: log?.entryFor(habit.id),
-                  scheduledToday: false,
-                  onCheckIn: (num value) =>
-                      _checkIn(context, ref, habit, value, snapshot),
-                  onRelapse: () => _confirmRelapse(context, ref, habit),
-                ),
-              ),
+            for (final Habit habit in otherHabits) tile(habit, scheduled: false),
           ],
           if (snapshot.me.streak.atRisk &&
               challenge.streakFreezesRemaining -
@@ -164,6 +184,9 @@ class _HomeBody extends ConsumerWidget {
                   snapshot.me.streak.freezesUsed,
             ),
           ],
+          const SizedBox(height: AppSpacing.lg),
+          const CoachCard(),
+          const _WidgetPromo(),
         ],
       ),
     );
@@ -179,36 +202,53 @@ class _HomeBody extends ConsumerWidget {
     }).length;
   }
 
-  Future<void> _checkIn(
-    BuildContext context,
-    WidgetRef ref,
-    Habit habit,
-    num value,
-    AppSnapshot before,
-  ) async {
+  Future<void> _checkIn(Habit habit, num value) async {
+    final AppSnapshot before = widget.snapshot;
     await ref.read(appStateProvider.notifier).checkIn(habit, value: value);
-    if (!context.mounted) return;
+    if (!mounted) return;
 
-    final after = ref.read(appStateProvider).valueOrNull;
+    final AppSnapshot? after = ref.read(appStateProvider).valueOrNull;
+    if (after == null) return;
+    final int gain = after.me.lifetimeXp - before.me.lifetimeXp;
+    setState(() {
+      _xpGain[habit.id] = gain;
+      _celebrations[habit.id] = (_celebrations[habit.id] ?? 0) + 1;
+    });
+
     final bool justCompleted =
-        after != null && after.me.streak.doneToday && !before.me.streak.doneToday;
-
+        after.me.streak.doneToday && !before.me.streak.doneToday;
     final AppLocalizations l10n = context.l10n;
-    ScaffoldMessenger.of(context)
-      ..clearSnackBars()
-      ..showSnackBar(SnackBar(
-        content: Text(justCompleted
-            ? l10n.homeDayCompleteToast(after.me.streak.current)
-            : l10n.homeCheckInToast(habit.emoji, l10n.habitLabel(habit))),
-        duration: const Duration(seconds: 2),
-      ));
+    // Screen readers get the words the animation shows.
+    SemanticsService.sendAnnouncement(
+      View.of(context),
+      justCompleted
+          ? l10n.homeDayCompleteToast(after.me.streak.current)
+          : l10n.homeCheckInToast(habit.emoji, l10n.habitLabel(habit)),
+      Directionality.of(context),
+    );
+    if (!justCompleted) return;
+
+    final DayReward reward = rewardForDay(
+      challenge: after.challenge!,
+      today: after.today,
+      before: before.me.streak,
+      after: after.me.streak,
+      xpBefore: before.me.lifetimeXp,
+      xpAfter: after.me.lifetimeXp,
+      xpToday: after.me.xpByDay[after.today.toString()] ?? gain,
+    );
+    // Let the tile's own burst land first, then roll the machine.
+    await Future<void>.delayed(const Duration(milliseconds: 650));
+    if (!mounted) return;
+    await showDayCompleteCelebration(
+      context,
+      reward: reward,
+      challenge: after.challenge!,
+      lifetimeXp: after.me.lifetimeXp,
+    );
   }
 
-  Future<void> _confirmRelapse(
-    BuildContext context,
-    WidgetRef ref,
-    Habit habit,
-  ) async {
+  Future<void> _confirmRelapse(Habit habit) async {
     final AppLocalizations l10n = context.l10n;
     final bool? confirmed = await showDialog<bool>(
       context: context,
@@ -232,8 +272,42 @@ class _HomeBody extends ConsumerWidget {
         ],
       ),
     );
-    if (confirmed != true || !context.mounted) return;
+    if (confirmed != true || !mounted) return;
     await ref.read(appStateProvider.notifier).logRelapse(habit);
+  }
+}
+
+/// Today's habits as one bar that fills up — the last segment is the one
+/// that sets off the machine.
+class _DayProgress extends StatelessWidget {
+  const _DayProgress({required this.done, required this.total});
+
+  final int done;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        for (int i = 0; i < total; i++)
+          Expanded(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 450),
+              curve: Curves.easeOutBack,
+              height: 10,
+              margin: EdgeInsets.only(right: i == total - 1 ? 0 : 6),
+              decoration: BoxDecoration(
+                borderRadius: AppRadius.pill,
+                gradient: i < done ? AppGradients.fire : null,
+                color: i < done ? null : AppColors.surfaceHigh,
+                boxShadow: i < done
+                    ? AppShadows.glow(AppColors.flame, strength: 0.5)
+                    : null,
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }
 
@@ -246,11 +320,17 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
     final Challenge challenge = snapshot.challenge!;
+    final int xp = snapshot.me.lifetimeXp;
+    final int level = levelForXp(xp);
     return Padding(
-      padding: const EdgeInsets.only(top: AppSpacing.sm),
+      padding: const EdgeInsets.only(top: AppSpacing.xs),
       child: Row(
         children: <Widget>[
-          EmojiAvatar(snapshot.me.profile.avatarEmoji, size: 44),
+          EmojiAvatar(
+            snapshot.me.profile.avatarEmoji,
+            size: 44,
+            ringColor: AppColors.flame,
+          ),
           const SizedBox(width: AppSpacing.sm + 4),
           Expanded(
             child: Column(
@@ -264,7 +344,7 @@ class _Header extends StatelessWidget {
                   l10n.homeLevelAndTier(
                     challenge.tier.emoji,
                     l10n.tierName(challenge.tier),
-                    levelForXp(snapshot.me.lifetimeXp),
+                    level,
                   ),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
@@ -274,12 +354,116 @@ class _Header extends StatelessWidget {
               ],
             ),
           ),
-          Pill(
-            l10n.homeXp(snapshot.me.lifetimeXp),
-            color: AppColors.lime,
-            filled: true,
+          _XpBadge(xp: xp, progress: levelProgress(xp)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Lifetime XP as a gold coin counter with the level bar under it.
+class _XpBadge extends StatelessWidget {
+  const _XpBadge({required this.xp, required this.progress});
+
+  final int xp;
+  final double progress;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 6, 12, 7),
+      decoration: BoxDecoration(
+        color: AppColors.gold.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.55)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const Icon(Icons.bolt, size: 16, color: AppColors.gold),
+              RollingNumber(
+                value: xp,
+                suffix: ' XP',
+                style: displayStyle(16, color: AppColors.gold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          SizedBox(
+            width: 74,
+            child: ClipRRect(
+              borderRadius: AppRadius.pill,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 0, end: progress),
+                duration: const Duration(milliseconds: 900),
+                curve: Curves.easeOutCubic,
+                builder: (BuildContext context, double value, Widget? _) =>
+                    LinearProgressIndicator(
+                  value: math.max(0.04, value),
+                  minHeight: 5,
+                  backgroundColor: AppColors.surfaceHigh,
+                  valueColor:
+                      const AlwaysStoppedAnimation<Color>(AppColors.gold),
+                ),
+              ),
+            ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// On Android, while no streak widget is on the home screen: offer one.
+class _WidgetPromo extends ConsumerWidget {
+  const _WidgetPromo();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bool canPin = ref.watch(canPinStreakWidgetProvider).valueOrNull ?? false;
+    if (!canPin) return const SizedBox.shrink();
+    final AppLocalizations l10n = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.md),
+      child: AppCard(
+        border: AppColors.flame.withValues(alpha: 0.5),
+        glow: AppColors.flame.withValues(alpha: 0.5),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                const Icon(Icons.widgets, color: AppColors.flame),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(l10n.widgetPromoTitle,
+                      style: Theme.of(context).textTheme.titleLarge),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              l10n.widgetPromoBody,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            JuicyButton(
+              label: l10n.widgetPromoAction,
+              icon: Icons.add_to_home_screen,
+              onPressed: () async {
+                await ref.read(streakWidgetProvider).requestPin();
+                ref.invalidate(canPinStreakWidgetProvider);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hundred_core/hundred_core.dart';
 
 import 'data/app_repository.dart';
 import 'data/locale_store.dart';
@@ -7,6 +8,7 @@ import 'l10n/l10n.dart';
 import 'state/providers.dart';
 import 'theme/theme.dart';
 import 'ui/home/home_screen.dart';
+import 'ui/mascot/flame_mascot.dart';
 import 'ui/onboarding/onboarding_flow.dart';
 import 'ui/plan/plan_screen.dart';
 import 'ui/settings/settings_screen.dart';
@@ -92,8 +94,12 @@ class _Splash extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Text('🔥', style: TextStyle(fontSize: 52)),
-            SizedBox(height: AppSpacing.lg),
+            FlameMascot(
+              stage: FlameStage.flame,
+              mood: MascotMood.happy,
+              size: 170,
+            ),
+            SizedBox(height: AppSpacing.md),
             SizedBox(
               width: 22,
               height: 22,
@@ -106,14 +112,14 @@ class _Splash extends StatelessWidget {
   }
 }
 
-class AppShell extends StatefulWidget {
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
 
   @override
-  State<AppShell> createState() => _AppShellState();
+  ConsumerState<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends ConsumerState<AppShell> {
   int _index = 0;
 
   void _openSocial() => setState(() => _index = 2);
@@ -128,6 +134,10 @@ class _AppShellState extends State<AppShell> {
       l10n.navStats,
       l10n.navSettingsTitle,
     ];
+    final StreakStats? stats =
+        ref.watch(appStateProvider).valueOrNull?.me.streak;
+    final int streak = stats?.current ?? 0;
+    final bool doneToday = stats?.doneToday ?? false;
     final List<Widget> pages = <Widget>[
       HomeScreen(onOpenSocial: _openSocial),
       const PlanScreen(),
@@ -139,15 +149,31 @@ class _AppShellState extends State<AppShell> {
     return Scaffold(
       appBar: AppBar(title: Text(titles[_index])),
       body: SafeArea(
-        child: IndexedStack(index: _index, children: pages),
+        // Hidden tabs stay built, so their flames would keep flickering and
+        // draining the battery; only the visible one gets to animate.
+        child: IndexedStack(
+          index: _index,
+          children: <Widget>[
+            for (int i = 0; i < pages.length; i++)
+              TickerMode(enabled: i == _index, child: pages[i]),
+          ],
+        ),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (int index) => setState(() => _index = index),
         destinations: <NavigationDestination>[
           NavigationDestination(
-            icon: const Icon(Icons.local_fire_department_outlined),
-            selectedIcon: const Icon(Icons.local_fire_department),
+            icon: _StreakBadge(
+              streak: streak,
+              doneToday: doneToday,
+              child: const Icon(Icons.local_fire_department_outlined),
+            ),
+            selectedIcon: _StreakBadge(
+              streak: streak,
+              doneToday: doneToday,
+              child: const Icon(Icons.local_fire_department),
+            ),
             label: l10n.navToday,
           ),
           NavigationDestination(
@@ -172,6 +198,31 @@ class _AppShellState extends State<AppShell> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// The streak on the tab bar: flame-coloured once today is fed, a hungry
+/// outline while it is not.
+class _StreakBadge extends StatelessWidget {
+  const _StreakBadge({
+    required this.streak,
+    required this.doneToday,
+    required this.child,
+  });
+
+  final int streak;
+  final bool doneToday;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (streak <= 0) return child;
+    return Badge(
+      label: Text('$streak'),
+      backgroundColor: doneToday ? AppColors.flame : AppColors.amber,
+      textColor: doneToday ? Colors.white : AppColors.ink,
+      child: child,
     );
   }
 }

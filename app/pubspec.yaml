@@ -36,6 +36,9 @@ dependencies:
   llamadart: 0.13.2
   # Verifies a downloaded model against its published SHA-256.
   crypto: ^3.0.3
+  # The streak on the home screen: hands the native widget its data and the
+  # flame, drawn by the same painter as in the app.
+  home_widget: ^0.10.0
 
 dev_dependencies:
   flutter_test:
@@ -45,6 +48,14 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    - assets/fonts/OFL.txt
+  # The display face for numbers, headlines and buttons (SIL OFL 1.1, see
+  # assets/fonts/OFL.txt).
+  fonts:
+    - family: LilitaOne
+      fonts:
+        - asset: assets/fonts/LilitaOne-Regular.ttf
 
 # Only the llama.cpp runtime: the app loads GGUF models and nothing else, and
 # leaving out LiteRT-LM keeps the APK tens of megabytes smaller. On Android

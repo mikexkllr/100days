@@ -35,6 +35,7 @@ app/lib/l10n/
   exercise_l10n.dart    exercise names and form cues
   coach_l10n.dart       coach directives, nudges, plan advice
   social_l10n.dart      feed lines, peer status
+  mascot_l10n.dart      Funki's lines, flame stages, celebration labels
   prompt_l10n.dart      prompts for the local language model
   l10n.dart             one import plus `context.l10n`
 ```
@@ -74,6 +75,16 @@ The **prompt** for the local model is translated too: asking a model for German
 output from an English prompt works badly. That is why `CoachPromptBuilder` is
 a port; the app supplies `LocalizedCoachPrompts`, and the package itself only
 carries an English version so it stays runnable and testable on its own.
+
+## The one exception: the widget picker
+
+The home screen widget's name and description in the launcher's widget
+picker come from native resources — `res/values*/strings.xml` on Android and
+`ios/StreakWidget/*.lproj/Localizable.strings` — because the launcher reads
+them before the app has ever run. Everything the widget shows once it is on
+the home screen is translated by the app and handed over
+([`home-screen-widget.md`](home-screen-widget.md)). Keep the three native
+strings in step in both languages.
 
 ## What does not get translated
 

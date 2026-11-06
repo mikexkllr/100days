@@ -238,6 +238,114 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => '100 Days';
 
   @override
+  String get celebrateBonusCycle => 'CYCLE';
+
+  @override
+  String get celebrateBonusEvolution => 'EVOLVED';
+
+  @override
+  String get celebrateBonusLevel => 'LEVEL UP';
+
+  @override
+  String get celebrateBonusMilestone => 'MILESTONE';
+
+  @override
+  String get celebrateBonusPerfect => 'PERFECT';
+
+  @override
+  String get celebrateBonusRecord => 'RECORD';
+
+  @override
+  String get celebrateContinue => 'Keep burning';
+
+  @override
+  String celebrateHighlightCycle(int days) {
+    return 'Cycle complete: $days days';
+  }
+
+  @override
+  String celebrateHighlightEvolution(String stage) {
+    return 'New form: $stage';
+  }
+
+  @override
+  String celebrateHighlightLevel(int level) {
+    return 'Level $level reached';
+  }
+
+  @override
+  String celebrateHighlightMilestone(int day) {
+    return 'Milestone: day $day';
+  }
+
+  @override
+  String celebrateHighlightPerfect(int xp) {
+    return 'Perfect day: +$xp XP bonus';
+  }
+
+  @override
+  String celebrateHighlightRecord(int streak) {
+    String _temp0 = intl.Intl.pluralLogic(
+      streak,
+      locale: localeName,
+      other: '$streak days',
+      one: '1 day',
+    );
+    return 'New record: $_temp0';
+  }
+
+  @override
+  String get celebrateJackpot => 'JACKPOT!';
+
+  @override
+  String celebrateNextLevel(int level, int xp) {
+    return 'Level $level in $xp XP';
+  }
+
+  @override
+  String celebrateNextMilestone(int day, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return 'Day $day in $_temp0';
+  }
+
+  @override
+  String get celebrateNextUp => 'Next up';
+
+  @override
+  String get celebrateReelBonus => 'BONUS';
+
+  @override
+  String get celebrateReelStreak => 'STREAK';
+
+  @override
+  String get celebrateReelXp => 'XP TODAY';
+
+  @override
+  String get celebrateShare => 'Brag about it';
+
+  @override
+  String celebrateShareText(int streak, int day) {
+    String _temp0 = intl.Intl.pluralLogic(
+      streak,
+      locale: localeName,
+      other: '🔥 $streak days streak',
+      one: '🔥 1 day streak',
+    );
+    return '$_temp0, day $day of my challenge. Catch me if you can.';
+  }
+
+  @override
+  String get celebrateSkip => 'Tap to skip';
+
+  @override
+  String get celebrateTitle => 'DAY COMPLETE!';
+
+  @override
   String cheerRespectStreak(int streak) {
     String _temp0 = intl.Intl.pluralLogic(
       streak,
@@ -645,6 +753,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String errorGeneric(String message) {
     return 'Error: $message';
   }
+
+  @override
+  String get evolutionCurrent => 'You are here';
+
+  @override
+  String get evolutionLocked => 'Locked';
+
+  @override
+  String get evolutionOpen => 'See all forms';
+
+  @override
+  String get evolutionSubtitle =>
+      'Your streak decides the form. A break takes it back.';
+
+  @override
+  String get evolutionTitle => 'Flame evolution';
+
+  @override
+  String get evolutionUnlocked => 'Unlocked';
 
   @override
   String get exerciseAbWheel => 'Ab wheel';
@@ -1423,6 +1550,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get heatMore => 'more';
 
   @override
+  String heroBest(int days) {
+    return 'Best: $days';
+  }
+
+  @override
+  String heroCountdownFirst(String time) {
+    return '$time left to light the first spark';
+  }
+
+  @override
+  String heroCountdownSave(String time) {
+    return '$time left to save your streak';
+  }
+
+  @override
+  String get heroFedToday => 'Fed today. See you tomorrow.';
+
+  @override
+  String get heroFrozen => 'Frozen today. The streak holds.';
+
+  @override
+  String get heroRelapse => 'Relapse logged. Tomorrow is a fresh spark.';
+
+  @override
+  String get heroRestDay => 'Rest day. The streak waits.';
+
+  @override
+  String get heroThisWeek => 'This week';
+
+  @override
   String homeAscendAction(String tier) {
     return 'On to $tier';
   }
@@ -1743,6 +1900,146 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get macroPresetLowCarbBlurb => '30 % protein, 20 % carbs, 50 % fat.';
+
+  @override
+  String get mascotHappy1 => 'Fed. I\'m burning for you.';
+
+  @override
+  String get mascotHappy2 => 'Done. That\'s how legends are made.';
+
+  @override
+  String get mascotHappy3 => 'Another day in the bag. See you tomorrow.';
+
+  @override
+  String mascotHappy4(int streak) {
+    String _temp0 = intl.Intl.pluralLogic(
+      streak,
+      locale: localeName,
+      other: '$streak days',
+      one: 'One day',
+    );
+    return '$_temp0. It\'s getting hot in here.';
+  }
+
+  @override
+  String get mascotHappy5 => 'You did it. Again. I love that for us.';
+
+  @override
+  String get mascotHappy6 => 'Rest now. Tomorrow I\'m hungry again.';
+
+  @override
+  String get mascotHopeful1 => 'Every fire starts with a spark. Today?';
+
+  @override
+  String get mascotHopeful2 => 'I\'m just an ember. Make me a flame.';
+
+  @override
+  String get mascotHopeful3 => 'Zero is just a starting number.';
+
+  @override
+  String get mascotHopeful4 => 'One day. Then we\'ll talk.';
+
+  @override
+  String get mascotHungry1 => 'I\'m hungry. Feed me one day.';
+
+  @override
+  String get mascotHungry2 => 'Today counts. Only today.';
+
+  @override
+  String get mascotHungry3 => 'One tap and I grow. Your move.';
+
+  @override
+  String get mascotHungry4 => 'Your future self is watching. So am I.';
+
+  @override
+  String get mascotHungry5 => 'Show up. That\'s the whole trick.';
+
+  @override
+  String mascotHungry6(int day) {
+    return 'Day $day. Let\'s make it count.';
+  }
+
+  @override
+  String get mascotHyped1 => 'YES! You\'re on fire. Literally.';
+
+  @override
+  String get mascotHyped2 => 'Look at me burn!';
+
+  @override
+  String get mascotHyped3 => 'That\'s what I\'m talking about!';
+
+  @override
+  String get mascotHyped4 => 'Unstoppable. Same again tomorrow.';
+
+  @override
+  String get mascotName => 'Funki';
+
+  @override
+  String get mascotPoke1 => 'Hey! That tickles.';
+
+  @override
+  String get mascotPoke2 => 'Careful, hot!';
+
+  @override
+  String get mascotPoke3 => 'Again! 🔥';
+
+  @override
+  String get mascotPoke4 => 'Poke me less, check in more.';
+
+  @override
+  String get mascotPoke5 => 'I don\'t bite. I burn.';
+
+  @override
+  String get mascotPoke6 => 'Boop.';
+
+  @override
+  String get mascotPokeCombo => 'Okay, okay, I\'m burning already!';
+
+  @override
+  String get mascotSad1 => 'It happens. Honest beats perfect.';
+
+  @override
+  String get mascotSad2 => 'Down, not out. Tomorrow we go again.';
+
+  @override
+  String get mascotSad3 => 'I\'m small today. I\'ll be back.';
+
+  @override
+  String get mascotSemantics => 'Funki, your flame. Tap to poke.';
+
+  @override
+  String get mascotSleepy1 => 'Rest day. I\'m just glowing quietly.';
+
+  @override
+  String get mascotSleepy2 => 'Nothing scheduled. Recharging. Zzz.';
+
+  @override
+  String get mascotSleepy3 => 'Rest is part of the plan. The streak waits.';
+
+  @override
+  String mascotWorried1(int hours) {
+    return 'Psst. $hours h left. I\'m getting cold.';
+  }
+
+  @override
+  String mascotWorried2(int streak) {
+    String _temp0 = intl.Intl.pluralLogic(
+      streak,
+      locale: localeName,
+      other: '$streak days',
+      one: 'One day',
+    );
+    return '$_temp0. Don\'t let me go out tonight.';
+  }
+
+  @override
+  String get mascotWorried3 => 'Don\'t let me go out. Please?';
+
+  @override
+  String get mascotWorried4 => 'Midnight doesn\'t negotiate. You still can.';
+
+  @override
+  String get mascotWorried5 => 'I\'m flickering. That\'s not a good sign.';
 
   @override
   String get mealBreakfast => 'Breakfast';
@@ -2546,6 +2843,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get obWelcomeEyebrow => '100 days and far beyond';
 
   @override
+  String get obWelcomeMascot =>
+      'Hi, I\'m Funki, your flame. Feed me one day at a time and watch me grow.';
+
+  @override
   String get obWelcomeSubtitle =>
       'Set a goal. Get a plan. After that only one thing counts: whether you showed up today — and whether your people can see it.';
 
@@ -3185,6 +3486,62 @@ class AppLocalizationsEn extends AppLocalizations {
   String get splitUpperLower => 'Upper / Lower';
 
   @override
+  String get stageBlaze => 'Bonfire';
+
+  @override
+  String get stageBlue => 'Blue flame';
+
+  @override
+  String get stageEmber => 'Ember';
+
+  @override
+  String get stageFinal => 'Final form. Nothing left but to keep burning.';
+
+  @override
+  String get stageFlame => 'Flame';
+
+  @override
+  String get stageFlicker => 'Little flame';
+
+  @override
+  String stageFrom(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'From $days days',
+      one: 'From 1 day',
+      zero: 'No streak',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get stageInferno => 'Inferno';
+
+  @override
+  String stageNext(String stage, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return '$stage in $_temp0';
+  }
+
+  @override
+  String get stageNova => 'Supernova';
+
+  @override
+  String get stagePlasma => 'Plasma';
+
+  @override
+  String get stageSpark => 'Spark';
+
+  @override
+  String get stageSun => 'Sun';
+
+  @override
   String get statDay => 'Day';
 
   @override
@@ -3198,6 +3555,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsCurrentStreak => 'Current streak';
+
+  @override
+  String get statsFlameTitle => 'Your flame';
 
   @override
   String get statsFullDays => 'Full days';
@@ -3372,7 +3732,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weekdayShortMon => 'Mo';
 
   @override
+  String get weekdayShortSat => 'Sa';
+
+  @override
   String get weekdayShortSun => 'Su';
+
+  @override
+  String get weekdayShortThu => 'Th';
+
+  @override
+  String get weekdayShortTue => 'Tu';
 
   @override
   String get weekdayShortWed => 'We';
@@ -3388,6 +3757,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weekdayWed => 'WED';
+
+  @override
+  String get widgetCold => 'Light the first spark today.';
+
+  @override
+  String get widgetDone => 'Fed today ✓';
+
+  @override
+  String get widgetFrozen => 'Frozen. The streak is safe.';
+
+  @override
+  String get widgetGoesOutIn => 'Goes out in';
+
+  @override
+  String get widgetOpen => 'Feed me before midnight!';
+
+  @override
+  String get widgetPromoAction => 'Add widget';
+
+  @override
+  String get widgetPromoBody =>
+      'See Funki every time you unlock your phone. Fed, hungry or about to go out.';
+
+  @override
+  String get widgetPromoManual =>
+      'Long-press your home screen, tap Widgets and pick 100 Days.';
+
+  @override
+  String get widgetPromoTitle => 'Your streak on the home screen';
+
+  @override
+  String get widgetRest => 'Rest day. I\'m saving energy.';
 
   @override
   String get workoutArms => 'Arms';
