@@ -19,11 +19,16 @@ abstract class LocalLlmRuntime {
 
   Future<void> load();
 
+  /// Completes [prompt] as a single user turn.
+  ///
+  /// With [json] set, a runtime that can constrain its output to JSON does
+  /// so; callers still parse defensively, because not every runtime can.
   Future<String> generate(
     String prompt, {
     int maxTokens = 200,
     double temperature = 0.8,
     Duration timeout = const Duration(seconds: 20),
+    bool json = false,
   });
 
   Future<void> dispose();
@@ -35,7 +40,7 @@ class UnavailableLlmRuntime implements LocalLlmRuntime {
   const UnavailableLlmRuntime();
 
   @override
-  String get modelName => 'Kein Modell installiert';
+  String get modelName => 'none';
 
   @override
   bool get isReady => false;
@@ -52,6 +57,7 @@ class UnavailableLlmRuntime implements LocalLlmRuntime {
     int maxTokens = 200,
     double temperature = 0.8,
     Duration timeout = const Duration(seconds: 20),
+    bool json = false,
   }) =>
       Future<String>.error(StateError('No local model available'));
 

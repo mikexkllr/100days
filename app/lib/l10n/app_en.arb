@@ -63,8 +63,60 @@
       }
     }
   },
-  "aiBackendMissing": "The rule-based coach is running. It needs no model, works offline and answers instantly — the language is just less varied.",
-  "aiBackendPresent": "An inference engine is wired in. With a model installed it writes your daily line.",
+  "aiBackendMissing": "The rule-based coach is running. It needs no model, works offline and answers instantly — the language is just less varied. Download a model below and it switches over by itself.",
+  "aiBackendPresent": "The model runs on this phone with llama.cpp. It writes your daily line, estimates meals and proposes nutrition targets — and falls back to the rule-based coach whenever it is too slow.",
+  "aiCoachStaysRuleBased": "{model} estimates meals and proposes nutrition targets — answers the app checks before you confirm them. The coach's daily line stays rule-based with it: in tests a model this small wandered off topic too often.",
+  "@aiCoachStaysRuleBased": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "aiDeviceLine": "{model} · {ram} GB RAM",
+  "@aiDeviceLine": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "ram": {
+        "type": "int"
+      }
+    }
+  },
+  "aiDeviceUnknown": "Phone not recognised — assuming a modest one.",
+  "aiDeviceUnsupported": "This phone cannot run a language model locally. The coach stays rule-based — it works just as well, it only talks with less variety.",
+  "aiDownloadFailed": "The download stopped. Tap to continue where it left off.",
+  "aiDownloadNote": "Best on Wi-Fi. Keeps running while you finish the setup; afterwards the model runs offline and nothing you type leaves the phone.",
+  "aiDownloadNow": "Download now ({size} GB)",
+  "@aiDownloadNow": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "aiDownloadResume": "Continue download",
+  "aiDownloadThis": "Get · {size} GB",
+  "@aiDownloadThis": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "aiDownloading": "{received} of {total} GB",
+  "@aiDownloading": {
+    "placeholders": {
+      "received": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "aiFits": "fits",
   "aiGigabytes": "{size} GB",
   "@aiGigabytes": {
     "placeholders": {
@@ -73,18 +125,32 @@
       }
     }
   },
-  "aiInstallBody": "Download the GGUF file on a computer and put it in this folder:",
-  "aiInstallTitle": "Installing a model",
   "aiInstalled": "installed",
+  "aiLargerModels": "Larger",
+  "aiLargerModelsSub": "Fits this phone, but takes more storage and is slower to answer.",
   "aiLoading": "Loading …",
-  "aiModelGemmaDesc": "A little stronger in German, needs more RAM.",
-  "aiModelQwenDesc": "A good balance of quality and size. Runs on mid-range devices.",
-  "aiModelSmolDesc": "Tiny and fast, for older devices.",
-  "aiNoAutoDownload": "The app never downloads anything by itself — a gigabyte over mobile data is not something that should happen unasked.",
+  "aiModelBalancedDesc": "Small and quick, good German and English. Estimates meals and proposes targets; the coach stays rule-based with it.",
+  "aiModelE2bMobileDesc": "Google's phone model in its compact mobile cut, with 2-bit layers mixed in: half a gigabyte smaller than the full version, but noticeably rougher — in tests its meal estimates often missed.",
+  "aiModelLightDesc": "The smallest, for phones nothing else fits. It helps little: the coach stays rule-based, and in tests its meal estimates mostly failed the plausibility check, so you will often enter meals yourself.",
+  "aiModelMaxDesc": "The strongest model that runs on a phone, in its mobile cut. For flagships with 12 GB or more; takes longer to answer.",
+  "aiModelStrongDesc": "Google's phone model, trained for 4-bit: close to full quality at 2.6 GB. Clearly better meal estimates and coaching; needs 8 GB of RAM.",
+  "aiNoAutoDownload": "The app downloads a model only when you tap the button — from a fixed version on Hugging Face, checked against its SHA-256 before it is used. After that, no network.",
   "aiNoNetworkBadge": "no network access",
+  "aiNoRecommendation": "This phone has little memory for a language model. The app works fully without one — the coach is rule-based, meals come from the food table. If you want to try anyway:",
+  "aiOneAtATime": "Only one model stays on the phone: a new one replaces the old one once it has finished downloading.",
+  "aiOptionalModels": "Optional",
+  "aiRecommended": "recommended",
+  "aiRemove": "Remove",
+  "aiSmallerModels": "Smaller and quicker",
+  "aiSmallerModelsSub": "Less storage and battery, quicker answers — the sentences get simpler.",
   "aiSource": "Source",
   "aiSupportedModels": "Supported models",
+  "aiSwitchSmaller": "Switch to a smaller one",
   "aiTitle": "On-device AI",
+  "aiTooBig": "too big",
+  "aiTooBigModels": "Too big for this phone",
+  "aiTooBigModelsSub": "Needs more memory than this phone has. It may load, or the system may close the app.",
+  "aiVerifying": "Checking the file …",
   "aiWhatItSeesBody": "Streak, day number, your habits and whether your friends were active today — as text, straight to the model on this device. No network call, no telemetry, no copy in anyone’s cloud.",
   "aiWhatItSeesTitle": "What the model sees",
   "appTitle": "100 Days",
@@ -370,6 +436,90 @@
   "ctaRescue": "Rescue it",
   "ctaRestart": "Start over",
   "ctaShare": "Share",
+  "diaryClose": "Close the day",
+  "diaryCloseOnTarget": "Close the day — on target",
+  "diaryClosedPlain": "Day ticked off.",
+  "diaryClosedTracked": "Day closed on target — tracked, with the plan bonus.",
+  "diaryEatenOfTarget": "{eaten} of {target} kcal eaten",
+  "@diaryEatenOfTarget": {
+    "placeholders": {
+      "eaten": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryEntryKcal": "{kcal} kcal",
+  "@diaryEntryKcal": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryKcalLeft": "kcal left",
+  "diaryKcalOver": "kcal over",
+  "diaryMealKcal": "{eaten} / {target} kcal",
+  "@diaryMealKcal": {
+    "placeholders": {
+      "eaten": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryOffTargetBody": "You are {delta} kcal off your target. You can still tick the day off — just without the plan bonus.",
+  "@diaryOffTargetBody": {
+    "placeholders": {
+      "delta": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryOffTargetConfirm": "Tick off anyway",
+  "diaryOffTargetTitle": "Not quite on target",
+  "diarySuggestions": "IDEAS THAT FIT",
+  "diaryTitle": "Food diary",
+  "diaryToday": "Today",
+  "dietOmnivore": "Everything",
+  "dietVegan": "Vegan",
+  "dietVegetarian": "Vegetarian",
+  "editorAddExercise": "Add exercise",
+  "editorDaysNote": "Applies from today — past days stay as they were.",
+  "editorMoveDown": "Move down",
+  "editorMoveUp": "Move up",
+  "editorRepsHigh": "Reps, top of range",
+  "editorRepsLow": "Reps, bottom of range",
+  "editorReset": "Restore the suggestion",
+  "editorRest": "Rest",
+  "editorRir": "Reps in reserve (RIR)",
+  "editorRirHelp": "RIR 2 means stopping two clean reps before failure. Lower is harder.",
+  "editorSaved": "Training plan saved",
+  "editorSessionEmpty": "No exercise yet — add one.",
+  "editorSessionsSubtitle": "Tap an exercise to change sets, reps and effort, or to swap it.",
+  "editorSessionsTitle": "Exercises per session",
+  "editorSets": "Sets",
+  "editorSetsReps": "{sets} × {reps} · RIR {rir}",
+  "@editorSetsReps": {
+    "placeholders": {
+      "sets": {
+        "type": "int"
+      },
+      "reps": {
+        "type": "String"
+      },
+      "rir": {
+        "type": "int"
+      }
+    }
+  },
+  "editorSplitTitle": "Split",
+  "editorSwap": "Swap for",
+  "editorTitle": "Edit training plan",
   "errorGeneric": "Error: {message}",
   "@errorGeneric": {
     "placeholders": {
@@ -379,6 +529,9 @@
     }
   },
   "exerciseAbWheel": "Ab wheel",
+  "exerciseArnoldPress": "Arnold press",
+  "exerciseAssistedPullup": "Assisted pull-up",
+  "exerciseBackExtension": "Back extension",
   "exerciseBackSquat": "Back squat (barbell)",
   "exerciseBandPulldown": "Band pulldown",
   "exerciseBarbellRow": "Barbell row",
@@ -387,8 +540,15 @@
   "exerciseBulgarianSplitSquat": "Bulgarian split squat",
   "exerciseBurpee": "Burpees",
   "exerciseBwSquat": "Bodyweight squat",
+  "exerciseCableCrunch": "Cable crunch",
+  "exerciseCableCurl": "Cable curl",
+  "exerciseCableFly": "Cable fly",
+  "exerciseCableLateralRaise": "Cable lateral raise",
   "exerciseCableRow": "Cable row",
   "exerciseCalfRaise": "Calf raise",
+  "exerciseChestPressMachine": "Chest press machine",
+  "exerciseChestSupportedRow": "Chest-supported row",
+  "exerciseChinUp": "Chin-up",
   "exerciseCueBackSquat": "Chest up, knees over toes, controlled on the way down.",
   "exerciseCueBenchPress": "Shoulder blades together, bar to the lower chest.",
   "exerciseCueBwSquat": "Slow on the way down, brief pause at the bottom.",
@@ -398,6 +558,7 @@
   "exerciseCuePushup": "Body stays a plank, elbows at 45 degrees.",
   "exerciseCueRdl": "Hips back, feel the stretch in the hamstrings.",
   "exerciseDbBench": "Dumbbell bench press",
+  "exerciseDbFly": "Dumbbell fly",
   "exerciseDbOhp": "Overhead press (dumbbell)",
   "exerciseDbRow": "Dumbbell row",
   "exerciseDeadBug": "Dead bug",
@@ -406,27 +567,41 @@
   "exerciseDip": "Dips",
   "exerciseFacePull": "Face pull",
   "exerciseFarmersWalk": "Farmer's walk",
+  "exerciseFrontSquat": "Front squat",
   "exerciseGluteBridge": "Glute bridge",
   "exerciseGobletSquat": "Goblet squat",
+  "exerciseHackSquat": "Hack squat",
   "exerciseHammerCurl": "Hammer curls",
   "exerciseHangingLegRaise": "Hanging leg raise",
+  "exerciseHipAbduction": "Hip abduction machine",
   "exerciseHipThrust": "Hip thrust",
+  "exerciseInclineBench": "Incline bench press",
+  "exerciseInclineDbPress": "Incline dumbbell press",
   "exerciseInvertedRow": "Inverted row",
   "exerciseJumpRope": "Jump rope",
   "exerciseKbSwing": "Kettlebell swing",
   "exerciseLatPulldown": "Lat pulldown",
   "exerciseLateralRaise": "Lateral raise",
   "exerciseLegCurl": "Leg curl",
+  "exerciseLegExtension": "Leg extension",
   "exerciseLegPress": "Leg press",
+  "exerciseMachineShoulderPress": "Shoulder press machine",
   "exerciseNordicCurl": "Nordic curl (assisted)",
   "exerciseOhp": "Overhead press (barbell)",
+  "exerciseOverheadTricepsExtension": "Overhead triceps extension",
+  "exercisePecDeck": "Pec deck",
   "exercisePikePushup": "Pike push-up",
   "exercisePlank": "Plank",
+  "exercisePreacherCurl": "Preacher curl",
   "exercisePullup": "Pull-up",
   "exercisePushup": "Push-up",
   "exerciseRdl": "Romanian deadlift",
+  "exerciseRearDeltFly": "Rear delt fly",
   "exerciseRowingErg": "Rowing machine",
+  "exerciseSeatedCalfRaise": "Seated calf raise",
+  "exerciseSkullCrusher": "Skull crusher",
   "exerciseStepUp": "Step-up",
+  "exerciseTBarRow": "T-bar row",
   "exerciseTricepsPushdown": "Triceps pushdown",
   "exerciseWalkingLunge": "Walking lunges",
   "feedAscended": "{name} moved up a tier",
@@ -530,6 +705,147 @@
     }
   },
   "feedVerified": "verified",
+  "feedWorkout": "{name}: {workout} done",
+  "@feedWorkout": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "workout": {
+        "type": "String"
+      }
+    }
+  },
+  "feedWorkoutDetail": "{sets} sets · {tonnes} t moved",
+  "@feedWorkoutDetail": {
+    "placeholders": {
+      "sets": {
+        "type": "int"
+      },
+      "tonnes": {
+        "type": "String"
+      }
+    }
+  },
+  "foodAddAll": "{count, plural, =1{Add 1 entry · {kcal} kcal} other{Add {count} entries · {kcal} kcal}}",
+  "@foodAddAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "foodAddTo": "Add to {meal}",
+  "@foodAddTo": {
+    "placeholders": {
+      "meal": {
+        "type": "String"
+      }
+    }
+  },
+  "foodAdded": "{count, plural, =1{Added to the diary} other{{count} entries added}}",
+  "@foodAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "foodAiFailed": "The model could not make sense of that. Try simpler words, or enter it manually.",
+  "foodAiNotInstalled": "Recognises foods from the table. With an on-device model (Settings → On-device AI) it also estimates dishes it does not know.",
+  "foodAmountLabel": "Amount",
+  "foodAmountPiece": "1 piece ({grams} g)",
+  "@foodAmountPiece": {
+    "placeholders": {
+      "grams": {
+        "type": "int"
+      }
+    }
+  },
+  "foodAmountPortion": "Portion ({grams} g)",
+  "@foodAmountPortion": {
+    "placeholders": {
+      "grams": {
+        "type": "int"
+      }
+    }
+  },
+  "foodAmountResult": "{kcal} kcal · {protein} g protein · {carbs} g carbs · {fat} g fat",
+  "@foodAmountResult": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "carbs": {
+        "type": "int"
+      },
+      "fat": {
+        "type": "int"
+      }
+    }
+  },
+  "foodAskAi": "Estimate with AI",
+  "foodBarcodeLabel": "Or type the barcode number (EAN)",
+  "foodBarcodeNoNutrition": "Found the product, but without nutrition values. Enter it manually.",
+  "foodBarcodeNotFound": "This product is not in Open Food Facts yet. Enter it manually — the numbers are on the label.",
+  "foodBarcodeOffline": "No connection to Open Food Facts. Try again later or enter it manually.",
+  "foodBarcodePrivacy": "The lookup sends only the barcode number to Open Food Facts, the open product database — no account, no diary, nothing about you.",
+  "foodDescribeHint": "What did you eat? e.g. \"2 eggs, a slice of wholegrain bread and a cappuccino\"",
+  "foodManualAdd": "Add",
+  "foodManualCarbs": "Carbs in g (optional)",
+  "foodManualFat": "Fat in g (optional)",
+  "foodManualGrams": "Amount in g (optional)",
+  "foodManualKcal": "Calories (kcal)",
+  "foodManualName": "Name",
+  "foodManualProtein": "Protein in g (optional)",
+  "foodNotRecognised": "Not recognised: {items}. Estimate them with AI, search for them, or enter them manually.",
+  "@foodNotRecognised": {
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
+  "foodPer100": "{kcal} kcal · {protein} g P · {carbs} g C · {fat} g F per 100 g",
+  "@foodPer100": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "carbs": {
+        "type": "int"
+      },
+      "fat": {
+        "type": "int"
+      }
+    }
+  },
+  "foodRecent": "Recently logged",
+  "foodRecognise": "Recognise",
+  "foodScanButton": "Scan barcode",
+  "foodScanCameraUnavailable": "The camera is not available. Type the barcode number instead.",
+  "foodScanHint": "Hold the barcode inside the frame.",
+  "foodScanTitle": "Scan a product",
+  "foodSearchHint": "Food, e.g. oats, banana, pizza",
+  "foodSearchNothing": "Nothing in the food table. Describe it instead, scan the barcode or enter the numbers yourself.",
+  "foodSourceAi": "AI estimate",
+  "foodSourceBarcode": "label",
+  "foodSourceDatabase": "food table",
+  "foodSourceManual": "entered",
+  "foodSourceParsed": "recognised",
+  "foodTabBarcode": "Barcode",
+  "foodTabDescribe": "Describe",
+  "foodTabManual": "Manual",
+  "foodTabSearch": "Search",
   "friendsConnected": "{name} connected.",
   "@friendsConnected": {
     "placeholders": {
@@ -558,10 +874,22 @@
       }
     }
   },
-  "friendsNetworkNote": "Connections run directly between your devices — instantly on the same Wi-Fi, otherwise the next time you meet. No server in between that knows your streaks.",
+  "friendsNetworkNote": "Connections run directly between your devices — instantly on the same Wi-Fi, otherwise the next time you meet. Every connection proves who is on the other end, and only people you accepted get anything. No server in between that knows your streaks.",
   "friendsNoActivity": "No activity yet",
   "friendsNudgeSection": "Nudge",
   "friendsNudgeSubtitle": "These people have not been out today.",
+  "friendsRequestAccept": "Accept",
+  "friendsRequestDecline": "Decline",
+  "friendsRequestFrom": "{name}",
+  "@friendsRequestFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsRequestsSub": "They scanned your code. Nothing is shared until you accept.",
+  "friendsRequestsTitle": "Wants to connect",
   "friendsScan": "Scan",
   "friendsYourPeople": "Your people",
   "goalBuildMuscle": "Build muscle",
@@ -578,6 +906,55 @@
   "goalLoseFatPitch": "Hold the deficit, keep the muscle, week after week.",
   "goalSober": "Stay clean",
   "goalSoberPitch": "Alcohol, nicotine, sugar — every day counts on its own.",
+  "goalsAiApply": "Apply",
+  "goalsAiAsk": "Get a proposal",
+  "goalsAiFailed": "No usable proposal. Try putting it differently — or set the numbers yourself above.",
+  "goalsAiHint": "e.g. \"fewer carbs, I train in the evening\"",
+  "goalsAiProposal": "{kcal} kcal · {protein} % protein · {carbs} % carbs · {fat} % fat",
+  "@goalsAiProposal": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "carbs": {
+        "type": "int"
+      },
+      "fat": {
+        "type": "int"
+      }
+    }
+  },
+  "goalsAiSub": "Describe what you want; the on-device model proposes new targets. Nothing changes until you apply it.",
+  "goalsAiTitle": "Adjust with AI",
+  "goalsAiUnavailable": "Needs an on-device model — set one up under Settings → On-device AI.",
+  "goalsBodySub": "Only for the suggested target. They stay on this device and are never shared.",
+  "goalsBodyTitle": "Body stats",
+  "goalsFatRest": "Fat: {percent} % (the rest)",
+  "@goalsFatRest": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "goalsMacroTitle": "Macro split",
+  "goalsOwnTarget": "Set my own target",
+  "goalsOwnTargetSub": "Your number wins. The suggestion stays visible next to it.",
+  "goalsSaved": "Targets saved",
+  "goalsSuggested": "Suggested: {kcal} kcal a day",
+  "@goalsSuggested": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "goalsTargetTitle": "Daily target",
+  "goalsTitle": "Nutrition targets",
+  "goalsTooLow": "That is more than 25% below your expenditure. Deficits that steep cost muscle and sleep — few people last 100 days on them.",
   "habitCardio": "Cardio",
   "habitCardioBlurb": "Easy aerobic work. Zone 2 — do not wreck yourself.",
   "habitColdShower": "Cold shower",
@@ -719,6 +1096,7 @@
       }
     }
   },
+  "homeOpenDiary": "Open the food diary",
   "homeOptional": "Optional",
   "homeOptionalSubtitle": "Not scheduled today — still counts as XP.",
   "homeRelapseBody": "This resets the streak and is visible to your friends. Being honest is the whole point — but only if it is true.",
@@ -740,6 +1118,14 @@
       }
     }
   },
+  "homeStartWorkout": "Start workout · +{percent} % XP",
+  "@homeStartWorkout": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "homeStorageError": "The app could not open its storage.",
   "homeStreakDays": "{streak, plural, =1{day streak} other{days streak}}",
   "@homeStreakDays": {
@@ -751,6 +1137,7 @@
   },
   "homeTodaysMacros": "Today's macros",
   "homeTodaysWorkout": "Today's training",
+  "homeWorkoutLogged": "Logged today",
   "homeXp": "{xp} XP",
   "@homeXp": {
     "placeholders": {
@@ -780,7 +1167,7 @@
   "leagueActiveToday": "Active today",
   "leagueBronze": "Bronze",
   "leagueDiamond": "Diamond",
-  "leagueFooter": "XP comes per check-in, scaled by difficulty and streak. On Sunday the top places move up and the bottom ones move down.",
+  "leagueFooter": "Only friends you connected yourself compete here — no strangers. XP comes per check-in, scaled by difficulty and streak, and tracked workouts and diary days count extra. On Sunday the top places move up and the bottom ones move down.",
   "leagueGold": "Gold",
   "leagueNothingToday": "Nothing yet today",
   "leagueObsidian": "Obsidian",
@@ -817,24 +1204,103 @@
     }
   },
   "leagueYourRank": "your place",
+  "loggerAddSet": "Add a set",
+  "loggerAdviceAddReps": "Same weight, one more rep per set",
+  "loggerAdviceAddWeight": "Top of the range reached — go to {weight} kg",
+  "@loggerAdviceAddWeight": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "loggerAdviceFirst": "First time: pick a weight that leaves {rir} reps in reserve",
+  "@loggerAdviceFirst": {
+    "placeholders": {
+      "rir": {
+        "type": "int"
+      }
+    }
+  },
+  "loggerAdviceHold": "Same weight — get every set into the range",
+  "loggerAdviceReduce": "Missed twice — reset to {weight} kg and build back up",
+  "@loggerAdviceReduce": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "loggerDiscard": "Discard",
+  "loggerDiscardBody": "The sets you entered will be lost.",
+  "loggerDiscardTitle": "Discard this workout?",
+  "loggerFinish": "Finish workout",
+  "loggerFinishNoSets": "Tick off at least one set first.",
+  "loggerIntro": "Log every set. Next time the app tells you what to beat: more reps at the same weight, then more weight.",
+  "loggerKg": "kg",
+  "loggerLastTime": "Last time: {sets}",
+  "@loggerLastTime": {
+    "placeholders": {
+      "sets": {
+        "type": "String"
+      }
+    }
+  },
+  "loggerReps": "reps",
+  "loggerSaved": "Workout saved — tracked, with the plan bonus.",
+  "loggerSet": "Set {number}",
+  "@loggerSet": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "loggerTarget": "Target: {reps} reps · RIR {rir}",
+  "@loggerTarget": {
+    "placeholders": {
+      "reps": {
+        "type": "String"
+      },
+      "rir": {
+        "type": "int"
+      }
+    }
+  },
+  "macroPresetAuto": "Automatic",
+  "macroPresetAutoBlurb": "Protein and fat per kilo of body weight, the rest carbs. The best default for training goals.",
+  "macroPresetBalanced": "Balanced",
+  "macroPresetBalancedBlurb": "50 % carbs, 20 % protein, 30 % fat — the classic split.",
+  "macroPresetCustom": "Custom",
+  "macroPresetCustomBlurb": "Set protein and carbs yourself; fat takes the rest.",
+  "macroPresetHighProtein": "High protein",
+  "macroPresetHighProteinBlurb": "35 % protein, 40 % carbs, 25 % fat. Keeps you full in a deficit.",
+  "macroPresetLowCarb": "Low carb",
+  "macroPresetLowCarbBlurb": "30 % protein, 20 % carbs, 50 % fat.",
   "mealBreakfast": "Breakfast",
   "mealDinner": "Dinner",
   "mealIdeaBreakfast1": "Skyr with berries, oats and flaxseed",
   "mealIdeaBreakfast2": "Scrambled eggs (3) with wholegrain toast",
   "mealIdeaBreakfast3": "Overnight oats with quark and banana",
   "mealIdeaBreakfast4": "Protein porridge with peanut butter",
+  "mealIdeaBreakfast5": "Tofu scramble with wholegrain bread",
   "mealIdeaDinner1": "Turkey pan with courgette and feta",
   "mealIdeaDinner2": "Omelette with mushrooms and spinach",
   "mealIdeaDinner3": "Chickpea curry with natural yoghurt",
   "mealIdeaDinner4": "Tuna salad with beans and egg",
+  "mealIdeaDinner5": "Bean and vegetable chili",
+  "mealIdeaDinner6": "Wholegrain wrap with chicken and salad",
   "mealIdeaLunch1": "Chicken breast, rice, broccoli",
   "mealIdeaLunch2": "Lentil bolognese with wholegrain pasta",
   "mealIdeaLunch3": "Salmon fillet with potatoes and salad",
   "mealIdeaLunch4": "Beef strips with couscous and roast vegetables",
+  "mealIdeaLunch5": "Tofu and vegetable stir-fry with rice",
   "mealIdeaSnack1": "Quark with honey and walnuts",
   "mealIdeaSnack2": "Protein shake with banana",
   "mealIdeaSnack3": "A handful of almonds and an apple",
   "mealIdeaSnack4": "Cottage cheese on crispbread",
+  "mealIdeaSnack5": "Hummus with vegetable sticks",
+  "mealIdeaSnack6": "Rice cakes with peanut butter",
   "mealLunch": "Lunch",
   "mealSnack": "Snack",
   "milestoneAlcohol14Body": "Liver fat measurably drops, inflammation markers fall.",
@@ -1006,6 +1472,10 @@
   "obActivityLight": "Lightly active",
   "obActivityModerate": "Moderate",
   "obActivitySedentary": "Sedentary",
+  "obAiEyebrow": "Coach",
+  "obAiLater": "Optional. Without a model everything works too — the coach is then rule-based. You can download it later under Settings → On-device AI.",
+  "obAiSubtitle": "The coach and the meal estimates can run on a small language model — on this phone, offline, without any prompt leaving it. We picked the one that fits your phone.",
+  "obAiTitle": "AI on your phone.",
   "obBodyActivity": "Daily life & movement",
   "obBodyAge": "Age",
   "obBodyAgeValue": "{years} years",
@@ -1062,6 +1532,21 @@
   "obIdentityNameHint": "Your name",
   "obIdentitySubtitle": "No account, no email, no password. Your key pair is already on this device.",
   "obIdentityTitle": "How should your people see you?",
+  "obKcalEyebrow": "Nutrition",
+  "obKcalSubtitle": "Computed from your numbers — or set your own. You can change both at any time.",
+  "obKcalTitle": "Your daily target.",
+  "obPlanBonus": "+{percent} % XP",
+  "@obPlanBonus": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "obPlanNutrition": "With nutrition plan",
+  "obPlanNutritionBody": "A calorie target and a food diary with meal ideas. Optional — without it you just tick off the day.",
+  "obPlanTraining": "With training plan",
+  "obPlanTrainingBody": "Your own split and exercises, every set logged with progression tips. Optional — without it you just tick off the workout.",
   "obPointBeyondBody": "After that it carries on — next tier, harder targets, same streak.",
   "obPointBeyondTitle": "Day 100 is not the end",
   "obPointGoalBody": "No goal, no plan. You say what this is about — the app builds training, nutrition or a streak around it.",
@@ -1070,6 +1555,9 @@
   "obPointPrivacyTitle": "Nobody else",
   "obPointSocialBody": "Not an anonymous counter. If Marcel was at the gym today and you were not, it says so. That is the point.",
   "obPointSocialTitle": "Your people see everything",
+  "obPrivacyEyebrow": "Privacy",
+  "obPrivacySubtitle": "Only friends you connect yourself ever see anything — no strangers, no public profile. And of that, only what you switch on here.",
+  "obPrivacyTitle": "Who sees what.",
   "obSetsAndMinutes": "{sets} sets · {minutes} min",
   "@obSetsAndMinutes": {
     "placeholders": {
@@ -1083,6 +1571,9 @@
   },
   "obSexFemale": "female",
   "obSexMale": "male",
+  "obSplitEyebrow": "Training plan",
+  "obSplitSubtitle": "Pick how your week is arranged. We suggest exercises for it — change any of them.",
+  "obSplitTitle": "Your split.",
   "obStartChallenge": "Start the challenge",
   "obStartFailed": "Could not start: {message}",
   "@obStartFailed": {
@@ -1100,6 +1591,23 @@
   "obStep3": "Step 3",
   "obStep4": "Step 4",
   "obSummaryAlmostDone": "Almost there",
+  "obSummaryBonusNutrition": "Nutrition plan on: +{percent} % XP for every day closed on target",
+  "@obSummaryBonusNutrition": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "obSummaryBonusSection": "Bonus",
+  "obSummaryBonusTraining": "Training plan on: +{percent} % XP for every logged workout",
+  "@obSummaryBonusTraining": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "obSummaryDailySection": "This counts daily",
   "obSummaryDayOne": "{emoji} {goal} · Day 1 of {days}",
   "@obSummaryDayOne": {
@@ -1119,6 +1627,16 @@
   "obSummaryFriendsNote": "Next: connect friends. Almost nobody lasts 100 days alone — with an audience they do.",
   "obSummaryMissing": "A few details are still missing.",
   "obSummaryNutritionSection": "Nutrition plan",
+  "obSummaryPrivacyAllShared": "All habits and your streak. Body stats and the food diary stay on this phone.",
+  "obSummaryPrivacySection": "Shared with friends",
+  "obSummaryPrivacySome": "Your streak and habits — except {habits}, which stays private. Body stats and the food diary stay on this phone.",
+  "@obSummaryPrivacySome": {
+    "placeholders": {
+      "habits": {
+        "type": "String"
+      }
+    }
+  },
   "obSummaryTitle": "{days} days, starting today.",
   "@obSummaryTitle": {
     "placeholders": {
@@ -1132,7 +1650,16 @@
   "obTrainingEquipment": "Equipment",
   "obTrainingExperience": "Experience",
   "obTrainingEyebrow": "Training",
-  "obTrainingSubtitle": "The app builds your split from this — including deload weeks, so you are not running on empty after six weeks.",
+  "obTrainingNoPlanHint": "Without a plan the app only counts whether you trained.",
+  "obTrainingSplitHint": "Suggested for this: {split}. You choose on the next page.",
+  "@obTrainingSplitHint": {
+    "placeholders": {
+      "split": {
+        "type": "String"
+      }
+    }
+  },
+  "obTrainingSubtitle": "Training days count for the streak. With the training plan you also choose a split and your exercises on the next page.",
   "obTrainingTitle": "How often and with what?",
   "obWelcomeEyebrow": "100 days and far beyond",
   "obWelcomeSubtitle": "Set a goal. Get a plan. After that only one thing counts: whether you showed up today — and whether your people can see it.",
@@ -1154,7 +1681,6 @@
   "peerActivityNone": "Nothing yet",
   "peerActivityRelapse": "Relapse logged",
   "peerActivityStarted": "Challenge started",
-  "planAdjustmentsNote": "Worked out on this device, from your last few weeks. None of it leaves your phone.",
   "planBmr": "Basal metabolic rate (BMR)",
   "planCarbs": "Carbs",
   "planCarbsShort": "Carbs",
@@ -1169,6 +1695,25 @@
   "planContext": "Context",
   "planCurrentBadge": "current",
   "planDeloadBadge": "deload",
+  "planEditTraining": "Edit split and exercises",
+  "planEnableNutrition": "Turn on the nutrition plan",
+  "planEnableNutritionBody": "Set a calorie target and keep a food diary — every day closed on target earns +{percent} % XP.",
+  "@planEnableNutritionBody": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "planEnableTraining": "Turn on the training plan",
+  "planEnableTrainingBody": "Choose a split, adjust the exercises and log every set — each logged workout earns +{percent} % XP.",
+  "@planEnableTrainingBody": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "planExpectedChange": "Expected change",
   "planFat": "Fat",
   "planFiber": "Fibre",
@@ -1194,6 +1739,8 @@
     }
   },
   "planMeals": "Meals",
+  "planNothingBody": "Your habits need no plan — check them off on Today. Training, nutrition and abstinence habits get one here.",
+  "planNothingTitle": "Nothing to plan",
   "planNutritionDeficit": "A {percent}% deficit below your {tdee} kcal expenditure. That is roughly 0.5 kg of fat a week — fast enough to see, slow enough to keep the muscle.",
   "@planNutritionDeficit": {
     "placeholders": {
@@ -1242,7 +1789,6 @@
   },
   "planProtein": "Protein",
   "planTabAbstinence": "Staying clean",
-  "planTabAdjustments": "Adjustments",
   "planTabNutrition": "Nutrition",
   "planTabTraining": "Training",
   "planTdee": "Total expenditure (TDEE)",
@@ -1294,6 +1840,19 @@
       }
     }
   },
+  "privacyAlwaysPrivate": "Always private, no switch needed: body stats, calorie targets and the food diary. They are sealed in your own feed — friends store the encrypted bytes as a backup but cannot read them.",
+  "privacyFromNowOn": "Changes apply from now on. What friends already received stays with them — a habit you make private disappears for new entries, not for old ones.",
+  "privacyHabitsSub": "A private habit is invisible to friends — its check-ins and relapses too. Your streak for them counts the shared ones.",
+  "privacyHabitsTitle": "Habits",
+  "privacyMoreTitle": "More",
+  "privacyPrivate": "Only you",
+  "privacySaved": "Privacy settings saved",
+  "privacyShared": "Friends see it",
+  "privacyStatement": "Goal sentence",
+  "privacyStatementSub": "Your goal in your own words, shown on your profile.",
+  "privacyTitle": "Privacy",
+  "privacyWorkouts": "Workout details",
+  "privacyWorkoutsSub": "Session, sets and weights. Off: friends only see that you trained.",
   "profileCheer": "Cheer",
   "profileCheerSent": "Cheered.",
   "profileDaysCount": "{days} days",
@@ -1335,6 +1894,38 @@
       },
       "streak": {
         "type": "int"
+      }
+    }
+  },
+  "promptAdjustTargets": "You are a nutrition coach. Current daily target: {kcal} kcal, {protein} g protein, {carbs} g carbs, {fat} g fat. Energy expenditure: {tdee} kcal.\nThe user wants: \"{wish}\"\n\nPropose new targets. Stay between {min} and {max} kcal and never more than 25% below the expenditure.\nAnswer with JSON only, exactly in this form, the reason in English:\n{format}",
+  "@promptAdjustTargets": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "carbs": {
+        "type": "int"
+      },
+      "fat": {
+        "type": "int"
+      },
+      "tdee": {
+        "type": "int"
+      },
+      "wish": {
+        "type": "String"
+      },
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      },
+      "format": {
+        "type": "String"
       }
     }
   },
@@ -1396,6 +1987,17 @@
       }
     }
   },
+  "promptFoodEstimate": "You are a nutrition assistant. Estimate what this person ate:\n\"{text}\"\n\nFor each food, estimate the total weight in grams (2 eggs are about 110 g, not 2) and the calories and macros of that whole amount.\nAnswer with JSON only, in this form, names in English:\n{format}",
+  "@promptFoodEstimate": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      },
+      "format": {
+        "type": "String"
+      }
+    }
+  },
   "promptHabitLine": "- {emoji} {habit}: {streak} {unit}",
   "@promptHabitLine": {
     "placeholders": {
@@ -1409,6 +2011,23 @@
         "type": "int"
       },
       "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "promptMealIdeas": "Suggest 3 simple ideas for {meal} with about {kcal} kcal and at least {protein} g protein each. Wish: {wish}\nOne idea per line, at most 12 words each, with the estimated kcal at the end. In English. No numbering, no preamble.",
+  "@promptMealIdeas": {
+    "placeholders": {
+      "meal": {
+        "type": "String"
+      },
+      "kcal": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "wish": {
         "type": "String"
       }
     }
@@ -1556,6 +2175,8 @@
       }
     }
   },
+  "setPrivacy": "Privacy",
+  "setPrivacySub": "What your friends see",
   "setRecoveryKey": "Recovery key",
   "setRecoveryKeySub": "The only way back into your account.",
   "setSyncFailed": "Last attempt failed: {message}",
@@ -1599,15 +2220,16 @@
     }
   },
   "socialTabLeague": "League",
-  "splitFullBodyThrice": "Full body 3x",
-  "splitFullBodyTwice": "Full body 2x",
-  "splitPplPlusUpperLower": "Push / Pull / Legs + Upper / Lower",
-  "splitPplTwice": "Push / Pull / Legs 2x",
-  "splitPreview2": "Full body 2x — every session hits everything.",
-  "splitPreview3": "Full body 3x — the best trade-off for most people.",
-  "splitPreview4": "Upper / Lower — upper body twice, legs twice.",
-  "splitPreview5": "Push / Pull / Legs plus Upper / Lower.",
-  "splitPreview6": "Push / Pull / Legs, twice a week.",
+  "splitBlurbBroSplit": "Chest, back, legs, shoulders, arms — one muscle group per day. For five days or more.",
+  "splitBlurbFullBody": "Every session hits everything. The best trade-off on two or three days.",
+  "splitBlurbPplUpperLower": "Five sessions: PPL plus an upper and a lower day. Made for five days.",
+  "splitBlurbPushPullLegs": "Pushing, pulling, legs — rotating. Strong on three or six days.",
+  "splitBlurbUpperLower": "Upper body and legs alternate. Ideal on four days.",
+  "splitBroSplit": "Body-part split",
+  "splitFullBody": "Full body",
+  "splitPplUpperLower": "Push / Pull / Legs + Upper / Lower",
+  "splitPushPullLegs": "Push / Pull / Legs",
+  "splitRecommended": "recommended",
   "splitUpperLower": "Upper / Lower",
   "statDay": "Day",
   "statRecord": "Record",
@@ -1806,6 +2428,12 @@
   "weekdayThu": "THU",
   "weekdayTue": "TUE",
   "weekdayWed": "WED",
+  "workoutArms": "Arms",
+  "workoutArmsFocus": "Biceps and triceps",
+  "workoutBack": "Back",
+  "workoutBackFocus": "Lats, upper back and biceps",
+  "workoutChest": "Chest",
+  "workoutChestFocus": "Chest and triceps",
   "workoutExercises": "Exercises",
   "workoutFullBodyA": "Full body A",
   "workoutFullBodyAFocus": "Knee, push, pull",
@@ -1833,17 +2461,20 @@
       }
     }
   },
-  "workoutRpe": "RPE {value}",
-  "@workoutRpe": {
+  "workoutRir": "RIR {rir}",
+  "@workoutRir": {
     "placeholders": {
-      "value": {
-        "type": "String"
+      "rir": {
+        "type": "int"
       }
     }
   },
-  "workoutRpeBody": "RPE 8 means: after the set you could have done two more clean reps. Pick the weight that makes that true — not the one that was in the plan last week.",
-  "workoutRpeTitle": "Understanding RPE",
+  "workoutRpeBody": "RIR 2 means: after the set you could have done two more clean reps. Pick the weight that makes that true — the logger then tells you each time whether to add reps or weight.",
+  "workoutRpeTitle": "Understanding RIR",
   "workoutSets": "Sets",
+  "workoutShoulders": "Shoulders",
+  "workoutShouldersFocus": "All three heads of the shoulder, plus core",
+  "workoutStart": "Start workout",
   "workoutUpper": "Upper body",
   "workoutUpperFocus": "Push and pull",
   "workoutWorkingSets": "Working sets"

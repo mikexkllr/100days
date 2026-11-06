@@ -1,4 +1,5 @@
 import 'package:hundred_core/hundred_core.dart';
+import 'package:intl/intl.dart';
 
 import 'generated/app_localizations.dart';
 
@@ -279,9 +280,25 @@ extension CoreL10n on AppLocalizations {
 
   /// Description of a downloadable model, keyed by its id.
   String modelDescription(String modelId) {
-    if (modelId.startsWith('qwen')) return aiModelQwenDesc;
-    if (modelId.startsWith('gemma')) return aiModelGemmaDesc;
-    return aiModelSmolDesc;
+    switch (modelId) {
+      case 'qwen3.5-0.8b-q4':
+        return aiModelLightDesc;
+      case 'qwen3.5-2b-q4':
+        return aiModelBalancedDesc;
+      case 'gemma-4-e2b-qat-mobile':
+        return aiModelE2bMobileDesc;
+      case 'gemma-4-e2b-qat':
+        return aiModelStrongDesc;
+      default:
+        return aiModelMaxDesc;
+    }
+  }
+
+  /// A calendar day, short: "Mo, 2.11." / "Mon, 11/2".
+  String formatDay(DayKey day) {
+    final DateTime date = day.toDateTime();
+    return '${weekdayShort(date.weekday)} '
+        '${DateFormat.Md(localeName).format(date)}';
   }
 
   /// Relative time for feed rows.

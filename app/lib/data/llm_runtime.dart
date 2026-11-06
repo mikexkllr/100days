@@ -1,18 +1,34 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:hundred_core/hundred_core.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-/// Describes an on-device model the user can install.
+import 'device_profile.dart';
+
+/// How capable a model is — and how much phone it needs.
+enum ModelTier { light, balanced, strong, max }
+
+/// An on-device model the app can download and run.
+///
+/// Pinned to a repository revision and a SHA-256, so the file that lands on
+/// the phone is exactly the file that was reviewed — not whatever the
+/// repository holds the day someone taps download.
 class LocalModelSpec {
   const LocalModelSpec({
     required this.id,
     required this.name,
+    required this.tier,
+    required this.repository,
+    required this.revision,
     required this.fileName,
-    required this.approxBytes,
-    required this.sourceUrl,
+    required this.sizeBytes,
+    required this.sha256,
+    required this.minRamMb,
+    required this.license,
+    required this.quantization,
+    this.recommendable = true,
+    this.writesCoach = true,
   });
 
   /// Stable identifier; the app's localizations describe the model under it.
@@ -20,133 +36,247 @@ class LocalModelSpec {
 
   /// The model's own name, which is not translated.
   final String name;
+  final ModelTier tier;
 
+  /// Hugging Face repository holding the GGUF file.
+  final String repository;
+  final String revision;
   final String fileName;
-  final int approxBytes;
+  final int sizeBytes;
+  final String sha256;
 
-  /// Where a user can get the weights. The app never downloads a model on its
-  /// own: pulling a gigabyte over someone's mobile data without asking is not
-  /// something a "local-first, no surprises" app gets to do.
-  final String sourceUrl;
+  /// Physical memory a phone needs before the app offers this model as
+  /// fitting. The file sits in RAM, plus the context cache, plus everything
+  /// else the phone is running.
+  final int minRamMb;
+
+  final String license;
+
+  /// How the weights were squeezed, as shown next to the size.
+  final String quantization;
+
+  /// False for variants that are offered but never proposed by default —
+  /// a smaller cut of a model the app already recommends elsewhere.
+  final bool recommendable;
+
+  /// Whether the coach lets this model write its daily line. Meal estimates
+  /// and target proposals are checked and confirmed before they count; a
+  /// coach line is shown as it comes, so it needs a model that stays on
+  /// topic. Run on the real files, the Qwen models wandered off ("your
+  /// friends have lapsed") and dropped the informal "du"; with them the coach
+  /// stays rule-based.
+  final bool writesCoach;
+
+  Uri get downloadUri => Uri.parse(
+      'https://huggingface.co/$repository/resolve/$revision/$fileName');
+
+  Uri get pageUri => Uri.parse('https://huggingface.co/$repository');
+
+  double get sizeGb => sizeBytes / 1e9;
+
+  bool fits(DeviceProfile device) {
+    final ram = device.ramMb;
+    if (!device.supportsLocalAi) return false;
+    // Unknown memory: only the smallest model is a safe bet.
+    if (ram == null) return tier == ModelTier.light;
+    return ram >= minRamMb;
+  }
 }
 
-/// Small instruction-tuned models that fit comfortably on a phone.
-const List<LocalModelSpec> kSupportedModels = <LocalModelSpec>[
+/// Small instruction-tuned models that run on a phone, smallest first.
+///
+/// Checked in November 2026. Qwen3.5 Small (March 2026) is still Qwen's
+/// newest small line — Qwen3.6 and 3.8 only come in large sizes — and
+/// Gemma 4 E2B/E4B is still Google's on-device line. Both are multilingual,
+/// which matters for an app that speaks German, and Apache 2.0.
+///
+/// Gemma ships as Google's quantisation-aware-trained (QAT) checkpoints in
+/// Unsloth's GGUF builds rather than plain post-training Q4_K_M: smaller
+/// files that agree with the full-precision model on the next token about
+/// 98 % of the time (Unsloth's measurements). The "mobile" builds mix 2-bit
+/// layers in for phones.
+///
+/// Every architecture here is one the bundled llama.cpp knows (`qwen35`,
+/// `gemma4`). Liquid AI's LFM3 (October 2026) needs a newer engine than the
+/// one pinned, and is under its own licence rather than Apache 2.0.
+const List<LocalModelSpec> kModelCatalog = <LocalModelSpec>[
   LocalModelSpec(
-    id: 'qwen2.5-1.5b-instruct-q4',
-    name: 'Qwen2.5 1.5B Instruct (Q4)',
-    fileName: 'qwen2.5-1.5b-instruct-q4_k_m.gguf',
-    approxBytes: 1_100_000_000,
-    sourceUrl: 'https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF',
+    id: 'qwen3.5-0.8b-q4',
+    name: 'Qwen3.5 0.8B',
+    tier: ModelTier.light,
+    repository: 'unsloth/Qwen3.5-0.8B-GGUF',
+    revision: '6ab461498e2023f6e3c1baea90a8f0fe38ab64d0',
+    fileName: 'Qwen3.5-0.8B-Q4_K_M.gguf',
+    sizeBytes: 532517120,
+    sha256:
+        'bd258782e35f7f458f8aced1adc053e6e92e89bc735ba3be89d38a06121dc517',
+    // "3 GB" phones report about 2.7 GiB.
+    minRamMb: 2560,
+    license: 'Apache-2.0',
+    quantization: 'Q4_K_M',
+    writesCoach: false,
+    // Offered on small phones, never proposed: run on the real file, its
+    // meal estimates failed the plausibility check every time.
+    recommendable: false,
   ),
   LocalModelSpec(
-    id: 'gemma-2-2b-it-q4',
-    name: 'Gemma 2 2B IT (Q4)',
-    fileName: 'gemma-2-2b-it-q4_k_m.gguf',
-    approxBytes: 1_600_000_000,
-    sourceUrl: 'https://huggingface.co/google/gemma-2-2b-it-GGUF',
+    id: 'qwen3.5-2b-q4',
+    name: 'Qwen3.5 2B',
+    tier: ModelTier.balanced,
+    repository: 'unsloth/Qwen3.5-2B-GGUF',
+    revision: 'f6d5376be1edb4d416d56da11e5397a961aca8ae',
+    fileName: 'Qwen3.5-2B-Q4_K_M.gguf',
+    sizeBytes: 1280835840,
+    sha256:
+        'aaf42c8b7c3cab2bf3d69c355048d4a0ee9973d48f16c731c0520ee914699223',
+    // "6 GB" phones report about 5.5 GiB.
+    minRamMb: 5 * 1024,
+    license: 'Apache-2.0',
+    quantization: 'Q4_K_M',
+    writesCoach: false,
   ),
   LocalModelSpec(
-    id: 'smollm2-360m-instruct-q8',
-    name: 'SmolLM2 360M Instruct (Q8)',
-    fileName: 'smollm2-360m-instruct-q8_0.gguf',
-    approxBytes: 400_000_000,
-    sourceUrl: 'https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct-GGUF',
+    id: 'gemma-4-e2b-qat-mobile',
+    name: 'Gemma 4 E2B Mobile',
+    tier: ModelTier.balanced,
+    repository: 'unsloth/gemma-4-E2B-it-qat-mobile-GGUF',
+    revision: '46af839dc23aceb4b965ab640dae7fc1bea39bba',
+    fileName: 'gemma-4-E2B-it-qat-UD-Q2_K_XL.gguf',
+    sizeBytes: 2186186784,
+    sha256:
+        '0a5bbc20f91f92da96ab4870fa71b356c45b8500a7b8b9c3e0eb48359b72da28',
+    minRamMb: 5 * 1024,
+    license: 'Apache-2.0',
+    quantization: 'QAT 2-bit mix',
+    // Offered as the smaller Gemma, never proposed over Qwen3.5 2B, which
+    // is half the size on the phones this would fit.
+    recommendable: false,
+  ),
+  LocalModelSpec(
+    id: 'gemma-4-e2b-qat',
+    name: 'Gemma 4 E2B',
+    tier: ModelTier.strong,
+    repository: 'unsloth/gemma-4-E2B-it-qat-GGUF',
+    revision: '66a399f68ddd113b06dff02fca9523e55465d11d',
+    fileName: 'gemma-4-E2B-it-qat-UD-Q4_K_XL.gguf',
+    sizeBytes: 2620370976,
+    sha256:
+        'e531007218dfab990486a5de7676a6932d6ea8dea233d1f698d7c21cf8a16889',
+    // "8 GB" phones report about 7.4 GiB.
+    minRamMb: 7 * 1024,
+    license: 'Apache-2.0',
+    quantization: 'QAT Q4',
+  ),
+  LocalModelSpec(
+    id: 'gemma-4-e4b-qat-mobile',
+    name: 'Gemma 4 E4B Mobile',
+    tier: ModelTier.max,
+    repository: 'unsloth/gemma-4-E4B-it-qat-mobile-GGUF',
+    revision: '6a6e7121b977cefd85daa8fbc538fa485e7e8b1b',
+    fileName: 'gemma-4-E4B-it-qat-UD-Q2_K_XL.gguf',
+    sizeBytes: 3219532192,
+    sha256:
+        '79dde517866cfbb5c00230b530de17910fc7fc78f8827554d0e14281ce5faf03',
+    // Twice the compute of E2B: for "12 GB" flagships (about 11.2 GiB).
+    minRamMb: 11 * 1024,
+    license: 'Apache-2.0',
+    quantization: 'QAT 2-bit mix',
   ),
 ];
 
-/// Locates model files the user has placed in the app's model directory.
-///
-/// Binding an actual inference engine (llama.cpp through FFI, MediaPipe's LLM
-/// Inference API, Core ML) is a platform-channel concern; this class owns the
-/// part that is the same either way — is a model present, how big is it, and
-/// which spec does it correspond to.
+LocalModelSpec? modelById(String id) {
+  for (final spec in kModelCatalog) {
+    if (spec.id == id) return spec;
+  }
+  return null;
+}
+
+/// The model the app proposes for [device]: the strongest recommendable
+/// one that fits. Null on a phone where only models that barely help would
+/// fit — the app then offers them without pushing any.
+LocalModelSpec? recommendedModel(DeviceProfile device) {
+  LocalModelSpec? best;
+  for (final spec in kModelCatalog) {
+    if (spec.recommendable && spec.fits(device)) best = spec;
+  }
+  return best;
+}
+
+/// What else the user can pick instead of [shown]: the smaller models that
+/// fit (less storage, less battery, quicker answers), the larger ones that
+/// still fit, and the ones that are too big for this phone.
+({
+  List<LocalModelSpec> smaller,
+  List<LocalModelSpec> larger,
+  List<LocalModelSpec> tooBig,
+}) modelAlternatives(DeviceProfile device, LocalModelSpec? shown) {
+  final smaller = <LocalModelSpec>[];
+  final larger = <LocalModelSpec>[];
+  final tooBig = <LocalModelSpec>[];
+  for (final spec in kModelCatalog) {
+    if (spec.id == shown?.id) continue;
+    if (!spec.fits(device)) {
+      tooBig.add(spec);
+    } else if (shown == null || spec.sizeBytes < shown.sizeBytes) {
+      smaller.add(spec);
+    } else {
+      larger.add(spec);
+    }
+  }
+  // Closest to the proposal first: the next size down is the likeliest pick.
+  return (
+    smaller: smaller.reversed.toList(),
+    larger: larger,
+    tooBig: tooBig,
+  );
+}
+
+/// Finds model files in the app's model directory.
 class LocalModelManager {
+  LocalModelManager({Future<Directory> Function()? baseDirectory})
+      : _baseDirectory = baseDirectory ?? getApplicationSupportDirectory;
+
+  final Future<Directory> Function() _baseDirectory;
   Directory? _directory;
 
   Future<Directory> directory() async {
     final existing = _directory;
     if (existing != null) return existing;
-    final support = await getApplicationSupportDirectory();
+    final support = await _baseDirectory();
     final dir = Directory(p.join(support.path, 'models'));
     if (!dir.existsSync()) await dir.create(recursive: true);
     return _directory = dir;
   }
 
+  Future<File> targetFile(LocalModelSpec spec) async =>
+      File(p.join((await directory()).path, spec.fileName));
+
   Future<File?> fileFor(LocalModelSpec spec) async {
-    final file = File(p.join((await directory()).path, spec.fileName));
+    final file = await targetFile(spec);
     return file.existsSync() ? file : null;
   }
 
+  /// The installed model, strongest first — if a user has two, they
+  /// downloaded the second one on purpose.
   Future<LocalModelSpec?> installedModel() async {
-    for (final spec in kSupportedModels) {
+    for (final spec in kModelCatalog.reversed) {
       if (await fileFor(spec) != null) return spec;
     }
     return null;
   }
 
+  /// Deletes every other model, so one model at a time sits on the phone:
+  /// switching models must not quietly double the storage used.
+  Future<void> keepOnly(LocalModelSpec spec) async {
+    for (final other in kModelCatalog) {
+      if (other.id != spec.id) await remove(other);
+    }
+  }
+
   Future<void> remove(LocalModelSpec spec) async {
     final file = await fileFor(spec);
     if (file != null) await file.delete();
-  }
-}
-
-/// Bridges an installed model file to the [LocalLlmRuntime] port.
-///
-/// Ships without an inference backend: [attachBackend] is the single seam an
-/// engine plugs into, so the rest of the app can be written, tested and
-/// shipped against the real coach interface today and get better output the
-/// day a backend lands.
-class GgufLlmRuntime implements LocalLlmRuntime {
-  GgufLlmRuntime({required this.spec, required this.file});
-
-  final LocalModelSpec spec;
-  final File file;
-
-  /// `(prompt, maxTokens, temperature) -> completion`
-  static Future<String> Function(String, int, double)? _backend;
-
-  static void attachBackend(
-    Future<String> Function(String prompt, int maxTokens, double temperature)
-        backend,
-  ) {
-    _backend = backend;
-  }
-
-  static bool get hasBackend => _backend != null;
-
-  bool _loaded = false;
-
-  @override
-  String get modelName => spec.name;
-
-  @override
-  bool get isReady => _loaded && _backend != null;
-
-  @override
-  int? get sizeBytes => file.existsSync() ? file.lengthSync() : null;
-
-  @override
-  Future<void> load() async {
-    _loaded = file.existsSync();
-  }
-
-  @override
-  Future<String> generate(
-    String prompt, {
-    int maxTokens = 200,
-    double temperature = 0.8,
-    Duration timeout = const Duration(seconds: 20),
-  }) async {
-    final backend = _backend;
-    if (backend == null || !_loaded) {
-      throw StateError('No inference backend attached');
-    }
-    return backend(prompt, maxTokens, temperature).timeout(timeout);
-  }
-
-  @override
-  Future<void> dispose() async {
-    _loaded = false;
+    final partial = File('${(await targetFile(spec)).path}.part');
+    if (partial.existsSync()) await partial.delete();
   }
 }

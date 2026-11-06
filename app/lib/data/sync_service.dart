@@ -19,6 +19,22 @@ class SyncEvent {
   bool get broughtSomething => result.received > 0;
 }
 
+/// Someone who connected, proved who they are, and is not a friend yet —
+/// most likely because they scanned our code. Nothing was sent to them.
+class FriendRequest {
+  const FriendRequest({
+    required this.did,
+    required this.displayName,
+    required this.avatarEmoji,
+    required this.at,
+  });
+
+  final String did;
+  final String displayName;
+  final String avatarEmoji;
+  final DateTime at;
+}
+
 /// Drives replication across every enabled transport.
 ///
 /// Sync is opportunistic by design: whenever a peer shows up — a beacon on the
@@ -26,18 +42,22 @@ class SyncEvent {
 /// There is no persistent connection to babysit and no server to be down.
 class SyncService {
   SyncService({
+    required this.identity,
     required this.store,
     required this.replicator,
-    required this.localDid,
     required this.localDisplayName,
     required this.followedDids,
+    this.localAvatarEmoji,
     this.minInterval = const Duration(seconds: 20),
   });
 
+  final Identity identity;
   final FeedStore store;
   final FeedReplicator replicator;
-  final String localDid;
   final String Function() localDisplayName;
+  final String Function()? localAvatarEmoji;
+
+  String get localDid => identity.did;
 
   /// Read lazily: the follow set changes while the service is running.
   final Set<String> Function() followedDids;
@@ -57,7 +77,27 @@ class SyncService {
 
   final Map<String, DiscoveredPeer> _knownPeers = <String, DiscoveredPeer>{};
 
+  final Map<String, FriendRequest> _requests = <String, FriendRequest>{};
+  final Set<String> _declined = <String>{};
+  final StreamController<List<FriendRequest>> _requestEvents =
+      StreamController<List<FriendRequest>>.broadcast();
+
   Stream<SyncEvent> get events => _events.stream;
+
+  /// People waiting to be accepted, newest first.
+  List<FriendRequest> get friendRequests => _requests.values.toList()
+    ..sort((FriendRequest a, FriendRequest b) => b.at.compareTo(a.at));
+
+  Stream<List<FriendRequest>> get friendRequestChanges =>
+      _requestEvents.stream;
+
+  /// Forgets a request, after it was accepted or declined. A declined one
+  /// stays quiet for the rest of the session.
+  void resolveRequest(String did, {required bool accepted}) {
+    _requests.remove(did);
+    if (!accepted) _declined.add(did);
+    if (!_requestEvents.isClosed) _requestEvents.add(friendRequests);
+  }
 
   List<DiscoveredPeer> get knownPeers => _knownPeers.values.toList();
 
@@ -166,13 +206,27 @@ class SyncService {
     String? peerName,
   }) async {
     final syncer = Syncer(
+      identity: identity,
       store: store,
       replicator: replicator,
-      localDid: localDid,
       localDisplayName: localDisplayName(),
+      localAvatarEmoji: localAvatarEmoji?.call(),
       followedDids: <String>{localDid, ...followedDids()},
     );
     final result = await syncer.run(session);
+    final peer = result.peerDid;
+    if (result.status == SyncOutcome.refusedStranger &&
+        peer != null &&
+        !_declined.contains(peer) &&
+        !followedDids().contains(peer)) {
+      _requests[peer] = FriendRequest(
+        did: peer,
+        displayName: result.peerName ?? peerName ?? '?',
+        avatarEmoji: result.peerEmoji ?? '🙂',
+        at: DateTime.now(),
+      );
+      if (!_requestEvents.isClosed) _requestEvents.add(friendRequests);
+    }
     final event = SyncEvent(
       transportId: transportId,
       peerName: peerName,
@@ -193,5 +247,6 @@ class SyncService {
     }
     _transports.clear();
     await _events.close();
+    await _requestEvents.close();
   }
 }

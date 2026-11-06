@@ -12,6 +12,7 @@ import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
 import 'ai_screen.dart';
+import 'privacy_screen.dart';
 import 'recovery_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -86,6 +87,17 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => Navigator.of(context).push<void>(
               MaterialPageRoute<void>(
                 builder: (BuildContext context) => const RecoveryScreen(),
+              ),
+            ),
+          ),
+          _Row(
+            icon: Icons.lock_outline,
+            iconColor: AppColors.lime,
+            title: l10n.setPrivacy,
+            subtitle: l10n.setPrivacySub,
+            onTap: () => Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => const PrivacyScreen(),
               ),
             ),
           ),

@@ -1,5 +1,7 @@
 import 'package:meta/meta.dart';
 
+import '../plan/nutrition.dart';
+import '../plan/training.dart';
 import 'habit.dart';
 
 /// The single question the app asks before anything else: what are you
@@ -190,11 +192,15 @@ class Goal {
     this.experience = TrainingExperience.beginner,
     this.equipment = EquipmentAccess.fullGym,
     this.trainingDaysPerWeek = 4,
+    this.trainingPlanEnabled = true,
+    this.training,
+    this.nutritionPlanEnabled = true,
+    this.nutrition,
   });
 
   factory Goal.fromJson(Map<String, dynamic> json) => Goal(
         archetype: GoalArchetype.values.byName(json['archetype'] as String),
-        statement: json['statement'] as String,
+        statement: json['statement'] as String? ?? '',
         body: json['body'] == null
             ? null
             : BodyProfile.fromJson(
@@ -205,6 +211,18 @@ class Goal {
             .byName(json['equipment'] as String? ?? 'fullGym'),
         trainingDaysPerWeek:
             (json['trainingDaysPerWeek'] as num?)?.toInt() ?? 4,
+        // Absent on challenges written before the plans became optional:
+        // those users always had both, so they keep them.
+        trainingPlanEnabled: json['trainingPlan'] as bool? ?? true,
+        training: json['training'] == null
+            ? null
+            : TrainingSetup.fromJson(
+                Map<String, dynamic>.from(json['training'] as Map)),
+        nutritionPlanEnabled: json['nutritionPlan'] as bool? ?? true,
+        nutrition: json['nutrition'] == null
+            ? null
+            : NutritionGoals.fromJson(
+                Map<String, dynamic>.from(json['nutrition'] as Map)),
       );
 
   final GoalArchetype archetype;
@@ -218,6 +236,21 @@ class Goal {
   final EquipmentAccess equipment;
   final int trainingDaysPerWeek;
 
+  /// The structured training plan is optional. Without it the gym habit is a
+  /// plain tick; with it every session can be logged set by set — and a
+  /// logged session earns more XP than a tick.
+  final bool trainingPlanEnabled;
+
+  /// The user's own split and exercises. Null means "the suggestion" — the
+  /// plan is then derived from experience, equipment and days.
+  final TrainingSetup? training;
+
+  /// Same deal for nutrition: targets and a food diary, or just a tick.
+  final bool nutritionPlanEnabled;
+
+  /// The user's own calorie and macro targets. Null means "computed".
+  final NutritionGoals? nutrition;
+
   GoalArchetypeInfo get info => goalInfo(archetype);
 
   Goal copyWith({
@@ -227,14 +260,26 @@ class Goal {
     TrainingExperience? experience,
     EquipmentAccess? equipment,
     int? trainingDaysPerWeek,
+    bool? trainingPlanEnabled,
+    TrainingSetup? training,
+    bool clearTraining = false,
+    bool? nutritionPlanEnabled,
+    NutritionGoals? nutrition,
+    bool clearNutrition = false,
+    bool clearBody = false,
   }) =>
       Goal(
         archetype: archetype ?? this.archetype,
         statement: statement ?? this.statement,
-        body: body ?? this.body,
+        body: clearBody ? null : body ?? this.body,
         experience: experience ?? this.experience,
         equipment: equipment ?? this.equipment,
         trainingDaysPerWeek: trainingDaysPerWeek ?? this.trainingDaysPerWeek,
+        trainingPlanEnabled: trainingPlanEnabled ?? this.trainingPlanEnabled,
+        training: clearTraining ? null : training ?? this.training,
+        nutritionPlanEnabled:
+            nutritionPlanEnabled ?? this.nutritionPlanEnabled,
+        nutrition: clearNutrition ? null : nutrition ?? this.nutrition,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -244,5 +289,9 @@ class Goal {
         'experience': experience.name,
         'equipment': equipment.name,
         'trainingDaysPerWeek': trainingDaysPerWeek,
+        'trainingPlan': trainingPlanEnabled,
+        if (training != null) 'training': training!.toJson(),
+        'nutritionPlan': nutritionPlanEnabled,
+        if (nutrition != null) 'nutrition': nutrition!.toJson(),
       };
 }

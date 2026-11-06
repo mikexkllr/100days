@@ -15,7 +15,13 @@ class OnboardingDraft {
     this.trainingDaysPerWeek = 4,
     this.experience = TrainingExperience.beginner,
     this.equipment = EquipmentAccess.fullGym,
+    this.trainingPlanEnabled = true,
+    this.split,
+    this.trainingSetup,
+    this.nutritionPlanEnabled = true,
+    this.nutritionGoals = const NutritionGoals(),
     this.body,
+    this.sharing = const SharingPrefs(),
     this.displayName = '',
     this.avatarEmoji = '🔥',
     this.lengthDays = 100,
@@ -28,17 +34,45 @@ class OnboardingDraft {
   final int trainingDaysPerWeek;
   final TrainingExperience experience;
   final EquipmentAccess equipment;
+
+  /// The structured training plan is optional — but worth more XP.
+  final bool trainingPlanEnabled;
+
+  /// The split the user picked; null means the recommended one.
+  final SplitKind? split;
+
+  /// Exercises the user edited. Null until they touch one: until then the
+  /// suggestion follows every change of days, equipment and experience.
+  final TrainingSetup? trainingSetup;
+
+  /// Targets and food diary — optional, and also worth more XP.
+  final bool nutritionPlanEnabled;
+  final NutritionGoals nutritionGoals;
+
   final BodyProfile? body;
+  final SharingPrefs sharing;
   final String displayName;
   final String avatarEmoji;
   final int lengthDays;
 
-  bool get needsBodyStats =>
-      archetype != null && goalInfo(archetype!).needsBodyStats;
-
-  bool get needsTrainingDetails =>
+  bool get hasTrainingHabit =>
       selectedHabits.contains(HabitCategory.gym) ||
       selectedHabits.contains(HabitCategory.cardio);
+
+  bool get needsTrainingDetails => hasTrainingHabit;
+
+  bool get usesTrainingPlan => hasTrainingHabit && trainingPlanEnabled;
+
+  bool get usesNutritionPlan =>
+      selectedHabits.contains(HabitCategory.nutrition) && nutritionPlanEnabled;
+
+  /// Body stats only feed the calorie target, so only the nutrition plan
+  /// asks for them. Someone doing a dopamine detox is never asked their
+  /// weight.
+  bool get needsBodyStats => usesNutritionPlan;
+
+  SplitKind get effectiveSplit =>
+      trainingSetup?.split ?? split ?? recommendedSplit(trainingDaysPerWeek);
 
   bool get isReady =>
       archetype != null &&
@@ -55,7 +89,14 @@ class OnboardingDraft {
     int? trainingDaysPerWeek,
     TrainingExperience? experience,
     EquipmentAccess? equipment,
+    bool? trainingPlanEnabled,
+    SplitKind? split,
+    TrainingSetup? trainingSetup,
+    bool clearTrainingSetup = false,
+    bool? nutritionPlanEnabled,
+    NutritionGoals? nutritionGoals,
     BodyProfile? body,
+    SharingPrefs? sharing,
     String? displayName,
     String? avatarEmoji,
     int? lengthDays,
@@ -68,20 +109,44 @@ class OnboardingDraft {
         trainingDaysPerWeek: trainingDaysPerWeek ?? this.trainingDaysPerWeek,
         experience: experience ?? this.experience,
         equipment: equipment ?? this.equipment,
+        trainingPlanEnabled: trainingPlanEnabled ?? this.trainingPlanEnabled,
+        split: split ?? this.split,
+        trainingSetup: clearTrainingSetup
+            ? null
+            : trainingSetup ?? this.trainingSetup,
+        nutritionPlanEnabled:
+            nutritionPlanEnabled ?? this.nutritionPlanEnabled,
+        nutritionGoals: nutritionGoals ?? this.nutritionGoals,
         body: body ?? this.body,
+        sharing: sharing ?? this.sharing,
         displayName: displayName ?? this.displayName,
         avatarEmoji: avatarEmoji ?? this.avatarEmoji,
         lengthDays: lengthDays ?? this.lengthDays,
       );
 
-  Goal toGoal() => Goal(
+  Goal _baseGoal() => Goal(
         archetype: archetype!,
         statement: statement.trim(),
-        body: body,
+        body: usesNutritionPlan ? body : null,
         experience: experience,
         equipment: equipment,
         trainingDaysPerWeek: trainingDaysPerWeek,
+        trainingPlanEnabled: trainingPlanEnabled,
+        nutritionPlanEnabled: nutritionPlanEnabled,
+        nutrition: usesNutritionPlan ? nutritionGoals : null,
       );
+
+  /// The training plan as it would be saved: the user's edits, or the
+  /// suggestion for the chosen split.
+  TrainingSetup currentTrainingSetup() =>
+      trainingSetup ??
+      suggestTrainingSetup(_baseGoal(), split: effectiveSplit);
+
+  Goal toGoal() {
+    final goal = _baseGoal();
+    if (!usesTrainingPlan) return goal;
+    return goal.copyWith(training: currentTrainingSetup());
+  }
 
   List<Habit> toHabits() => <Habit>[
         for (final HabitCategory category in selectedHabits)
@@ -99,6 +164,13 @@ class OnboardingDraft {
         habits: toHabits(),
         startDay: startDay ?? DayKey.today(),
         lengthDays: lengthDays,
+        sharing: sharing.copyWith(
+          // Only keep switches for habits that exist.
+          privateHabits: sharing.privateHabits
+              .where((String id) =>
+                  selectedHabits.any((HabitCategory c) => c.name == id))
+              .toSet(),
+        ),
       );
 }
 
@@ -113,6 +185,9 @@ class OnboardingController extends Notifier<OnboardingDraft> {
       // Pre-select what this goal implies; the user edits from there rather
       // than starting at an empty list.
       selectedHabits: info.suggestedHabits.toSet(),
+      // A goal that is not about the body does not default into a calorie
+      // plan; the user can still switch it on.
+      nutritionPlanEnabled: info.needsBodyStats,
     );
   }
 
@@ -131,16 +206,43 @@ class OnboardingController extends Notifier<OnboardingDraft> {
     );
   }
 
-  void setTrainingDays(int days) =>
-      state = state.copyWith(trainingDaysPerWeek: days);
+  // Days, experience and equipment change what the suggestion would be, so
+  // unedited suggestions are rebuilt; an edited plan is kept as it is.
+  void setTrainingDays(int days) => state = state.copyWith(
+        trainingDaysPerWeek: days,
+        clearTrainingSetup: state.trainingSetup == null,
+      );
 
   void setExperience(TrainingExperience experience) =>
       state = state.copyWith(experience: experience);
 
-  void setEquipment(EquipmentAccess equipment) =>
-      state = state.copyWith(equipment: equipment);
+  void setEquipment(EquipmentAccess equipment) => state = state.copyWith(
+        equipment: equipment,
+        // Exercises picked for a full gym make no sense at home.
+        clearTrainingSetup: true,
+      );
+
+  void setTrainingPlanEnabled(bool enabled) =>
+      state = state.copyWith(trainingPlanEnabled: enabled);
+
+  void chooseSplit(SplitKind split) => state = state.copyWith(
+        split: split,
+        clearTrainingSetup: true,
+      );
+
+  void setTrainingSetup(TrainingSetup setup) =>
+      state = state.copyWith(trainingSetup: setup, split: setup.split);
+
+  void setNutritionPlanEnabled(bool enabled) =>
+      state = state.copyWith(nutritionPlanEnabled: enabled);
+
+  void setNutritionGoals(NutritionGoals goals) =>
+      state = state.copyWith(nutritionGoals: goals);
 
   void setBody(BodyProfile body) => state = state.copyWith(body: body);
+
+  void setSharing(SharingPrefs sharing) =>
+      state = state.copyWith(sharing: sharing);
 
   void setIdentity({String? displayName, String? avatarEmoji}) => state =
       state.copyWith(displayName: displayName, avatarEmoji: avatarEmoji);

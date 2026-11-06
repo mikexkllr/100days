@@ -1,5 +1,6 @@
 import 'package:meta/meta.dart';
 
+import '../privacy/sharing.dart';
 import '../util/dates.dart';
 import 'goal.dart';
 import 'habit.dart';
@@ -50,6 +51,7 @@ class Challenge {
     this.lengthDays = 100,
     this.cycle = 0,
     this.streakFreezesRemaining = 3,
+    this.sharing = const SharingPrefs(),
   });
 
   factory Challenge.fromJson(Map<String, dynamic> json) => Challenge(
@@ -64,6 +66,10 @@ class Challenge {
         cycle: (json['cycle'] as num?)?.toInt() ?? 0,
         streakFreezesRemaining:
             (json['streakFreezesRemaining'] as num?)?.toInt() ?? 3,
+        sharing: json['sharing'] == null
+            ? const SharingPrefs()
+            : SharingPrefs.fromJson(
+                Map<String, dynamic>.from(json['sharing'] as Map)),
       );
 
   final String id;
@@ -79,6 +85,10 @@ class Challenge {
   /// resetting. Deliberately scarce: the whole point of the app collapses if
   /// missing a day is free.
   final int streakFreezesRemaining;
+
+  /// What friends get to see. Only ever present on the user's own, sealed
+  /// copy of the challenge — the public copy carries the defaults.
+  final SharingPrefs sharing;
 
   ChallengeTier get tier => tierForCycle(cycle);
 
@@ -125,6 +135,7 @@ class Challenge {
     int? lengthDays,
     int? cycle,
     int? streakFreezesRemaining,
+    SharingPrefs? sharing,
   }) =>
       Challenge(
         id: id,
@@ -135,6 +146,7 @@ class Challenge {
         cycle: cycle ?? this.cycle,
         streakFreezesRemaining:
             streakFreezesRemaining ?? this.streakFreezesRemaining,
+        sharing: sharing ?? this.sharing,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -145,5 +157,12 @@ class Challenge {
         'lengthDays': lengthDays,
         'cycle': cycle,
         'streakFreezesRemaining': streakFreezesRemaining,
+        if (!_isDefaultSharing) 'sharing': sharing.toJson(),
       };
+
+  bool get _isDefaultSharing =>
+      sharing.privateHabits.isEmpty &&
+      sharing.sharedSince.isEmpty &&
+      sharing.shareStatement &&
+      sharing.shareWorkouts;
 }

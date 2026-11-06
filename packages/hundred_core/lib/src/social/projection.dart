@@ -5,7 +5,9 @@ import '../domain/peer.dart';
 import '../domain/progression.dart';
 import '../domain/schedule.dart';
 import '../domain/streak.dart';
+import '../domain/workout_log.dart';
 import '../feed/event.dart';
+import '../nutrition/food_entry.dart';
 import '../util/dates.dart';
 
 /// Everything derived from one person's feed.
@@ -28,6 +30,8 @@ class UserProjection {
     required this.lastActivity,
     required this.headSeq,
     required this.lastRelapseDay,
+    this.workoutLogs = const <WorkoutLog>[],
+    this.foodByDay = const <String, List<FoodEntry>>{},
   });
 
   final String did;
@@ -43,6 +47,33 @@ class UserProjection {
   final PeerActivity lastActivity;
   final int headSeq;
   final DayKey? lastRelapseDay;
+
+  /// Logged sessions, oldest first.
+  final List<WorkoutLog> workoutLogs;
+
+  /// The food diary, keyed by day. Only ever filled for the user's own feed:
+  /// a friend's diary arrives sealed.
+  final Map<String, List<FoodEntry>> foodByDay;
+
+  DayIntake intakeOn(DayKey day) => DayIntake(
+        day: day,
+        entries: foodByDay[day.toString()] ?? const <FoodEntry>[],
+      );
+
+  WorkoutLog? workoutLogOn(DayKey day) {
+    for (final log in workoutLogs.reversed) {
+      if (log.day == day) return log;
+    }
+    return null;
+  }
+
+  /// Every logged session of [exerciseId], newest first — what the
+  /// progression recommender reads.
+  List<ExerciseLog> historyOf(String exerciseId, {DayKey? before}) => <ExerciseLog>[
+        for (final log in workoutLogs.reversed)
+          if (before == null || log.day.isBefore(before))
+            if (log.forExercise(exerciseId) case final ExerciseLog e) e,
+      ];
 
   int xpInWeek(String weekKey) {
     var total = 0;
@@ -105,6 +136,8 @@ UserProjection projectUser(
   DateTime? lastActivityAt;
   var lastActivity = PeerActivity.none;
   DayKey? lastRelapse;
+  final workoutLogs = <WorkoutLog>[];
+  final food = <String, FoodEntry>{};
 
   for (final event in ordered) {
     switch (event.type) {
@@ -158,10 +191,47 @@ UserProjection projectUser(
         lastActivityAt = event.timestamp;
         lastActivity = const PeerActivity(kind: PeerActivityKind.missed);
 
+      case FeedEventType.challengeUpdated:
+        final updated = Challenge.fromJson(
+          Map<String, dynamic>.from(event.payload['challenge'] as Map),
+        );
+        // An edit changes what the challenge asks for, never where it is:
+        // the start day and the cycle reached stay as they were.
+        challenge = challenge == null
+            ? updated
+            : updated.copyWith(
+                startDay: challenge.startDay,
+                cycle: challenge.cycle,
+              );
+
+      case FeedEventType.workoutLogged:
+        workoutLogs.add(WorkoutLog.fromPayload(
+          event.payload,
+          loggedAt: event.timestamp,
+        ));
+
+      case FeedEventType.foodLogged:
+        final entry = FoodEntry.fromPayload(event.payload);
+        food[entry.id] = entry;
+
+      case FeedEventType.foodRemoved:
+        food.remove(event.payload['id'] as String?);
+
       case FeedEventType.nudge:
       case FeedEventType.cheer:
         lastActivityAt ??= event.timestamp;
+
+      // Sealed events are opened by the owner before projecting; anyone
+      // else sees an opaque blob and skips it.
+      case FeedEventType.private:
+      case FeedEventType.friendRequest:
+        break;
     }
+  }
+
+  final foodByDay = <String, List<FoodEntry>>{};
+  for (final entry in food.values) {
+    foodByDay.putIfAbsent(entry.day.toString(), () => <FoodEntry>[]).add(entry);
   }
 
   final logsByDay = <String, DayLog>{
@@ -208,6 +278,8 @@ UserProjection projectUser(
     lastActivity: lastActivity,
     headSeq: ordered.isEmpty ? 0 : ordered.last.seq,
     lastRelapseDay: lastRelapse,
+    workoutLogs: workoutLogs,
+    foodByDay: foodByDay,
   );
 }
 
@@ -229,6 +301,7 @@ Map<String, int> _computeXpByDay(
     final log = logsByDay[day.toString()];
     if (log == null) {
       for (final habit in challenge.habits) {
+        if (!habit.isActiveOn(day)) continue;
         if (habit.kind == HabitKind.abstain) {
           runningStreaks[habit.id] = (runningStreaks[habit.id] ?? 0) + 1;
         } else if (isHabitScheduledOn(habit, day)) {
@@ -247,6 +320,7 @@ Map<String, int> _computeXpByDay(
     if (xp > 0) result[day.toString()] = xp;
 
     for (final habit in challenge.habits) {
+      if (!habit.isActiveOn(day)) continue;
       final entry = log.entryFor(habit.id);
       if (entry != null && entry.relapse) {
         runningStreaks[habit.id] = 0;

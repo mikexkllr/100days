@@ -18,11 +18,14 @@ log. Your friends compute your streak from *your signed entries* — you do not
 claim a number, you prove it. A workout spliced in after the fact breaks the
 chain, and a day logged late is visibly marked as backfilled in the feed.
 
-**The pressure comes from real people.** Not "3 users were active today", but:
-Marcel was at the gym, he is on a 47-day streak, and you are still on zero.
-Weekly league with promotion and relegation, nudges, cheers. The Duolingo
-mechanic, except the pool is your own friends — losing to a stranger costs
-nothing, losing to your flatmate does.
+**The pressure comes from real people — and only from them.** Not "3 users
+were active today", but: Marcel was at the gym, he is on a 47-day streak, and
+you are still on zero. Weekly league with promotion and relegation, nudges,
+cheers. The Duolingo mechanic, except the pool is your own friends — losing to
+a stranger costs nothing, losing to your flatmate does. Strangers get nothing:
+every sync proves who is on the other end, and only people you accepted are
+served. What friends see is up to you, habit by habit; body stats, calorie
+targets and the food diary never leave the phone in readable form.
 
 **It does not stop at day 100.** Day 100 closes a cycle. After that you ascend
 a tier, the streak keeps counting, and the targets get harder.
@@ -44,12 +47,32 @@ abstinence streak, but an admitted relapse does.
 
 | Goal | What comes out of it |
 | --- | --- |
-| Build muscle / lose fat / get fit | A training plan with a split chosen by training days, mesocycles of three build weeks plus a deload, RPE instead of guessed weights — and calorie and macro targets from Mifflin-St Jeor |
+| Build muscle / lose fat / get fit | Optional training plan: pick your split (full body, upper/lower, PPL, PPL + upper/lower, body-part), get proposed exercises, swap or edit any of them, log every set — the logger shows last time's numbers and what to beat today. Optional nutrition plan: a calorie target from Mifflin-St Jeor or your own, macro presets, and a food diary |
 | Discipline / clarity / staying clean | A daily streak with a milestone track: what happens in your body and your head on day 3, 14, 30, 90 |
 
-Both are computed **deterministically on the device**. Same inputs, same plan —
-auditable rather than a black box, and it works in a basement gym with no
-signal.
+Both plans are **optional** — without them the habit is a plain tick. With
+them a logged workout or a diary day closed on target is a *tracked* check-in,
+worth **+50 % XP**.
+
+The plans are computed **deterministically on the device**. Same inputs, same
+plan — auditable rather than a black box, and it works in a basement gym with
+no signal.
+
+## The food diary
+
+One number up top — what is left today — then breakfast, lunch, dinner and
+snacks, each with its own add button and meal ideas that fit what is left.
+The ideas are only ideas; nothing lands in the diary unless you put it there.
+Four ways in:
+
+- **Search** a built-in table of ~125 common foods (German and English names,
+  plurals, synonyms), or re-log something recent.
+- **Describe** it: "2 Eier, eine Scheibe Vollkornbrot und ein Cappuccino" is
+  parsed against the table; with the on-device model, dishes it does not know
+  are estimated too.
+- **Barcode**: scan it or type the EAN; the label values come from Open Food
+  Facts. Only the number is sent.
+- **Manual**: name and calories, macros if you have them.
 
 ## The coach on your device
 
@@ -58,19 +81,24 @@ Two implementations behind one interface:
 - **Rule-based** (always on): picks its tone from your state — fresh start,
   social pressure, "the day is nearly over", milestone, relapse. Needs no
   model, answers instantly, works offline.
-- **Local language model** (optional): a GGUF model you put in the model folder
-  yourself. The prompt never leaves the device. On any failure — no model, too
-  slow, unusable output — it falls back silently to the rule-based coach.
+- **Local language model** (optional): onboarding detects your phone and its
+  memory, proposes the model that fits — Qwen3.5 2B, Gemma 4 E2B or E4B —
+  and offers every smaller one right next to it, down to Qwen3.5 0.8B; one
+  tap downloads. Each was run for real before it went into the list. It runs through llama.cpp on
+  the phone; the prompt never leaves it. It also estimates meals you describe
+  and proposes nutrition targets. On any failure — too slow, unusable output —
+  it falls back silently to the rule-based coach.
 
-The app never downloads a model on its own. A gigabyte over mobile data is not
-something that should happen unasked. Details:
-[`docs/local-ai.md`](docs/local-ai.md).
+The download is pinned to a fixed revision and checked against its SHA-256
+before it is used. Details: [`docs/local-ai.md`](docs/local-ai.md).
 
 ## How the network works
 
 Your identity is an Ed25519 key pair addressed as a W3C
 [`did:key`](https://w3c-ccg.github.io/did-method-key/). You add friends by QR
-code or link — there is no registry to look anyone up in.
+code or link — there is no registry to look anyone up in. The person whose
+code you scanned sees you as a friend request; nothing is shared until they
+accept.
 
 Replication is gossip: two devices exchange the heads of their feeds, ask for
 what they are missing, and hang up. No client, no server, no session anyone has
@@ -81,7 +109,7 @@ plus TCP); further transports plug in behind the same interface. Protocol:
 ## Getting started
 
 ```bash
-flutter --version        # 3.27 or newer
+flutter --version        # 3.38 or newer
 cd app
 flutter pub get
 flutter run
@@ -115,13 +143,15 @@ More on this: [`docs/architecture.md`](docs/architecture.md).
 
 ## Status
 
-Working: onboarding, check-ins, streaks, plans, coach, feed, league, nudges,
-invites, LAN sync, local notifications, recovery key, English and German, and
-a manual pipeline that ships a signed AAB to the Google Play internal track.
+Working: onboarding, check-ins, streaks, editable training plans with set-by-set
+logging, nutrition targets and a food diary, privacy settings, the on-device
+model with download, coach, feed, league, nudges, invites and friend requests,
+LAN sync, local notifications, recovery key, English and German, and a manual
+pipeline that ships a signed AAB to the Google Play internal track.
 
 What is still missing is listed honestly in [`docs/roadmap.md`](docs/roadmap.md)
-— among other things a real inference engine behind the model port, a relay
-transport for friends outside your Wi-Fi, and background sync on iOS.
+— among other things a relay transport for friends outside your Wi-Fi, an
+optional global league, and background sync on iOS.
 
 ## Licence
 

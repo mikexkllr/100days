@@ -25,8 +25,10 @@ class TrainingStep extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(l10n.obTrainingDaysPerWeek,
-              style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l10n.obTrainingDaysPerWeek,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: <Widget>[
@@ -46,46 +48,57 @@ class TrainingStep extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            l10n.splitPreview(draft.trainingDaysPerWeek),
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: AppColors.flameSoft, fontSize: 13),
+            draft.usesTrainingPlan
+                ? l10n.obTrainingSplitHint(
+                    l10n.splitName(recommendedSplit(draft.trainingDaysPerWeek)),
+                  )
+                : l10n.obTrainingNoPlanHint,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppColors.flameSoft,
+              fontSize: 13,
+            ),
           ),
-          const SizedBox(height: AppSpacing.xl),
-          Text(l10n.obTrainingExperience,
-              style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          _OptionList<TrainingExperience>(
-            value: draft.experience,
-            onChanged: notifier.setExperience,
-            options: <_Option<TrainingExperience>>[
-              for (final TrainingExperience level in TrainingExperience.values)
-                _Option<TrainingExperience>(
-                  value: level,
-                  emoji: const <String>['🌱', '⚙️', '🔥'][level.index],
-                  title: l10n.experienceTitle(level),
-                  body: l10n.experienceBody(level),
-                ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          Text(l10n.obTrainingEquipment,
-              style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          _OptionList<EquipmentAccess>(
-            value: draft.equipment,
-            onChanged: notifier.setEquipment,
-            options: <_Option<EquipmentAccess>>[
-              for (final EquipmentAccess access in EquipmentAccess.values)
-                _Option<EquipmentAccess>(
-                  value: access,
-                  emoji: const <String>['🏟️', '🏠', '🤸'][access.index],
-                  title: l10n.equipmentTitle(access),
-                  body: l10n.equipmentBody(access),
-                ),
-            ],
-          ),
+          if (draft.usesTrainingPlan) ...<Widget>[
+            const SizedBox(height: AppSpacing.xl),
+            Text(
+              l10n.obTrainingExperience,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _OptionList<TrainingExperience>(
+              value: draft.experience,
+              onChanged: notifier.setExperience,
+              options: <_Option<TrainingExperience>>[
+                for (final TrainingExperience level
+                    in TrainingExperience.values)
+                  _Option<TrainingExperience>(
+                    value: level,
+                    emoji: const <String>['🌱', '⚙️', '🔥'][level.index],
+                    title: l10n.experienceTitle(level),
+                    body: l10n.experienceBody(level),
+                  ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            Text(
+              l10n.obTrainingEquipment,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _OptionList<EquipmentAccess>(
+              value: draft.equipment,
+              onChanged: notifier.setEquipment,
+              options: <_Option<EquipmentAccess>>[
+                for (final EquipmentAccess access in EquipmentAccess.values)
+                  _Option<EquipmentAccess>(
+                    value: access,
+                    emoji: const <String>['🏟️', '🏠', '🤸'][access.index],
+                    title: l10n.equipmentTitle(access),
+                    body: l10n.equipmentBody(access),
+                  ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -142,15 +155,17 @@ class _OptionList<T> extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text(option.title,
-                            style: Theme.of(context).textTheme.titleMedium),
+                        Text(
+                          option.title,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                         Text(
                           option.body,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 12.5,
-                                  ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: AppColors.textSecondary,
+                                fontSize: 12.5,
+                              ),
                         ),
                       ],
                     ),
@@ -183,22 +198,22 @@ class _Choice extends StatelessWidget {
       onTap: onTap,
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 4),
       border: selected ? AppColors.flame : null,
-      color:
-          selected ? AppColors.flame.withValues(alpha: 0.08) : AppColors.surface,
+      color: selected
+          ? AppColors.flame.withValues(alpha: 0.08)
+          : AppColors.surface,
       child: Column(
         children: <Widget>[
           Text(
             label,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: selected ? AppColors.flame : AppColors.textPrimary,
-                ),
+              color: selected ? AppColors.flame : AppColors.textPrimary,
+            ),
           ),
           Text(
             sublabel,
-            style: Theme.of(context)
-                .textTheme
-                .labelSmall
-                ?.copyWith(color: AppColors.textTertiary),
+            style: Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(color: AppColors.textTertiary),
           ),
         ],
       ),

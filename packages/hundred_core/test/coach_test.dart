@@ -83,6 +83,8 @@ class _FakeRuntime implements LocalLlmRuntime {
   @override
   String get modelName => 'Fake-1B';
 
+  Duration? lastTimeout;
+
   @override
   bool get isReady => ready;
 
@@ -98,8 +100,10 @@ class _FakeRuntime implements LocalLlmRuntime {
     int maxTokens = 200,
     double temperature = 0.8,
     Duration timeout = const Duration(seconds: 20),
+    bool json = false,
   }) async {
     calls++;
+    lastTimeout = timeout;
     if (throwOnGenerate) throw StateError('model crashed');
     return _response;
   }
@@ -332,6 +336,32 @@ void main() {
       expect(directive.freeformHeadline, 'Today counts');
       expect(directive.freeformBody, contains('tick it off'));
       expect(runtime.calls, 1);
+    });
+
+    test('drops a line that slides into another script', () async {
+      final runtime = _FakeRuntime('TITEL: Start der Challenge\n'
+          'TEXT: Sei konsequent bei den kleinen Zलक्ष цель.');
+      final directive = await LocalLlmCoach(runtime: runtime)
+          .dailyBriefing(_context(currentStreak: 5, doneToday: false));
+
+      expect(directive.source, CoachSource.heuristic);
+    });
+
+    test('script check: one script passes, a mix does not', () {
+      expect(mixesScripts('Bleib dran — 💪 Tag 12, äöüß.'), isFalse);
+      expect(mixesScripts('Продолжай в том же духе'), isFalse);
+      expect(mixesScripts('Bleib dran цель'), isTrue);
+      expect(mixesScripts('Fokus 目标'), isTrue);
+    });
+
+    test('gives the model its whole time budget', () async {
+      final runtime = _FakeRuntime('TITLE: Go\nTEXT: Now.');
+      await LocalLlmCoach(
+        runtime: runtime,
+        timeout: const Duration(seconds: 40),
+      ).dailyBriefing(_context(currentStreak: 5, doneToday: false));
+
+      expect(runtime.lastTimeout, const Duration(seconds: 40));
     });
 
     test('accepts a localized TITEL header too', () async {

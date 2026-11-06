@@ -57,12 +57,42 @@ class HabitsStep extends ConsumerWidget {
                     habitDefinition(category).defaultTarget,
                 onToggle: () => notifier.toggleHabit(category),
                 onTarget: (num value) => notifier.setTarget(category, value),
+                planOption: switch (category) {
+                  HabitCategory.gym => _PlanOption(
+                      title: l10n.obPlanTraining,
+                      body: l10n.obPlanTrainingBody,
+                      value: draft.trainingPlanEnabled,
+                      onChanged: notifier.setTrainingPlanEnabled,
+                    ),
+                  HabitCategory.nutrition => _PlanOption(
+                      title: l10n.obPlanNutrition,
+                      body: l10n.obPlanNutritionBody,
+                      value: draft.nutritionPlanEnabled,
+                      onChanged: notifier.setNutritionPlanEnabled,
+                    ),
+                  _ => null,
+                },
               ),
             ),
         ],
       ),
     );
   }
+}
+
+/// The optional full tool behind a habit, and the bonus it earns.
+class _PlanOption {
+  const _PlanOption({
+    required this.title,
+    required this.body,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String title;
+  final String body;
+  final bool value;
+  final ValueChanged<bool> onChanged;
 }
 
 class _HabitRow extends StatelessWidget {
@@ -73,6 +103,7 @@ class _HabitRow extends StatelessWidget {
     required this.target,
     required this.onToggle,
     required this.onTarget,
+    this.planOption,
   });
 
   final HabitDefinition definition;
@@ -81,6 +112,7 @@ class _HabitRow extends StatelessWidget {
   final num target;
   final VoidCallback onToggle;
   final void Function(num value) onTarget;
+  final _PlanOption? planOption;
 
   bool get _hasAdjustableTarget => definition.unit != HabitUnit.done;
 
@@ -143,6 +175,36 @@ class _HabitRow extends StatelessWidget {
               ),
             ],
           ),
+          if (selected && planOption != null) ...<Widget>[
+            const Divider(height: AppSpacing.lg),
+            SwitchListTile(
+              key: Key('plan-${definition.category.name}'),
+              contentPadding: EdgeInsets.zero,
+              value: planOption!.value,
+              activeThumbColor: AppColors.lime,
+              onChanged: planOption!.onChanged,
+              title: Wrap(
+                spacing: AppSpacing.sm,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: <Widget>[
+                  Text(planOption!.title,
+                      style: Theme.of(context).textTheme.titleMedium),
+                  Pill(
+                    l10n.obPlanBonus(
+                        ((kTrackedMultiplier - 1) * 100).round()),
+                    color: AppColors.lime,
+                  ),
+                ],
+              ),
+              subtitle: Text(
+                planOption!.body,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary,
+                      fontSize: 12.5,
+                    ),
+              ),
+            ),
+          ],
           if (selected && _hasAdjustableTarget) ...<Widget>[
             const Divider(height: AppSpacing.lg),
             Row(

@@ -196,6 +196,38 @@ class SummaryStep extends ConsumerWidget {
               ),
             ),
           ],
+          if (draft.usesTrainingPlan || draft.usesNutritionPlan) ...<Widget>[
+            SectionHeader(l10n.obSummaryBonusSection),
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  if (draft.usesTrainingPlan)
+                    _BonusLine(text: l10n.obSummaryBonusTraining(
+                        ((kTrackedMultiplier - 1) * 100).round())),
+                  if (draft.usesNutritionPlan)
+                    _BonusLine(text: l10n.obSummaryBonusNutrition(
+                        ((kTrackedMultiplier - 1) * 100).round())),
+                ],
+              ),
+            ),
+          ],
+          SectionHeader(l10n.obSummaryPrivacySection),
+          AppCard(
+            child: Text(
+              challenge.sharing.privateHabits.isEmpty
+                  ? l10n.obSummaryPrivacyAllShared
+                  : l10n.obSummaryPrivacySome(<String>[
+                      for (final Habit h in challenge.habits)
+                        if (!challenge.sharing.isHabitShared(h.id))
+                          l10n.habitLabel(h),
+                    ].join(', ')),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                  ),
+            ),
+          ),
           const SizedBox(height: AppSpacing.lg),
           AppCard(
             color: AppColors.surfaceHigh,
@@ -214,6 +246,28 @@ class SummaryStep extends ConsumerWidget {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BonusLine extends StatelessWidget {
+  const _BonusLine({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: <Widget>[
+          const Icon(Icons.bolt, size: 18, color: AppColors.lime),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
           ),
         ],
       ),

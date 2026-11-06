@@ -8,11 +8,26 @@ import 'check_in.dart';
 import 'habit.dart';
 import 'schedule.dart';
 
+/// How much more a tracked check-in is worth than a plain tick.
+///
+/// The training plan and the food diary are optional; this is the reason to
+/// use them anyway. Logging every set or every meal is real work, and the
+/// league should see the difference.
+const double kTrackedMultiplier = 1.5;
+
+/// The habits that have a full tool behind them — the training plan for
+/// gym and cardio, the diary for nutrition.
+bool hasTrackedMode(HabitCategory category) =>
+    category == HabitCategory.gym ||
+    category == HabitCategory.cardio ||
+    category == HabitCategory.nutrition;
+
 /// XP awarded for a single check-in.
 ///
-/// Three things scale it, in this order of importance: how hard the habit is,
+/// Four things scale it, in this order of importance: how hard the habit is,
 /// how long the streak already is (so quitting hurts more the longer you go),
-/// and whether it was logged on the day rather than backfilled.
+/// whether it was tracked with the plan rather than ticked, and whether it
+/// was logged on the day rather than backfilled.
 int xpForCheckIn({
   required Habit habit,
   required CheckIn checkIn,
@@ -21,8 +36,13 @@ int xpForCheckIn({
   if (checkIn.relapse) return 0;
   final base = habit.definition.difficulty * 10;
   final streakMultiplier = 1 + math.min(streakBefore, 50) / 50.0;
+  final trackedMultiplier =
+      checkIn.tracked && hasTrackedMode(habit.category)
+          ? kTrackedMultiplier
+          : 1.0;
   final liveMultiplier = checkIn.isLive ? 1.2 : 1.0;
-  return (base * streakMultiplier * liveMultiplier).round();
+  return (base * streakMultiplier * trackedMultiplier * liveMultiplier)
+      .round();
 }
 
 /// Bonus for closing out every habit scheduled today.

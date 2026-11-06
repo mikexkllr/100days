@@ -1,10 +1,21 @@
 import '../domain/check_in.dart';
 import '../domain/habit.dart';
 import '../domain/peer.dart';
+import '../domain/workout_log.dart';
 import '../feed/event.dart';
+import '../plan/training.dart';
 import '../util/dates.dart';
 
-enum ActivityKind { checkIn, relapse, milestone, start, ascend, nudge, cheer }
+enum ActivityKind {
+  checkIn,
+  relapse,
+  milestone,
+  start,
+  ascend,
+  nudge,
+  cheer,
+  workout,
+}
 
 /// One row in the social timeline, as data.
 ///
@@ -31,6 +42,9 @@ class ActivityItem {
     this.targetName,
     this.statement,
     this.tierIndex,
+    this.workoutKind,
+    this.workoutSets,
+    this.workoutVolumeKg,
   });
 
   final String eventHash;
@@ -70,6 +84,12 @@ class ActivityItem {
 
   /// The tier reached, for [ActivityKind.ascend].
   final int? tierIndex;
+
+  /// For [ActivityKind.workout]: which session, how many sets, how much
+  /// was moved in total.
+  final WorkoutKind? workoutKind;
+  final int? workoutSets;
+  final double? workoutVolumeKg;
 }
 
 /// Turns raw feed events into a readable timeline.
@@ -160,10 +180,37 @@ List<ActivityItem> buildActivityFeed(
           isOwn: isOwn,
         ));
 
+      case FeedEventType.workoutLogged:
+        final log = WorkoutLog.fromPayload(
+          event.payload,
+          loggedAt: event.timestamp,
+        );
+        items.add(ActivityItem(
+          eventHash: event.hash,
+          author: event.author,
+          authorName: name,
+          authorEmoji: emoji,
+          timestamp: event.timestamp,
+          emoji: '🏋️',
+          kind: ActivityKind.workout,
+          claimedDay: log.day,
+          workoutKind: log.kind,
+          workoutSets: log.totalSets,
+          workoutVolumeKg: log.volumeKg,
+          isVerifiedLive: DayKey.fromDateTime(event.timestamp) == log.day,
+          isOwn: isOwn,
+        ));
+
+      // Not timeline material: settings, edits and the food diary. Sealed
+      // events are unreadable here by design.
       case FeedEventType.profile:
       case FeedEventType.missed:
       case FeedEventType.streakFreeze:
       case FeedEventType.friendRequest:
+      case FeedEventType.challengeUpdated:
+      case FeedEventType.foodLogged:
+      case FeedEventType.foodRemoved:
+      case FeedEventType.private:
         continue;
     }
   }

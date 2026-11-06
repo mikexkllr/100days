@@ -22,6 +22,14 @@ extension PlanL10n on AppLocalizations {
         return workoutUpper;
       case WorkoutKind.lower:
         return workoutLower;
+      case WorkoutKind.chest:
+        return workoutChest;
+      case WorkoutKind.back:
+        return workoutBack;
+      case WorkoutKind.shoulders:
+        return workoutShoulders;
+      case WorkoutKind.arms:
+        return workoutArms;
     }
   }
 
@@ -43,37 +51,45 @@ extension PlanL10n on AppLocalizations {
         return workoutUpperFocus;
       case WorkoutKind.lower:
         return workoutLowerFocus;
+      case WorkoutKind.chest:
+        return workoutChestFocus;
+      case WorkoutKind.back:
+        return workoutBackFocus;
+      case WorkoutKind.shoulders:
+        return workoutShouldersFocus;
+      case WorkoutKind.arms:
+        return workoutArmsFocus;
     }
   }
 
   String splitName(SplitKind split) {
     switch (split) {
-      case SplitKind.fullBodyTwice:
-        return splitFullBodyTwice;
-      case SplitKind.fullBodyThrice:
-        return splitFullBodyThrice;
+      case SplitKind.fullBody:
+        return splitFullBody;
       case SplitKind.upperLower:
         return splitUpperLower;
-      case SplitKind.pplPlusUpperLower:
-        return splitPplPlusUpperLower;
-      case SplitKind.pplTwice:
-        return splitPplTwice;
+      case SplitKind.pushPullLegs:
+        return splitPushPullLegs;
+      case SplitKind.pplUpperLower:
+        return splitPplUpperLower;
+      case SplitKind.broSplit:
+        return splitBroSplit;
     }
   }
 
-  /// One-line preview shown while the user is still picking training days.
-  String splitPreview(int daysPerWeek) {
-    switch (daysPerWeek) {
-      case 2:
-        return splitPreview2;
-      case 3:
-        return splitPreview3;
-      case 4:
-        return splitPreview4;
-      case 5:
-        return splitPreview5;
-      default:
-        return splitPreview6;
+  /// One line on what a split is and who it suits.
+  String splitBlurb(SplitKind split) {
+    switch (split) {
+      case SplitKind.fullBody:
+        return splitBlurbFullBody;
+      case SplitKind.upperLower:
+        return splitBlurbUpperLower;
+      case SplitKind.pushPullLegs:
+        return splitBlurbPushPullLegs;
+      case SplitKind.pplUpperLower:
+        return splitBlurbPplUpperLower;
+      case SplitKind.broSplit:
+        return splitBlurbBroSplit;
     }
   }
 

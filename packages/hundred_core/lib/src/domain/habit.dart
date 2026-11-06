@@ -1,5 +1,7 @@
 import 'package:meta/meta.dart';
 
+import '../util/dates.dart';
+
 /// How a habit is scored.
 enum HabitKind {
   /// Something you do: a workout, pages read, meals hit. Missing a day breaks
@@ -199,6 +201,27 @@ const Map<HabitCategory, HabitDefinition> kHabitCatalog =
 HabitDefinition habitDefinition(HabitCategory category) =>
     kHabitCatalog[category]!;
 
+/// A past weekly frequency: [daysPerWeek] applied to every day before
+/// [until]. Kept so that changing "4 days a week" to 5 does not turn every
+/// past Wednesday into a missed training day.
+@immutable
+class ScheduleChange {
+  const ScheduleChange({required this.until, required this.daysPerWeek});
+
+  factory ScheduleChange.fromJson(Map<String, dynamic> json) => ScheduleChange(
+        until: DayKey.parse(json['until'] as String),
+        daysPerWeek: (json['days'] as num).toInt(),
+      );
+
+  final DayKey until;
+  final int daysPerWeek;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'until': until.toString(),
+        'days': daysPerWeek,
+      };
+}
+
 /// A habit as this user configured it.
 @immutable
 class Habit {
@@ -209,6 +232,8 @@ class Habit {
     required this.daysPerWeek,
     this.title,
     this.note,
+    this.activeFrom,
+    this.scheduleHistory = const <ScheduleChange>[],
   });
 
   factory Habit.fromJson(Map<String, dynamic> json) => Habit(
@@ -218,6 +243,14 @@ class Habit {
         daysPerWeek: (json['daysPerWeek'] as num).toInt(),
         title: json['title'] as String?,
         note: json['note'] as String?,
+        activeFrom: json['from'] == null
+            ? null
+            : DayKey.parse(json['from'] as String),
+        scheduleHistory: ((json['history'] as List<dynamic>?) ??
+                const <dynamic>[])
+            .map((dynamic e) =>
+                ScheduleChange.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList(growable: false),
       );
 
   factory Habit.fromCategory(HabitCategory category, {String? id}) {
@@ -242,6 +275,14 @@ class Habit {
   final String? title;
   final String? note;
 
+  /// First day this habit counts. Null means "since the challenge started";
+  /// set when a habit is added — or made visible to friends — later on, so
+  /// the days before it neither break nor build the streak.
+  final DayKey? activeFrom;
+
+  /// Earlier weekly frequencies, oldest first.
+  final List<ScheduleChange> scheduleHistory;
+
   HabitDefinition get definition => habitDefinition(category);
 
   HabitKind get kind => definition.kind;
@@ -250,7 +291,45 @@ class Habit {
 
   bool get isDaily => daysPerWeek >= 7;
 
-  Habit copyWith({num? target, int? daysPerWeek, String? title, String? note}) =>
+  bool isActiveOn(DayKey day) {
+    final from = activeFrom;
+    return from == null || !day.isBefore(from);
+  }
+
+  /// The weekly frequency that applied on [day].
+  int daysPerWeekOn(DayKey day) {
+    for (final change in scheduleHistory) {
+      if (day.isBefore(change.until)) return change.daysPerWeek;
+    }
+    return daysPerWeek;
+  }
+
+  /// This habit at a new weekly frequency from [from] on, with the old one
+  /// kept for every day before.
+  Habit withDaysPerWeek(int days, {required DayKey from}) {
+    if (days == daysPerWeek) return this;
+    return Habit(
+      id: id,
+      category: category,
+      target: target,
+      daysPerWeek: days,
+      title: title,
+      note: note,
+      activeFrom: activeFrom,
+      scheduleHistory: <ScheduleChange>[
+        ...scheduleHistory.where((ScheduleChange c) => c.until.isBefore(from)),
+        ScheduleChange(until: from, daysPerWeek: daysPerWeekOn(from.addDays(-1))),
+      ],
+    );
+  }
+
+  Habit copyWith({
+    num? target,
+    int? daysPerWeek,
+    String? title,
+    String? note,
+    DayKey? activeFrom,
+  }) =>
       Habit(
         id: id,
         category: category,
@@ -258,6 +337,8 @@ class Habit {
         daysPerWeek: daysPerWeek ?? this.daysPerWeek,
         title: title ?? this.title,
         note: note ?? this.note,
+        activeFrom: activeFrom ?? this.activeFrom,
+        scheduleHistory: scheduleHistory,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -267,5 +348,9 @@ class Habit {
         'daysPerWeek': daysPerWeek,
         if (title != null) 'title': title,
         if (note != null) 'note': note,
+        if (activeFrom != null) 'from': activeFrom.toString(),
+        if (scheduleHistory.isNotEmpty)
+          'history':
+              scheduleHistory.map((ScheduleChange c) => c.toJson()).toList(),
       };
 }

@@ -17,6 +17,20 @@ class FeedEventType {
   static const String cheer = 'cheer';
   static const String friendRequest = 'friend.request';
 
+  /// The challenge after an edit: a new split, own nutrition targets, a habit
+  /// added, a sharing change. Replaces goal and habits, never the history.
+  static const String challengeUpdated = 'challenge.updated';
+
+  /// A training session logged set by set.
+  static const String workoutLogged = 'workout.logged';
+
+  /// One line of the food diary, and its removal.
+  static const String foodLogged = 'food.logged';
+  static const String foodRemoved = 'food.removed';
+
+  /// An event only its author can read; see `PrivateBox`.
+  static const String private = 'private';
+
   static const Set<String> all = <String>{
     profile,
     challengeStarted,
@@ -27,6 +41,11 @@ class FeedEventType {
     nudge,
     cheer,
     friendRequest,
+    challengeUpdated,
+    workoutLogged,
+    foodLogged,
+    foodRemoved,
+    private,
   };
 }
 

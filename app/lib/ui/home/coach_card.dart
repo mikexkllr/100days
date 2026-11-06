@@ -14,7 +14,14 @@ class CoachCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations l10n = context.l10n;
-    final AsyncValue<CoachDirective?> briefing = ref.watch(briefingProvider);
+    // The rule-based line shows at once; the model's version replaces it
+    // when (and if) it arrives.
+    final CoachDirective? upgraded =
+        ref.watch(modelBriefingProvider).valueOrNull;
+    final AsyncValue<CoachDirective?> base = ref.watch(briefingProvider);
+    final AsyncValue<CoachDirective?> briefing = upgraded != null
+        ? AsyncValue<CoachDirective?>.data(upgraded)
+        : base;
 
     return briefing.when(
       loading: () => const _CoachSkeleton(),
