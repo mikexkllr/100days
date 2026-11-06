@@ -68,7 +68,6 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
                   errorBuilder: (
                     BuildContext context,
                     MobileScannerException error,
-                    Widget? _,
                   ) =>
                       Center(
                     child: Padding(

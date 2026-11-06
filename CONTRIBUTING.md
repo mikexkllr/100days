@@ -7,7 +7,8 @@ cd packages/hundred_core && dart pub get
 cd ../../app             && flutter pub get
 ```
 
-Flutter 3.27 or newer, Dart 3.6 or newer.
+Flutter 3.38 or newer, Dart 3.10.7 or newer — llamadart, the on-device model
+engine, needs both. iOS builds target iOS 16.4 for the same reason.
 
 ## Before every commit
 
