@@ -63,8 +63,8 @@ void main() {
       expect(flameStageFor(50), FlameStage.blue);
       expect(flameStageFor(100), FlameStage.plasma);
       expect(flameStageFor(200), FlameStage.nova);
-      expect(flameStageFor(365), FlameStage.sun);
-      expect(flameStageFor(5000), FlameStage.sun);
+      expect(flameStageFor(365), FlameStage.galaxy);
+      expect(flameStageFor(5000), FlameStage.galaxy);
     });
 
     test('every threshold is a milestone day', () {

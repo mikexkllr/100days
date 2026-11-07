@@ -1660,6 +1660,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Heute nicht eingeplant — zählt trotzdem als XP.';
 
   @override
+  String get homeQuestsTitle => 'Quests für heute';
+
+  @override
   String get homeRelapseBody =>
       'Das setzt den Streak zurück und ist für deine Freunde sichtbar. Ehrlich bleiben ist der ganze Sinn — aber nur, wenn es stimmt.';
 
@@ -3526,6 +3529,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get stageGalaxy => 'Galaxie';
+
+  @override
   String get stageInferno => 'Inferno';
 
   @override
@@ -3547,9 +3553,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get stageSpark => 'Funke';
-
-  @override
-  String get stageSun => 'Sonne';
 
   @override
   String get statDay => 'Tag';
@@ -3687,6 +3690,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String tileDoneWith(String target) {
     return 'Erledigt · $target';
   }
+
+  @override
+  String get tileHoldHint => 'Halten';
 
   @override
   String get tileLogAmount => 'Eintragen';

@@ -32,7 +32,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   LicenseRegistry.addLicense(() async* {
     yield LicenseEntryWithLineBreaks(
-      <String>['Lilita One'],
+      <String>['Unbounded', 'Manrope'],
       await rootBundle.loadString('assets/fonts/OFL.txt'),
     );
   });

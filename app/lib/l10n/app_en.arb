@@ -1230,6 +1230,7 @@
   "homeOpenDiary": "Open the food diary",
   "homeOptional": "Optional",
   "homeOptionalSubtitle": "Not scheduled today — still counts as XP.",
+  "homeQuestsTitle": "Today's quests",
   "homeRelapseBody": "This resets the streak and is visible to your friends. Being honest is the whole point — but only if it is true.",
   "homeRelapseConfirm": "Log it",
   "homeRelapseTitle": "Relapse on {habit}?",
@@ -2445,6 +2446,7 @@
       }
     }
   },
+  "stageGalaxy": "Galaxy",
   "stageInferno": "Inferno",
   "stageNext": "{stage} in {days, plural, =1{1 day} other{{days} days}}",
   "@stageNext": {
@@ -2460,7 +2462,6 @@
   "stageNova": "Supernova",
   "stagePlasma": "Plasma",
   "stageSpark": "Spark",
-  "stageSun": "Sun",
   "statDay": "Day",
   "statRecord": "Record",
   "statStreak": "Streak",
@@ -2604,6 +2605,7 @@
       }
     }
   },
+  "tileHoldHint": "Hold",
   "tileLogAmount": "Log",
   "tileRelapse": "Relapse",
   "tileRelapseLogged": "Relapse logged — start again tomorrow.",

@@ -19,7 +19,7 @@ extension MascotL10n on AppLocalizations {
         FlameStage.blue => stageBlue,
         FlameStage.plasma => stagePlasma,
         FlameStage.nova => stageNova,
-        FlameStage.sun => stageSun,
+        FlameStage.galaxy => stageGalaxy,
       };
 
   /// Everything Funki may say in [mood]. Placeholders are filled from the

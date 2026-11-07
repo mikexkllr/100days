@@ -3,28 +3,33 @@ import 'package:flutter/material.dart';
 import '../../theme/theme.dart';
 import '../motion/motion.dart';
 
-/// What Funki says: a comic bubble that pops in and types its line out.
+/// What Funki says: a pane of dark glass with a neon rim that pops in and
+/// types its line out, its tail pointing at Funki.
 class SpeechBubble extends StatelessWidget {
   const SpeechBubble({
     super.key,
     required this.text,
-    this.maxWidth = 300,
-    this.accent = AppColors.flame,
+    this.maxWidth = 340,
+    this.accent = AppColors.primary,
+    this.tailAt = 0.5,
   });
 
   final String text;
   final double maxWidth;
 
-  /// The colour of the bubble's rim.
+  /// The colour of the rim and the glow.
   final Color accent;
+
+  /// Where along the bottom edge the tail sits, 0 (left) to 1 (right).
+  final double tailAt;
 
   @override
   Widget build(BuildContext context) {
     final TextStyle style = Theme.of(context).textTheme.bodyLarge!.copyWith(
-          color: const Color(0xFF241018),
-          fontWeight: FontWeight.w800,
-          fontSize: 15.5,
-          height: 1.3,
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.w700,
+          fontSize: 14.5,
+          height: 1.35,
         );
     final int ms = (text.length * 28).clamp(350, 1300);
     return ConstrainedBox(
@@ -38,16 +43,12 @@ class SpeechBubble extends StatelessWidget {
           final double typing = ((t * (ms + 250) - 150) / ms).clamp(0, 1);
           final int shown = (text.length * typing).ceil();
           return Transform.scale(
-            scale: 0.7 + 0.3 * pop,
-            alignment: Alignment.bottomCenter,
-            child: DecoratedBox(
-              decoration: ShapeDecoration(
-                color: const Color(0xFFFFF7F0),
-                shape: _BubbleBorder(rim: accent),
-                shadows: AppShadows.glow(accent, strength: 0.5),
-              ),
+            scale: 0.75 + 0.25 * pop,
+            alignment: Alignment(tailAt * 2 - 1, 1),
+            child: CustomPaint(
+              painter: _BubblePainter(accent: accent, tailAt: tailAt),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 11, 16, 11 + 10),
+                padding: const EdgeInsets.fromLTRB(16, 11, 16, 11 + _tail),
                 // The whole line is laid out from the first frame, so the
                 // bubble does not grow while it types; the rest is clear.
                 child: Text.rich(
@@ -60,7 +61,7 @@ class SpeechBubble extends StatelessWidget {
                       ),
                     ],
                   ),
-                  textAlign: TextAlign.center,
+                  textAlign: TextAlign.left,
                   style: style,
                 ),
               ),
@@ -72,51 +73,66 @@ class SpeechBubble extends StatelessWidget {
   }
 }
 
-/// A rounded box with a tail pointing down at the speaker.
-class _BubbleBorder extends ShapeBorder {
-  const _BubbleBorder({required this.rim});
+const double _tail = 10;
 
-  final Color rim;
-  static const double _tail = 10;
-  static const double _radius = 18;
+class _BubblePainter extends CustomPainter {
+  _BubblePainter({required this.accent, required this.tailAt});
 
-  @override
-  EdgeInsetsGeometry get dimensions => EdgeInsets.zero;
+  final Color accent;
+  final double tailAt;
 
-  @override
-  Path getInnerPath(Rect rect, {TextDirection? textDirection}) =>
-      getOuterPath(rect, textDirection: textDirection);
-
-  @override
-  Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
-    final Rect body = Rect.fromLTRB(
-        rect.left, rect.top, rect.right, rect.bottom - _tail);
-    final double mid = body.center.dx;
+  Path _outline(Size size) {
+    final Rect body = Rect.fromLTRB(0, 0, size.width, size.height - _tail);
+    final double x = (size.width * tailAt).clamp(28.0, size.width - 28);
     final Path tail = Path()
-      ..moveTo(mid - 11, body.bottom - 1)
-      ..quadraticBezierTo(mid - 2, body.bottom + 2, mid + 1, rect.bottom)
-      ..quadraticBezierTo(mid + 3, body.bottom + 3, mid + 12, body.bottom - 1)
+      ..moveTo(x - 10, body.bottom - 1)
+      ..quadraticBezierTo(x - 1, body.bottom + 2, x + 3, size.height)
+      ..quadraticBezierTo(x + 4, body.bottom + 3, x + 12, body.bottom - 1)
       ..close();
-    // One outline, so the rim runs around the tail instead of across it.
     return Path.combine(
       PathOperation.union,
       Path()
-        ..addRRect(RRect.fromRectAndRadius(body, const Radius.circular(_radius))),
+        ..addRRect(RRect.fromRectAndRadius(body, const Radius.circular(20))),
       tail,
     );
   }
 
   @override
-  void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {
+  void paint(Canvas canvas, Size size) {
+    final Path path = _outline(size);
+    final Rect bounds = Offset.zero & size;
     canvas.drawPath(
-      getOuterPath(rect),
+      path,
+      Paint()
+        ..color = accent.withValues(alpha: 0.35)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14),
+    );
+    canvas.drawPath(
+      path,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[
+            Color.lerp(AppColors.surfaceHigh, accent, 0.18)!,
+            AppColors.surface,
+          ],
+        ).createShader(bounds),
+    );
+    canvas.drawPath(
+      path,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.5
-        ..color = rim,
+        ..strokeWidth = 1.6
+        ..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[accent, AppColors.hot.withValues(alpha: 0.8), AppColors.social],
+        ).createShader(bounds),
     );
   }
 
   @override
-  ShapeBorder scale(double t) => this;
+  bool shouldRepaint(_BubblePainter oldDelegate) =>
+      oldDelegate.accent != accent || oldDelegate.tailAt != tailAt;
 }

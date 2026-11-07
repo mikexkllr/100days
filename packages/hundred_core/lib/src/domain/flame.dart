@@ -25,7 +25,7 @@ enum FlameStage {
   blue(50),
   plasma(100),
   nova(200),
-  sun(365);
+  galaxy(365);
 
   const FlameStage(this.minStreak);
 

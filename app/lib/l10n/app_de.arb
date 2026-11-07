@@ -1008,6 +1008,7 @@
   "homeOpenDiary": "Ernährungstagebuch öffnen",
   "homeOptional": "Freiwillig",
   "homeOptionalSubtitle": "Heute nicht eingeplant — zählt trotzdem als XP.",
+  "homeQuestsTitle": "Quests für heute",
   "homeRelapseBody": "Das setzt den Streak zurück und ist für deine Freunde sichtbar. Ehrlich bleiben ist der ganze Sinn — aber nur, wenn es stimmt.",
   "homeRelapseConfirm": "Eintragen",
   "homeRelapseTitle": "Rückfall bei {habit}?",
@@ -2065,6 +2066,7 @@
       }
     }
   },
+  "stageGalaxy": "Galaxie",
   "stageInferno": "Inferno",
   "stageNext": "{stage} in {days, plural, =1{1 Tag} other{{days} Tagen}}",
   "@stageNext": {
@@ -2080,7 +2082,6 @@
   "stageNova": "Supernova",
   "stagePlasma": "Plasma",
   "stageSpark": "Funke",
-  "stageSun": "Sonne",
   "statDay": "Tag",
   "statRecord": "Rekord",
   "statStreak": "Streak",
@@ -2224,6 +2225,7 @@
       }
     }
   },
+  "tileHoldHint": "Halten",
   "tileLogAmount": "Eintragen",
   "tileRelapse": "Rückfall",
   "tileRelapseLogged": "Rückfall eingetragen — morgen neu.",

@@ -44,11 +44,11 @@ class SummaryStep extends ConsumerWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: <Color>[
-                AppColors.flame.withValues(alpha: 0.18),
+                AppColors.primary.withValues(alpha: 0.18),
                 AppColors.surface,
               ],
             ),
-            border: AppColors.flame.withValues(alpha: 0.4),
+            border: AppColors.primary.withValues(alpha: 0.4),
             child: Row(
               children: <Widget>[
                 EmojiAvatar(draft.avatarEmoji, size: 48),
@@ -103,14 +103,14 @@ class SummaryStep extends ConsumerWidget {
                         child: StatTile(
                           value: '${plan.nutrition!.kcal}',
                           label: l10n.planKcalPerDayShort,
-                          color: AppColors.flame,
+                          color: AppColors.primary,
                         ),
                       ),
                       Expanded(
                         child: StatTile(
                           value: '${plan.nutrition!.proteinG} g',
                           label: l10n.planProtein,
-                          color: AppColors.lime,
+                          color: AppColors.success,
                         ),
                       ),
                       Expanded(
@@ -160,7 +160,7 @@ class SummaryStep extends ConsumerWidget {
                               style: Theme.of(context)
                                   .textTheme
                                   .labelSmall
-                                  ?.copyWith(color: AppColors.flame),
+                                  ?.copyWith(color: AppColors.primary),
                             ),
                           ),
                           Expanded(
@@ -264,7 +264,7 @@ class _BonusLine extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         children: <Widget>[
-          const Icon(Icons.bolt, size: 18, color: AppColors.lime),
+          const Icon(Icons.bolt, size: 18, color: AppColors.success),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(text, style: Theme.of(context).textTheme.bodyMedium),

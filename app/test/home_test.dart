@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hundred_core/hundred_core.dart';
 import 'package:hundred_days/data/app_repository.dart';
@@ -9,7 +10,7 @@ import 'package:hundred_days/ui/home/streak_hero.dart';
 import 'package:hundred_days/ui/home/week_strip.dart';
 import 'package:hundred_days/ui/mascot/flame_mascot.dart';
 import 'package:hundred_days/ui/widgets/habit_tile.dart';
-import 'package:hundred_days/ui/widgets/juicy_button.dart';
+import 'package:hundred_days/ui/widgets/hold_button.dart';
 import 'package:hundred_days/ui/widgets/pressure_banner.dart';
 import 'package:hundred_days/ui/widgets/streak_ring.dart';
 
@@ -53,6 +54,20 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Press and hold until the bar is full, the way a person checks in.
+  Future<void> holdToIgnite(WidgetTester tester, String label) async {
+    final Finder button = find.widgetWithText(HoldButton, label);
+    await tester.ensureVisible(button);
+    await tester.pumpAndSettle();
+    final TestGesture gesture =
+        await tester.startGesture(tester.getCenter(button));
+    for (int i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 80));
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('shows the streak ring and today\'s habits',
       (WidgetTester tester) async {
     await startChallenge();
@@ -71,11 +86,7 @@ void main() {
     await startChallenge(habits: <HabitCategory>[HabitCategory.noSugar]);
     await pump(tester);
 
-    final Finder button = find.widgetWithText(JuicyButton, 'Heute clean');
-    await tester.ensureVisible(button);
-    await tester.pumpAndSettle();
-    await tester.tap(button);
-    await tester.pumpAndSettle();
+    await holdToIgnite(tester, 'Heute clean');
 
     final List<FeedEvent> all =
         await repository.store.eventsOf(repository.did);
@@ -105,11 +116,7 @@ void main() {
 
     expect(find.text('0'), findsWidgets);
 
-    final Finder button = find.widgetWithText(JuicyButton, 'Heute clean');
-    await tester.ensureVisible(button);
-    await tester.pumpAndSettle();
-    await tester.tap(button);
-    await tester.pumpAndSettle();
+    await holdToIgnite(tester, 'Heute clean');
 
     final AppSnapshot snapshot = await repository.snapshot();
     expect(snapshot.me.streak.doneToday, isTrue);
@@ -159,13 +166,13 @@ void main() {
 
     expect(find.text('No sugar'), findsOneWidget);
     expect(find.text('Reading'), findsOneWidget);
-    expect(find.text('Check off today'), findsOneWidget);
+    expect(find.text("Today's quests"), findsOneWidget);
     expect(find.textContaining('Day 1 / 100'), findsOneWidget);
     expect(find.textContaining('still on zero'), findsOneWidget);
 
     // And nothing German is left behind on the same screen.
     expect(find.text('Kein Zucker'), findsNothing);
-    expect(find.text('Heute abhaken'), findsNothing);
+    expect(find.text('Quests für heute'), findsNothing);
   });
 
   testWidgets('the same state reads differently in the two languages',
@@ -173,11 +180,11 @@ void main() {
     await startChallenge(habits: <HabitCategory>[HabitCategory.noSugar]);
 
     await pump(tester);
-    expect(find.widgetWithText(JuicyButton, 'Heute clean'), findsOneWidget);
+    expect(find.widgetWithText(HoldButton, 'Heute clean'), findsOneWidget);
 
     await pump(tester, locale: const Locale('en'));
-    expect(find.widgetWithText(JuicyButton, 'Clean today'), findsOneWidget);
-    expect(find.widgetWithText(JuicyButton, 'Heute clean'), findsNothing);
+    expect(find.widgetWithText(HoldButton, 'Clean today'), findsOneWidget);
+    expect(find.widgetWithText(HoldButton, 'Heute clean'), findsNothing);
   });
 
   testWidgets('the coach speaks on the home screen',
@@ -218,11 +225,7 @@ void main() {
     await startChallenge(habits: <HabitCategory>[HabitCategory.noSugar]);
     await pump(tester);
 
-    final Finder button = find.widgetWithText(JuicyButton, 'Heute clean');
-    await tester.ensureVisible(button);
-    await tester.pumpAndSettle();
-    await tester.tap(button);
-    await tester.pumpAndSettle();
+    await holdToIgnite(tester, 'Heute clean');
 
     expect(find.byType(DayCompleteCelebration), findsOneWidget);
     final AppSnapshot snapshot = await repository.snapshot();
@@ -256,11 +259,7 @@ void main() {
     await startChallenge();
     await pump(tester);
 
-    final Finder button = find.widgetWithText(JuicyButton, 'Heute clean');
-    await tester.ensureVisible(button);
-    await tester.pumpAndSettle();
-    await tester.tap(button);
-    await tester.pumpAndSettle();
+    await holdToIgnite(tester, 'Heute clean');
 
     expect(find.byType(DayCompleteCelebration), findsNothing);
     expect(find.text('1 von 2 erledigt'), findsOneWidget);
@@ -278,11 +277,7 @@ void main() {
     expect(mascot().mood, MascotMood.hopeful);
     expect(find.byType(DayCountdown), findsOneWidget);
 
-    final Finder button = find.widgetWithText(JuicyButton, 'Heute clean');
-    await tester.ensureVisible(button);
-    await tester.pumpAndSettle();
-    await tester.tap(button);
-    await tester.pumpAndSettle();
+    await holdToIgnite(tester, 'Heute clean');
     await tester.tap(find.byKey(const Key('celebration-continue')));
     await tester.pumpAndSettle();
 
@@ -325,5 +320,46 @@ void main() {
       pokes.any((String line) => find.text(line).evaluate().isNotEmpty),
       isFalse,
     );
+  });
+
+  testWidgets('letting go early logs nothing', (WidgetTester tester) async {
+    await startChallenge(habits: <HabitCategory>[HabitCategory.noSugar]);
+    await pump(tester);
+
+    final Finder button = find.widgetWithText(HoldButton, 'Heute clean');
+    await tester.ensureVisible(button);
+    await tester.pumpAndSettle();
+    final TestGesture gesture =
+        await tester.startGesture(tester.getCenter(button));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 150));
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    final List<FeedEvent> checkIns = (await repository.store
+            .eventsOf(repository.did))
+        .where((FeedEvent e) => e.type == FeedEventType.checkIn)
+        .toList();
+    expect(checkIns, isEmpty);
+    expect(find.widgetWithText(HoldButton, 'Heute clean'), findsOneWidget);
+  });
+
+  testWidgets('a screen reader checks in with a plain tap',
+      (WidgetTester tester) async {
+    await startChallenge(habits: <HabitCategory>[HabitCategory.noSugar]);
+    await pump(tester);
+
+    final SemanticsHandle semantics = tester.ensureSemantics();
+    final Finder button = find.widgetWithText(HoldButton, 'Heute clean');
+    await tester.ensureVisible(button);
+    await tester.pumpAndSettle();
+    final SemanticsNode node = tester.getSemantics(button);
+    expect(node.label, contains('Heute clean'));
+    node.owner!.performAction(node.id, SemanticsAction.tap);
+    await tester.pumpAndSettle();
+    semantics.dispose();
+
+    final AppSnapshot snapshot = await repository.snapshot();
+    expect(snapshot.me.streak.doneToday, isTrue);
   });
 }

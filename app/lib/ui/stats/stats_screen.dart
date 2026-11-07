@@ -51,7 +51,7 @@ class StatsScreen extends ConsumerWidget {
                         child: StatTile(
                           value: '${streak.current}',
                           label: l10n.statsCurrentStreak,
-                          color: AppColors.flame,
+                          color: AppColors.primary,
                           icon: Icons.local_fire_department,
                         ),
                       ),
@@ -70,7 +70,7 @@ class StatsScreen extends ConsumerWidget {
                         child: StatTile(
                           value: '${streak.completedDays}',
                           label: l10n.statsFullDays,
-                          color: AppColors.lime,
+                          color: AppColors.success,
                         ),
                       ),
                       Expanded(
@@ -168,8 +168,8 @@ class _FlameCard extends StatelessWidget {
     final int? toNext = daysToNextStage(streak);
     return AppCard(
       onTap: () => showFlameEvolution(context, streak: streak),
-      border: AppColors.flame.withValues(alpha: 0.5),
-      glow: AppColors.flame.withValues(alpha: 0.6),
+      border: AppColors.primary.withValues(alpha: 0.5),
+      glow: AppColors.primary.withValues(alpha: 0.6),
       child: Row(
         children: <Widget>[
           CustomPaint(
@@ -203,7 +203,7 @@ class _FlameCard extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium
-                      ?.copyWith(color: AppColors.flameSoft),
+                      ?.copyWith(color: AppColors.primarySoft),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 ClipRRect(
@@ -246,7 +246,7 @@ class _LevelCard extends StatelessWidget {
               Text(l10n.statsLevelNumber(level),
                   style: Theme.of(context).textTheme.headlineMedium),
               const Spacer(),
-              Pill(l10n.homeXp(xp), color: AppColors.gold, filled: true),
+              Pill(l10n.homeXp(xp), color: AppColors.reward, filled: true),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -257,7 +257,7 @@ class _LevelCard extends StatelessWidget {
               minHeight: 10,
               backgroundColor: AppColors.surfaceHigh,
               valueColor:
-                  const AlwaysStoppedAnimation<Color>(AppColors.gold),
+                  const AlwaysStoppedAnimation<Color>(AppColors.reward),
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -334,8 +334,8 @@ class _WeeklyXpChart extends StatelessWidget {
                         height: math.max(4, value * 84),
                         decoration: BoxDecoration(
                           color: i == weeks.length - 1
-                              ? AppColors.flame
-                              : AppColors.flame.withValues(alpha: 0.35),
+                              ? AppColors.primary
+                              : AppColors.primary.withValues(alpha: 0.35),
                           borderRadius: BorderRadius.circular(5),
                         ),
                       ),
@@ -397,10 +397,7 @@ class _HabitStatRow extends StatelessWidget {
                 child: Text(l10n.habitLabel(habit),
                     style: Theme.of(context).textTheme.titleMedium),
               ),
-              Text(
-                l10n.tileStreakBadge(streak),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+              StreakCount(streak),
             ],
           ),
           const SizedBox(height: AppSpacing.sm + 2),
@@ -412,9 +409,9 @@ class _HabitStatRow extends StatelessWidget {
               backgroundColor: AppColors.surfaceHigh,
               valueColor: AlwaysStoppedAnimation<Color>(
                 rate > 0.75
-                    ? AppColors.lime
+                    ? AppColors.success
                     : rate > 0.4
-                        ? AppColors.flame
+                        ? AppColors.primary
                         : AppColors.danger,
               ),
             ),

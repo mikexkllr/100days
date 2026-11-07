@@ -7,11 +7,12 @@ import '../../theme/theme.dart';
 import '../mascot/flame_mascot.dart';
 import '../motion/motion.dart';
 
-/// The cycle as a ring of fire around Funki.
+/// Funki in orbit.
 ///
-/// The arc is how far through the current cycle you are; the dots on it are
-/// the milestone days — gold once passed, the next one pulsing. The flame in
-/// the middle is the streak itself.
+/// Funki floats in a glowing orb. Around it runs the orbit of the current
+/// cycle: the comet is today, its trail is how far you have come, and the
+/// planets on the orbit are the milestone days — lit once passed, the next
+/// one pulsing. A dashed inner ring turns slowly, so the whole thing hums.
 class StreakRing extends StatelessWidget {
   const StreakRing({
     super.key,
@@ -41,64 +42,65 @@ class StreakRing extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox.square(
       dimension: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: <Widget>[
-          Positioned.fill(
-            child: TweenAnimationBuilder<double>(
-              tween: Tween<double>(begin: 0, end: progress.clamp(0.0, 1.0)),
-              duration: const Duration(milliseconds: 1400),
-              curve: Curves.easeOutCubic,
-              builder: (BuildContext context, double value, Widget? _) =>
-                  AmbientClock(
-                builder: (BuildContext context, double seconds, Widget? _) =>
-                    CustomPaint(
-                  painter: _RingPainter(
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(begin: 0, end: progress.clamp(0.0, 1.0)),
+        duration: const Duration(milliseconds: 1600),
+        curve: Curves.easeOutCubic,
+        builder: (BuildContext context, double value, Widget? _) =>
+            AmbientClock(
+          builder: (BuildContext context, double seconds, Widget? mascot) =>
+              Stack(
+            alignment: Alignment.center,
+            children: <Widget>[
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _OrbitPainter(
                     progress: value,
                     dayInCycle: dayInCycle,
                     cycleLength: cycleLength,
                     seconds: seconds,
-                    headColor: atRisk ? AppColors.danger : AppColors.spark,
+                    atRisk: atRisk,
                   ),
                 ),
               ),
-            ),
+              // Funki floats: a slow bob inside the orb.
+              Transform.translate(
+                offset: Offset(0, math.sin(seconds * 1.6) * size * 0.015),
+                child: mascot,
+              ),
+            ],
           ),
-          Padding(
-            padding: EdgeInsets.only(bottom: size * 0.04),
-            child: FlameMascot(
-              stage: stage,
-              mood: mood,
-              size: size * 0.74,
-              onPoke: onPoke,
-              semanticLabel: mascotLabel,
-            ),
+          child: FlameMascot(
+            stage: stage,
+            mood: mood,
+            size: size * 0.66,
+            onPoke: onPoke,
+            semanticLabel: mascotLabel,
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _RingPainter extends CustomPainter {
-  _RingPainter({
+class _OrbitPainter extends CustomPainter {
+  _OrbitPainter({
     required this.progress,
     required this.dayInCycle,
     required this.cycleLength,
     required this.seconds,
-    required this.headColor,
+    required this.atRisk,
   });
 
   final double progress;
   final int dayInCycle;
   final int cycleLength;
   final double seconds;
-  final Color headColor;
+  final bool atRisk;
 
-  static const double _stroke = 13;
   static const double _start = -math.pi / 2;
 
-  Offset _onRing(Offset center, double radius, double fraction) {
+  Offset _on(Offset center, double radius, double fraction) {
     final double a = _start + math.pi * 2 * fraction;
     return center + Offset(math.cos(a), math.sin(a)) * radius;
   }
@@ -106,37 +108,76 @@ class _RingPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Offset center = size.center(Offset.zero);
-    final double radius = size.width / 2 - _stroke;
-    final Rect rect = Rect.fromCircle(center: center, radius: radius);
+    final double orbit = size.width / 2 - 9;
+    final double pulse = 0.5 + 0.5 * math.sin(seconds * 3.2);
 
+    // The orb Funki floats in.
+    final double orb = size.width * 0.37;
     canvas.drawCircle(
       center,
-      radius,
+      orb,
       Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = _stroke
-        ..color = AppColors.surfaceHigh,
+        ..shader = RadialGradient(
+          colors: <Color>[
+            AppColors.primary.withValues(alpha: 0.42),
+            AppColors.hot.withValues(alpha: 0.12),
+            AppColors.primary.withValues(alpha: 0),
+          ],
+          stops: const <double>[0, 0.65, 1],
+        ).createShader(Rect.fromCircle(center: center, radius: orb)),
     );
-    // A thin inner rim, so the track reads as a groove.
     canvas.drawCircle(
       center,
-      radius - _stroke / 2 - 2,
+      orb,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1
-        ..color = AppColors.outline.withValues(alpha: 0.6),
+        ..strokeWidth = 1.2
+        ..shader = SweepGradient(
+          transform: GradientRotation(seconds * 0.4),
+          colors: <Color>[
+            Colors.white.withValues(alpha: 0.35),
+            Colors.white.withValues(alpha: 0.02),
+            Colors.white.withValues(alpha: 0.35),
+          ],
+        ).createShader(Rect.fromCircle(center: center, radius: orb)),
     );
 
+    // The dashed inner ring, turning.
+    final double dashes = size.width * 0.43;
+    final Paint dash = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6
+      ..strokeCap = StrokeCap.round
+      ..color = AppColors.primarySoft.withValues(alpha: 0.28);
+    const int count = 36;
+    for (int i = 0; i < count; i++) {
+      final double a = seconds * 0.18 + i * math.pi * 2 / count;
+      canvas.drawArc(Rect.fromCircle(center: center, radius: dashes), a,
+          math.pi * 2 / count * 0.45, false, dash);
+    }
+
+    // The orbit track.
+    canvas.drawCircle(
+      center,
+      orbit,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 7
+        ..color = Colors.white.withValues(alpha: 0.07),
+    );
+
+    final Rect rect = Rect.fromCircle(center: center, radius: orbit);
     if (progress > 0) {
       final Shader shader = const SweepGradient(
         transform: GradientRotation(_start),
         colors: <Color>[
-          AppColors.flameHot,
-          AppColors.flame,
-          AppColors.amber,
-          AppColors.spark,
+          AppColors.hot,
+          Color(0xFFD946EF),
+          AppColors.primary,
+          AppColors.social,
+          AppColors.reward,
         ],
-        stops: <double>[0, 0.35, 0.75, 1],
+        stops: <double>[0, 0.25, 0.5, 0.75, 1],
       ).createShader(rect);
       final double sweep = math.pi * 2 * progress;
       canvas.drawArc(
@@ -146,10 +187,10 @@ class _RingPainter extends CustomPainter {
         false,
         Paint()
           ..style = PaintingStyle.stroke
-          ..strokeWidth = _stroke + 8
+          ..strokeWidth = 14
           ..strokeCap = StrokeCap.round
           ..shader = shader
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 9),
       );
       canvas.drawArc(
         rect,
@@ -158,63 +199,82 @@ class _RingPainter extends CustomPainter {
         false,
         Paint()
           ..style = PaintingStyle.stroke
-          ..strokeWidth = _stroke
+          ..strokeWidth = 7
           ..strokeCap = StrokeCap.round
           ..shader = shader,
       );
     }
 
-    // Milestones on the ring: gold when passed, the next one pulsing.
+    // Milestones as planets.
     int? next;
     for (final int m in kMilestoneDays) {
       if (m > cycleLength) break;
       if (m > dayInCycle && next == null) next = m;
     }
-    final double pulse = 0.5 + 0.5 * math.sin(seconds * 4);
     for (final int m in kMilestoneDays) {
       if (m > cycleLength) break;
-      final Offset p = _onRing(center, radius, m / cycleLength);
+      final Offset p = _on(center, orbit, m / cycleLength);
       if (m <= dayInCycle) {
         canvas.drawCircle(
-            p,
-            7,
-            Paint()
-              ..color = AppColors.gold.withValues(alpha: 0.6)
-              ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5));
-        canvas.drawCircle(p, 4.2, Paint()..color = const Color(0xFFFFF4C2));
+          p,
+          8,
+          Paint()
+            ..color = AppColors.reward.withValues(alpha: 0.5)
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
+        );
+        canvas.drawCircle(
+          p,
+          4.6,
+          Paint()
+            ..shader = const RadialGradient(
+              center: Alignment(-0.4, -0.4),
+              colors: <Color>[Colors.white, AppColors.reward],
+            ).createShader(Rect.fromCircle(center: p, radius: 4.6)),
+        );
       } else if (m == next) {
         canvas.drawCircle(
           p,
-          5.5 + pulse * 2.5,
+          6 + pulse * 3,
           Paint()
             ..style = PaintingStyle.stroke
-            ..strokeWidth = 2
-            ..color = Colors.white.withValues(alpha: 0.35 + 0.5 * pulse),
+            ..strokeWidth = 1.8
+            ..color = AppColors.glow.withValues(alpha: 0.3 + 0.6 * pulse),
         );
-        canvas.drawCircle(p, 3.2, Paint()..color = Colors.white);
+        canvas.drawCircle(p, 3.4, Paint()..color = AppColors.glow);
       } else {
-        canvas.drawCircle(p, 2.6, Paint()..color = AppColors.textTertiary);
+        canvas.drawCircle(
+            p, 2.8, Paint()..color = Colors.white.withValues(alpha: 0.25));
       }
     }
 
-    // The comet head where the arc ends.
+    // The comet: today, with a trail of sparks behind it.
     if (progress > 0) {
-      final Offset head = _onRing(center, radius, progress);
+      final Color head = atRisk ? AppColors.hot : AppColors.glow;
+      for (int i = 6; i >= 1; i--) {
+        final double back = progress - i * 0.008;
+        if (back <= 0) continue;
+        canvas.drawCircle(
+          _on(center, orbit, back),
+          4.5 - i * 0.5,
+          Paint()..color = head.withValues(alpha: 0.5 - i * 0.07),
+        );
+      }
+      final Offset p = _on(center, orbit, progress);
       canvas.drawCircle(
-        head,
-        11 + pulse * 3,
+        p,
+        13 + pulse * 4,
         Paint()
-          ..color = headColor.withValues(alpha: 0.55)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+          ..color = head.withValues(alpha: 0.55)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 9),
       );
-      canvas.drawCircle(head, 5.5, Paint()..color = Colors.white);
+      canvas.drawCircle(p, 6, Paint()..color = Colors.white);
     }
   }
 
   @override
-  bool shouldRepaint(_RingPainter oldDelegate) =>
+  bool shouldRepaint(_OrbitPainter oldDelegate) =>
       oldDelegate.progress != progress ||
       oldDelegate.seconds != seconds ||
       oldDelegate.dayInCycle != dayInCycle ||
-      oldDelegate.headColor != headColor;
+      oldDelegate.atRisk != atRisk;
 }

@@ -77,7 +77,7 @@ class _ScanInviteScreenState extends State<ScanInviteScreen> {
                       width: 236,
                       height: 236,
                       decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.flame, width: 3),
+                        border: Border.all(color: AppColors.primary, width: 3),
                         borderRadius: BorderRadius.circular(24),
                       ),
                     ),

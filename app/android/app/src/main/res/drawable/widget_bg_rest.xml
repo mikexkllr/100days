@@ -2,14 +2,14 @@
 <!-- Rest day or a freeze: cool blue. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <corners android:radius="24dp" />
+    <corners android:radius="26dp" />
     <gradient
         android:angle="315"
-        android:centerColor="#FF150F1F"
-        android:endColor="#FF0C0912"
-        android:startColor="#FF10283D"
+        android:centerColor="#FF120E2A"
+        android:endColor="#FF07051A"
+        android:startColor="#FF102A4A"
         android:type="linear" />
     <stroke
         android:width="1.5dp"
-        android:color="#995CC8FF" />
+        android:color="#997DD3FC" />
 </shape>

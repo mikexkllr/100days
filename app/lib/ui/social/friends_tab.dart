@@ -130,7 +130,7 @@ class FriendsTab extends ConsumerWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              const Icon(Icons.hub_outlined, size: 19, color: AppColors.violet),
+              const Icon(Icons.hub_outlined, size: 19, color: AppColors.social),
               const SizedBox(width: AppSpacing.sm + 2),
               Expanded(
                 child: Text(
@@ -229,7 +229,7 @@ class _NudgeCard extends ConsumerWidget {
     final AppLocalizations l10n = context.l10n;
     final String text = l10n.nudgeText(suggestion);
     return AppCard(
-      border: AppColors.violet.withValues(alpha: 0.35),
+      border: AppColors.social.withValues(alpha: 0.35),
       child: Row(
         children: <Widget>[
           EmojiAvatar(profile?.avatarEmoji ?? '🙂', size: 38),
@@ -261,10 +261,10 @@ class _NudgeCard extends ConsumerWidget {
                     ),
             style: FilledButton.styleFrom(
               minimumSize: const Size(86, 40),
-              backgroundColor: AppColors.violet,
+              backgroundColor: AppColors.social,
               foregroundColor: Colors.white,
               disabledBackgroundColor:
-                  AppColors.violet.withValues(alpha: 0.25),
+                  AppColors.social.withValues(alpha: 0.25),
               disabledForegroundColor: Colors.white70,
             ),
             child: Text(alreadySent ? l10n.actionSent : l10n.actionSend),
@@ -297,7 +297,7 @@ class _FriendRow extends StatelessWidget {
           EmojiAvatar(
             peer.profile.avatarEmoji,
             size: 46,
-            ringColor: peer.activeToday ? AppColors.lime : null,
+            ringColor: peer.activeToday ? AppColors.success : null,
             dimmed: !peer.activeToday,
           ),
           const SizedBox(width: AppSpacing.sm + 4),
@@ -317,7 +317,7 @@ class _FriendRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: peer.activeToday
-                            ? AppColors.lime
+                            ? AppColors.success
                             : AppColors.textSecondary,
                         fontSize: 12.5,
                       ),
@@ -328,8 +328,7 @@ class _FriendRow extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: <Widget>[
-              Text(l10n.tileStreakBadge(peer.currentStreak),
-                  style: Theme.of(context).textTheme.titleMedium),
+              StreakCount(peer.currentStreak),
               Text(
                 l10n.friendsDayNumber(peer.dayNumber),
                 style: Theme.of(context)

@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
 import 'package:hundred_core/hundred_core.dart';
 
-import '../../theme/theme.dart';
 import 'mascot_mood.dart';
 
 export 'mascot_mood.dart';
@@ -40,7 +39,7 @@ class FlamePalette {
   /// False for a plain teardrop — the coal before the first day.
   final bool sideTongues;
 
-  /// Sun rays turning behind the flame.
+  /// Rays of every colour turning behind the flame.
   final bool rays;
 
   /// Embers circling the flame.
@@ -49,74 +48,63 @@ class FlamePalette {
   /// Twinkles around the head.
   final bool sparkles;
 
-  static const List<Color> _fireOuter = <Color>[
-    Color(0xFFFF8A2C),
-    Color(0xFFFF2E63),
-  ];
-  static const List<Color> _fireMid = <Color>[
-    Color(0xFFFFC93C),
-    Color(0xFFFF7A1F),
-  ];
-  static const List<Color> _fireCore = <Color>[
-    Color(0xFFFFF6C8),
-    Color(0xFFFFD84D),
-  ];
-
   static FlamePalette of(FlameStage stage) {
+    // Red at the start, burning through magenta and violet to blue, cyan
+    // and white as the streak gets hotter — and a galaxy at the top.
     switch (stage) {
       case FlameStage.ember:
         return const FlamePalette(
-          outer: <Color>[Color(0xFFFF7043), Color(0xFFB3204A)],
-          mid: <Color>[Color(0xFFFFA25C), Color(0xFFF0552E)],
-          core: <Color>[Color(0xFFFFEBC2), Color(0xFFFFBE7A)],
-          glow: Color(0xFFFF6B2C),
+          outer: <Color>[Color(0xFFFB7185), Color(0xFF9F1239)],
+          mid: <Color>[Color(0xFFFDA4AF), Color(0xFFE11D48)],
+          core: <Color>[Color(0xFFFFF1F2), Color(0xFFFDA4AF)],
+          glow: Color(0xFFF43F5E),
           scale: 0.62,
           tipHeight: 1.5,
           sideTongues: false,
         );
       case FlameStage.spark:
         return const FlamePalette(
-          outer: _fireOuter,
-          mid: _fireMid,
-          core: _fireCore,
-          glow: AppColors.flame,
+          outer: <Color>[Color(0xFFFF5C7A), Color(0xFFD7193F)],
+          mid: <Color>[Color(0xFFFECDD3), Color(0xFFFB7185)],
+          core: <Color>[Color(0xFFFFFFFF), Color(0xFFFFE4E6)],
+          glow: Color(0xFFF43F5E),
           scale: 0.68,
           tipHeight: 1.6,
         );
       case FlameStage.flicker:
         return const FlamePalette(
-          outer: _fireOuter,
-          mid: _fireMid,
-          core: _fireCore,
-          glow: AppColors.flame,
+          outer: <Color>[Color(0xFFFF4D9A), Color(0xFFBE185D)],
+          mid: <Color>[Color(0xFFFBCFE8), Color(0xFFEC4899)],
+          core: <Color>[Color(0xFFFFFFFF), Color(0xFFFCE7F3)],
+          glow: Color(0xFFEC4899),
           scale: 0.75,
           tipHeight: 1.85,
         );
       case FlameStage.flame:
         return const FlamePalette(
-          outer: <Color>[Color(0xFFFF7A1F), Color(0xFFFF2E63)],
-          mid: _fireMid,
-          core: _fireCore,
-          glow: AppColors.flame,
+          outer: <Color>[Color(0xFFF07CFF), Color(0xFFA21CAF)],
+          mid: <Color>[Color(0xFFF5D0FE), Color(0xFFD946EF)],
+          core: <Color>[Color(0xFFFFFFFF), Color(0xFFFAE8FF)],
+          glow: Color(0xFFD946EF),
           scale: 0.83,
           tipHeight: 2.05,
         );
       case FlameStage.blaze:
         return const FlamePalette(
-          outer: <Color>[Color(0xFFFF6A1A), Color(0xFFF0174F)],
-          mid: <Color>[Color(0xFFFFCF3F), Color(0xFFFF6B1A)],
-          core: _fireCore,
-          glow: Color(0xFFFF5A2C),
+          outer: <Color>[Color(0xFFC084FC), Color(0xFF7E22CE)],
+          mid: <Color>[Color(0xFFE9D5FF), Color(0xFFA855F7)],
+          core: <Color>[Color(0xFFFFFFFF), Color(0xFFF3E8FF)],
+          glow: Color(0xFFA855F7),
           scale: 0.89,
           tipHeight: 2.15,
           extraTongues: true,
         );
       case FlameStage.inferno:
         return const FlamePalette(
-          outer: <Color>[Color(0xFFFF5A1F), Color(0xFFC8102E)],
-          mid: <Color>[Color(0xFFFFB627), Color(0xFFFF4D1A)],
-          core: <Color>[Color(0xFFFFFFFF), Color(0xFFFFE14D)],
-          glow: Color(0xFFFF3D2E),
+          outer: <Color>[Color(0xFFA78BFA), Color(0xFF5B21B6)],
+          mid: <Color>[Color(0xFFDDD6FE), Color(0xFF8B5CF6)],
+          core: <Color>[Color(0xFFFFFFFF), Color(0xFFEDE9FE)],
+          glow: Color(0xFF8B5CF6),
           scale: 0.95,
           tipHeight: 2.25,
           extraTongues: true,
@@ -124,10 +112,10 @@ class FlamePalette {
         );
       case FlameStage.blue:
         return const FlamePalette(
-          outer: <Color>[Color(0xFF5CC8FF), Color(0xFF2E4BFF)],
-          mid: <Color>[Color(0xFFA8E8FF), Color(0xFF4F9BFF)],
-          core: <Color>[Color(0xFFFFFFFF), Color(0xFFD6F4FF)],
-          glow: Color(0xFF4FA8FF),
+          outer: <Color>[Color(0xFF60A5FA), Color(0xFF1D4ED8)],
+          mid: <Color>[Color(0xFFBFDBFE), Color(0xFF3B82F6)],
+          core: <Color>[Color(0xFFFFFFFF), Color(0xFFDBEAFE)],
+          glow: Color(0xFF3B82F6),
           scale: 0.97,
           tipHeight: 2.25,
           extraTongues: true,
@@ -135,10 +123,10 @@ class FlamePalette {
         );
       case FlameStage.plasma:
         return const FlamePalette(
-          outer: <Color>[Color(0xFFD45CFF), Color(0xFF6A2EFF)],
-          mid: <Color>[Color(0xFFF2A8FF), Color(0xFFB04DFF)],
-          core: <Color>[Color(0xFFFFFFFF), Color(0xFFFFD6FF)],
-          glow: Color(0xFFB04DFF),
+          outer: <Color>[Color(0xFF67E8F9), Color(0xFF0E7490)],
+          mid: <Color>[Color(0xFFCFFAFE), Color(0xFF22D3EE)],
+          core: <Color>[Color(0xFFFFFFFF), Color(0xFFECFEFF)],
+          glow: Color(0xFF22D3EE),
           scale: 1,
           tipHeight: 2.3,
           extraTongues: true,
@@ -147,26 +135,27 @@ class FlamePalette {
         );
       case FlameStage.nova:
         return const FlamePalette(
-          outer: <Color>[Color(0xFFFFFFFF), Color(0xFFFF5CC8)],
-          mid: <Color>[Color(0xFFFFFFFF), Color(0xFFFFB3EC)],
-          core: <Color>[Color(0xFFFFFFFF), Color(0xFFFFF0FB)],
-          glow: Color(0xFFFF8AE2),
+          outer: <Color>[Color(0xFFFFFFFF), Color(0xFF818CF8)],
+          mid: <Color>[Color(0xFFFFFFFF), Color(0xFFC7D2FE)],
+          core: <Color>[Color(0xFFFFFFFF), Color(0xFFFFFFFF)],
+          glow: Color(0xFFA5B4FC),
           scale: 1,
           tipHeight: 2.3,
           extraTongues: true,
           orbit: true,
           sparkles: true,
         );
-      case FlameStage.sun:
+      case FlameStage.galaxy:
         return const FlamePalette(
-          outer: <Color>[Color(0xFFFFE14D), Color(0xFFFF8A00)],
-          mid: <Color>[Color(0xFFFFF3B0), Color(0xFFFFC531)],
-          core: <Color>[Color(0xFFFFFFFF), Color(0xFFFFF6C8)],
-          glow: AppColors.gold,
+          outer: <Color>[Color(0xFFF9A8D4), Color(0xFF6D28D9)],
+          mid: <Color>[Color(0xFFA5F3FC), Color(0xFFA78BFA)],
+          core: <Color>[Color(0xFFFFFFFF), Color(0xFFE0F2FE)],
+          glow: Color(0xFFA78BFA),
           scale: 1,
           tipHeight: 2.3,
           extraTongues: true,
           rays: true,
+          orbit: true,
           sparkles: true,
         );
     }
@@ -330,16 +319,21 @@ class FlamePainter extends CustomPainter {
 
   void _paintRays(Canvas canvas, Offset center, double r, double t) {
     const int count = 12;
-    final Paint paint = Paint()
-      ..shader = RadialGradient(
-        colors: <Color>[
-          palette.glow.withValues(alpha: 0.55),
-          palette.glow.withValues(alpha: 0),
-        ],
-      ).createShader(Rect.fromCircle(center: center, radius: r * 3));
+    const List<Color> colors = <Color>[
+      Color(0xFFA78BFA),
+      Color(0xFF67E8F9),
+      Color(0xFFF9A8D4),
+    ];
     for (int i = 0; i < count; i++) {
       final double a = t * 0.35 + i * math.pi * 2 / count;
       const double spread = math.pi / count * 0.5;
+      final Paint paint = Paint()
+        ..shader = RadialGradient(
+          colors: <Color>[
+            colors[i % colors.length].withValues(alpha: 0.6),
+            colors[i % colors.length].withValues(alpha: 0),
+          ],
+        ).createShader(Rect.fromCircle(center: center, radius: r * 3));
       final Path ray = Path()
         ..moveTo(center.dx, center.dy)
         ..lineTo(center.dx + math.cos(a - spread) * r * 3,
@@ -424,7 +418,7 @@ class FlamePainter extends CustomPainter {
   }
 
   void _paintFace(Canvas canvas, Offset center, double r) {
-    const Color ink = Color(0xFF3A1300);
+    const Color ink = Color(0xFF1E0B3A);
     final Paint inkPaint = Paint()..color = ink;
     final Paint stroke = Paint()
       ..color = ink
@@ -523,7 +517,7 @@ class FlamePainter extends CustomPainter {
           ..quadraticBezierTo(center.dx + w * 0.42, mouthY + h, center.dx, mouthY + h)
           ..quadraticBezierTo(center.dx - w * 0.42, mouthY + h, center.dx - w / 2, mouthY - h * 0.25)
           ..close();
-        canvas.drawPath(mouth, Paint()..color = const Color(0xFF5A1206));
+        canvas.drawPath(mouth, Paint()..color = const Color(0xFF3B0A45));
         canvas.save();
         canvas.clipPath(mouth);
         canvas.drawOval(
@@ -534,7 +528,7 @@ class FlamePainter extends CustomPainter {
       case MascotMood.hungry:
         canvas.drawOval(
           Rect.fromCenter(center: Offset(center.dx, mouthY + r * 0.02), width: r * 0.16, height: r * 0.19),
-          Paint()..color = const Color(0xFF5A1206),
+          Paint()..color = const Color(0xFF3B0A45),
         );
       case MascotMood.worried:
         final Path wobble = Path()..moveTo(center.dx - r * 0.18, mouthY + r * 0.04);
@@ -550,7 +544,7 @@ class FlamePainter extends CustomPainter {
             ..moveTo(drop.dx, drop.dy - r * 0.16)
             ..quadraticBezierTo(drop.dx + r * 0.1, drop.dy, drop.dx, drop.dy + r * 0.05)
             ..quadraticBezierTo(drop.dx - r * 0.1, drop.dy, drop.dx, drop.dy - r * 0.16),
-          Paint()..color = const Color(0xFFB8ECFF),
+          Paint()..color = const Color(0xFFBAE6FD),
         );
       case MascotMood.hopeful:
       case MascotMood.sleepy:

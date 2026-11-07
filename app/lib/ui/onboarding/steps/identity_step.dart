@@ -47,7 +47,7 @@ class _IdentityStepState extends ConsumerState<IdentityStep> {
         children: <Widget>[
           Row(
             children: <Widget>[
-              EmojiAvatar(draft.avatarEmoji, size: 64, ringColor: AppColors.flame),
+              EmojiAvatar(draft.avatarEmoji, size: 64, ringColor: AppColors.primary),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: TextField(
@@ -78,7 +78,7 @@ class _IdentityStepState extends ConsumerState<IdentityStep> {
                     emoji,
                     size: 46,
                     ringColor: draft.avatarEmoji == emoji
-                        ? AppColors.flame
+                        ? AppColors.primary
                         : null,
                   ),
                 ),
@@ -92,7 +92,7 @@ class _IdentityStepState extends ConsumerState<IdentityStep> {
               children: <Widget>[
                 Row(
                   children: <Widget>[
-                    const Icon(Icons.key, size: 17, color: AppColors.violet),
+                    const Icon(Icons.key, size: 17, color: AppColors.social),
                     const SizedBox(width: AppSpacing.sm),
                     Text(l10n.obIdentityBoxTitle,
                         style: Theme.of(context).textTheme.titleMedium),

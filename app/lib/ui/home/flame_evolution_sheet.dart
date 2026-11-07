@@ -123,11 +123,11 @@ class _StageRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sm + 4, vertical: AppSpacing.sm),
       border: isCurrent
-          ? AppColors.flame
+          ? AppColors.primary
           : reached
-              ? AppColors.flame.withValues(alpha: 0.35)
+              ? AppColors.primary.withValues(alpha: 0.35)
               : AppColors.outline,
-      glow: isCurrent ? AppColors.flame : null,
+      glow: isCurrent ? AppColors.primary : null,
       child: Row(
         children: <Widget>[
           flame,
@@ -170,11 +170,11 @@ class _StageRow extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.sm),
           if (isCurrent)
-            Pill(l10n.evolutionCurrent, color: AppColors.flame, filled: true)
+            Pill(l10n.evolutionCurrent, color: AppColors.primary, filled: true)
           else if (reached)
-            const Icon(Icons.check_circle, color: AppColors.lime)
+            const Icon(Icons.check_circle, color: AppColors.success)
           else if (left != null)
-            const Icon(Icons.lock_open, color: AppColors.flameSoft)
+            const Icon(Icons.lock_open, color: AppColors.primarySoft)
           else
             const Icon(Icons.lock_outline, color: AppColors.textTertiary),
         ],

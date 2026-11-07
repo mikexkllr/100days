@@ -43,7 +43,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-black"
                     android:includeFontPadding="false"
-                    android:textColor="#FF8A2C"
+                    android:textColor="#C084FC"
                     android:textSize="38sp" />
 
                 <TextView
@@ -55,7 +55,7 @@
                     android:letterSpacing="0.08"
                     android:maxLines="1"
                     android:textAllCaps="true"
-                    android:textColor="#B3A8C7"
+                    android:textColor="#B9B3DB"
                     android:textSize="11sp" />
             </LinearLayout>
 
@@ -66,7 +66,7 @@
                 android:ellipsize="end"
                 android:fontFamily="sans-serif-black"
                 android:maxLines="1"
-                android:textColor="#B3A8C7"
+                android:textColor="#B9B3DB"
                 android:textSize="13sp" />
 
             <LinearLayout
@@ -80,7 +80,7 @@
                     android:id="@+id/countdown_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#B3A8C7"
+                    android:textColor="#B9B3DB"
                     android:textSize="12sp" />
 
                 <Chronometer
@@ -89,7 +89,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
                     android:fontFamily="sans-serif-black"
-                    android:textColor="#FFB830"
+                    android:textColor="#E879F9"
                     android:textSize="12sp" />
             </LinearLayout>
 
@@ -100,7 +100,7 @@
                 android:layout_marginTop="2dp"
                 android:ellipsize="end"
                 android:maxLines="2"
-                android:textColor="#FFF7F0"
+                android:textColor="#F5F3FF"
                 android:textSize="12sp"
                 android:textStyle="italic" />
         </LinearLayout>
@@ -124,14 +124,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
-                android:textColor="#6E6487"
+                android:textColor="#7A73A6"
                 android:textSize="9sp" />
 
             <TextView
                 android:id="@+id/week_mark_0"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#6E6487"
+                android:textColor="#7A73A6"
                 android:textSize="13sp" />
         </LinearLayout>
         <LinearLayout
@@ -146,14 +146,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
-                android:textColor="#6E6487"
+                android:textColor="#7A73A6"
                 android:textSize="9sp" />
 
             <TextView
                 android:id="@+id/week_mark_1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#6E6487"
+                android:textColor="#7A73A6"
                 android:textSize="13sp" />
         </LinearLayout>
         <LinearLayout
@@ -168,14 +168,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
-                android:textColor="#6E6487"
+                android:textColor="#7A73A6"
                 android:textSize="9sp" />
 
             <TextView
                 android:id="@+id/week_mark_2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#6E6487"
+                android:textColor="#7A73A6"
                 android:textSize="13sp" />
         </LinearLayout>
         <LinearLayout
@@ -190,14 +190,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
-                android:textColor="#6E6487"
+                android:textColor="#7A73A6"
                 android:textSize="9sp" />
 
             <TextView
                 android:id="@+id/week_mark_3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#6E6487"
+                android:textColor="#7A73A6"
                 android:textSize="13sp" />
         </LinearLayout>
         <LinearLayout
@@ -212,14 +212,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
-                android:textColor="#6E6487"
+                android:textColor="#7A73A6"
                 android:textSize="9sp" />
 
             <TextView
                 android:id="@+id/week_mark_4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#6E6487"
+                android:textColor="#7A73A6"
                 android:textSize="13sp" />
         </LinearLayout>
         <LinearLayout
@@ -234,14 +234,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
-                android:textColor="#6E6487"
+                android:textColor="#7A73A6"
                 android:textSize="9sp" />
 
             <TextView
                 android:id="@+id/week_mark_5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#6E6487"
+                android:textColor="#7A73A6"
                 android:textSize="13sp" />
         </LinearLayout>
         <LinearLayout
@@ -256,14 +256,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
-                android:textColor="#6E6487"
+                android:textColor="#7A73A6"
                 android:textSize="9sp" />
 
             <TextView
                 android:id="@+id/week_mark_6"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#6E6487"
+                android:textColor="#7A73A6"
                 android:textSize="13sp" />
         </LinearLayout>
     </LinearLayout>

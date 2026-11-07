@@ -221,7 +221,7 @@ class _WorkoutLoggerScreenState extends ConsumerState<WorkoutLoggerScreen> {
               child: Row(
                 children: <Widget>[
                   const Icon(Icons.trending_up,
-                      size: 19, color: AppColors.lime),
+                      size: 19, color: AppColors.success),
                   const SizedBox(width: AppSpacing.sm + 2),
                   Expanded(
                     child: Text(
@@ -330,7 +330,7 @@ class _ExerciseCard extends StatelessWidget {
             children: <Widget>[
               const Padding(
                 padding: EdgeInsets.only(top: 2),
-                child: Icon(Icons.trending_up, size: 16, color: AppColors.lime),
+                child: Icon(Icons.trending_up, size: 16, color: AppColors.success),
               ),
               const SizedBox(width: AppSpacing.xs + 2),
               Expanded(
@@ -339,7 +339,7 @@ class _ExerciseCard extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium
-                      ?.copyWith(color: AppColors.lime, fontSize: 13),
+                      ?.copyWith(color: AppColors.success, fontSize: 13),
                 ),
               ),
             ],
@@ -440,7 +440,7 @@ class _SetRowView extends StatelessWidget {
             selectedIcon: const Icon(Icons.check, color: AppColors.ink),
             style: IconButton.styleFrom(
               backgroundColor:
-                  row.done ? AppColors.lime : AppColors.surfaceHigh,
+                  row.done ? AppColors.success : AppColors.surfaceHigh,
             ),
             onPressed: () {
               HapticFeedback.selectionClick();

@@ -30,8 +30,8 @@ The streak is a character, not a number. Funki is drawn entirely in code
 (`app/lib/ui/mascot/flame_painter.dart`) — no image assets, the same painter
 in the app, in tests and in the pictures handed to the home screen widget.
 
-**It grows with the streak.** Ten forms, from an ember at zero to a sun at
-365 days (`FlameStage` in `hundred_core`). Every threshold is a milestone day.
+**It grows with the streak.** Ten forms, from a red ember at zero through
+magenta, violet, blue, cyan and white to a holographic galaxy at 365 days (`FlameStage` in `hundred_core`). Every threshold is a milestone day.
 The next form is always shown — with the days still missing — and the ones
 after it are silhouettes you have to earn to see. Breaking the streak takes
 the form back: the flame is exactly as honest as the streak it is made of.
@@ -57,20 +57,24 @@ answers; poke it five times in a row and it complains.
 
 ## The home screen
 
-Top to bottom, the order of what matters:
+No title bar: Today is the whole screen. Top to bottom, the order of what
+matters:
 
-1. **Funki in the ring of the cycle.** The arc is the cycle (day 12 of 100);
-   the dots on it are the milestone days — gold once passed, the next one
-   pulsing. Embers rise around it.
-2. **The streak as a number that counts up** — every time the app opens.
-3. **The form and the next one**, tappable into the evolution.
-4. **The clock.** While today is open, a live countdown to midnight — when
+1. **The hero panel.** One pane of glass with the streak as a huge number
+   that counts up every time the app opens, the current form and the bar to
+   the next one, and on the right Funki floating in an orb inside the orbit
+   of the cycle. The comet on the orbit is today and its trail how far you
+   have come; the planets are the milestone days, lit once passed, the next
+   one pulsing. Funki's line sits above, pointing at him.
+2. **The clock.** While today is open, a live countdown to midnight — when
    the streak really ends. Red from four hours out.
-5. **The week as a chain.** Done days are linked; the gap you are about to
-   leave is impossible to miss.
-6. **The habits**, with a bar that fills segment by segment. Checking in is
-   loud: the button sinks under the finger with a heavy buzz, sparks fly, the
-   XP the tap earned floats up in gold, the card turns green.
+3. **The week as gems.** Done days glow in plasma and are linked by a neon
+   wire; the gap you are about to leave is impossible to miss.
+4. **Today's quests** — visible on the first screen. Checking in is a
+   **hold**: the bar fills with plasma, the phone ticks at every quarter,
+   and when it is full it fires with a hard knock. Let go early and nothing
+   is logged. Then sparks fly, the XP the check-in earned floats up, the
+   card turns mint. Screen readers get a plain tap instead of the hold.
 
 ## The slot machine
 
@@ -83,8 +87,9 @@ Completing the day — the last habit of the day ticked — rolls a machine
 - The bonus reel lands on the loudest real highlight of the day
   (`rewardForDay` in `hundred_core`): cycle complete, milestone, evolution,
   record, level-up — or a perfect day, which every completed day is.
-- Anything louder than a perfect day is a **jackpot**: gold title, marquee
-  lights chasing, a coin fountain, three hard knocks of haptics.
+- Anything louder than a perfect day is a **jackpot**: a holographic title,
+  rays of every colour, marquee lights chasing, a fountain of gems, three
+  hard knocks of haptics.
 - Then every highlight as its own chip, and **what is next**: the next form,
   the next milestone and the next level, each with the real distance to it.
   That is the goal-gradient effect, with true numbers.
@@ -101,14 +106,25 @@ Widget tests run with reduced motion on (`reducedMotion` in
 `app/test/helpers.dart`); otherwise `pumpAndSettle` would wait for a flame
 that never stops.
 
-## The look
+## The look: Nightglow
 
-A night sky with a fire in it: a deep purple-black base (orange and gold are
-loudest next to violet), a fire gradient from hot pink to yellow, gold for
-rewards, lime for done, ice blue for freezes and rest days. Numbers,
-headlines and buttons use Lilita One (SIL OFL, `app/assets/fonts`); body text
-stays in the system font. Buttons are raised on a darker lip and sink when
-pressed.
+Deep space with an aurora moving behind every screen
+(`app/lib/ui/motion/aurora.dart`): four slow lights — violet, blue, rose,
+cyan — and a scatter of twinkling stars, painted once behind the navigator
+so every page is glass over the same sky. Pages fade through each other
+instead of sliding, so two transparent screens never overlap.
+
+- **Glass.** Cards are translucent panes with a bright rim where the light
+  hits them; things that matter glow in neon.
+- **Colour.** No orange anywhere. Violet is what you can press, red to blue
+  is the plasma of the streak, cyan is XP, mint is done, ice blue is a
+  freeze or a rest day, and rewards are holographic foil.
+- **Type.** Unbounded — wide, round, a little sci-fi — for numbers,
+  headlines and buttons; Manrope for everything that is read (both SIL OFL,
+  `app/assets/fonts`).
+- **Navigation.** A frosted glass dock floats over the sky, with a neon pill
+  that glides to the selected tab and the streak as a badge on Today.
+- **Tabs** are segmented controls; the weekly league has a podium.
 
 ## The home screen widget
 

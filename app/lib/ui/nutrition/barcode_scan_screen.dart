@@ -85,7 +85,7 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
                       width: 280,
                       height: 150,
                       decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.lime, width: 3),
+                        border: Border.all(color: AppColors.success, width: 3),
                         borderRadius: BorderRadius.circular(18),
                       ),
                     ),

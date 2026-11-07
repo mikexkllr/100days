@@ -133,7 +133,7 @@ class _Summary extends StatelessWidget {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: <Color>[
-          AppColors.flame.withValues(alpha: 0.14),
+          AppColors.primary.withValues(alpha: 0.14),
           AppColors.surface,
         ],
       ),
@@ -152,7 +152,7 @@ class _Summary extends StatelessWidget {
                       strokeWidth: 9,
                       backgroundColor: AppColors.surfaceHigh,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                          over ? AppColors.danger : AppColors.flame),
+                          over ? AppColors.danger : AppColors.primary),
                     ),
                     Center(
                       child: Column(
@@ -190,19 +190,19 @@ class _Summary extends StatelessWidget {
                       label: l10n.planProtein,
                       eaten: eaten.proteinG,
                       target: plan.proteinG.toDouble(),
-                      color: AppColors.lime,
+                      color: AppColors.success,
                     ),
                     _MacroBar(
                       label: l10n.planCarbsShort,
                       eaten: eaten.carbsG,
                       target: plan.carbsG.toDouble(),
-                      color: AppColors.flameSoft,
+                      color: AppColors.primarySoft,
                     ),
                     _MacroBar(
                       label: l10n.planFat,
                       eaten: eaten.fatG,
                       target: plan.fatG.toDouble(),
-                      color: AppColors.violet,
+                      color: AppColors.social,
                     ),
                   ],
                 ),
@@ -425,11 +425,11 @@ class _CloseDay extends ConsumerWidget {
 
     if (closed) {
       return AppCard(
-        color: AppColors.lime.withValues(alpha: 0.08),
-        border: AppColors.lime.withValues(alpha: 0.5),
+        color: AppColors.success.withValues(alpha: 0.08),
+        border: AppColors.success.withValues(alpha: 0.5),
         child: Row(
           children: <Widget>[
-            const Icon(Icons.check_circle, color: AppColors.lime),
+            const Icon(Icons.check_circle, color: AppColors.success),
             const SizedBox(width: AppSpacing.sm + 2),
             Expanded(
               child: Text(entry.tracked

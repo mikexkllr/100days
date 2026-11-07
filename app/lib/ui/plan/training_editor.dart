@@ -79,7 +79,7 @@ class _TrainingEditorScreenState extends ConsumerState<TrainingEditorScreen> {
                 ChoiceChip(
                   label: Text('$days×'),
                   selected: _days == days,
-                  selectedColor: AppColors.flame.withValues(alpha: 0.2),
+                  selectedColor: AppColors.primary.withValues(alpha: 0.2),
                   onSelected: (_) => setState(() => _days = days),
                 ),
             ],

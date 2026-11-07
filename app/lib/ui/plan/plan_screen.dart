@@ -85,13 +85,8 @@ class PlanScreen extends ConsumerWidget {
           length: tabs.length,
           child: Column(
             children: <Widget>[
-              TabBar(
+              GlassTabBar(
                 isScrollable: true,
-                tabAlignment: TabAlignment.start,
-                labelColor: AppColors.flame,
-                unselectedLabelColor: AppColors.textSecondary,
-                indicatorColor: AppColors.flame,
-                dividerColor: AppColors.outline,
                 tabs: <Widget>[
                   for (final _Tab tab in tabs) Tab(text: tab.label),
                 ],
@@ -195,9 +190,9 @@ class _WeekSection extends StatelessWidget {
           subtitle: l10n.trainingPhase(week),
           action: isCurrent
               ? Pill(l10n.planCurrentBadge,
-                  color: AppColors.flame, filled: true)
+                  color: AppColors.primary, filled: true)
               : week.isDeload
-                  ? Pill(l10n.planDeloadBadge, color: AppColors.violet)
+                  ? Pill(l10n.planDeloadBadge, color: AppColors.social)
                   : null,
         ),
         for (final Workout workout in week.workouts)
@@ -223,7 +218,7 @@ class _WeekSection extends StatelessWidget {
                       style: Theme.of(context)
                           .textTheme
                           .labelSmall
-                          ?.copyWith(color: AppColors.flame),
+                          ?.copyWith(color: AppColors.primary),
                     ),
                   ),
                   Expanded(
@@ -308,10 +303,10 @@ class _MilestoneTrack extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child: AppCard(
               color: milestone.day <= streak
-                  ? AppColors.lime.withValues(alpha: 0.07)
+                  ? AppColors.success.withValues(alpha: 0.07)
                   : AppColors.surface,
               border: milestone.day <= streak
-                  ? AppColors.lime.withValues(alpha: 0.5)
+                  ? AppColors.success.withValues(alpha: 0.5)
                   : null,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -322,7 +317,7 @@ class _MilestoneTrack extends StatelessWidget {
                         : Icons.radio_button_unchecked,
                     size: 19,
                     color: milestone.day <= streak
-                        ? AppColors.lime
+                        ? AppColors.success
                         : AppColors.textTertiary,
                   ),
                   const SizedBox(width: AppSpacing.sm + 2),
@@ -376,7 +371,7 @@ class _EnablePlanCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       children: <Widget>[
         AppCard(
-          border: AppColors.lime.withValues(alpha: 0.5),
+          border: AppColors.success.withValues(alpha: 0.5),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -394,7 +389,7 @@ class _EnablePlanCard extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.lime,
+                  backgroundColor: AppColors.success,
                   foregroundColor: AppColors.ink,
                   minimumSize: const Size.fromHeight(48),
                 ),

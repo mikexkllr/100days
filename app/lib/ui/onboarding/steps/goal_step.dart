@@ -56,9 +56,9 @@ class _GoalCard extends StatelessWidget {
     final AppLocalizations l10n = context.l10n;
     return AppCard(
       onTap: onTap,
-      border: selected ? AppColors.flame : null,
+      border: selected ? AppColors.primary : null,
       color: selected
-          ? AppColors.flame.withValues(alpha: 0.08)
+          ? AppColors.primary.withValues(alpha: 0.08)
           : AppColors.surface,
       child: Row(
         children: <Widget>[
@@ -89,14 +89,14 @@ class _GoalCard extends StatelessWidget {
             height: 22,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: selected ? AppColors.flame : Colors.transparent,
+              color: selected ? AppColors.primary : Colors.transparent,
               border: Border.all(
-                color: selected ? AppColors.flame : AppColors.outline,
+                color: selected ? AppColors.primary : AppColors.outline,
                 width: 2,
               ),
             ),
             child: selected
-                ? const Icon(Icons.check, size: 14, color: Color(0xFF1A0A02))
+                ? const Icon(Icons.check, size: 14, color: Colors.white)
                 : null,
           ),
         ],

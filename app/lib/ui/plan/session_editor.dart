@@ -31,9 +31,9 @@ class SplitPicker extends StatelessWidget {
             child: AppCard(
               key: Key('split-${split.name}'),
               onTap: () => onSelected(split),
-              border: split == selected ? AppColors.flame : null,
+              border: split == selected ? AppColors.primary : null,
               color: split == selected
-                  ? AppColors.flame.withValues(alpha: 0.08)
+                  ? AppColors.primary.withValues(alpha: 0.08)
                   : AppColors.surface,
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.md,
@@ -47,7 +47,7 @@ class SplitPicker extends StatelessWidget {
                         : Icons.radio_button_unchecked,
                     size: 20,
                     color: split == selected
-                        ? AppColors.flame
+                        ? AppColors.primary
                         : AppColors.textTertiary,
                   ),
                   const SizedBox(width: AppSpacing.md),
@@ -63,7 +63,7 @@ class SplitPicker extends StatelessWidget {
                                 style: Theme.of(context).textTheme.titleMedium),
                             if (split == recommended)
                               Pill(l10n.splitRecommended,
-                                  color: AppColors.lime),
+                                  color: AppColors.success),
                           ],
                         ),
                         const SizedBox(height: 2),
@@ -191,7 +191,7 @@ class _SessionCard extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .labelSmall
-                      ?.copyWith(color: AppColors.flame),
+                      ?.copyWith(color: AppColors.primary),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm + 2),
@@ -561,7 +561,7 @@ Future<Exercise?> showExercisePicker(
                   enabled: !exclude.contains(e.id),
                   title: Text(l10n.exerciseName(e.id)),
                   trailing: exclude.contains(e.id)
-                      ? const Icon(Icons.check, color: AppColors.lime)
+                      ? const Icon(Icons.check, color: AppColors.success)
                       : const Icon(Icons.add),
                   onTap: () => Navigator.of(context).pop(e),
                 ),

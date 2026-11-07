@@ -54,7 +54,7 @@ class TrainingStep extends ConsumerWidget {
                   )
                 : l10n.obTrainingNoPlanHint,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.flameSoft,
+              color: AppColors.primarySoft,
               fontSize: 13,
             ),
           ),
@@ -139,9 +139,9 @@ class _OptionList<T> extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child: AppCard(
               onTap: () => onChanged(option.value),
-              border: value == option.value ? AppColors.flame : null,
+              border: value == option.value ? AppColors.primary : null,
               color: value == option.value
-                  ? AppColors.flame.withValues(alpha: 0.08)
+                  ? AppColors.primary.withValues(alpha: 0.08)
                   : AppColors.surface,
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.md,
@@ -197,16 +197,16 @@ class _Choice extends StatelessWidget {
     return AppCard(
       onTap: onTap,
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 4),
-      border: selected ? AppColors.flame : null,
+      border: selected ? AppColors.primary : null,
       color: selected
-          ? AppColors.flame.withValues(alpha: 0.08)
+          ? AppColors.primary.withValues(alpha: 0.08)
           : AppColors.surface,
       child: Column(
         children: <Widget>[
           Text(
             label,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: selected ? AppColors.flame : AppColors.textPrimary,
+              color: selected ? AppColors.primary : AppColors.textPrimary,
             ),
           ),
           Text(

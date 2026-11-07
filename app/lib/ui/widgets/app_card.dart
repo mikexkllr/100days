@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../theme/theme.dart';
 
-/// The one container style the whole app uses: lit from the top left, with
-/// an optional coloured glow for the things that should feel alive.
+/// The one container the whole app uses: a pane of glass over the aurora,
+/// with a bright rim where the light hits it and an optional neon glow.
 class AppCard extends StatelessWidget {
   const AppCard({
     super.key,
@@ -18,26 +18,53 @@ class AppCard extends StatelessWidget {
 
   final Widget child;
   final EdgeInsetsGeometry padding;
+
+  /// Tints the glass.
   final Color? color;
+
+  /// Colours the rim instead of the neutral white edge.
   final Color? border;
   final VoidCallback? onTap;
+
+  /// Replaces the glass fill.
   final Gradient? gradient;
   final Color? glow;
 
   @override
   Widget build(BuildContext context) {
-    final Widget content = Container(
-      padding: padding,
+    final Color? rim = border;
+    final Widget content = DecoratedBox(
       decoration: BoxDecoration(
-        color: gradient == null ? color : null,
-        gradient: gradient ?? (color == null ? AppGradients.card() : null),
         borderRadius: AppRadius.cardAll,
-        border: Border.all(color: border ?? AppColors.outline),
-        boxShadow: glow == null ? null : AppShadows.glow(glow!, strength: 0.7),
+        // The rim is a gradient, drawn as the outer box under the fill.
+        gradient: AppGradients.edge(rim ?? Colors.white),
+        boxShadow:
+            glow == null ? null : AppShadows.glow(glow!, strength: 0.75),
       ),
-      // List tiles, switches and chips inside a card paint their ink on the
-      // nearest Material; without one here the card's own fill would hide it.
-      child: Material(type: MaterialType.transparency, child: child),
+      child: Padding(
+        padding: const EdgeInsets.all(1.2),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(25)),
+            // A glowing card sits on a darker base, so its own halo does
+            // not soak through the glass.
+            color: AppColors.ink.withValues(alpha: glow == null ? 0.55 : 0.88),
+          ),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(25)),
+              gradient: gradient ?? AppGradients.card(color ?? Colors.white),
+            ),
+            // List tiles, switches and chips inside a card paint their ink
+            // on the nearest Material; without one here the fill would hide
+            // it.
+            child: Padding(
+              padding: padding,
+              child: Material(type: MaterialType.transparency, child: child),
+            ),
+          ),
+        ),
+      ),
     );
 
     if (onTap == null) return content;
@@ -52,6 +79,7 @@ class AppCard extends StatelessWidget {
   }
 }
 
+/// A section title with a short neon bar in front of it.
 class SectionHeader extends StatelessWidget {
   const SectionHeader(this.title, {super.key, this.action, this.subtitle});
 
@@ -62,10 +90,24 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm, top: AppSpacing.lg),
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm + 2, top: AppSpacing.lg),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
+          Container(
+            width: 4,
+            height: subtitle == null ? 20 : 38,
+            margin: const EdgeInsets.only(right: AppSpacing.sm + 2),
+            decoration: BoxDecoration(
+              borderRadius: AppRadius.pill,
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: <Color>[AppColors.hot, AppColors.primary, AppColors.social],
+              ),
+              boxShadow: AppShadows.glow(AppColors.primary, strength: 0.6),
+            ),
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,7 +121,7 @@ class SectionHeader extends StatelessWidget {
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium
-                          ?.copyWith(color: AppColors.textSecondary),
+                          ?.copyWith(color: AppColors.textSecondary, fontSize: 13.5),
                     ),
                   ),
               ],
@@ -92,6 +134,7 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
+/// A face in a ring of light.
 class EmojiAvatar extends StatelessWidget {
   const EmojiAvatar(
     this.emoji, {
@@ -111,18 +154,33 @@ class EmojiAvatar extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      alignment: Alignment.center,
+      padding: const EdgeInsets.all(2),
       decoration: BoxDecoration(
-        color: AppColors.surfaceHigh,
         shape: BoxShape.circle,
-        border: Border.all(
-          color: ringColor ?? AppColors.outline,
-          width: ringColor == null ? 1 : 2,
-        ),
+        gradient: ringColor == null
+            ? AppGradients.edge()
+            : SweepGradient(
+                colors: <Color>[
+                  ringColor!,
+                  AppColors.social,
+                  AppColors.hot,
+                  ringColor!,
+                ],
+              ),
+        boxShadow: ringColor == null
+            ? null
+            : AppShadows.glow(ringColor!, strength: 0.5),
       ),
-      child: Opacity(
-        opacity: dimmed ? 0.45 : 1,
-        child: Text(emoji, style: TextStyle(fontSize: size * 0.45)),
+      child: Container(
+        alignment: Alignment.center,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.surface,
+        ),
+        child: Opacity(
+          opacity: dimmed ? 0.45 : 1,
+          child: Text(emoji, style: TextStyle(fontSize: size * 0.44)),
+        ),
       ),
     );
   }
@@ -148,9 +206,9 @@ class Pill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: filled ? color.withValues(alpha: 0.16) : Colors.transparent,
+        color: filled ? color.withValues(alpha: 0.18) : AppColors.glass,
         borderRadius: AppRadius.pill,
-        border: Border.all(color: color.withValues(alpha: filled ? 0.4 : 0.55)),
+        border: Border.all(color: color.withValues(alpha: filled ? 0.55 : 0.4)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -203,15 +261,12 @@ class StatTile extends StatelessWidget {
                 value,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineMedium
-                    ?.copyWith(color: color, fontSize: 23),
+                style: displayStyle(21, color: color),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 3),
         Text(
           label,
           style: Theme.of(context)
@@ -247,7 +302,21 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Text(emoji, style: const TextStyle(fontSize: 52)),
+            Container(
+              width: 92,
+              height: 92,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: <Color>[
+                    AppColors.primary.withValues(alpha: 0.35),
+                    AppColors.primary.withValues(alpha: 0),
+                  ],
+                ),
+              ),
+              child: Text(emoji, style: const TextStyle(fontSize: 48)),
+            ),
             const SizedBox(height: AppSpacing.md),
             Text(
               title,
@@ -270,6 +339,63 @@ class EmptyState extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// A tab bar as a segmented control: a glass track with a neon pill that
+/// slides to the selected tab.
+class GlassTabBar extends StatelessWidget implements PreferredSizeWidget {
+  const GlassTabBar({super.key, required this.tabs, this.isScrollable = false});
+
+  final List<Widget> tabs;
+  final bool isScrollable;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(56);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
+      child: Container(
+        height: 46,
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.pill,
+          color: AppColors.glass,
+          border: Border.all(color: AppColors.glassEdge),
+        ),
+        child: TabBar(
+          isScrollable: isScrollable,
+          tabAlignment: isScrollable ? TabAlignment.start : TabAlignment.fill,
+          labelPadding: const EdgeInsets.symmetric(horizontal: 14),
+          tabs: tabs,
+        ),
+      ),
+    );
+  }
+}
+
+/// A streak as a number with a small flame, in the app's own colours.
+class StreakCount extends StatelessWidget {
+  const StreakCount(this.streak, {super.key, this.size = 15});
+
+  final int streak;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Text('$streak',
+            style: displayStyle(size,
+                color: AppColors.attention, weight: FontWeight.w700)),
+        const SizedBox(width: 2),
+        Icon(Icons.local_fire_department,
+            size: size + 3, color: AppColors.attention),
+      ],
     );
   }
 }

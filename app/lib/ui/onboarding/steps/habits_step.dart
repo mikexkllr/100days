@@ -121,9 +121,9 @@ class _HabitRow extends StatelessWidget {
     final AppLocalizations l10n = context.l10n;
     return AppCard(
       onTap: onToggle,
-      border: selected ? AppColors.lime.withValues(alpha: 0.7) : null,
+      border: selected ? AppColors.success.withValues(alpha: 0.7) : null,
       color:
-          selected ? AppColors.lime.withValues(alpha: 0.06) : AppColors.surface,
+          selected ? AppColors.success.withValues(alpha: 0.06) : AppColors.surface,
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm + 4,
@@ -149,7 +149,7 @@ class _HabitRow extends StatelessWidget {
                         if (suggested && !selected) ...<Widget>[
                           const SizedBox(width: AppSpacing.sm),
                           Pill(l10n.obHabitRecommended,
-                              color: AppColors.flame),
+                              color: AppColors.primary),
                         ],
                       ],
                     ),
@@ -167,7 +167,7 @@ class _HabitRow extends StatelessWidget {
               Checkbox(
                 value: selected,
                 onChanged: (bool? _) => onToggle(),
-                activeColor: AppColors.lime,
+                activeColor: AppColors.success,
                 checkColor: AppColors.ink,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
@@ -181,7 +181,7 @@ class _HabitRow extends StatelessWidget {
               key: Key('plan-${definition.category.name}'),
               contentPadding: EdgeInsets.zero,
               value: planOption!.value,
-              activeThumbColor: AppColors.lime,
+              activeThumbColor: AppColors.success,
               onChanged: planOption!.onChanged,
               title: Wrap(
                 spacing: AppSpacing.sm,
@@ -192,7 +192,7 @@ class _HabitRow extends StatelessWidget {
                   Pill(
                     l10n.obPlanBonus(
                         ((kTrackedMultiplier - 1) * 100).round()),
-                    color: AppColors.lime,
+                    color: AppColors.success,
                   ),
                 ],
               ),
@@ -222,7 +222,7 @@ class _HabitRow extends StatelessWidget {
                     min: _min,
                     max: _max,
                     divisions: ((_max - _min) / _stepSize).round(),
-                    activeColor: AppColors.lime,
+                    activeColor: AppColors.success,
                     onChanged: (double value) => onTarget(value.round()),
                   ),
                 ),

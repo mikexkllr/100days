@@ -2670,6 +2670,12 @@ abstract class AppLocalizations {
   /// **'Not scheduled today — still counts as XP.'**
   String get homeOptionalSubtitle;
 
+  /// No description provided for @homeQuestsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s quests'**
+  String get homeQuestsTitle;
+
   /// No description provided for @homeRelapseBody.
   ///
   /// In en, this message translates to:
@@ -5787,6 +5793,12 @@ abstract class AppLocalizations {
   /// **'{days, plural, =0{No streak} =1{From 1 day} other{From {days} days}}'**
   String stageFrom(int days);
 
+  /// No description provided for @stageGalaxy.
+  ///
+  /// In en, this message translates to:
+  /// **'Galaxy'**
+  String get stageGalaxy;
+
   /// No description provided for @stageInferno.
   ///
   /// In en, this message translates to:
@@ -5816,12 +5828,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Spark'**
   String get stageSpark;
-
-  /// No description provided for @stageSun.
-  ///
-  /// In en, this message translates to:
-  /// **'Sun'**
-  String get stageSun;
 
   /// No description provided for @statDay.
   ///
@@ -6044,6 +6050,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done · {target}'**
   String tileDoneWith(String target);
+
+  /// No description provided for @tileHoldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold'**
+  String get tileHoldHint;
 
   /// No description provided for @tileLogAmount.
   ///

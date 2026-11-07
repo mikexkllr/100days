@@ -38,9 +38,9 @@ class BodyForm extends StatelessWidget {
                     onTap: () => onChanged(value.copyWith(sex: sex)),
                     padding:
                         const EdgeInsets.symmetric(vertical: AppSpacing.sm + 4),
-                    border: value.sex == sex ? AppColors.flame : null,
+                    border: value.sex == sex ? AppColors.primary : null,
                     color: value.sex == sex
-                        ? AppColors.flame.withValues(alpha: 0.08)
+                        ? AppColors.primary.withValues(alpha: 0.08)
                         : AppColors.surface,
                     child: Center(
                       child: Text(
@@ -64,7 +64,7 @@ class BodyForm extends StatelessWidget {
             min: 14,
             max: 80,
             divisions: 66,
-            activeColor: AppColors.flame,
+            activeColor: AppColors.primary,
             onChanged: (double v) =>
                 onChanged(value.copyWith(ageYears: v.round())),
           ),
@@ -77,7 +77,7 @@ class BodyForm extends StatelessWidget {
             min: 140,
             max: 215,
             divisions: 75,
-            activeColor: AppColors.flame,
+            activeColor: AppColors.primary,
             onChanged: (double v) => onChanged(value.copyWith(heightCm: v)),
           ),
         ),
@@ -89,7 +89,7 @@ class BodyForm extends StatelessWidget {
             min: 40,
             max: 180,
             divisions: 140,
-            activeColor: AppColors.flame,
+            activeColor: AppColors.primary,
             onChanged: (double v) =>
                 onChanged(value.copyWith(weightKg: v.roundToDouble())),
           ),
@@ -106,7 +106,7 @@ class BodyForm extends StatelessWidget {
               ChoiceChip(
                 label: Text(l10n.activityLevelTitle(level)),
                 selected: value.activityLevel == level,
-                selectedColor: AppColors.flame.withValues(alpha: 0.2),
+                selectedColor: AppColors.primary.withValues(alpha: 0.2),
                 onSelected: (_) =>
                     onChanged(value.copyWith(activityLevel: level)),
               ),
@@ -212,7 +212,7 @@ class NutritionGoalsForm extends StatelessWidget {
           key: const Key('custom-kcal-switch'),
           contentPadding: EdgeInsets.zero,
           value: custom,
-          activeThumbColor: AppColors.flame,
+          activeThumbColor: AppColors.primary,
           title: Text(l10n.goalsOwnTarget),
           subtitle: Text(l10n.goalsOwnTargetSub),
           onChanged: (bool on) => onChanged(on
@@ -265,7 +265,7 @@ class NutritionGoalsForm extends StatelessWidget {
               ChoiceChip(
                 label: Text(l10n.macroPresetName(preset)),
                 selected: value.preset == preset,
-                selectedColor: AppColors.flame.withValues(alpha: 0.2),
+                selectedColor: AppColors.primary.withValues(alpha: 0.2),
                 onSelected: (_) => onChanged(value.copyWith(
                   preset: preset,
                   proteinPercent: percent.protein,
@@ -316,14 +316,14 @@ class NutritionGoalsForm extends StatelessWidget {
                 child: StatTile(
                   value: '${plan.kcal}',
                   label: l10n.planKcal,
-                  color: AppColors.flame,
+                  color: AppColors.primary,
                 ),
               ),
               Expanded(
                 child: StatTile(
                   value: '${plan.proteinG} g',
                   label: l10n.planProtein,
-                  color: AppColors.lime,
+                  color: AppColors.success,
                 ),
               ),
               Expanded(
@@ -363,7 +363,7 @@ class _PercentSlider extends StatelessWidget {
             min: 5,
             max: 70,
             divisions: 65,
-            activeColor: AppColors.flame,
+            activeColor: AppColors.primary,
             onChanged: (double v) => onChanged(v.round()),
           ),
         ),

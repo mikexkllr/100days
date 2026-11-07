@@ -35,11 +35,11 @@ class LeagueTab extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: <Color>[
-              AppColors.violet.withValues(alpha: 0.2),
+              AppColors.social.withValues(alpha: 0.2),
               AppColors.surface,
             ],
           ),
-          border: AppColors.violet.withValues(alpha: 0.4),
+          border: AppColors.social.withValues(alpha: 0.4),
           child: Row(
             children: <Widget>[
               Text(standing.league.emoji, style: const TextStyle(fontSize: 34)),
@@ -91,6 +91,13 @@ class LeagueTab extends StatelessWidget {
             ),
           ),
         ],
+        if (standing.entries.length >= 2) ...<Widget>[
+          const SizedBox(height: AppSpacing.lg),
+          _Podium(
+            entries: standing.entries.take(3).toList(),
+            meDid: snapshot.me.did,
+          ),
+        ],
         SectionHeader(l10n.leagueThisWeek),
         for (int i = 0; i < standing.entries.length; i++)
           Padding(
@@ -135,7 +142,7 @@ class _LeagueRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
     final Color? zone = promoting
-        ? AppColors.lime
+        ? AppColors.success
         : demoting
             ? AppColors.danger
             : null;
@@ -145,8 +152,9 @@ class _LeagueRow extends StatelessWidget {
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm + 4,
       ),
-      border: isMe ? AppColors.flame : zone?.withValues(alpha: 0.35),
-      color: isMe ? AppColors.flame.withValues(alpha: 0.07) : AppColors.surface,
+      border: isMe ? AppColors.primary : zone?.withValues(alpha: 0.35),
+      color: isMe ? AppColors.primary : null,
+      glow: isMe ? AppColors.primary.withValues(alpha: 0.5) : null,
       child: Row(
         children: <Widget>[
           SizedBox(
@@ -161,7 +169,7 @@ class _LeagueRow extends StatelessWidget {
           EmojiAvatar(
             entry.avatarEmoji,
             size: 38,
-            ringColor: entry.activeToday ? AppColors.lime : null,
+            ringColor: entry.activeToday ? AppColors.success : null,
             dimmed: !entry.activeToday,
           ),
           const SizedBox(width: AppSpacing.sm + 4),
@@ -182,12 +190,13 @@ class _LeagueRow extends StatelessWidget {
                     ),
                     if (entry.currentStreak > 0) ...<Widget>[
                       const SizedBox(width: AppSpacing.sm),
+                      const Icon(Icons.local_fire_department,
+                          size: 14, color: AppColors.attention),
                       Text(
-                        l10n.tileStreakBadge(entry.currentStreak),
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(fontSize: 12.5),
+                        '${entry.currentStreak}',
+                        style: displayStyle(11.5,
+                            color: AppColors.attention,
+                            weight: FontWeight.w700),
                       ),
                     ],
                   ],
@@ -198,7 +207,7 @@ class _LeagueRow extends StatelessWidget {
                       : l10n.leagueNothingToday,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: entry.activeToday
-                            ? AppColors.lime
+                            ? AppColors.success
                             : AppColors.textTertiary,
                         fontSize: 12,
                       ),
@@ -210,7 +219,7 @@ class _LeagueRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: <Widget>[
               Text('${entry.weeklyXp}',
-                  style: Theme.of(context).textTheme.titleLarge),
+                  style: displayStyle(17, color: AppColors.reward)),
               Text(
                 l10n.statXp,
                 style: Theme.of(context)
@@ -219,6 +228,116 @@ class _LeagueRow extends StatelessWidget {
                     ?.copyWith(color: AppColors.textTertiary),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The top three on pedestals: gold-free, but unmistakably first.
+class _Podium extends StatelessWidget {
+  const _Podium({required this.entries, required this.meDid});
+
+  final List<LeagueEntry> entries;
+  final String meDid;
+
+  @override
+  Widget build(BuildContext context) {
+    // Second on the left, first in the middle, third on the right.
+    final List<int> order = entries.length >= 3
+        ? <int>[1, 0, 2]
+        : <int>[1, 0];
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: <Widget>[
+        for (final int i in order)
+          Expanded(
+            child: _Pedestal(
+              rank: i + 1,
+              entry: entries[i],
+              isMe: entries[i].did == meDid,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _Pedestal extends StatelessWidget {
+  const _Pedestal({required this.rank, required this.entry, required this.isMe});
+
+  final int rank;
+  final LeagueEntry entry;
+  final bool isMe;
+
+  @override
+  Widget build(BuildContext context) {
+    final Gradient gradient = switch (rank) {
+      1 => AppGradients.holo,
+      2 => AppGradients.cool,
+      _ => AppGradients.plasma,
+    };
+    final Color glow = switch (rank) {
+      1 => AppColors.primary,
+      2 => AppColors.cool,
+      _ => AppColors.hot,
+    };
+    final double height = switch (rank) { 1 => 112, 2 => 84, _ => 64 };
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          if (rank == 1)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 4),
+              child: Text('👑', style: TextStyle(fontSize: 22)),
+            ),
+          EmojiAvatar(
+            entry.avatarEmoji,
+            size: rank == 1 ? 62 : 50,
+            ringColor: glow,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            entry.displayName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontSize: 13.5,
+                  color: isMe ? AppColors.primarySoft : AppColors.textPrimary,
+                ),
+          ),
+          Text(
+            '${entry.weeklyXp} XP',
+            style: displayStyle(11.5,
+                color: AppColors.reward, weight: FontWeight.w700),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            height: height,
+            alignment: Alignment.topCenter,
+            padding: const EdgeInsets.only(top: 10),
+            decoration: BoxDecoration(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(18)),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: <Color>[
+                  glow.withValues(alpha: 0.45),
+                  glow.withValues(alpha: 0.04),
+                ],
+              ),
+              border: Border.all(color: glow.withValues(alpha: 0.5)),
+              boxShadow: AppShadows.glow(glow, strength: rank == 1 ? 0.8 : 0.4),
+            ),
+            child: ShaderMask(
+              blendMode: BlendMode.srcIn,
+              shaderCallback: (Rect bounds) => gradient.createShader(bounds),
+              child: Text('$rank', style: displayStyle(rank == 1 ? 34 : 26)),
+            ),
           ),
         ],
       ),

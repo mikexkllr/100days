@@ -26,11 +26,7 @@ class SocialScreen extends ConsumerWidget {
         length: 3,
         child: Column(
           children: <Widget>[
-            TabBar(
-              labelColor: AppColors.flame,
-              unselectedLabelColor: AppColors.textSecondary,
-              indicatorColor: AppColors.flame,
-              dividerColor: AppColors.outline,
+            GlassTabBar(
               tabs: <Widget>[
                 Tab(text: context.l10n.socialTabFeed),
                 Tab(text: context.l10n.socialTabLeague),
@@ -71,7 +67,7 @@ class _FeedTab extends ConsumerWidget {
     }
 
     return RefreshIndicator(
-      color: AppColors.flame,
+      color: AppColors.primary,
       backgroundColor: AppColors.surface,
       onRefresh: () => ref.read(appStateProvider.notifier).syncNow(),
       child: ListView.builder(
@@ -180,7 +176,7 @@ class _ActivityRow extends ConsumerWidget {
                     if (item.isVerifiedLive)
                       Pill(
                         l10n.feedVerified,
-                        color: AppColors.lime,
+                        color: AppColors.success,
                         icon: Icons.verified_outlined,
                       )
                     else
@@ -210,11 +206,11 @@ class _ActivityRow extends ConsumerWidget {
         return AppColors.danger;
       case ActivityKind.milestone:
       case ActivityKind.ascend:
-        return AppColors.lime;
+        return AppColors.success;
       case ActivityKind.nudge:
-        return AppColors.violet;
+        return AppColors.social;
       case ActivityKind.cheer:
-        return AppColors.flame;
+        return AppColors.primary;
       case ActivityKind.checkIn:
       case ActivityKind.start:
       case ActivityKind.workout:
@@ -244,7 +240,7 @@ class _CheerButton extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
         minimumSize: Size.zero,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        disabledForegroundColor: AppColors.flame,
+        disabledForegroundColor: AppColors.primary,
       ),
       icon: Icon(
         alreadyCheered

@@ -117,7 +117,7 @@ class ModelSetupCard extends ConsumerWidget {
             key: const Key('ai-installed'),
             spec: installed,
             badge: l10n.aiInstalled,
-            badgeColor: AppColors.lime,
+            badgeColor: AppColors.success,
             trailing: TextButton(
               style: TextButton.styleFrom(foregroundColor: AppColors.danger),
               onPressed: () async {
@@ -134,7 +134,7 @@ class ModelSetupCard extends ConsumerWidget {
             badge: shown.id == recommended?.id
                 ? l10n.aiRecommended
                 : l10n.aiFits,
-            badgeColor: AppColors.flame,
+            badgeColor: AppColors.primary,
             footer: _DownloadControls(spec: shown, state: download),
           ),
         if (device.supportsLocalAi) ...<Widget>[
@@ -196,7 +196,7 @@ class _DownloadControls extends ConsumerWidget {
             LinearProgressIndicator(
               value: state.fraction,
               backgroundColor: AppColors.surfaceHigh,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.flame),
+              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
             ),
             const SizedBox(height: AppSpacing.xs),
             Row(
@@ -375,17 +375,17 @@ class AiScreen extends ConsumerWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: <Color>[
-                AppColors.violet.withValues(alpha: 0.18),
+                AppColors.social.withValues(alpha: 0.18),
                 AppColors.surface,
               ],
             ),
-            border: AppColors.violet.withValues(alpha: 0.4),
+            border: AppColors.social.withValues(alpha: 0.4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Row(
                   children: <Widget>[
-                    const Icon(Icons.memory, color: AppColors.violet),
+                    const Icon(Icons.memory, color: AppColors.social),
                     const SizedBox(width: AppSpacing.sm + 2),
                     Expanded(
                       child: Text(
@@ -434,7 +434,7 @@ class AiScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Pill(l10n.aiNoNetworkBadge,
-                    color: AppColors.lime, filled: true),
+                    color: AppColors.success, filled: true),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   l10n.aiNoAutoDownload,

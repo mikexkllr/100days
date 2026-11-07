@@ -167,7 +167,7 @@ class _DayCompleteCelebrationState extends State<DayCompleteCelebration>
     final DayReward reward = widget.reward;
     final bool jackpot = reward.isJackpot;
     final bool done = _landed[2];
-    final Color accent = jackpot ? AppColors.gold : AppColors.flame;
+    final Color accent = jackpot ? AppColors.attention : AppColors.primary;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -218,15 +218,11 @@ class _DayCompleteCelebrationState extends State<DayCompleteCelebration>
                 origin: const Alignment(0, -0.05),
                 count: 90,
                 kinds: const <ParticleKind>[
-                  ParticleKind.coin,
+                  ParticleKind.gem,
                   ParticleKind.star,
                   ParticleKind.confetti,
                 ],
-                colors: const <Color>[
-                  AppColors.gold,
-                  AppColors.spark,
-                  AppColors.amber,
-                ],
+                colors: kHoloParticles,
                 power: 1.5,
                 gravity: 1100,
               ),
@@ -291,7 +287,7 @@ class _DayCompleteCelebrationState extends State<DayCompleteCelebration>
                       ),
                       const SizedBox(height: AppSpacing.lg),
                       if (done) ...<Widget>[
-                        JuicyButton.gold(
+                        JuicyButton.holo(
                           key: const Key('celebration-continue'),
                           label: l10n.celebrateContinue,
                           icon: Icons.local_fire_department,
@@ -358,9 +354,9 @@ class _Title extends StatelessWidget {
           angle: (1 - popCurve(t)) * -0.08,
           child: GlowText(
             text,
-            style: displayStyle(gold ? 46 : 40),
-            gradient: gold ? AppGradients.gold : AppGradients.fireText,
-            glow: gold ? AppColors.gold : AppColors.flame,
+            style: displayStyle(gold ? 40 : 34),
+            gradient: gold ? AppGradients.holo : AppGradients.streakText,
+            glow: gold ? AppColors.reward : AppColors.primary,
           ),
         ),
       ),
@@ -408,29 +404,29 @@ class _SunburstPainter extends CustomPainter {
     final Offset center = Offset(size.width / 2, size.height * 0.32);
     final double radius = size.longestSide;
     const int rays = 16;
-    final Paint paint = Paint()
-      ..shader = RadialGradient(
-        colors: <Color>[
-          color.withValues(alpha: strength),
-          color.withValues(alpha: 0),
-        ],
-      ).createShader(Rect.fromCircle(center: center, radius: radius * 0.8));
+    // A win throws rays of every colour; an ordinary day, its own.
+    final List<Color> colors = strength > 0.2
+        ? const <Color>[Color(0xFFA78BFA), Color(0xFF67E8F9), Color(0xFFF9A8D4)]
+        : <Color>[color];
     for (int i = 0; i < rays; i++) {
+      final Color c = colors[i % colors.length];
       final double a = seconds * 0.25 + i * math.pi * 2 / rays;
       const double half = math.pi / rays * 0.45;
       canvas.drawPath(
         Path()
           ..moveTo(center.dx, center.dy)
-          ..lineTo(
-            center.dx + math.cos(a - half) * radius,
-            center.dy + math.sin(a - half) * radius,
-          )
-          ..lineTo(
-            center.dx + math.cos(a + half) * radius,
-            center.dy + math.sin(a + half) * radius,
-          )
+          ..lineTo(center.dx + math.cos(a - half) * radius,
+              center.dy + math.sin(a - half) * radius)
+          ..lineTo(center.dx + math.cos(a + half) * radius,
+              center.dy + math.sin(a + half) * radius)
           ..close(),
-        paint,
+        Paint()
+          ..shader = RadialGradient(
+            colors: <Color>[
+              c.withValues(alpha: strength),
+              c.withValues(alpha: 0),
+            ],
+          ).createShader(Rect.fromCircle(center: center, radius: radius * 0.8)),
       );
     }
   }
@@ -473,10 +469,10 @@ class _SlotMachine extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
-        gradient: AppGradients.gold,
+        gradient: AppGradients.holo,
         borderRadius: BorderRadius.circular(30),
         boxShadow: AppShadows.glow(
-          jackpot && landed[2] ? AppColors.gold : AppColors.flame,
+          jackpot && landed[2] ? AppColors.reward : AppColors.primary,
           strength: jackpot && landed[2] ? 1.4 : 0.8,
         ),
       ),
@@ -513,8 +509,8 @@ class _SlotMachine extends StatelessWidget {
                         result: GlowText(
                           '${reward.streak}',
                           style: displayStyle(38),
-                          gradient: AppGradients.fireText,
-                          glow: AppColors.flame,
+                          gradient: AppGradients.streakText,
+                          glow: AppColors.primary,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -529,8 +525,8 @@ class _SlotMachine extends StatelessWidget {
                         result: GlowText(
                           '+${reward.xpToday}',
                           style: displayStyle(32),
-                          gradient: AppGradients.gold,
-                          glow: AppColors.gold,
+                          gradient: AppGradients.holo,
+                          glow: AppColors.reward,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -595,7 +591,7 @@ class _BonusFace extends StatelessWidget {
             context.l10n.rewardBonusLabel(top),
             style: displayStyle(
               12,
-              color: reward.isJackpot ? AppColors.gold : AppColors.lime,
+              color: reward.isJackpot ? AppColors.reward : AppColors.success,
             ),
           ),
         ),
@@ -673,13 +669,13 @@ class _Reel extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: <Color>[
-              Color(0xFF1B1428),
-              Color(0xFF2B2140),
-              Color(0xFF1B1428),
+              Color(0xFF110C2B),
+              Color(0xFF221A4D),
+              Color(0xFF110C2B),
             ],
           ),
           border: Border.all(
-            color: landed && highlight ? AppColors.gold : AppColors.outline,
+            color: landed && highlight ? AppColors.reward : AppColors.outline,
             width: landed && highlight ? 2 : 1,
           ),
         ),
@@ -778,10 +774,10 @@ class _Bulbs extends StatelessWidget {
                   shape: BoxShape.circle,
                   color:
                       (i + step + offset) % 3 == 0 || !ambientMotionOf(context)
-                      ? (jackpot && lit ? AppColors.gold : AppColors.spark)
+                      ? (jackpot && lit ? AppColors.reward : AppColors.glow)
                       : AppColors.outline,
                   boxShadow: (i + step + offset) % 3 == 0
-                      ? AppShadows.glow(AppColors.gold, strength: 0.9)
+                      ? AppShadows.glow(AppColors.reward, strength: 0.9)
                       : null,
                 ),
               ),
@@ -864,7 +860,7 @@ class _HighlightChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color color = gold ? AppColors.gold : AppColors.lime;
+    final Color color = gold ? AppColors.reward : AppColors.success;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -934,12 +930,12 @@ class _NextUp extends StatelessWidget {
       if (milestone != null)
         _row(
           context,
-          const Icon(Icons.flag, size: 20, color: AppColors.flameSoft),
+          const Icon(Icons.flag, size: 20, color: AppColors.primarySoft),
           l10n.celebrateNextMilestone(milestone, milestone - reward.dayNumber),
         ),
       _row(
         context,
-        const Icon(Icons.star, size: 20, color: AppColors.gold),
+        const Icon(Icons.star, size: 20, color: AppColors.reward),
         l10n.celebrateNextLevel(nextLevel, math.max(1, toLevel)),
       ),
     ];

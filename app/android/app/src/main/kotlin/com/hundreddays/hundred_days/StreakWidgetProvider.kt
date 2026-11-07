@@ -119,13 +119,13 @@ class StreakWidgetProvider : HomeWidgetProvider() {
 
         val color = when {
             late -> DANGER
-            state == "done" -> LIME
-            state == "open" -> AMBER
-            state == "rest" || state == "frozen" -> ICE
+            state == "done" -> SUCCESS
+            state == "open" -> ATTENTION
+            state == "rest" || state == "frozen" -> COOL
             else -> COLD
         }
         views.setTextColor(R.id.status, color)
-        views.setTextColor(R.id.streak_number, if (state == "done") FLAME else color)
+        views.setTextColor(R.id.streak_number, if (state == "done") PLASMA else color)
         views.setInt(
             R.id.widget_root,
             "setBackgroundResource",
@@ -176,11 +176,11 @@ class StreakWidgetProvider : HomeWidgetProvider() {
             views.setTextViewText(WEEK_LETTERS[i], letters.getString(i))
             val mark = marks?.getString(i) ?: "upcoming"
             val (glyph, color) = when (mark) {
-                "done" -> "🔥" to FLAME
-                "frozen" -> "❄️" to ICE
+                "done" -> "\u25C6" to PLASMA
+                "frozen" -> "\u2744" to COOL
                 "missed" -> "✕" to DANGER
                 "rest" -> "☾" to MUTED
-                "open" -> "◯" to AMBER
+                "open" -> "\u25C7" to ATTENTION
                 "none" -> " " to MUTED
                 else -> "·" to MUTED
             }
@@ -194,13 +194,13 @@ class StreakWidgetProvider : HomeWidgetProvider() {
         private const val MEDIUM_MIN_WIDTH_DP = 220
         private const val LATE_HOUR = 20
 
-        private const val FLAME = 0xFFFF8A2C.toInt()
-        private const val AMBER = 0xFFFFB830.toInt()
-        private const val LIME = 0xFFB8F14B.toInt()
-        private const val ICE = 0xFF5CC8FF.toInt()
-        private const val DANGER = 0xFFFF4D5E.toInt()
-        private const val COLD = 0xFFB3A8C7.toInt()
-        private const val MUTED = 0xFF6E6487.toInt()
+        private const val PLASMA = 0xFFC084FC.toInt()
+        private const val ATTENTION = 0xFFE879F9.toInt()
+        private const val SUCCESS = 0xFF34E0B5.toInt()
+        private const val COOL = 0xFF7DD3FC.toInt()
+        private const val DANGER = 0xFFFB7185.toInt()
+        private const val COLD = 0xFFB9B3DB.toInt()
+        private const val MUTED = 0xFF7A73A6.toInt()
 
         private val WEEK_LETTERS = intArrayOf(
             R.id.week_letter_0, R.id.week_letter_1, R.id.week_letter_2, R.id.week_letter_3,

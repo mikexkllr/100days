@@ -81,7 +81,7 @@ class SettingsScreen extends ConsumerWidget {
           SectionHeader(l10n.setIdentitySection),
           _Row(
             icon: Icons.key,
-            iconColor: AppColors.violet,
+            iconColor: AppColors.social,
             title: l10n.setRecoveryKey,
             subtitle: l10n.setRecoveryKeySub,
             onTap: () => Navigator.of(context).push<void>(
@@ -92,7 +92,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           _Row(
             icon: Icons.lock_outline,
-            iconColor: AppColors.lime,
+            iconColor: AppColors.success,
             title: l10n.setPrivacy,
             subtitle: l10n.setPrivacySub,
             onTap: () => Navigator.of(context).push<void>(
@@ -119,7 +119,7 @@ class SettingsScreen extends ConsumerWidget {
           SectionHeader(l10n.setNetworkSection),
           _Row(
             icon: Icons.wifi_tethering,
-            iconColor: AppColors.lime,
+            iconColor: AppColors.success,
             title: l10n.setLan,
             subtitle: ref.watch(lanTransportProvider)?.isRunning ?? false
                 ? l10n.setLanOn
@@ -143,7 +143,7 @@ class SettingsScreen extends ConsumerWidget {
           SectionHeader(l10n.setCoachSection),
           _Row(
             icon: Icons.memory,
-            iconColor: AppColors.flame,
+            iconColor: AppColors.primary,
             title: l10n.setOnDeviceAi,
             subtitle: coach.maybeWhen(
               data: (CoachEngine engine) => engine.modelName == null
@@ -288,7 +288,7 @@ class _LanguageRow extends ConsumerWidget {
                 ChoiceChip(
                   label: Text(l10n.setLanguageSystem),
                   selected: selected == null,
-                  selectedColor: AppColors.flame.withValues(alpha: 0.2),
+                  selectedColor: AppColors.primary.withValues(alpha: 0.2),
                   onSelected: (_) =>
                       ref.read(localeProvider.notifier).set(null),
                 ),
@@ -296,7 +296,7 @@ class _LanguageRow extends ConsumerWidget {
                   ChoiceChip(
                     label: Text(_languageName(l10n, locale)),
                     selected: selected?.languageCode == locale.languageCode,
-                    selectedColor: AppColors.flame.withValues(alpha: 0.2),
+                    selectedColor: AppColors.primary.withValues(alpha: 0.2),
                     onSelected: (_) =>
                         ref.read(localeProvider.notifier).set(locale),
                   ),

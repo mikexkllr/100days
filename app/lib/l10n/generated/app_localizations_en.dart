@@ -1654,6 +1654,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Not scheduled today — still counts as XP.';
 
   @override
+  String get homeQuestsTitle => 'Today\'s quests';
+
+  @override
   String get homeRelapseBody =>
       'This resets the streak and is visible to your friends. Being honest is the whole point — but only if it is true.';
 
@@ -3516,6 +3519,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get stageGalaxy => 'Galaxy';
+
+  @override
   String get stageInferno => 'Inferno';
 
   @override
@@ -3537,9 +3543,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stageSpark => 'Spark';
-
-  @override
-  String get stageSun => 'Sun';
 
   @override
   String get statDay => 'Day';
@@ -3677,6 +3680,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String tileDoneWith(String target) {
     return 'Done · $target';
   }
+
+  @override
+  String get tileHoldHint => 'Hold';
 
   @override
   String get tileLogAmount => 'Log';

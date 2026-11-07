@@ -55,7 +55,7 @@ class FriendDetailScreen extends ConsumerWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: <Color>[
-                    (peer.activeToday ? AppColors.lime : AppColors.violet)
+                    (peer.activeToday ? AppColors.success : AppColors.social)
                         .withValues(alpha: 0.16),
                     AppColors.surface,
                   ],
@@ -68,7 +68,7 @@ class FriendDetailScreen extends ConsumerWidget {
                           peer.profile.avatarEmoji,
                           size: 58,
                           ringColor:
-                              peer.activeToday ? AppColors.lime : null,
+                              peer.activeToday ? AppColors.success : null,
                         ),
                         const SizedBox(width: AppSpacing.md),
                         Expanded(
@@ -118,7 +118,7 @@ class FriendDetailScreen extends ConsumerWidget {
                           child: StatTile(
                             value: '${peer.currentStreak}',
                             label: l10n.statStreak,
-                            color: AppColors.flame,
+                            color: AppColors.primary,
                           ),
                         ),
                         Expanded(
@@ -137,7 +137,7 @@ class FriendDetailScreen extends ConsumerWidget {
                           child: StatTile(
                             value: '${peer.lifetimeXp}',
                             label: l10n.statXp,
-                            color: AppColors.lime,
+                            color: AppColors.success,
                           ),
                         ),
                       ],
@@ -161,7 +161,7 @@ class FriendDetailScreen extends ConsumerWidget {
                         ),
                         style: FilledButton.styleFrom(
                           minimumSize: const Size.fromHeight(48),
-                          backgroundColor: AppColors.violet,
+                          backgroundColor: AppColors.social,
                           foregroundColor: Colors.white,
                         ),
                         icon: const Icon(Icons.visibility_outlined, size: 18),

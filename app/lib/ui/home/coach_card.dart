@@ -80,16 +80,16 @@ class CoachCard extends ConsumerWidget {
       case CoachTone.urgent:
         return AppColors.danger;
       case CoachTone.socialPressure:
-        return AppColors.violet;
+        return AppColors.social;
       case CoachTone.celebrate:
-        return AppColors.lime;
+        return AppColors.success;
       case CoachTone.recover:
-        return AppColors.flameSoft;
+        return AppColors.primarySoft;
       case CoachTone.raiseTheBar:
-        return AppColors.lime;
+        return AppColors.success;
       case CoachTone.welcome:
       case CoachTone.steady:
-        return AppColors.flame;
+        return AppColors.primary;
     }
   }
 

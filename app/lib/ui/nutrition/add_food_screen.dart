@@ -92,9 +92,9 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
           bottom: TabBar(
             // Four short labels fit a phone; scrolling would hide the last.
             labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-            labelColor: AppColors.flame,
+            labelColor: AppColors.primary,
             unselectedLabelColor: AppColors.textSecondary,
-            indicatorColor: AppColors.flame,
+            indicatorColor: AppColors.primary,
             tabs: <Widget>[
               Tab(text: l10n.foodTabSearch),
               Tab(text: l10n.foodTabDescribe),

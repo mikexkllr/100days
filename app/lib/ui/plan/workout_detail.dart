@@ -64,7 +64,7 @@ class WorkoutDetailScreen extends StatelessWidget {
                   child: StatTile(
                     value: '${workout.totalSets}',
                     label: l10n.workoutWorkingSets,
-                    color: AppColors.flame,
+                    color: AppColors.primary,
                   ),
                 ),
                 Expanded(
@@ -150,7 +150,7 @@ class _ExerciseCard extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .labelSmall
-                      ?.copyWith(color: AppColors.flame),
+                      ?.copyWith(color: AppColors.primary),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm + 4),
@@ -181,7 +181,7 @@ class _ExerciseCard extends StatelessWidget {
                 child: StatTile(
                   value: '${block.sets}',
                   label: l10n.workoutSets,
-                  color: AppColors.flame,
+                  color: AppColors.primary,
                 ),
               ),
               Expanded(
@@ -207,7 +207,7 @@ class _ExerciseCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 const Icon(Icons.lightbulb_outline,
-                    size: 15, color: AppColors.lime),
+                    size: 15, color: AppColors.success),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(

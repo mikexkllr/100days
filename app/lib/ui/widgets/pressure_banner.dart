@@ -28,7 +28,7 @@ class PressureBanner extends StatelessWidget {
     final AppLocalizations l10n = context.l10n;
 
     final bool behind = !doneToday;
-    final Color accent = behind ? AppColors.violet : AppColors.lime;
+    final Color accent = behind ? AppColors.social : AppColors.success;
 
     return AppCard(
       onTap: onTap,

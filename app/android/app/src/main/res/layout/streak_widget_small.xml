@@ -30,7 +30,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-black"
             android:includeFontPadding="false"
-            android:textColor="#FF8A2C"
+            android:textColor="#C084FC"
             android:textSize="26sp" />
 
         <TextView
@@ -41,7 +41,7 @@
             android:fontFamily="sans-serif-medium"
             android:maxLines="1"
             android:textAllCaps="true"
-            android:textColor="#B3A8C7"
+            android:textColor="#B9B3DB"
             android:textSize="9sp" />
     </LinearLayout>
 
@@ -53,7 +53,7 @@
         android:fontFamily="sans-serif-black"
         android:gravity="center"
         android:maxLines="1"
-        android:textColor="#B3A8C7"
+        android:textColor="#B9B3DB"
         android:textSize="10sp" />
 
     <LinearLayout
@@ -68,7 +68,7 @@
             android:id="@+id/countdown_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#B3A8C7"
+            android:textColor="#B9B3DB"
             android:textSize="9sp" />
 
         <Chronometer
@@ -77,7 +77,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="3dp"
             android:fontFamily="sans-serif-black"
-            android:textColor="#FFB830"
+            android:textColor="#E879F9"
             android:textSize="10sp" />
     </LinearLayout>
 </LinearLayout>

@@ -116,16 +116,17 @@ struct StreakProvider: TimelineProvider {
 }
 
 private extension Color {
-    static let ink = Color(red: 12 / 255, green: 9 / 255, blue: 18 / 255)
-    static let flame = Color(red: 1, green: 138 / 255, blue: 44 / 255)
-    static let flameHot = Color(red: 1, green: 46 / 255, blue: 99 / 255)
-    static let amber = Color(red: 1, green: 184 / 255, blue: 48 / 255)
-    static let spark = Color(red: 1, green: 230 / 255, blue: 109 / 255)
-    static let lime = Color(red: 184 / 255, green: 241 / 255, blue: 75 / 255)
-    static let ice = Color(red: 92 / 255, green: 200 / 255, blue: 1)
-    static let danger = Color(red: 1, green: 77 / 255, blue: 94 / 255)
-    static let muted = Color(red: 179 / 255, green: 168 / 255, blue: 199 / 255)
-    static let quiet = Color(red: 110 / 255, green: 100 / 255, blue: 135 / 255)
+    static let ink = Color(red: 7 / 255, green: 5 / 255, blue: 26 / 255)
+    static let plasma = Color(red: 192 / 255, green: 132 / 255, blue: 252 / 255)
+    static let hot = Color(red: 244 / 255, green: 63 / 255, blue: 94 / 255)
+    static let attention = Color(red: 232 / 255, green: 121 / 255, blue: 249 / 255)
+    static let sky = Color(red: 191 / 255, green: 219 / 255, blue: 254 / 255)
+    static let violet = Color(red: 167 / 255, green: 139 / 255, blue: 250 / 255)
+    static let success = Color(red: 52 / 255, green: 224 / 255, blue: 181 / 255)
+    static let cool = Color(red: 125 / 255, green: 211 / 255, blue: 252 / 255)
+    static let danger = Color(red: 251 / 255, green: 113 / 255, blue: 133 / 255)
+    static let muted = Color(red: 185 / 255, green: 179 / 255, blue: 219 / 255)
+    static let quiet = Color(red: 122 / 255, green: 115 / 255, blue: 166 / 255)
 }
 
 struct StreakWidgetView: View {
@@ -135,9 +136,9 @@ struct StreakWidgetView: View {
     private var accent: Color {
         if entry.isLate { return .danger }
         switch entry.state {
-        case "done": return .lime
-        case "open": return .amber
-        case "rest", "frozen": return .ice
+        case "done": return .success
+        case "open": return .attention
+        case "rest", "frozen": return .cool
         default: return .muted
         }
     }
@@ -145,10 +146,10 @@ struct StreakWidgetView: View {
     private var tint: Color {
         if entry.isLate { return Color(red: 74 / 255, green: 16 / 255, blue: 36 / 255) }
         switch entry.state {
-        case "done": return Color(red: 74 / 255, green: 32 / 255, blue: 20 / 255)
-        case "open": return Color(red: 61 / 255, green: 42 / 255, blue: 16 / 255)
-        case "rest", "frozen": return Color(red: 16 / 255, green: 40 / 255, blue: 61 / 255)
-        default: return Color(red: 30 / 255, green: 26 / 255, blue: 42 / 255)
+        case "done": return Color(red: 59 / 255, green: 31 / 255, blue: 122 / 255)
+        case "open": return Color(red: 58 / 255, green: 23 / 255, blue: 88 / 255)
+        case "rest", "frozen": return Color(red: 16 / 255, green: 42 / 255, blue: 74 / 255)
+        default: return Color(red: 26 / 255, green: 23 / 255, blue: 53 / 255)
         }
     }
 
@@ -182,7 +183,7 @@ struct StreakWidgetView: View {
                             .font(.system(size: family == .systemSmall ? 30 : 40,
                                           weight: .black, design: .rounded))
                             .foregroundStyle(LinearGradient(
-                                colors: [.spark, .amber, .flame, .flameHot],
+                                colors: [.sky, .violet, .attention, .hot],
                                 startPoint: .top, endPoint: .bottom))
                         Text((entry.day?.streakLabel ?? entry.outlook?.fallback.streakLabel ?? "")
                             .uppercased())
@@ -222,7 +223,7 @@ struct StreakWidgetView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
 
         let background = LinearGradient(
-            colors: [tint, Color(red: 21 / 255, green: 15 / 255, blue: 31 / 255), .ink],
+            colors: [tint, Color(red: 18 / 255, green: 14 / 255, blue: 42 / 255), .ink],
             startPoint: .topLeading, endPoint: .bottomTrailing)
 
         if #available(iOSApplicationExtension 17.0, *) {
@@ -254,11 +255,11 @@ private struct WeekRow: View {
 
     private func glyph(_ mark: String) -> some View {
         switch mark {
-        case "done": return Text("🔥").foregroundColor(.flame)
-        case "frozen": return Text("❄️").foregroundColor(.ice)
+        case "done": return Text("◆").foregroundColor(.plasma)
+        case "frozen": return Text("❄").foregroundColor(.cool)
         case "missed": return Text("✕").foregroundColor(.danger)
         case "rest": return Text("☾").foregroundColor(.quiet)
-        case "open": return Text("◯").foregroundColor(.amber)
+        case "open": return Text("◇").foregroundColor(.attention)
         case "none": return Text(" ").foregroundColor(.quiet)
         default: return Text("·").foregroundColor(.quiet)
         }

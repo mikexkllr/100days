@@ -8,6 +8,7 @@ import '../motion/motion.dart';
 import '../motion/particles.dart';
 import '../motion/rolling_number.dart';
 import 'app_card.dart';
+import 'hold_button.dart';
 import 'juicy_button.dart';
 
 /// One habit for today, with the check-in control it actually needs.
@@ -52,25 +53,15 @@ class HabitTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
-    final Color accent = _isRelapse
-        ? AppColors.danger
-        : _isDone
-            ? AppColors.lime
-            : AppColors.outline;
 
     final Widget card = AppCard(
-      border: accent.withValues(alpha: _isDone || _isRelapse ? 0.75 : 1),
-      glow: _isDone ? AppColors.lime.withValues(alpha: 0.55) : null,
-      gradient: _isDone
-          ? LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: <Color>[
-                AppColors.lime.withValues(alpha: 0.14),
-                AppColors.surface,
-              ],
-            )
-          : null,
+      border: _isRelapse
+          ? AppColors.danger
+          : _isDone
+              ? AppColors.success
+              : null,
+      glow: _isDone ? AppColors.success.withValues(alpha: 0.5) : null,
+      color: _isDone ? AppColors.success : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -128,7 +119,7 @@ class HabitTile extends StatelessWidget {
                   ParticleKind.star,
                   ParticleKind.confetti,
                 ],
-                colors: kPartyParticles,
+                colors: kHoloParticles,
                 power: 0.8,
                 upward: true,
                 child: card,
@@ -145,9 +136,9 @@ class HabitTile extends StatelessWidget {
                       scale: 0.6 + 0.6 * popCurve((t / 0.5).clamp(0, 1)),
                       child: GlowText(
                         '+${l10n.homeXp(xpGain!)}',
-                        style: displayStyle(26, color: AppColors.gold),
-                        gradient: AppGradients.gold,
-                        glow: AppColors.gold,
+                        style: displayStyle(26, color: AppColors.reward),
+                        gradient: AppGradients.holo,
+                        glow: AppColors.reward,
                       ),
                     ),
                   ),
@@ -192,25 +183,29 @@ class _EmojiBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Color accent = lit ? AppColors.success : AppColors.primary;
     return Container(
-      width: 48,
-      height: 48,
-      alignment: Alignment.center,
+      width: 50,
+      height: 50,
+      padding: const EdgeInsets.all(1.5),
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: <Color>[
-            (lit ? AppColors.lime : AppColors.flame).withValues(alpha: 0.32),
-            AppColors.surfaceHigh,
-          ],
-        ),
-        border: Border.all(
-          color: (lit ? AppColors.lime : AppColors.flame)
-              .withValues(alpha: lit ? 0.8 : 0.35),
-          width: 1.5,
-        ),
+        borderRadius: BorderRadius.circular(17),
+        gradient: AppGradients.edge(accent),
+        boxShadow: lit ? AppShadows.glow(accent, strength: 0.6) : null,
       ),
-      child: Text(emoji, style: const TextStyle(fontSize: 24)),
+      child: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15.5),
+          gradient: RadialGradient(
+            colors: <Color>[
+              accent.withValues(alpha: 0.4),
+              AppColors.surface,
+            ],
+          ),
+        ),
+        child: Text(emoji, style: const TextStyle(fontSize: 24)),
+      ),
     );
   }
 }
@@ -225,13 +220,21 @@ class _StreakBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        gradient: AppGradients.fire,
+        gradient: AppGradients.plasma,
         borderRadius: AppRadius.pill,
-        boxShadow: AppShadows.glow(AppColors.flame, strength: 0.6),
+        boxShadow: AppShadows.glow(AppColors.hot, strength: 0.5),
       ),
-      child: Text(
-        context.l10n.tileStreakBadge(streak),
-        style: displayStyle(14, color: Colors.white),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Text(
+            '$streak',
+            style:
+                displayStyle(12, color: Colors.white, weight: FontWeight.w700),
+          ),
+          const SizedBox(width: 3),
+          const Icon(Icons.local_fire_department, size: 14, color: Colors.white),
+        ],
       ),
     );
   }
@@ -260,27 +263,28 @@ class _DoneControl extends StatelessWidget {
         Expanded(
           child: isDone
               ? DoneBadge(label: l10n.tileDone)
-              : JuicyButton(
+              : HoldButton(
                   label: isAbstain ? l10n.tileCleanToday : l10n.tileCheckOff,
-                  icon: isAbstain ? Icons.shield_outlined : Icons.check,
-                  haptic: JuicyHaptic.heavy,
-                  shimmer: true,
-                  onPressed: onCheckIn,
+                  hint: l10n.tileHoldHint,
+                  icon: isAbstain ? Icons.shield_outlined : Icons.bolt,
+                  onConfirmed: onCheckIn,
                 ),
         ),
         if (isAbstain) ...<Widget>[
           const SizedBox(width: AppSpacing.sm),
           SizedBox(
-            height: 54,
+            height: 56,
             child: OutlinedButton(
               onPressed: isRelapse ? null : onRelapse,
               style: OutlinedButton.styleFrom(
-                minimumSize: const Size(60, 50),
+                minimumSize: const Size(60, 52),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 foregroundColor: AppColors.danger,
                 side: BorderSide(
                   color: AppColors.danger.withValues(alpha: 0.5),
                   width: 1.5,
                 ),
+                textStyle: displayStyle(12, weight: FontWeight.w700),
               ),
               child: Text(l10n.tileRelapse),
             ),
@@ -300,24 +304,26 @@ class DoneBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 54,
+      height: 56,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         borderRadius: AppRadius.pill,
-        color: AppColors.lime.withValues(alpha: 0.14),
-        border: Border.all(color: AppColors.lime.withValues(alpha: 0.7), width: 1.5),
+        color: AppColors.success.withValues(alpha: 0.14),
+        border: Border.all(
+            color: AppColors.success.withValues(alpha: 0.7), width: 1.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          const Icon(Icons.check_circle, color: AppColors.lime, size: 21),
+          const Icon(Icons.check_circle, color: AppColors.success, size: 21),
           const SizedBox(width: 8),
           Flexible(
             child: Text(
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: displayStyle(17, color: AppColors.lime),
+              style: displayStyle(14,
+                  color: AppColors.success, weight: FontWeight.w700),
             ),
           ),
         ],
@@ -385,18 +391,18 @@ class _AmountControlState extends State<_AmountControl> {
         ),
         const SizedBox(width: AppSpacing.sm),
         SizedBox(
-          width: 112,
+          width: 130,
           child: isDone
               ? JuicyButton.success(
                   label: l10n.tileUpdateAmount,
                   onPressed: () => widget.onCheckIn(_value),
-                  fontSize: 16,
+                  fontSize: 15,
                 )
-              : JuicyButton(
+              : HoldButton(
                   label: l10n.tileLogAmount,
-                  haptic: JuicyHaptic.heavy,
-                  fontSize: 16,
-                  onPressed: () => widget.onCheckIn(_value),
+                  icon: Icons.bolt,
+                  compact: true,
+                  onConfirmed: () => widget.onCheckIn(_value),
                 ),
         ),
       ],
@@ -423,9 +429,9 @@ class _StepButton extends StatelessWidget {
         height: 40,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: AppColors.surfaceHigh,
+          color: AppColors.glass,
           shape: BoxShape.circle,
-          border: Border.all(color: AppColors.outline),
+          border: Border.all(color: AppColors.glassEdge),
         ),
         child: Icon(icon, size: 19, color: AppColors.textPrimary),
       ),

@@ -109,7 +109,7 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
         );
 
     return RefreshIndicator(
-      color: AppColors.flame,
+      color: AppColors.primary,
       backgroundColor: AppColors.surface,
       onRefresh: () => ref.read(appStateProvider.notifier).syncNow(),
       child: ListView(
@@ -121,6 +121,7 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
         ),
         children: <Widget>[
           _Header(snapshot: snapshot),
+          const SizedBox(height: AppSpacing.md),
           StreakHero(snapshot: snapshot, onTapStatus: _scrollToHabits),
           const SizedBox(height: AppSpacing.md),
           PressureBanner(
@@ -134,24 +135,8 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
             const SizedBox(height: AppSpacing.sm + 4),
             _AscendCard(challenge: challenge),
           ],
-          if (workout != null) ...<Widget>[
-            SectionHeader(l10n.homeTodaysWorkout),
-            _WorkoutCard(
-              workout: workout,
-              challenge: challenge,
-              day: today,
-              logged: snapshot.me.workoutLogOn(today) != null,
-            ),
-          ],
-          if (snapshot.plan?.nutrition != null) ...<Widget>[
-            SectionHeader(l10n.homeTodaysMacros),
-            _MacroCard(
-              plan: snapshot.plan!.nutrition!,
-              eaten: snapshot.me.intakeOn(today).total,
-            ),
-          ],
           SectionHeader(
-            l10n.homeCheckOffToday,
+            l10n.homeQuestsTitle,
             key: _habitsKey,
             subtitle: todayHabits.isEmpty
                 ? l10n.homeRestDay
@@ -182,6 +167,22 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
             _FreezeCard(
               remaining: challenge.streakFreezesRemaining -
                   snapshot.me.streak.freezesUsed,
+            ),
+          ],
+          if (workout != null) ...<Widget>[
+            SectionHeader(l10n.homeTodaysWorkout),
+            _WorkoutCard(
+              workout: workout,
+              challenge: challenge,
+              day: today,
+              logged: snapshot.me.workoutLogOn(today) != null,
+            ),
+          ],
+          if (snapshot.plan?.nutrition != null) ...<Widget>[
+            SectionHeader(l10n.homeTodaysMacros),
+            _MacroCard(
+              plan: snapshot.plan!.nutrition!,
+              eaten: snapshot.me.intakeOn(today).total,
             ),
           ],
           const SizedBox(height: AppSpacing.lg),
@@ -298,10 +299,10 @@ class _DayProgress extends StatelessWidget {
               margin: EdgeInsets.only(right: i == total - 1 ? 0 : 6),
               decoration: BoxDecoration(
                 borderRadius: AppRadius.pill,
-                gradient: i < done ? AppGradients.fire : null,
+                gradient: i < done ? AppGradients.plasma : null,
                 color: i < done ? null : AppColors.surfaceHigh,
                 boxShadow: i < done
-                    ? AppShadows.glow(AppColors.flame, strength: 0.5)
+                    ? AppShadows.glow(AppColors.primary, strength: 0.5)
                     : null,
               ),
             ),
@@ -323,13 +324,13 @@ class _Header extends StatelessWidget {
     final int xp = snapshot.me.lifetimeXp;
     final int level = levelForXp(xp);
     return Padding(
-      padding: const EdgeInsets.only(top: AppSpacing.xs),
+      padding: const EdgeInsets.only(top: AppSpacing.md),
       child: Row(
         children: <Widget>[
           EmojiAvatar(
             snapshot.me.profile.avatarEmoji,
-            size: 44,
-            ringColor: AppColors.flame,
+            size: 46,
+            ringColor: AppColors.primary,
           ),
           const SizedBox(width: AppSpacing.sm + 4),
           Expanded(
@@ -361,7 +362,7 @@ class _Header extends StatelessWidget {
   }
 }
 
-/// Lifetime XP as a gold coin counter with the level bar under it.
+/// Lifetime XP as a neon counter with the level bar under it.
 class _XpBadge extends StatelessWidget {
   const _XpBadge({required this.xp, required this.progress});
 
@@ -371,11 +372,13 @@ class _XpBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(10, 6, 12, 7),
+      padding: const EdgeInsets.fromLTRB(10, 7, 12, 8),
       decoration: BoxDecoration(
-        color: AppColors.gold.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.gold.withValues(alpha: 0.55)),
+        // Opaque, so the glow stays a halo instead of soaking through.
+        color: Color.lerp(AppColors.surface, AppColors.reward, 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.reward.withValues(alpha: 0.55)),
+        boxShadow: AppShadows.glow(AppColors.reward, strength: 0.35),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -384,11 +387,11 @@ class _XpBadge extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              const Icon(Icons.bolt, size: 16, color: AppColors.gold),
+              const Icon(Icons.bolt, size: 16, color: AppColors.reward),
               RollingNumber(
                 value: xp,
                 suffix: ' XP',
-                style: displayStyle(16, color: AppColors.gold),
+                style: displayStyle(14, color: AppColors.reward),
               ),
             ],
           ),
@@ -405,9 +408,9 @@ class _XpBadge extends StatelessWidget {
                     LinearProgressIndicator(
                   value: math.max(0.04, value),
                   minHeight: 5,
-                  backgroundColor: AppColors.surfaceHigh,
+                  backgroundColor: AppColors.glassHigh,
                   valueColor:
-                      const AlwaysStoppedAnimation<Color>(AppColors.gold),
+                      const AlwaysStoppedAnimation<Color>(AppColors.reward),
                 ),
               ),
             ),
@@ -430,14 +433,14 @@ class _WidgetPromo extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(top: AppSpacing.md),
       child: AppCard(
-        border: AppColors.flame.withValues(alpha: 0.5),
-        glow: AppColors.flame.withValues(alpha: 0.5),
+        border: AppColors.primary.withValues(alpha: 0.5),
+        glow: AppColors.primary.withValues(alpha: 0.5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Row(
               children: <Widget>[
-                const Icon(Icons.widgets, color: AppColors.flame),
+                const Icon(Icons.widgets, color: AppColors.primary),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(l10n.widgetPromoTitle,
@@ -534,7 +537,7 @@ class _WorkoutCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm + 4),
           if (logged)
             Pill(l10n.homeWorkoutLogged,
-                color: AppColors.lime, icon: Icons.check_circle)
+                color: AppColors.success, icon: Icons.check_circle)
           else
             FilledButton.icon(
               key: const Key('home-start-workout'),
@@ -576,14 +579,14 @@ class _MacroCard extends StatelessWidget {
                 child: StatTile(
                   value: of(eaten.kcal, plan.kcal),
                   label: l10n.planKcal,
-                  color: AppColors.flame,
+                  color: AppColors.primary,
                 ),
               ),
               Expanded(
                 child: StatTile(
                   value: of(eaten.proteinG, plan.proteinG, 'g'),
                   label: l10n.planProtein,
-                  color: AppColors.lime,
+                  color: AppColors.success,
                 ),
               ),
             ],
@@ -664,12 +667,12 @@ class _AscendCard extends ConsumerWidget {
     final ChallengeTier next = tierForCycle(challenge.cycle + 1);
     final String nextName = l10n.tierName(next);
     return AppCard(
-      border: AppColors.lime,
+      border: AppColors.success,
       gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: <Color>[
-          AppColors.lime.withValues(alpha: 0.2),
+          AppColors.success.withValues(alpha: 0.2),
           AppColors.surface,
         ],
       ),
@@ -691,7 +694,7 @@ class _AscendCard extends ConsumerWidget {
           const SizedBox(height: AppSpacing.md),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: AppColors.lime,
+              backgroundColor: AppColors.success,
               foregroundColor: AppColors.ink,
               minimumSize: const Size.fromHeight(48),
             ),

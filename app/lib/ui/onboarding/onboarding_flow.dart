@@ -236,14 +236,23 @@ class _ProgressBar extends StatelessWidget {
         borderRadius: AppRadius.pill,
         child: TweenAnimationBuilder<double>(
           tween: Tween<double>(begin: 0, end: progress),
-          duration: const Duration(milliseconds: 320),
-          builder: (BuildContext context, double value, Widget? _) =>
-              LinearProgressIndicator(
-            value: value,
-            minHeight: 6,
-            backgroundColor: AppColors.surfaceHigh,
-            valueColor:
-                const AlwaysStoppedAnimation<Color>(AppColors.flame),
+          duration: const Duration(milliseconds: 420),
+          curve: Curves.easeOutCubic,
+          builder: (BuildContext context, double value, Widget? _) => SizedBox(
+            height: 7,
+            child: Stack(
+              fit: StackFit.expand,
+              children: <Widget>[
+                const ColoredBox(color: AppColors.glassHigh),
+                FractionallySizedBox(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: value.clamp(0.0, 1.0),
+                  child: const DecoratedBox(
+                    decoration: BoxDecoration(gradient: AppGradients.plasma),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -279,7 +288,7 @@ class OnboardingScaffold extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .labelSmall
-                  ?.copyWith(color: AppColors.flame),
+                  ?.copyWith(color: AppColors.primary),
             ),
           ),
         Text(title, style: Theme.of(context).textTheme.headlineMedium),

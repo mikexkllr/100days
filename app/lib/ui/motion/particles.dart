@@ -1,28 +1,38 @@
 import 'dart:math' as math;
 
+import 'package:flutter/material.dart' show Colors;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../theme/theme.dart';
 import 'motion.dart';
 
-enum ParticleKind { spark, ember, confetti, star, coin }
+enum ParticleKind { spark, ember, confetti, star, coin, gem }
 
-const List<Color> kFireParticles = <Color>[
-  AppColors.flameHot,
-  AppColors.flame,
-  AppColors.amber,
-  AppColors.spark,
+const List<Color> kPlasmaParticles = <Color>[
+  AppColors.hot,
+  AppColors.primary,
+  AppColors.attention,
+  AppColors.glow,
+  Color(0xFFFFFFFF),
+];
+
+/// Holographic foil, for jackpots.
+const List<Color> kHoloParticles = <Color>[
+  Color(0xFFC4B5FD),
+  Color(0xFF67E8F9),
+  Color(0xFFF9A8D4),
+  Color(0xFFA78BFA),
   Color(0xFFFFFFFF),
 ];
 
 const List<Color> kPartyParticles = <Color>[
-  AppColors.flame,
-  AppColors.gold,
-  AppColors.lime,
-  AppColors.violet,
-  AppColors.ice,
-  AppColors.flameHot,
+  AppColors.primary,
+  AppColors.reward,
+  AppColors.success,
+  AppColors.social,
+  AppColors.cool,
+  AppColors.hot,
 ];
 
 class _Particle {
@@ -62,7 +72,7 @@ class ParticleBurst extends StatefulWidget {
     this.origin = Alignment.center,
     this.count = 28,
     this.kinds = const <ParticleKind>[ParticleKind.spark],
-    this.colors = kFireParticles,
+    this.colors = kPlasmaParticles,
     this.power = 1,
     this.gravity = 700,
     this.upward = false,
@@ -146,6 +156,7 @@ class _ParticleBurstState extends State<ParticleBurst>
               ParticleKind.confetti => 5 + _random.nextDouble() * 5,
               ParticleKind.star => 5 + _random.nextDouble() * 6,
               ParticleKind.coin => 6 + _random.nextDouble() * 5,
+              ParticleKind.gem => 6 + _random.nextDouble() * 6,
             },
         color: widget.colors[_random.nextInt(widget.colors.length)],
         life: 0.7 + _random.nextDouble() * 0.9,
@@ -289,6 +300,29 @@ void paintParticle(
       canvas.drawPath(sparklePath(size),
           _solidPaint..color = color.withValues(alpha: opacity));
       canvas.restore();
+    case ParticleKind.gem:
+      canvas.save();
+      canvas.translate(at.dx, at.dy);
+      canvas.rotate(rotation * 0.5);
+      // A cut stone: a light facet and a dark one, turning in the air.
+      final double flip = math.cos(rotation).abs() * 0.7 + 0.3;
+      canvas.scale(flip, 1);
+      final Path left = Path()
+        ..moveTo(0, -size)
+        ..lineTo(-size * 0.75, -size * 0.2)
+        ..lineTo(0, size)
+        ..close();
+      final Path right = Path()
+        ..moveTo(0, -size)
+        ..lineTo(size * 0.75, -size * 0.2)
+        ..lineTo(0, size)
+        ..close();
+      canvas.drawCircle(Offset.zero, size * 1.3,
+          _glowPaint..color = color.withValues(alpha: 0.35 * opacity));
+      canvas.drawPath(left,
+          _solidPaint..color = Color.lerp(color, Colors.white, 0.45)!.withValues(alpha: opacity));
+      canvas.drawPath(right, _solidPaint..color = color.withValues(alpha: opacity));
+      canvas.restore();
     case ParticleKind.coin:
       canvas.save();
       canvas.translate(at.dx, at.dy);
@@ -297,7 +331,7 @@ void paintParticle(
       canvas.drawCircle(Offset.zero, size,
           _solidPaint..color = const Color(0xFFFF9F1C).withValues(alpha: opacity));
       canvas.drawCircle(Offset.zero, size * 0.78,
-          _solidPaint..color = AppColors.gold.withValues(alpha: opacity));
+          _solidPaint..color = AppColors.reward.withValues(alpha: opacity));
       canvas.drawCircle(Offset(-size * 0.25, -size * 0.25), size * 0.22,
           _solidPaint..color = const Color(0xFFFFF6C9).withValues(alpha: opacity));
       canvas.restore();
@@ -323,7 +357,7 @@ class EmberField extends StatelessWidget {
   const EmberField({
     super.key,
     this.count = 18,
-    this.color = AppColors.flame,
+    this.color = AppColors.primary,
     this.colors,
     this.speed = 1,
     this.intensity = 1,
@@ -348,7 +382,7 @@ class EmberField extends StatelessWidget {
           painter: _EmberFieldPainter(
             seconds: seconds,
             count: count,
-            colors: colors ?? <Color>[color, AppColors.amber, AppColors.spark],
+            colors: colors ?? <Color>[color, AppColors.attention, AppColors.glow],
             speed: speed,
             intensity: intensity,
           ),

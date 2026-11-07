@@ -39,7 +39,7 @@ class SharingForm extends StatelessWidget {
                 SwitchListTile(
                   key: Key('share-${habit.id}'),
                   value: value.isHabitShared(habit.id),
-                  activeThumbColor: AppColors.lime,
+                  activeThumbColor: AppColors.success,
                   secondary:
                       Text(habit.emoji, style: const TextStyle(fontSize: 22)),
                   title: Text(l10n.habitLabel(habit)),
@@ -63,7 +63,7 @@ class SharingForm extends StatelessWidget {
               SwitchListTile(
                 key: const Key('share-statement'),
                 value: value.shareStatement,
-                activeThumbColor: AppColors.lime,
+                activeThumbColor: AppColors.success,
                 title: Text(l10n.privacyStatement),
                 subtitle: Text(l10n.privacyStatementSub),
                 onChanged: (bool v) =>
@@ -73,7 +73,7 @@ class SharingForm extends StatelessWidget {
                 SwitchListTile(
                   key: const Key('share-workouts'),
                   value: value.shareWorkouts,
-                  activeThumbColor: AppColors.lime,
+                  activeThumbColor: AppColors.success,
                   title: Text(l10n.privacyWorkouts),
                   subtitle: Text(l10n.privacyWorkoutsSub),
                   onChanged: (bool v) =>
@@ -88,7 +88,7 @@ class SharingForm extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              const Icon(Icons.lock_outline, size: 19, color: AppColors.violet),
+              const Icon(Icons.lock_outline, size: 19, color: AppColors.social),
               const SizedBox(width: AppSpacing.sm + 2),
               Expanded(
                 child: Text(

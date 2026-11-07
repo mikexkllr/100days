@@ -130,15 +130,15 @@ class _LengthOption extends StatelessWidget {
     return AppCard(
       onTap: onTap,
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-      border: selected ? AppColors.flame : null,
+      border: selected ? AppColors.primary : null,
       color:
-          selected ? AppColors.flame.withValues(alpha: 0.08) : AppColors.surface,
+          selected ? AppColors.primary.withValues(alpha: 0.08) : AppColors.surface,
       child: Column(
         children: <Widget>[
           Text(
             '$days',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: selected ? AppColors.flame : AppColors.textPrimary,
+                  color: selected ? AppColors.primary : AppColors.textPrimary,
                 ),
           ),
           Text(

@@ -34,8 +34,9 @@ a tier, the streak keeps counting, and the targets get harder.
 because there is no server at all. The coach runs on the device.
 
 **Showing up feels like winning.** Your streak is Funki, a flame with a face
-that grows through ten forms — from an ember to a sun — and goes hungry,
-worried or proud with your day. A clock runs to midnight while today is open.
+that grows through ten forms — from a red ember to a holographic galaxy — and
+goes hungry, worried or proud with your day. You check in by holding until the
+bar ignites, and a clock runs to midnight while today is open.
 Finishing the day rolls a slot machine: streak, XP and bonus reels, and a
 jackpot when something rare really happened — a milestone, a level-up, a new
 form, a record. Every reel lands on a real number; only the size of the

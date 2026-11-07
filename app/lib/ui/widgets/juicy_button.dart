@@ -19,9 +19,9 @@ class JuicyButton extends StatefulWidget {
     required this.label,
     required this.onPressed,
     this.icon,
-    this.gradient = AppGradients.fire,
-    this.lipColor = const Color(0xFFB2381A),
-    this.foreground = const Color(0xFF2A0C00),
+    this.gradient = AppGradients.primary,
+    this.lipColor = const Color(0xFF3B1A8C),
+    this.foreground = Colors.white,
     this.height = 54,
     this.shimmer = false,
     this.pulse = false,
@@ -43,11 +43,11 @@ class JuicyButton extends StatefulWidget {
     this.fontSize = 17,
     this.glow,
   })  : gradient = AppGradients.success,
-        lipColor = const Color(0xFF4E8F23),
-        foreground = const Color(0xFF13240A);
+        lipColor = const Color(0xFF0F6B5C),
+        foreground = const Color(0xFF032019);
 
-  /// Gold: rewards and "keep going".
-  const JuicyButton.gold({
+  /// Holographic foil: rewards and "keep going".
+  const JuicyButton.holo({
     super.key,
     required this.label,
     required this.onPressed,
@@ -57,10 +57,10 @@ class JuicyButton extends StatefulWidget {
     this.pulse = false,
     this.haptic = JuicyHaptic.heavy,
     this.fontSize = 18,
-    this.glow = AppColors.gold,
-  })  : gradient = AppGradients.gold,
-        lipColor = const Color(0xFFB86E00),
-        foreground = const Color(0xFF3A2400);
+    this.glow = AppColors.primary,
+  })  : gradient = AppGradients.holo,
+        lipColor = const Color(0xFF5B34B8),
+        foreground = const Color(0xFF1A0D3D);
 
   final String label;
   final VoidCallback? onPressed;
@@ -134,13 +134,16 @@ class _JuicyButtonState extends State<JuicyButton>
             widget.label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: displayStyle(widget.fontSize, color: foreground).copyWith(
-              letterSpacing: 0.6,
+            style: displayStyle(widget.fontSize * 0.86,
+                    color: foreground, weight: FontWeight.w700)
+                .copyWith(
+              letterSpacing: 0.2,
               shadows: _enabled
                   ? <Shadow>[
                       Shadow(
-                        color: Colors.white.withValues(alpha: 0.35),
+                        color: Colors.black.withValues(alpha: 0.25),
                         offset: const Offset(0, 1),
+                        blurRadius: 2,
                       ),
                     ]
                   : null,

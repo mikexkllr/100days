@@ -175,7 +175,7 @@ class _NutritionGoalsScreenState extends ConsumerState<NutritionGoalsScreen> {
             if (_proposal != null) ...<Widget>[
               const SizedBox(height: AppSpacing.sm),
               AppCard(
-                border: AppColors.violet.withValues(alpha: 0.5),
+                border: AppColors.social.withValues(alpha: 0.5),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
@@ -192,7 +192,7 @@ class _NutritionGoalsScreenState extends ConsumerState<NutritionGoalsScreen> {
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
-                        Pill(l10n.coachBadgeLlm, color: AppColors.violet),
+                        Pill(l10n.coachBadgeLlm, color: AppColors.social),
                       ],
                     ),
                     if (_proposal!.reason != null) ...<Widget>[
