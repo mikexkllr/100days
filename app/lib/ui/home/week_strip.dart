@@ -4,25 +4,34 @@ import 'package:flutter/material.dart';
 import 'package:hundred_core/hundred_core.dart';
 
 import '../../l10n/l10n.dart';
+import '../../theme/fire.dart';
 import '../../theme/theme.dart';
 import '../motion/motion.dart';
 
-/// Monday to Sunday as a row of gems. Done days glow in plasma and are
-/// linked by a neon wire, so the one gap you are about to leave is
-/// impossible to miss.
+/// Monday to Sunday as a row of lamps. A finished day is lit, and lit days
+/// next to each other are joined into one chain — so the gap you are about
+/// to leave is impossible to miss. Tap a day to see what was logged on it.
 class WeekStrip extends StatelessWidget {
   const WeekStrip({
     super.key,
     required this.marks,
     required this.monday,
     required this.today,
-    this.cell = 38,
+    this.fire = const Fire(
+      light: Color(0xFFFFA3BC),
+      main: Color(0xFFFF5C8A),
+      deep: Color(0xFFB3184A),
+    ),
+    this.lamp = 30,
+    this.onTapDay,
   });
 
   final List<DayMark> marks;
   final DayKey monday;
   final DayKey today;
-  final double cell;
+  final Fire fire;
+  final double lamp;
+  final ValueChanged<DayKey>? onTapDay;
 
   static bool _chains(DayMark mark) =>
       mark == DayMark.done || mark == DayMark.frozen;
@@ -30,192 +39,214 @@ class WeekStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Row(
+    return SizedBox(
+      height: lamp + 26,
+      child: CustomPaint(
+        painter: _ChainPainter(
+          links: <bool>[
+            for (int i = 0; i < 6; i++)
+              _chains(marks[i]) && _chains(marks[i + 1]),
+          ],
+          color: fire.main,
+          lamp: lamp,
+        ),
+        child: Row(
           children: <Widget>[
             for (int i = 0; i < 7; i++)
               Expanded(
-                child: Center(
-                  child: Text(
-                    l10n.weekdayLetters(monday.addDays(i).toDateTime().weekday),
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: monday.addDays(i) == today
-                              ? AppColors.textPrimary
-                              : AppColors.textTertiary,
-                          fontSize: 10.5,
-                        ),
-                  ),
+                child: _Day(
+                  label: l10n
+                      .weekdayLetters(monday.addDays(i).toDateTime().weekday),
+                  mark: marks[i],
+                  isToday: monday.addDays(i) == today,
+                  fire: fire,
+                  lamp: lamp,
+                  onTap: onTapDay == null ||
+                          marks[i] == DayMark.none ||
+                          marks[i] == DayMark.upcoming
+                      ? null
+                      : () => onTapDay!(monday.addDays(i)),
                 ),
               ),
           ],
         ),
-        const SizedBox(height: 6),
-        SizedBox(
-          height: cell + 8,
-          child: CustomPaint(
-            painter: _WirePainter(
-              links: <bool>[
-                for (int i = 0; i < 6; i++)
-                  _chains(marks[i]) && _chains(marks[i + 1]),
-              ],
-            ),
-            child: Row(
-              children: <Widget>[
-                for (int i = 0; i < 7; i++)
-                  Expanded(
-                    child: Center(
-                      child: _Gem(
-                        mark: marks[i],
-                        size: cell,
-                        isToday: monday.addDays(i) == today,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
 
-class _WirePainter extends CustomPainter {
-  _WirePainter({required this.links});
+class _ChainPainter extends CustomPainter {
+  _ChainPainter({required this.links, required this.color, required this.lamp});
 
   final List<bool> links;
+  final Color color;
+  final double lamp;
 
   @override
   void paint(Canvas canvas, Size size) {
     final double cell = size.width / 7;
-    final double y = size.height / 2;
+    final double y = size.height - lamp / 2;
+    final Paint paint = Paint()
+      ..color = color.withValues(alpha: 0.42)
+      ..strokeWidth = 5
+      ..strokeCap = StrokeCap.round;
     for (int i = 0; i < links.length; i++) {
       if (!links[i]) continue;
-      final Rect wire =
-          Rect.fromLTRB(cell * (i + 0.5), y - 2.5, cell * (i + 1.5), y + 2.5);
-      final Shader shader = const LinearGradient(
-        colors: <Color>[AppColors.hot, AppColors.primary],
-      ).createShader(wire);
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(wire.inflate(3), const Radius.circular(6)),
-        Paint()
-          ..shader = shader
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
-      );
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(wire, const Radius.circular(3)),
-        Paint()..shader = shader,
+      canvas.drawLine(
+        Offset(cell * (i + 0.5) + lamp / 2, y),
+        Offset(cell * (i + 1.5) - lamp / 2, y),
+        paint,
       );
     }
   }
 
   @override
-  bool shouldRepaint(_WirePainter oldDelegate) =>
+  bool shouldRepaint(_ChainPainter oldDelegate) =>
+      oldDelegate.color != color ||
       oldDelegate.links.toString() != links.toString();
 }
 
-class _Gem extends StatelessWidget {
-  const _Gem({required this.mark, required this.size, required this.isToday});
+class _Day extends StatelessWidget {
+  const _Day({
+    required this.label,
+    required this.mark,
+    required this.isToday,
+    required this.fire,
+    required this.lamp,
+    required this.onTap,
+  });
 
+  final String label;
   final DayMark mark;
-  final double size;
   final bool isToday;
-
-  BorderRadius get _radius => BorderRadius.circular(size * 0.34);
+  final Fire fire;
+  final double lamp;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final double s = isToday ? size + 4 : size;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Text(
+            label,
+            style: labelStyle(
+              color: isToday ? AppColors.textPrimary : AppColors.textTertiary,
+              size: 10.5,
+            ),
+          ),
+          SizedBox.square(
+            dimension: lamp,
+            child: Center(child: DayLamp(mark: mark, fire: fire, size: lamp)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One day as a lamp: lit, held in ice, missed, resting, waiting or still
+/// to come.
+class DayLamp extends StatelessWidget {
+  const DayLamp({
+    super.key,
+    required this.mark,
+    required this.fire,
+    this.size = 30,
+  });
+
+  final DayMark mark;
+  final Fire fire;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
     switch (mark) {
       case DayMark.done:
-        return _lit(s, AppGradients.plasma, Icons.local_fire_department,
-            AppColors.primary);
+        return _filled(fire.gradient, fire.main, Icons.check_rounded, fire.on);
       case DayMark.frozen:
-        return _lit(s, AppGradients.cool, Icons.ac_unit, AppColors.cool);
+        return _filled(
+            AppGradients.cool, AppColors.cool, Icons.ac_unit, AppColors.ink);
       case DayMark.missed:
-        return _glass(s, Icons.close, AppColors.danger.withValues(alpha: 0.8));
+        return _hollow(
+          AppColors.danger.withValues(alpha: 0.5),
+          Icon(Icons.close_rounded,
+              size: size * 0.5, color: AppColors.danger.withValues(alpha: 0.9)),
+        );
       case DayMark.rest:
-        return _glass(s, Icons.bedtime_outlined, AppColors.textTertiary);
+        return Icon(Icons.bedtime_outlined,
+            size: size * 0.52, color: AppColors.textTertiary);
       case DayMark.open:
         return AmbientClock(
           builder: (BuildContext context, double seconds, Widget? _) {
-            final double pulse = 0.5 + 0.5 * math.sin(seconds * 4);
+            final double pulse = 0.5 + 0.5 * math.sin(seconds * 3.2);
             return Container(
-              width: s,
-              height: s,
-              padding: const EdgeInsets.all(2),
+              width: size,
+              height: size,
               decoration: BoxDecoration(
-                borderRadius: _radius,
-                gradient: SweepGradient(
-                  transform: GradientRotation(seconds * 2),
-                  colors: const <Color>[
-                    AppColors.hot,
-                    AppColors.primary,
-                    AppColors.social,
-                    AppColors.hot,
-                  ],
-                ),
-                boxShadow: AppShadows.glow(AppColors.primary, strength: 0.4 + 0.6 * pulse),
+                shape: BoxShape.circle,
+                border: Border.all(color: fire.main, width: 2),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: fire.main.withValues(alpha: 0.15 + 0.3 * pulse),
+                    blurRadius: 10,
+                  ),
+                ],
               ),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: _radius,
-                  color: AppColors.surface,
+              child: Center(
+                child: Container(
+                  width: size * 0.2,
+                  height: size * 0.2,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: fire.main.withValues(alpha: 0.5 + 0.5 * pulse),
+                  ),
                 ),
-                child: Icon(Icons.local_fire_department_outlined,
-                    size: s * 0.5, color: AppColors.primarySoft),
               ),
             );
           },
         );
       case DayMark.upcoming:
-        return Container(
-          width: s,
-          height: s,
-          decoration: BoxDecoration(
-            borderRadius: _radius,
-            color: AppColors.glass,
-            border: Border.all(color: AppColors.glassEdge),
-          ),
-        );
+        return _hollow(Colors.white.withValues(alpha: 0.16), null);
       case DayMark.none:
         return Container(
-          width: 5,
-          height: 5,
-          decoration: const BoxDecoration(
+          width: 4,
+          height: 4,
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.glassEdge,
+            color: Colors.white.withValues(alpha: 0.18),
           ),
         );
     }
   }
 
-  Widget _lit(double s, Gradient gradient, IconData icon, Color glow) {
+  Widget _filled(Gradient gradient, Color glow, IconData icon, Color on) {
     return Container(
-      width: s,
-      height: s,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
-        borderRadius: _radius,
+        shape: BoxShape.circle,
         gradient: gradient,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
-        boxShadow: AppShadows.glow(glow, strength: isToday ? 1.2 : 0.7),
+        boxShadow: <BoxShadow>[
+          BoxShadow(color: glow.withValues(alpha: 0.4), blurRadius: 10),
+        ],
       ),
-      child: Icon(icon, size: s * 0.52, color: Colors.white),
+      child: Icon(icon, size: size * 0.6, color: on),
     );
   }
 
-  Widget _glass(double s, IconData icon, Color fg) {
+  Widget _hollow(Color border, Widget? child) {
     return Container(
-      width: s,
-      height: s,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
-        borderRadius: _radius,
-        color: AppColors.glass,
-        border: Border.all(color: AppColors.glassEdge),
+        shape: BoxShape.circle,
+        border: Border.all(color: border, width: 1.4),
       ),
-      child: Icon(icon, size: s * 0.45, color: fg),
+      child: child,
     );
   }
 }

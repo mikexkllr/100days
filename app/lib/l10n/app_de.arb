@@ -113,6 +113,36 @@
   "aiWhatItSeesBody": "Streak, Tagesnummer, deine Gewohnheiten und ob deine Freunde heute aktiv waren — als Text, direkt an das Modell auf diesem Gerät. Kein Netzwerkaufruf, keine Telemetrie, kein Zwischenspeicher in einer Cloud.",
   "aiWhatItSeesTitle": "Was das Modell sieht",
   "appTitle": "100 Tage",
+  "boardMilestone": "Meilenstein Tag {day} in {days, plural, =1{1 Tag} other{{days} Tagen}}",
+  "@boardMilestone": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "boardSummary": "{done} geschafft · {left} vor dir",
+  "@boardSummary": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "left": {
+        "type": "int"
+      }
+    }
+  },
+  "boardTitle": "Deine {days} Tage",
+  "@boardTitle": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "celebrateBonusCycle": "ZYKLUS",
   "celebrateBonusEvolution": "EVOLUTION",
   "celebrateBonusLevel": "LEVEL UP",
@@ -491,6 +521,13 @@
   "ctaRescue": "Retten",
   "ctaRestart": "Neu starten",
   "ctaShare": "Teilen",
+  "dayDone": "Tag geschafft",
+  "dayFrozen": "Eingefroren",
+  "dayMissed": "Verpasst",
+  "dayNotLogged": "Nicht eingetragen",
+  "dayOpen": "Noch offen",
+  "dayRest": "Pausentag",
+  "dayUpcoming": "Kommt noch",
   "diaryClose": "Tag abschließen",
   "diaryCloseOnTarget": "Tag abschließen — im Ziel",
   "diaryClosedPlain": "Tag abgehakt.",
@@ -2031,6 +2068,14 @@
   "setWipeBody": "Ohne deinen Wiederherstellungs-Key ist danach nichts mehr zu retten — es gibt keinen Server, der eine Kopie hat. Das ist der Preis dafür, dass auch sonst niemand eine hat.",
   "setWipeSub": "Identität, Challenge und alle Freunde entfernen.",
   "setWipeTitle": "Wirklich alles löschen?",
+  "skyStars": "{count, plural, =0{Noch kein Stern an deinem Himmel. Der erste kommt mit dem ersten geschafften Tag.} =1{1 Stern steht an deinem Himmel — einer für jeden geschafften Tag.} other{{count} Sterne stehen an deinem Himmel — einer für jeden geschafften Tag.}}",
+  "@skyStars": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "socialTabFeed": "Feed",
   "socialTabFriends": "Freunde ({count})",
   "@socialTabFriends": {
@@ -2225,6 +2270,7 @@
       }
     }
   },
+  "tileHoldExplain": "Gedrückt halten zum Eintragen.",
   "tileHoldHint": "Halten",
   "tileLogAmount": "Eintragen",
   "tileRelapse": "Rückfall",

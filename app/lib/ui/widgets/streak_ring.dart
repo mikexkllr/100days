@@ -3,278 +3,266 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:hundred_core/hundred_core.dart';
 
+import '../../theme/fire.dart';
 import '../../theme/theme.dart';
 import '../mascot/flame_mascot.dart';
 import '../motion/motion.dart';
 
-/// Funki in orbit.
+/// Funki inside the ring of today.
 ///
-/// Funki floats in a glowing orb. Around it runs the orbit of the current
-/// cycle: the comet is today, its trail is how far you have come, and the
-/// planets on the orbit are the milestone days — lit once passed, the next
-/// one pulsing. A dashed inner ring turns slowly, so the whole thing hums.
-class StreakRing extends StatelessWidget {
-  const StreakRing({
+/// The ring has one segment for every habit scheduled today. A segment
+/// lights when its habit is done — and shows how far along it is before
+/// that — so one look says how much of today is left. When the last one
+/// lights, the ring is closed and the flame is safe until tomorrow. On a
+/// day with nothing scheduled the ring is a dotted line: nothing to close.
+class TodayRing extends StatelessWidget {
+  const TodayRing({
     super.key,
-    required this.progress,
-    required this.dayInCycle,
-    required this.cycleLength,
+    required this.parts,
+    required this.fire,
     required this.stage,
     required this.mood,
-    this.atRisk = false,
-    this.size = 260,
+    this.held = false,
+    this.size = 168,
     this.onPoke,
     this.mascotLabel,
   });
 
-  /// 0..1 through the current cycle.
-  final double progress;
-  final int dayInCycle;
-  final int cycleLength;
+  /// How far each of today's habits is, 0 to 1. Empty on a rest day.
+  final List<double> parts;
+  final Fire fire;
   final FlameStage stage;
   final MascotMood mood;
-  final bool atRisk;
+
+  /// A freeze holds the day: the ring is closed in ice.
+  final bool held;
   final double size;
   final ValueChanged<int>? onPoke;
   final String? mascotLabel;
 
+  bool get _closed => parts.isNotEmpty && parts.every((double p) => p >= 1);
+
   @override
   Widget build(BuildContext context) {
+    final int n = parts.length;
+    // Room between segments for their round caps.
+    final double gap = n <= 1 ? 0 : math.min(0.26, math.pi * 2 / n * 0.3);
+    final double sweep = math.pi * 2 / math.max(n, 1) - gap;
+
     return SizedBox.square(
       dimension: size,
-      child: TweenAnimationBuilder<double>(
-        tween: Tween<double>(begin: 0, end: progress.clamp(0.0, 1.0)),
-        duration: const Duration(milliseconds: 1600),
-        curve: Curves.easeOutCubic,
-        builder: (BuildContext context, double value, Widget? _) =>
-            AmbientClock(
-          builder: (BuildContext context, double seconds, Widget? mascot) =>
-              Stack(
-            alignment: Alignment.center,
-            children: <Widget>[
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: _OrbitPainter(
-                    progress: value,
-                    dayInCycle: dayInCycle,
-                    cycleLength: cycleLength,
-                    seconds: seconds,
-                    atRisk: atRisk,
+      child: Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          // The light Funki gives off — brighter once the ring is closed.
+          Positioned.fill(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(end: _closed ? 1 : 0),
+              duration: const Duration(milliseconds: 900),
+              curve: Curves.easeOutCubic,
+              builder: (BuildContext context, double lit, Widget? _) =>
+                  AmbientClock(
+                builder: (BuildContext context, double seconds, Widget? _) =>
+                    CustomPaint(
+                  painter: _HaloPainter(
+                    color: held ? AppColors.cool : fire.main,
+                    lit: lit,
+                    breath: 0.5 + 0.5 * math.sin(seconds * 1.8),
                   ),
                 ),
               ),
-              // Funki floats: a slow bob inside the orb.
-              Transform.translate(
-                offset: Offset(0, math.sin(seconds * 1.6) * size * 0.015),
-                child: mascot,
+            ),
+          ),
+          if (n == 0 || held)
+            Positioned.fill(
+              child: CustomPaint(
+                painter: _RestPainter(
+                  color: held ? AppColors.cool : AppColors.textTertiary,
+                  solid: held,
+                ),
               ),
-            ],
+            )
+          else
+            for (int i = 0; i < n; i++)
+              Positioned.fill(
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween<double>(end: parts[i].clamp(0.0, 1.0)),
+                  duration: const Duration(milliseconds: 700),
+                  curve: Curves.easeOutCubic,
+                  builder: (BuildContext context, double part, Widget? _) =>
+                      CustomPaint(
+                    painter: _SegmentPainter(
+                      start: -math.pi / 2 + gap / 2 + i * (sweep + gap),
+                      sweep: sweep,
+                      part: part,
+                      fire: fire,
+                    ),
+                  ),
+                ),
+              ),
+          // Funki floats: a slow bob inside the ring.
+          AmbientClock(
+            builder: (BuildContext context, double seconds, Widget? mascot) =>
+                Transform.translate(
+              offset: Offset(0, math.sin(seconds * 1.6) * size * 0.014),
+              child: mascot,
+            ),
+            child: FlameMascot(
+              stage: stage,
+              mood: mood,
+              size: size * 0.74,
+              onPoke: onPoke,
+              semanticLabel: mascotLabel,
+            ),
           ),
-          child: FlameMascot(
-            stage: stage,
-            mood: mood,
-            size: size * 0.66,
-            onPoke: onPoke,
-            semanticLabel: mascotLabel,
-          ),
-        ),
+        ],
       ),
     );
   }
 }
 
-class _OrbitPainter extends CustomPainter {
-  _OrbitPainter({
-    required this.progress,
-    required this.dayInCycle,
-    required this.cycleLength,
-    required this.seconds,
-    required this.atRisk,
+const double _stroke = 7;
+
+class _SegmentPainter extends CustomPainter {
+  _SegmentPainter({
+    required this.start,
+    required this.sweep,
+    required this.part,
+    required this.fire,
   });
 
-  final double progress;
-  final int dayInCycle;
-  final int cycleLength;
-  final double seconds;
-  final bool atRisk;
-
-  static const double _start = -math.pi / 2;
-
-  Offset _on(Offset center, double radius, double fraction) {
-    final double a = _start + math.pi * 2 * fraction;
-    return center + Offset(math.cos(a), math.sin(a)) * radius;
-  }
+  final double start;
+  final double sweep;
+  final double part;
+  final Fire fire;
 
   @override
   void paint(Canvas canvas, Size size) {
     final Offset center = size.center(Offset.zero);
-    final double orbit = size.width / 2 - 9;
-    final double pulse = 0.5 + 0.5 * math.sin(seconds * 3.2);
-
-    // The orb Funki floats in.
-    final double orb = size.width * 0.37;
-    canvas.drawCircle(
-      center,
-      orb,
-      Paint()
-        ..shader = RadialGradient(
-          colors: <Color>[
-            AppColors.primary.withValues(alpha: 0.42),
-            AppColors.hot.withValues(alpha: 0.12),
-            AppColors.primary.withValues(alpha: 0),
-          ],
-          stops: const <double>[0, 0.65, 1],
-        ).createShader(Rect.fromCircle(center: center, radius: orb)),
-    );
-    canvas.drawCircle(
-      center,
-      orb,
+    final Rect rect =
+        Rect.fromCircle(center: center, radius: size.width / 2 - _stroke);
+    canvas.drawArc(
+      rect,
+      start,
+      sweep,
+      false,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2
-        ..shader = SweepGradient(
-          transform: GradientRotation(seconds * 0.4),
-          colors: <Color>[
-            Colors.white.withValues(alpha: 0.35),
-            Colors.white.withValues(alpha: 0.02),
-            Colors.white.withValues(alpha: 0.35),
-          ],
-        ).createShader(Rect.fromCircle(center: center, radius: orb)),
+        ..strokeWidth = _stroke
+        ..strokeCap = StrokeCap.round
+        ..color = Colors.white.withValues(alpha: 0.1),
     );
+    if (part <= 0) return;
+    final double lit = math.max(sweep * part, 0.001);
+    final Shader shader = SweepGradient(
+      transform: GradientRotation(start - 0.2),
+      colors: <Color>[fire.main, fire.light, fire.far ?? fire.light],
+      stops: <double>[0, (sweep + 0.2) / (math.pi * 2) * 0.6, 1],
+    ).createShader(rect);
+    // Only a finished segment gives off light.
+    if (part >= 1) {
+      canvas.drawArc(
+        rect,
+        start,
+        lit,
+        false,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = _stroke + 6
+          ..strokeCap = StrokeCap.round
+          ..color = fire.main.withValues(alpha: 0.5)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+      );
+    }
+    canvas.drawArc(
+      rect,
+      start,
+      lit,
+      false,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = _stroke
+        ..strokeCap = StrokeCap.round
+        ..shader = shader,
+    );
+  }
 
-    // The dashed inner ring, turning.
-    final double dashes = size.width * 0.43;
-    final Paint dash = Paint()
+  @override
+  bool shouldRepaint(_SegmentPainter oldDelegate) =>
+      oldDelegate.part != part ||
+      oldDelegate.start != start ||
+      oldDelegate.sweep != sweep ||
+      oldDelegate.fire != fire;
+}
+
+class _RestPainter extends CustomPainter {
+  _RestPainter({required this.color, required this.solid});
+
+  final Color color;
+  final bool solid;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Offset center = size.center(Offset.zero);
+    final Rect rect =
+        Rect.fromCircle(center: center, radius: size.width / 2 - _stroke);
+    final Paint paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
-      ..strokeCap = StrokeCap.round
-      ..color = AppColors.primarySoft.withValues(alpha: 0.28);
-    const int count = 36;
-    for (int i = 0; i < count; i++) {
-      final double a = seconds * 0.18 + i * math.pi * 2 / count;
-      canvas.drawArc(Rect.fromCircle(center: center, radius: dashes), a,
-          math.pi * 2 / count * 0.45, false, dash);
-    }
-
-    // The orbit track.
-    canvas.drawCircle(
-      center,
-      orbit,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 7
-        ..color = Colors.white.withValues(alpha: 0.07),
-    );
-
-    final Rect rect = Rect.fromCircle(center: center, radius: orbit);
-    if (progress > 0) {
-      final Shader shader = const SweepGradient(
-        transform: GradientRotation(_start),
-        colors: <Color>[
-          AppColors.hot,
-          Color(0xFFD946EF),
-          AppColors.primary,
-          AppColors.social,
-          AppColors.reward,
-        ],
-        stops: <double>[0, 0.25, 0.5, 0.75, 1],
-      ).createShader(rect);
-      final double sweep = math.pi * 2 * progress;
-      canvas.drawArc(
-        rect,
-        _start,
-        sweep,
-        false,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 14
-          ..strokeCap = StrokeCap.round
-          ..shader = shader
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 9),
-      );
-      canvas.drawArc(
-        rect,
-        _start,
-        sweep,
-        false,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 7
-          ..strokeCap = StrokeCap.round
-          ..shader = shader,
-      );
-    }
-
-    // Milestones as planets.
-    int? next;
-    for (final int m in kMilestoneDays) {
-      if (m > cycleLength) break;
-      if (m > dayInCycle && next == null) next = m;
-    }
-    for (final int m in kMilestoneDays) {
-      if (m > cycleLength) break;
-      final Offset p = _on(center, orbit, m / cycleLength);
-      if (m <= dayInCycle) {
-        canvas.drawCircle(
-          p,
-          8,
-          Paint()
-            ..color = AppColors.reward.withValues(alpha: 0.5)
-            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
-        );
-        canvas.drawCircle(
-          p,
-          4.6,
-          Paint()
-            ..shader = const RadialGradient(
-              center: Alignment(-0.4, -0.4),
-              colors: <Color>[Colors.white, AppColors.reward],
-            ).createShader(Rect.fromCircle(center: p, radius: 4.6)),
-        );
-      } else if (m == next) {
-        canvas.drawCircle(
-          p,
-          6 + pulse * 3,
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.8
-            ..color = AppColors.glow.withValues(alpha: 0.3 + 0.6 * pulse),
-        );
-        canvas.drawCircle(p, 3.4, Paint()..color = AppColors.glow);
-      } else {
-        canvas.drawCircle(
-            p, 2.8, Paint()..color = Colors.white.withValues(alpha: 0.25));
-      }
-    }
-
-    // The comet: today, with a trail of sparks behind it.
-    if (progress > 0) {
-      final Color head = atRisk ? AppColors.hot : AppColors.glow;
-      for (int i = 6; i >= 1; i--) {
-        final double back = progress - i * 0.008;
-        if (back <= 0) continue;
-        canvas.drawCircle(
-          _on(center, orbit, back),
-          4.5 - i * 0.5,
-          Paint()..color = head.withValues(alpha: 0.5 - i * 0.07),
-        );
-      }
-      final Offset p = _on(center, orbit, progress);
+      ..strokeCap = StrokeCap.round;
+    if (solid) {
       canvas.drawCircle(
-        p,
-        13 + pulse * 4,
-        Paint()
-          ..color = head.withValues(alpha: 0.55)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 9),
+        center,
+        rect.width / 2,
+        paint
+          ..strokeWidth = _stroke
+          ..color = color.withValues(alpha: 0.85),
       );
-      canvas.drawCircle(p, 6, Paint()..color = Colors.white);
+      return;
+    }
+    paint
+      ..strokeWidth = 2.4
+      ..color = color.withValues(alpha: 0.7);
+    const int dots = 44;
+    for (int i = 0; i < dots; i++) {
+      canvas.drawArc(rect, i * math.pi * 2 / dots, 0.012, false, paint);
     }
   }
 
   @override
-  bool shouldRepaint(_OrbitPainter oldDelegate) =>
-      oldDelegate.progress != progress ||
-      oldDelegate.seconds != seconds ||
-      oldDelegate.dayInCycle != dayInCycle ||
-      oldDelegate.atRisk != atRisk;
+  bool shouldRepaint(_RestPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.solid != solid;
+}
+
+class _HaloPainter extends CustomPainter {
+  _HaloPainter({required this.color, required this.lit, required this.breath});
+
+  final Color color;
+  final double lit;
+  final double breath;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Offset center = size.center(Offset.zero);
+    final double radius = size.width * (0.40 + 0.08 * lit);
+    final double alpha = 0.16 + 0.22 * lit + 0.05 * breath;
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..shader = RadialGradient(
+          colors: <Color>[
+            color.withValues(alpha: alpha),
+            color.withValues(alpha: alpha * 0.35),
+            color.withValues(alpha: 0),
+          ],
+          stops: const <double>[0, 0.6, 1],
+        ).createShader(Rect.fromCircle(center: center, radius: radius)),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_HaloPainter oldDelegate) =>
+      oldDelegate.color != color ||
+      oldDelegate.lit != lit ||
+      oldDelegate.breath != breath;
 }

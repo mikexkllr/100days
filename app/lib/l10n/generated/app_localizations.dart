@@ -463,6 +463,24 @@ abstract class AppLocalizations {
   /// **'100 Days'**
   String get appTitle;
 
+  /// No description provided for @boardMilestone.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestone day {day} in {days, plural, =1{1 day} other{{days} days}}'**
+  String boardMilestone(int day, int days);
+
+  /// No description provided for @boardSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} done · {left} to go'**
+  String boardSummary(int done, int left);
+
+  /// No description provided for @boardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {days} days'**
+  String boardTitle(int days);
+
   /// No description provided for @celebrateBonusCycle.
   ///
   /// In en, this message translates to:
@@ -929,6 +947,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share'**
   String get ctaShare;
+
+  /// No description provided for @dayDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Day done'**
+  String get dayDone;
+
+  /// No description provided for @dayFrozen.
+  ///
+  /// In en, this message translates to:
+  /// **'Frozen'**
+  String get dayFrozen;
+
+  /// No description provided for @dayMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed'**
+  String get dayMissed;
+
+  /// No description provided for @dayNotLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Not logged'**
+  String get dayNotLogged;
+
+  /// No description provided for @dayOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Still open'**
+  String get dayOpen;
+
+  /// No description provided for @dayRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest day'**
+  String get dayRest;
+
+  /// No description provided for @dayUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Still to come'**
+  String get dayUpcoming;
 
   /// No description provided for @diaryClose.
   ///
@@ -5667,6 +5727,12 @@ abstract class AppLocalizations {
   /// **'Really delete everything?'**
   String get setWipeTitle;
 
+  /// No description provided for @skyStars.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No star in your sky yet. The first comes with the first day you finish.} =1{1 star in your sky — one for every day you finish.} other{{count} stars in your sky — one for every day you finish.}}'**
+  String skyStars(int count);
+
   /// No description provided for @socialTabFeed.
   ///
   /// In en, this message translates to:
@@ -6050,6 +6116,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done · {target}'**
   String tileDoneWith(String target);
+
+  /// No description provided for @tileHoldExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Press and hold to check in.'**
+  String get tileHoldExplain;
 
   /// No description provided for @tileHoldHint.
   ///

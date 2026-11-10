@@ -239,6 +239,27 @@ class AppLocalizationsDe extends AppLocalizations {
   String get appTitle => '100 Tage';
 
   @override
+  String boardMilestone(int day, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days Tagen',
+      one: '1 Tag',
+    );
+    return 'Meilenstein Tag $day in $_temp0';
+  }
+
+  @override
+  String boardSummary(int done, int left) {
+    return '$done geschafft · $left vor dir';
+  }
+
+  @override
+  String boardTitle(int days) {
+    return 'Deine $days Tage';
+  }
+
+  @override
   String get celebrateBonusCycle => 'ZYKLUS';
 
   @override
@@ -625,6 +646,27 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get ctaShare => 'Teilen';
+
+  @override
+  String get dayDone => 'Tag geschafft';
+
+  @override
+  String get dayFrozen => 'Eingefroren';
+
+  @override
+  String get dayMissed => 'Verpasst';
+
+  @override
+  String get dayNotLogged => 'Nicht eingetragen';
+
+  @override
+  String get dayOpen => 'Noch offen';
+
+  @override
+  String get dayRest => 'Pausentag';
+
+  @override
+  String get dayUpcoming => 'Kommt noch';
 
   @override
   String get diaryClose => 'Tag abschließen';
@@ -3450,6 +3492,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get setWipeTitle => 'Wirklich alles löschen?';
 
   @override
+  String skyStars(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Sterne stehen an deinem Himmel — einer für jeden geschafften Tag.',
+      one: '1 Stern steht an deinem Himmel — einer für jeden geschafften Tag.',
+      zero:
+          'Noch kein Stern an deinem Himmel. Der erste kommt mit dem ersten geschafften Tag.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get socialTabFeed => 'Feed';
 
   @override
@@ -3690,6 +3746,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String tileDoneWith(String target) {
     return 'Erledigt · $target';
   }
+
+  @override
+  String get tileHoldExplain => 'Gedrückt halten zum Eintragen.';
 
   @override
   String get tileHoldHint => 'Halten';

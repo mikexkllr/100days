@@ -238,6 +238,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => '100 Days';
 
   @override
+  String boardMilestone(int day, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '1 day',
+    );
+    return 'Milestone day $day in $_temp0';
+  }
+
+  @override
+  String boardSummary(int done, int left) {
+    return '$done done · $left to go';
+  }
+
+  @override
+  String boardTitle(int days) {
+    return 'Your $days days';
+  }
+
+  @override
   String get celebrateBonusCycle => 'CYCLE';
 
   @override
@@ -623,6 +644,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ctaShare => 'Share';
+
+  @override
+  String get dayDone => 'Day done';
+
+  @override
+  String get dayFrozen => 'Frozen';
+
+  @override
+  String get dayMissed => 'Missed';
+
+  @override
+  String get dayNotLogged => 'Not logged';
+
+  @override
+  String get dayOpen => 'Still open';
+
+  @override
+  String get dayRest => 'Rest day';
+
+  @override
+  String get dayUpcoming => 'Still to come';
 
   @override
   String get diaryClose => 'Close the day';
@@ -3440,6 +3482,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setWipeTitle => 'Really delete everything?';
 
   @override
+  String skyStars(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count stars in your sky — one for every day you finish.',
+      one: '1 star in your sky — one for every day you finish.',
+      zero:
+          'No star in your sky yet. The first comes with the first day you finish.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get socialTabFeed => 'Feed';
 
   @override
@@ -3680,6 +3735,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String tileDoneWith(String target) {
     return 'Done · $target';
   }
+
+  @override
+  String get tileHoldExplain => 'Press and hold to check in.';
 
   @override
   String get tileHoldHint => 'Hold';

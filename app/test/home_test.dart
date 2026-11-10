@@ -6,9 +6,13 @@ import 'package:hundred_days/data/app_repository.dart';
 import 'package:hundred_days/l10n/l10n.dart';
 import 'package:hundred_days/ui/celebration/day_complete.dart';
 import 'package:hundred_days/ui/home/home_screen.dart';
+import 'package:hundred_days/ui/home/day_sheet.dart';
 import 'package:hundred_days/ui/home/streak_hero.dart';
+import 'package:hundred_days/ui/home/today.dart';
 import 'package:hundred_days/ui/home/week_strip.dart';
 import 'package:hundred_days/ui/mascot/flame_mascot.dart';
+import 'package:hundred_days/ui/motion/rolling_number.dart';
+import 'package:hundred_days/ui/widgets/day_board.dart';
 import 'package:hundred_days/ui/widgets/habit_tile.dart';
 import 'package:hundred_days/ui/widgets/hold_button.dart';
 import 'package:hundred_days/ui/widgets/pressure_banner.dart';
@@ -39,8 +43,7 @@ void main() {
   }) async {
     // Taller than any phone on purpose: the home screen is a lazily built
     // scroll view, so whatever lies below the fold is unbuilt or offstage and
-    // invisible to finders. The flame takes the first screen to itself, so
-    // the coach card at the bottom only fits from about 1600 logical pixels.
+    // invisible to finders — the coach card and the board at the bottom.
     tester.view.physicalSize = const Size(1080, 7200);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.resetPhysicalSize);
@@ -68,12 +71,12 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('shows the streak ring and today\'s habits',
+  testWidgets('shows Funki in the ring of today and today\'s habits',
       (WidgetTester tester) async {
     await startChallenge();
     await pump(tester);
 
-    expect(find.byType(StreakRing), findsOneWidget);
+    expect(find.byType(TodayRing), findsOneWidget);
     expect(find.byType(FlameMascot), findsOneWidget);
     expect(find.text('Tag 1 / 100'), findsOneWidget);
     expect(find.byType(HabitTile), findsNWidgets(2));
@@ -361,5 +364,175 @@ void main() {
 
     final AppSnapshot snapshot = await repository.snapshot();
     expect(snapshot.me.streak.doneToday, isTrue);
+  });
+
+  testWidgets('the ring has a segment per habit and closes with the day',
+      (WidgetTester tester) async {
+    await startChallenge();
+    await pump(tester);
+
+    TodayRing ring() => tester.widget<TodayRing>(find.byType(TodayRing));
+    expect(ring().parts, <double>[0, 0]);
+
+    await holdToIgnite(tester, 'Heute clean');
+    expect(ring().parts, <double>[1, 0]);
+  });
+
+  testWidgets('the streak is hollow while today is open and lit once it is safe',
+      (WidgetTester tester) async {
+    // A streak that is alive and at stake: every day before today done.
+    final Challenge challenge = testChallenge(
+      startDay: DayKey.today().addDays(-3),
+      habits: <HabitCategory>[HabitCategory.noSugar],
+    );
+    await repository.saveProfile(displayName: 'Mike', avatarEmoji: '🐺');
+    await repository.startChallenge(challenge);
+    for (int i = 3; i >= 1; i--) {
+      await repository.checkIn(
+        habit: challenge.habits.single,
+        day: DayKey.today().addDays(-i),
+        challenge: challenge,
+      );
+    }
+    await pump(tester);
+
+    RollingNumber number() => tester.widget<RollingNumber>(
+          find.descendant(
+            of: find.byType(StreakHero),
+            matching: find.byType(RollingNumber),
+          ),
+        );
+    expect(number().value, 3);
+    expect(number().stroke, isNotNull, reason: 'at stake: an outline');
+    expect(number().gradient, isNull);
+
+    await holdToIgnite(tester, 'Heute clean');
+    await tester.tap(find.byKey(const Key('celebration-continue')));
+    await tester.pumpAndSettle();
+
+    expect(number().value, 4);
+    expect(number().stroke, isNull);
+    expect(number().gradient, isNotNull, reason: 'safe: filled with fire');
+  });
+
+  testWidgets('a tap on a row opens what else it can do',
+      (WidgetTester tester) async {
+    await startChallenge();
+    await pump(tester);
+
+    // A relapse is not on the row itself: one tap away.
+    expect(find.text('Rückfall'), findsNothing);
+    await tester.tap(find.text('Kein Zucker'));
+    await tester.pumpAndSettle();
+    expect(find.text('Rückfall'), findsOneWidget);
+
+    // Reading takes a number: the stepper and a button to log it.
+    await tester.tap(find.text('Lesen'));
+    await tester.pumpAndSettle();
+    expect(find.text('20 Seiten'), findsWidgets);
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Eintragen'));
+    await tester.pumpAndSettle();
+
+    final AppSnapshot snapshot = await repository.snapshot();
+    final CheckIn entry =
+        snapshot.me.logsByDay[snapshot.today.toString()]!.entryFor('reading')!;
+    expect(entry.value, 25);
+    // And nothing was logged for the row that was only opened.
+    expect(
+      snapshot.me.logsByDay[snapshot.today.toString()]!.entryFor('noSugar'),
+      isNull,
+    );
+  });
+
+  testWidgets('less than the target is progress, not a finished habit',
+      (WidgetTester tester) async {
+    await startChallenge(habits: <HabitCategory>[HabitCategory.reading]);
+    await pump(tester);
+
+    await tester.tap(find.text('Lesen'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.remove));
+    await tester.tap(find.byIcon(Icons.remove));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Eintragen'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(DayCompleteCelebration), findsNothing);
+    expect(find.text('10 / 20 Seiten'), findsOneWidget);
+    expect(tester.widget<TodayRing>(find.byType(TodayRing)).parts, <double>[0.5]);
+    expect(find.byType(DoneBadge), findsNothing);
+  });
+
+  testWidgets('a day of the week opens what was logged on it',
+      (WidgetTester tester) async {
+    await startChallenge(habits: <HabitCategory>[HabitCategory.noSugar]);
+    await pump(tester);
+    await holdToIgnite(tester, 'Heute clean');
+    await tester.tap(find.byKey(const Key('celebration-continue')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.descendant(
+      of: find.byType(WeekStrip),
+      matching: find.byIcon(Icons.check_rounded),
+    ));
+    await tester.pumpAndSettle();
+
+    final Finder sheet = find.byType(DaySheet);
+    expect(sheet, findsOneWidget);
+    expect(find.descendant(of: sheet, matching: find.text('Tag geschafft')),
+        findsOneWidget);
+    expect(find.descendant(of: sheet, matching: find.text('Kein Zucker')),
+        findsOneWidget);
+  });
+
+  testWidgets('the cycle is a board with a lamp for every day',
+      (WidgetTester tester) async {
+    await startChallenge(habits: <HabitCategory>[HabitCategory.noSugar]);
+    await pump(tester);
+
+    DayBoard board() => tester.widget<DayBoard>(find.byType(DayBoard));
+    expect(board().marks, hasLength(100));
+    expect(board().marks.first, DayMark.open);
+    expect(board().todayIndex, 0);
+    expect(find.text('Deine 100 Tage'), findsOneWidget);
+
+    await holdToIgnite(tester, 'Heute clean');
+    await tester.tap(find.byKey(const Key('celebration-continue')));
+    await tester.pumpAndSettle();
+    expect(board().marks.first, DayMark.done);
+    expect(board().marks.skip(1).toSet(), <DayMark>{DayMark.upcoming});
+  });
+
+  test('the aurora stands as high as today is done', () async {
+    await startChallenge();
+    TodayState of(AppSnapshot snapshot) => TodayState.of(snapshot);
+
+    final TodayState open = of(await repository.snapshot());
+    expect(open.glow, 0);
+    expect(open.complete, isFalse);
+
+    final Challenge challenge = (await repository.snapshot()).challenge!;
+    await repository.checkIn(
+      habit: challenge.habits.first,
+      day: DayKey.today(),
+      challenge: challenge,
+    );
+    final TodayState half = of(await repository.snapshot());
+    expect(half.parts, <double>[1, 0]);
+    expect(half.glow, greaterThan(0));
+    expect(half.glow, lessThan(1));
+
+    await repository.checkIn(
+      habit: challenge.habits.last,
+      day: DayKey.today(),
+      challenge: challenge,
+    );
+    final TodayState done = of(await repository.snapshot());
+    expect(done.complete, isTrue);
+    expect(done.glow, 1);
+    // One finished day, one star.
+    expect((await repository.snapshot()).me.streak.completedDays, 1);
   });
 }

@@ -154,6 +154,36 @@
   "aiWhatItSeesBody": "Streak, day number, your habits and whether your friends were active today — as text, straight to the model on this device. No network call, no telemetry, no copy in anyone’s cloud.",
   "aiWhatItSeesTitle": "What the model sees",
   "appTitle": "100 Days",
+  "boardMilestone": "Milestone day {day} in {days, plural, =1{1 day} other{{days} days}}",
+  "@boardMilestone": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "boardSummary": "{done} done · {left} to go",
+  "@boardSummary": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "left": {
+        "type": "int"
+      }
+    }
+  },
+  "boardTitle": "Your {days} days",
+  "@boardTitle": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "celebrateBonusCycle": "CYCLE",
   "celebrateBonusEvolution": "EVOLVED",
   "celebrateBonusLevel": "LEVEL UP",
@@ -532,6 +562,13 @@
   "ctaRescue": "Rescue it",
   "ctaRestart": "Start over",
   "ctaShare": "Share",
+  "dayDone": "Day done",
+  "dayFrozen": "Frozen",
+  "dayMissed": "Missed",
+  "dayNotLogged": "Not logged",
+  "dayOpen": "Still open",
+  "dayRest": "Rest day",
+  "dayUpcoming": "Still to come",
   "diaryClose": "Close the day",
   "diaryCloseOnTarget": "Close the day — on target",
   "diaryClosedPlain": "Day ticked off.",
@@ -2411,6 +2448,14 @@
   "setWipeBody": "Without your recovery key nothing can be restored afterwards — there is no server holding a copy. That is the price of nobody else holding one either.",
   "setWipeSub": "Remove identity, challenge and all friends.",
   "setWipeTitle": "Really delete everything?",
+  "skyStars": "{count, plural, =0{No star in your sky yet. The first comes with the first day you finish.} =1{1 star in your sky — one for every day you finish.} other{{count} stars in your sky — one for every day you finish.}}",
+  "@skyStars": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "socialTabFeed": "Feed",
   "socialTabFriends": "Friends ({count})",
   "@socialTabFriends": {
@@ -2605,6 +2650,7 @@
       }
     }
   },
+  "tileHoldExplain": "Press and hold to check in.",
   "tileHoldHint": "Hold",
   "tileLogAmount": "Log",
   "tileRelapse": "Relapse",

@@ -7,11 +7,14 @@ import 'package:hundred_core/hundred_core.dart';
 import '../../data/app_repository.dart';
 import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
+import '../../theme/fire.dart';
 import '../../theme/theme.dart';
+import '../home/day_sheet.dart';
 import '../home/flame_evolution_sheet.dart';
+import '../home/week_strip.dart';
 import '../mascot/flame_painter.dart';
 import '../widgets/app_card.dart';
-import '../widgets/heatmap.dart';
+import '../widgets/day_board.dart';
 
 /// The receipts.
 class StatsScreen extends ConsumerWidget {
@@ -31,15 +34,19 @@ class StatsScreen extends ConsumerWidget {
         final int xp = snapshot.me.lifetimeXp;
         final int level = levelForXp(xp);
 
+        final Fire fire = Fire.ofStreak(streak.current);
+
         return ListView(
-          padding: const EdgeInsets.fromLTRB(
+          padding: EdgeInsets.fromLTRB(
             AppSpacing.md,
+            AppSpacing.sm,
             AppSpacing.md,
-            AppSpacing.md,
-            AppSpacing.xxl,
+            AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
           ),
           children: <Widget>[
-            _FlameCard(streak: streak.current),
+            _FlameCard(streak: streak.current, fire: fire),
+            const SizedBox(height: AppSpacing.md),
+            _BoardCard(snapshot: snapshot, fire: fire),
             const SizedBox(height: AppSpacing.md),
             AppCard(
               child: Column(
@@ -51,7 +58,7 @@ class StatsScreen extends ConsumerWidget {
                         child: StatTile(
                           value: '${streak.current}',
                           label: l10n.statsCurrentStreak,
-                          color: AppColors.primary,
+                          color: fire.light,
                           icon: Icons.local_fire_department,
                         ),
                       ),
@@ -63,14 +70,13 @@ class StatsScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  const Divider(height: AppSpacing.lg),
+                  const Divider(height: AppSpacing.lg + 8),
                   Row(
                     children: <Widget>[
                       Expanded(
                         child: StatTile(
                           value: '${streak.completedDays}',
                           label: l10n.statsFullDays,
-                          color: AppColors.success,
                         ),
                       ),
                       Expanded(
@@ -87,29 +93,6 @@ class StatsScreen extends ConsumerWidget {
             ),
             SectionHeader(l10n.statsLevel),
             _LevelCard(xp: xp, level: level),
-            SectionHeader(
-              l10n.profileHistory,
-              subtitle: l10n.statsHistorySince('${challenge.startDay}'),
-            ),
-            AppCard(
-              child: Column(
-                children: <Widget>[
-                  ChallengeHeatmap(
-                    startDay: challenge.startDay,
-                    today: snapshot.today,
-                    weeks: math.max(
-                      16,
-                      (snapshot.today.differenceInDays(challenge.startDay) ~/ 7)
-                          + 2,
-                    ),
-                    intensityForDay: (DayKey day) =>
-                        _intensity(snapshot, challenge, day),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  const HeatmapLegend(),
-                ],
-              ),
-            ),
             SectionHeader(l10n.statsWeeklyXp),
             AppCard(child: _WeeklyXpChart(snapshot: snapshot)),
             SectionHeader(l10n.statsPerHabit),
@@ -130,18 +113,6 @@ class StatsScreen extends ConsumerWidget {
     );
   }
 
-  double _intensity(AppSnapshot snapshot, Challenge challenge, DayKey day) {
-    final DayLog? log = snapshot.me.logsByDay[day.toString()];
-    if (log == null || log.entries.isEmpty) return 0;
-    if (log.hasRelapse) return 0.25;
-    final List<Habit> required = requiredHabitsOn(challenge, day);
-    final int denominator =
-        required.isEmpty ? challenge.habits.length : required.length;
-    if (denominator == 0) return 0;
-    final int done = log.entries.where((CheckIn e) => !e.relapse).length;
-    return (done / denominator).clamp(0.25, 1.0);
-  }
-
   int _countDone(AppSnapshot snapshot, Habit habit) {
     var count = 0;
     for (final DayLog log in snapshot.me.logsByDay.values) {
@@ -156,9 +127,10 @@ class StatsScreen extends ConsumerWidget {
 
 /// The current form of the flame and the way to the next one.
 class _FlameCard extends StatelessWidget {
-  const _FlameCard({required this.streak});
+  const _FlameCard({required this.streak, required this.fire});
 
   final int streak;
+  final Fire fire;
 
   @override
   Widget build(BuildContext context) {
@@ -168,8 +140,6 @@ class _FlameCard extends StatelessWidget {
     final int? toNext = daysToNextStage(streak);
     return AppCard(
       onTap: () => showFlameEvolution(context, streak: streak),
-      border: AppColors.primary.withValues(alpha: 0.5),
-      glow: AppColors.primary.withValues(alpha: 0.6),
       child: Row(
         children: <Widget>[
           CustomPaint(
@@ -186,13 +156,8 @@ class _FlameCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(
-                  l10n.statsFlameTitle.toUpperCase(),
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelSmall
-                      ?.copyWith(color: AppColors.textTertiary),
-                ),
+                Text(l10n.statsFlameTitle.toUpperCase(), style: labelStyle()),
+                const SizedBox(height: 2),
                 Text(l10n.stageName(stage),
                     style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: AppSpacing.xs),
@@ -203,21 +168,188 @@ class _FlameCard extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium
-                      ?.copyWith(color: AppColors.primarySoft),
+                      ?.copyWith(color: AppColors.textSecondary),
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                ClipRRect(
-                  borderRadius: AppRadius.pill,
-                  child: LinearProgressIndicator(
-                    value: stageProgress(streak),
-                    minHeight: 8,
-                    backgroundColor: AppColors.surfaceHigh,
-                  ),
-                ),
+                const SizedBox(height: AppSpacing.sm + 2),
+                FireBar(value: stageProgress(streak), fire: fire),
               ],
             ),
           ),
           const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+        ],
+      ),
+    );
+  }
+}
+
+/// A bar that fills with fire.
+class FireBar extends StatelessWidget {
+  const FireBar({
+    super.key,
+    required this.value,
+    required this.fire,
+    this.height = 6,
+  });
+
+  final double value;
+  final Fire fire;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: AppRadius.pill,
+      child: SizedBox(
+        height: height,
+        child: Stack(
+          fit: StackFit.expand,
+          children: <Widget>[
+            const ColoredBox(color: AppColors.glassHigh),
+            FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: value.clamp(0.02, 1.0),
+              child: DecoratedBox(
+                decoration: BoxDecoration(gradient: fire.sweep),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The cycle as a board of lamps, ten by ten, with what the marks mean and
+/// the next milestone on the way. Tap a day to see what was logged on it.
+class _BoardCard extends StatelessWidget {
+  const _BoardCard({required this.snapshot, required this.fire});
+
+  final AppSnapshot snapshot;
+  final Fire fire;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    final Challenge challenge = snapshot.challenge!;
+    final List<DayMark> marks = cycleMarks(snapshot);
+    final int done = marks.where((DayMark m) => m == DayMark.done).length;
+    final int dayInCycle = challenge.dayInCycle(snapshot.today);
+    final DayKey first = cycleStart(challenge, snapshot.today);
+    int? milestone;
+    for (final int m in kMilestoneDays) {
+      if (m > dayInCycle && m <= challenge.lengthDays) {
+        milestone = m;
+        break;
+      }
+    }
+    final TextStyle? note = Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: AppColors.textSecondary,
+          fontSize: 13,
+          height: 1.35,
+        );
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              Expanded(
+                child: Text(
+                  l10n.boardTitle(challenge.lengthDays),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              Flexible(
+                child: Text(
+                  l10n.boardSummary(
+                      done, math.max(0, challenge.lengthDays - dayInCycle)),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: note?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          DayBoard(
+            marks: marks,
+            fire: fire,
+            todayIndex: dayInCycle - 1,
+            onTapDay: (int index) => showDaySheet(
+              context,
+              snapshot: snapshot,
+              day: first.addDays(index),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Wrap(
+            spacing: AppSpacing.md,
+            runSpacing: AppSpacing.sm,
+            children: <Widget>[
+              for (final DayMark mark in const <DayMark>[
+                DayMark.done,
+                DayMark.frozen,
+                DayMark.missed,
+                DayMark.rest,
+              ])
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    SizedBox.square(
+                      dimension: 16,
+                      child: Center(
+                        child: mark == DayMark.done
+                            ? Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: fire.gradient,
+                                ),
+                              )
+                            : DayLamp(mark: mark, fire: fire, size: 16),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(l10n.dayMarkLabel(mark),
+                        style: note?.copyWith(fontSize: 12)),
+                  ],
+                ),
+            ],
+          ),
+          const Divider(height: AppSpacing.lg + 4),
+          if (milestone != null) ...<Widget>[
+            Row(
+              children: <Widget>[
+                const Icon(Icons.flag_outlined,
+                    size: 17, color: AppColors.textPrimary),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    l10n.boardMilestone(milestone, milestone - dayInCycle),
+                    style: note?.copyWith(color: AppColors.textPrimary),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+          ],
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const Padding(
+                padding: EdgeInsets.only(top: 1),
+                child: Icon(Icons.auto_awesome,
+                    size: 16, color: AppColors.textSecondary),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  l10n.skyStars(snapshot.me.streak.completedDays),
+                  style: note,
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -255,7 +387,7 @@ class _LevelCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 10,
-              backgroundColor: AppColors.surfaceHigh,
+              backgroundColor: AppColors.glassHigh,
               valueColor:
                   const AlwaysStoppedAnimation<Color>(AppColors.reward),
             ),
@@ -335,8 +467,8 @@ class _WeeklyXpChart extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: i == weeks.length - 1
                               ? AppColors.primary
-                              : AppColors.primary.withValues(alpha: 0.35),
-                          borderRadius: BorderRadius.circular(5),
+                              : AppColors.primary.withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                       ),
                     ),
@@ -406,12 +538,12 @@ class _HabitStatRow extends StatelessWidget {
             child: LinearProgressIndicator(
               value: rate,
               minHeight: 7,
-              backgroundColor: AppColors.surfaceHigh,
+              backgroundColor: AppColors.glassHigh,
               valueColor: AlwaysStoppedAnimation<Color>(
                 rate > 0.75
                     ? AppColors.success
                     : rate > 0.4
-                        ? AppColors.primary
+                        ? AppColors.primarySoft
                         : AppColors.danger,
               ),
             ),

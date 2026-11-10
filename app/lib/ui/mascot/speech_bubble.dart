@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../theme/theme.dart';
 import '../motion/motion.dart';
 
-/// What Funki says: a pane of dark glass with a neon rim that pops in and
-/// types its line out, its tail pointing at Funki.
+/// What Funki says: a quiet dark bubble that pops in and types its line
+/// out, its tail pointing at Funki.
 class SpeechBubble extends StatelessWidget {
   const SpeechBubble({
     super.key,
@@ -17,7 +17,7 @@ class SpeechBubble extends StatelessWidget {
   final String text;
   final double maxWidth;
 
-  /// The colour of the rim and the glow.
+  /// The colour of the rim — set when the line is urgent.
   final Color accent;
 
   /// Where along the bottom edge the tail sits, 0 (left) to 1 (right).
@@ -28,8 +28,8 @@ class SpeechBubble extends StatelessWidget {
     final TextStyle style = Theme.of(context).textTheme.bodyLarge!.copyWith(
           color: AppColors.textPrimary,
           fontWeight: FontWeight.w700,
-          fontSize: 14.5,
-          height: 1.35,
+          fontSize: 14,
+          height: 1.3,
         );
     final int ms = (text.length * 28).clamp(350, 1300);
     return ConstrainedBox(
@@ -48,7 +48,7 @@ class SpeechBubble extends StatelessWidget {
             child: CustomPaint(
               painter: _BubblePainter(accent: accent, tailAt: tailAt),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 11, 16, 11 + _tail),
+                padding: const EdgeInsets.fromLTRB(14, 9, 14, 9 + _tail),
                 // The whole line is laid out from the first frame, so the
                 // bubble does not grow while it types; the rest is clear.
                 child: Text.rich(
@@ -92,7 +92,7 @@ class _BubblePainter extends CustomPainter {
     return Path.combine(
       PathOperation.union,
       Path()
-        ..addRRect(RRect.fromRectAndRadius(body, const Radius.circular(20))),
+        ..addRRect(RRect.fromRectAndRadius(body, const Radius.circular(17))),
       tail,
     );
   }
@@ -100,35 +100,16 @@ class _BubblePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Path path = _outline(size);
-    final Rect bounds = Offset.zero & size;
     canvas.drawPath(
       path,
-      Paint()
-        ..color = accent.withValues(alpha: 0.35)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14),
-    );
-    canvas.drawPath(
-      path,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: <Color>[
-            Color.lerp(AppColors.surfaceHigh, accent, 0.18)!,
-            AppColors.surface,
-          ],
-        ).createShader(bounds),
+      Paint()..color = AppColors.surfaceHigh.withValues(alpha: 0.94),
     );
     canvas.drawPath(
       path,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.6
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: <Color>[accent, AppColors.hot.withValues(alpha: 0.8), AppColors.social],
-        ).createShader(bounds),
+        ..strokeWidth = 1.2
+        ..color = accent.withValues(alpha: accent == AppColors.primary ? 0.16 : 0.7),
     );
   }
 

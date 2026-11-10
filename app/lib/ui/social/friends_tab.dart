@@ -28,11 +28,12 @@ class FriendsTab extends ConsumerWidget {
             const <FriendRequest>[];
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         AppSpacing.md,
         AppSpacing.md,
         AppSpacing.md,
-        AppSpacing.xxl,
+        // The dock floats over the end of the list.
+        AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
       ),
       children: <Widget>[
         Row(

@@ -71,11 +71,12 @@ class _FeedTab extends ConsumerWidget {
       backgroundColor: AppColors.surface,
       onRefresh: () => ref.read(appStateProvider.notifier).syncNow(),
       child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(
+        padding: EdgeInsets.fromLTRB(
           AppSpacing.md,
           AppSpacing.md,
           AppSpacing.md,
-          AppSpacing.xxl,
+          // The dock floats over the end of the list.
+          AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
         ),
         itemCount: snapshot.activity.length,
         itemBuilder: (BuildContext context, int index) => Padding(

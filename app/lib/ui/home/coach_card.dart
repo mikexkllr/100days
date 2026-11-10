@@ -30,15 +30,6 @@ class CoachCard extends ConsumerWidget {
         if (directive == null) return const SizedBox.shrink();
         final Color accent = _accentFor(directive.tone);
         return AppCard(
-          border: accent.withValues(alpha: 0.45),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: <Color>[
-              accent.withValues(alpha: 0.14),
-              AppColors.surface,
-            ],
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -49,10 +40,7 @@ class CoachCard extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       l10n.coachHeadline(directive),
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(color: accent),
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
                   Pill(
@@ -66,7 +54,10 @@ class CoachCard extends ConsumerWidget {
               const SizedBox(height: AppSpacing.sm),
               Text(
                 l10n.coachBody(directive),
-                style: Theme.of(context).textTheme.bodyLarge,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: AppColors.textSecondary,
+                      fontSize: 15,
+                    ),
               ),
             ],
           ),
@@ -84,12 +75,12 @@ class CoachCard extends ConsumerWidget {
       case CoachTone.celebrate:
         return AppColors.success;
       case CoachTone.recover:
-        return AppColors.primarySoft;
+        return AppColors.cool;
       case CoachTone.raiseTheBar:
         return AppColors.success;
       case CoachTone.welcome:
       case CoachTone.steady:
-        return AppColors.primary;
+        return AppColors.reward;
     }
   }
 
