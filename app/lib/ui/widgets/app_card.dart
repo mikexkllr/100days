@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/fire.dart';
 import '../../theme/theme.dart';
 
-/// The one container the whole app uses: a pane of glass over the aurora,
-/// with a bright rim where the light hits it and an optional neon glow.
+/// The one container the whole app uses: a matte panel over the night sky,
+/// dark enough to read on whatever the sky is doing behind it. A panel has
+/// no colour unless it means something — then it takes a tint and a rim.
 class AppCard extends StatelessWidget {
   const AppCard({
     super.key,
@@ -19,50 +21,42 @@ class AppCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
 
-  /// Tints the glass.
+  /// Tints the panel.
   final Color? color;
 
-  /// Colours the rim instead of the neutral white edge.
+  /// Colours the rim instead of the neutral hairline.
   final Color? border;
   final VoidCallback? onTap;
 
-  /// Replaces the glass fill.
+  /// Replaces the fill.
   final Gradient? gradient;
+
+  /// A halo, for the rare panel that is lit.
   final Color? glow;
 
   @override
   Widget build(BuildContext context) {
-    final Color? rim = border;
     final Widget content = DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: AppRadius.cardAll,
-        // The rim is a gradient, drawn as the outer box under the fill.
-        gradient: AppGradients.edge(rim ?? Colors.white),
+        color: AppColors.ink.withValues(alpha: 0.58),
         boxShadow:
-            glow == null ? null : AppShadows.glow(glow!, strength: 0.75),
+            glow == null ? null : AppShadows.glow(glow!, strength: 0.7),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(1.2),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(25)),
-            // A glowing card sits on a darker base, so its own halo does
-            // not soak through the glass.
-            color: AppColors.ink.withValues(alpha: glow == null ? 0.55 : 0.88),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.cardAll,
+          gradient: gradient ?? AppGradients.card(color ?? Colors.white),
+          border: Border.all(
+            color: border ?? (color ?? Colors.white).withValues(
+                alpha: color == null ? 0.1 : 0.4),
           ),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.all(Radius.circular(25)),
-              gradient: gradient ?? AppGradients.card(color ?? Colors.white),
-            ),
-            // List tiles, switches and chips inside a card paint their ink
-            // on the nearest Material; without one here the fill would hide
-            // it.
-            child: Padding(
-              padding: padding,
-              child: Material(type: MaterialType.transparency, child: child),
-            ),
-          ),
+        ),
+        // List tiles, switches and chips inside a card paint their ink on
+        // the nearest Material; without one here the fill would hide it.
+        child: Padding(
+          padding: padding,
+          child: Material(type: MaterialType.transparency, child: child),
         ),
       ),
     );
@@ -79,7 +73,7 @@ class AppCard extends StatelessWidget {
   }
 }
 
-/// A section title with a short neon bar in front of it.
+/// A section title, with an optional line under it and an action beside it.
 class SectionHeader extends StatelessWidget {
   const SectionHeader(this.title, {super.key, this.action, this.subtitle});
 
@@ -90,24 +84,15 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm + 2, top: AppSpacing.lg),
+      padding: const EdgeInsets.only(
+        bottom: AppSpacing.sm + 4,
+        top: AppSpacing.lg + 4,
+        left: 2,
+        right: 2,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          Container(
-            width: 4,
-            height: subtitle == null ? 20 : 38,
-            margin: const EdgeInsets.only(right: AppSpacing.sm + 2),
-            decoration: BoxDecoration(
-              borderRadius: AppRadius.pill,
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: <Color>[AppColors.hot, AppColors.primary, AppColors.social],
-              ),
-              boxShadow: AppShadows.glow(AppColors.primary, strength: 0.6),
-            ),
-          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,7 +119,7 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-/// A face in a ring of light.
+/// A face in a ring.
 class EmojiAvatar extends StatelessWidget {
   const EmojiAvatar(
     this.emoji, {
@@ -154,33 +139,18 @@ class EmojiAvatar extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      padding: const EdgeInsets.all(2),
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: ringColor == null
-            ? AppGradients.edge()
-            : SweepGradient(
-                colors: <Color>[
-                  ringColor!,
-                  AppColors.social,
-                  AppColors.hot,
-                  ringColor!,
-                ],
-              ),
-        boxShadow: ringColor == null
-            ? null
-            : AppShadows.glow(ringColor!, strength: 0.5),
+        color: AppColors.surfaceHigh,
+        border: Border.all(
+          color: ringColor ?? AppColors.glassEdge,
+          width: ringColor == null ? 1 : 1.6,
+        ),
       ),
-      child: Container(
-        alignment: Alignment.center,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.surface,
-        ),
-        child: Opacity(
-          opacity: dimmed ? 0.45 : 1,
-          child: Text(emoji, style: TextStyle(fontSize: size * 0.44)),
-        ),
+      child: Opacity(
+        opacity: dimmed ? 0.45 : 1,
+        child: Text(emoji, style: TextStyle(fontSize: size * 0.46)),
       ),
     );
   }
@@ -310,7 +280,7 @@ class EmptyState extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: <Color>[
-                    AppColors.primary.withValues(alpha: 0.35),
+                    AppColors.primary.withValues(alpha: 0.14),
                     AppColors.primary.withValues(alpha: 0),
                   ],
                 ),
@@ -343,13 +313,19 @@ class EmptyState extends StatelessWidget {
   }
 }
 
-/// A tab bar as a segmented control: a glass track with a neon pill that
+/// A tab bar as a segmented control: a dim track with a pill of light that
 /// slides to the selected tab.
 class GlassTabBar extends StatelessWidget implements PreferredSizeWidget {
-  const GlassTabBar({super.key, required this.tabs, this.isScrollable = false});
+  const GlassTabBar({
+    super.key,
+    required this.tabs,
+    this.isScrollable = false,
+    this.labelPadding = const EdgeInsets.symmetric(horizontal: 14),
+  });
 
   final List<Widget> tabs;
   final bool isScrollable;
+  final EdgeInsetsGeometry labelPadding;
 
   @override
   Size get preferredSize => const Size.fromHeight(56);
@@ -369,7 +345,7 @@ class GlassTabBar extends StatelessWidget implements PreferredSizeWidget {
         child: TabBar(
           isScrollable: isScrollable,
           tabAlignment: isScrollable ? TabAlignment.start : TabAlignment.fill,
-          labelPadding: const EdgeInsets.symmetric(horizontal: 14),
+          labelPadding: labelPadding,
           tabs: tabs,
         ),
       ),
@@ -377,7 +353,8 @@ class GlassTabBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-/// A streak as a number with a small flame, in the app's own colours.
+/// A streak as a number with a small flame, in the colour that streak
+/// burns in — so a friend on day 60 looks different from one on day 6.
 class StreakCount extends StatelessWidget {
   const StreakCount(this.streak, {super.key, this.size = 15});
 
@@ -386,15 +363,16 @@ class StreakCount extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Fire fire = Fire.ofStreak(streak);
+    final Color color = streak > 0 ? fire.light : AppColors.textTertiary;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Text('$streak',
-            style: displayStyle(size,
-                color: AppColors.attention, weight: FontWeight.w700)),
+            style: displayStyle(size, color: color, weight: FontWeight.w700)),
         const SizedBox(width: 2),
         Icon(Icons.local_fire_department,
-            size: size + 3, color: AppColors.attention),
+            size: size + 3, color: streak > 0 ? fire.main : color),
       ],
     );
   }

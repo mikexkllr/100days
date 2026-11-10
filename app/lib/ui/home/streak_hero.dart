@@ -6,33 +6,36 @@ import 'package:hundred_core/hundred_core.dart';
 
 import '../../data/app_repository.dart';
 import '../../l10n/l10n.dart';
+import '../../theme/fire.dart';
 import '../../theme/theme.dart';
 import '../mascot/flame_painter.dart';
 import '../mascot/speech_bubble.dart';
-import '../motion/motion.dart';
-import '../motion/particles.dart';
 import '../motion/rolling_number.dart';
 import '../widgets/streak_ring.dart';
 import 'flame_evolution_sheet.dart';
+import 'today.dart';
 import 'week_strip.dart';
 
-/// Where the day stands, for the status line under the flame.
+/// Where the day stands, for the line under the streak.
 enum HeroStatus { open, done, rest, frozen, relapse }
 
-/// The top of the home screen: Funki in the ring of the cycle, what Funki
-/// has to say, the streak as a number that counts up, this week as a chain,
-/// and the clock that is running on today.
+/// The top of the home screen, straight on the sky: the streak as a number,
+/// Funki in the ring of today, the clock that is running on the day, this
+/// week as a chain of lamps and the way to Funki's next form.
+///
+/// The number says whether the streak is safe without a word: it is hollow
+/// while today is open, and it fills with fire once the day is done.
 class StreakHero extends StatefulWidget {
   const StreakHero({
     super.key,
     required this.snapshot,
-    this.onTapStatus,
+    this.onTapDay,
   });
 
   final AppSnapshot snapshot;
 
-  /// Tapping the status line — the home screen scrolls to today's habits.
-  final VoidCallback? onTapStatus;
+  /// A day of the week strip was tapped.
+  final ValueChanged<DayKey>? onTapDay;
 
   @override
   State<StreakHero> createState() => _StreakHeroState();
@@ -71,333 +74,222 @@ class _StreakHeroState extends State<StreakHero> {
     final Challenge challenge = snapshot.challenge!;
     final DayKey today = snapshot.today;
     final StreakStats streak = snapshot.me.streak;
-    final DayLog? log = snapshot.me.logsByDay[today.toString()];
+    final TodayState state = TodayState.of(snapshot);
+    final Fire fire = state.fire;
     final DateTime now = DateTime.now();
-    final Duration left = DateTime(now.year, now.month, now.day + 1).difference(now);
+    final Duration left =
+        DateTime(now.year, now.month, now.day + 1).difference(now);
 
-    final bool restDay = isRestDay(challenge, today);
-    final bool frozen = snapshot.me.frozenDays.contains(today.toString());
-    final bool relapse = log?.hasRelapse ?? false;
-    final HeroStatus status = relapse
+    final HeroStatus status = state.relapse
         ? HeroStatus.relapse
-        : streak.doneToday
+        : state.complete
             ? HeroStatus.done
-            : frozen
+            : state.frozen
                 ? HeroStatus.frozen
-                : restDay
+                : state.rest
                     ? HeroStatus.rest
                     : HeroStatus.open;
 
     final MascotMood mood = moodForToday(
-      doneToday: streak.doneToday,
-      restDay: restDay,
-      frozenToday: frozen,
-      relapseToday: relapse,
+      doneToday: state.complete,
+      restDay: state.rest,
+      frozenToday: state.frozen,
+      relapseToday: state.relapse,
       streak: streak.current,
       now: now,
     );
     final FlameStage stage = flameStageFor(streak.current);
-    final int dayNumber = challenge.dayNumber(today);
     final String line = _pokeLine ??
         l10n.mascotLineFor(
           mood,
-          day: dayNumber,
+          day: challenge.dayNumber(today),
           streak: streak.current,
           hoursLeft: left.inHours,
         );
-
     final bool worried = status == HeroStatus.open && mood == MascotMood.worried;
-    final FlameStage? next = stage.next;
-    final int? toNext = daysToNextStage(streak.current);
+    // Safe until tomorrow: done, held by a freeze, or nothing scheduled.
+    final bool safe = streak.current > 0 && !(streak.atRisk && !state.frozen);
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(32),
-        gradient: AppGradients.edge(worried ? AppColors.hot : AppColors.primary),
-        boxShadow: AppShadows.glow(
-            worried ? AppColors.hot : AppColors.primary, strength: 0.55),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(1.4),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(31),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: const Alignment(0.65, -0.1),
-                radius: 1.15,
-                colors: <Color>[
-                  Color.lerp(AppColors.surface, AppColors.primary, 0.32)!,
-                  AppColors.surface.withValues(alpha: 0.92),
-                  AppColors.ink.withValues(alpha: 0.95),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Align(
+          alignment: Alignment.centerRight,
+          child: SpeechBubble(
+            key: const Key('mascot-bubble'),
+            text: line,
+            maxWidth: 310,
+            accent: worried ? AppColors.hot : AppColors.primary,
+            tailAt: 0.74,
+          ),
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: RollingNumber(
+                      value: streak.current,
+                      countFromZero: true,
+                      textAlign: TextAlign.left,
+                      duration: Duration(
+                        milliseconds:
+                            (500 + streak.current * 25).clamp(500, 1600),
+                      ),
+                      style: displayStyle(76, height: 1),
+                      gradient: safe ? fire.text : null,
+                      glow: safe ? fire.main : null,
+                      stroke: safe
+                          ? null
+                          : AppColors.textPrimary.withValues(alpha: 0.82),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text.rich(
+                    TextSpan(
+                      children: <InlineSpan>[
+                        TextSpan(
+                          text: l10n.ringDayStreak(streak.current).toUpperCase(),
+                        ),
+                        if (streak.longest > streak.current)
+                          TextSpan(
+                            text:
+                                '  ·  ${l10n.heroBest(streak.longest).toUpperCase()}',
+                            style:
+                                const TextStyle(color: AppColors.textTertiary),
+                          ),
+                      ],
+                    ),
+                    style: labelStyle(color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 12),
+                  _StatusLine(status: status, streak: streak.current, fire: fire),
                 ],
               ),
             ),
-            child: Stack(
-              children: <Widget>[
-                Positioned.fill(
-                  child: EmberField(
-                    count: 12 + stage.index * 2,
-                    colors: const <Color>[
-                      AppColors.primarySoft,
-                      AppColors.attention,
-                      AppColors.reward,
-                    ],
-                    intensity: status == HeroStatus.done ? 1.2 : 0.7,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: SpeechBubble(
-                          key: const Key('mascot-bubble'),
-                          text: line,
-                          accent: worried ? AppColors.hot : AppColors.primary,
-                          tailAt: 0.78,
-                        ),
-                      ),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  alignment: Alignment.centerLeft,
-                                  child: RollingNumber(
-                                    value: streak.current,
-                                    countFromZero: true,
-                                    textAlign: TextAlign.left,
-                                    duration: Duration(
-                                        milliseconds:
-                                            (500 + streak.current * 25)
-                                                .clamp(500, 1600)),
-                                    style: displayStyle(66, height: 1),
-                                    gradient: AppGradients.streakText,
-                                    glow: AppColors.primary,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  l10n.ringDayStreak(streak.current).toUpperCase(),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelSmall
-                                      ?.copyWith(
-                                        color: AppColors.textSecondary,
-                                        letterSpacing: 2.2,
-                                      ),
-                                ),
-                                const SizedBox(height: 12),
-                                _StageBlock(
-                                  streak: streak.current,
-                                  stage: stage,
-                                  next: next,
-                                  toNext: toNext,
-                                ),
-                                const SizedBox(height: 10),
-                                Wrap(
-                                  spacing: 6,
-                                  runSpacing: 6,
-                                  children: <Widget>[
-                                    _HeroChip(
-                                      child: Text(
-                                        l10n.ringDayOfTotal(
-                                          dayNumber,
-                                          challenge.lengthDays *
-                                              (challenge.cycle + 1),
-                                        ),
-                                        style: _chipText(context),
-                                      ),
-                                    ),
-                                    if (streak.longest > streak.current)
-                                      _HeroChip(
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: <Widget>[
-                                            const Icon(Icons.emoji_events,
-                                                size: 13,
-                                                color: AppColors.reward),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                                l10n.heroBest(streak.longest),
-                                                style: _chipText(context)),
-                                          ],
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          StreakRing(
-                            progress: challenge.progressInCycle(today),
-                            dayInCycle: challenge.dayInCycle(today),
-                            cycleLength: challenge.lengthDays,
-                            stage: stage,
-                            mood: mood,
-                            atRisk: streak.atRisk && !frozen,
-                            size: 176,
-                            onPoke: _onPoke,
-                            mascotLabel: l10n.mascotSemantics,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      _StatusLine(
-                        status: status,
-                        streak: streak.current,
-                        onTap: widget.onTapStatus,
-                      ),
-                      const SizedBox(height: 14),
-                      WeekStrip(
-                        marks: weekMarks(
-                          challenge: challenge,
-                          day: today,
-                          today: today,
-                          logsByDay: snapshot.me.logsByDay,
-                          frozenDays: snapshot.me.frozenDays,
-                        ),
-                        monday: today.weekStart,
-                        today: today,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            const SizedBox(width: 8),
+            TodayRing(
+              parts: state.parts,
+              fire: fire,
+              stage: stage,
+              mood: mood,
+              held: state.frozen && !state.complete,
+              onPoke: _onPoke,
+              mascotLabel: l10n.mascotSemantics,
             ),
-          ),
+          ],
         ),
-      ),
+        const SizedBox(height: 18),
+        WeekStrip(
+          marks: weekMarks(
+            challenge: challenge,
+            day: today,
+            today: today,
+            logsByDay: snapshot.me.logsByDay,
+            frozenDays: snapshot.me.frozenDays,
+          ),
+          monday: today.weekStart,
+          today: today,
+          fire: fire,
+          onTapDay: widget.onTapDay,
+        ),
+        const SizedBox(height: 14),
+        _NextForm(streak: streak.current, fire: fire),
+      ],
     );
   }
 }
 
 /// The current form, the next one and the bar between them — opens the
 /// whole ladder.
-class _StageBlock extends StatelessWidget {
-  const _StageBlock({
-    required this.streak,
-    required this.stage,
-    required this.next,
-    required this.toNext,
-  });
+class _NextForm extends StatelessWidget {
+  const _NextForm({required this.streak, required this.fire});
 
   final int streak;
-  final FlameStage stage;
-  final FlameStage? next;
-  final int? toNext;
+  final Fire fire;
 
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
+    final FlameStage stage = flameStageFor(streak);
+    final FlameStage? next = stage.next;
+    final int? toNext = daysToNextStage(streak);
+    final TextStyle small = Theme.of(context).textTheme.bodyMedium!.copyWith(
+          fontSize: 12.5,
+          height: 1.2,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textSecondary,
+        );
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => showFlameEvolution(context, streak: streak),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              CustomPaint(
-                size: const Size.square(22),
-                painter: FlamePainter(
-                  stage: stage,
-                  mood: MascotMood.happy,
-                  seconds: 1.2,
-                  blink: false,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  l10n.stageName(stage),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: displayStyle(13, color: AppColors.textPrimary,
-                      weight: FontWeight.w700),
-                ),
-              ),
-              const Icon(Icons.chevron_right,
-                  size: 18, color: AppColors.textTertiary),
-            ],
-          ),
-          if (next != null && toNext != null) ...<Widget>[
-            const SizedBox(height: 3),
-            Text(
-              l10n.stageNext(l10n.stageName(next!), toNext!),
-              maxLines: 2,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.primarySoft,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    height: 1.25,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                CustomPaint(
+                  size: const Size.square(22),
+                  painter: FlamePainter(
+                    stage: stage,
+                    mood: MascotMood.happy,
+                    seconds: 1.2,
+                    blink: false,
                   ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  l10n.stageName(stage),
+                  style: small.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    next != null && toNext != null
+                        ? l10n.stageNext(l10n.stageName(next), toNext)
+                        : l10n.stageFinal,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.right,
+                    style: small,
+                  ),
+                ),
+                const Icon(Icons.chevron_right,
+                    size: 18, color: AppColors.textTertiary),
+              ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             ClipRRect(
               borderRadius: AppRadius.pill,
               child: SizedBox(
-                height: 6,
+                height: 4,
                 child: Stack(
                   fit: StackFit.expand,
                   children: <Widget>[
                     const ColoredBox(color: AppColors.glassHigh),
                     FractionallySizedBox(
                       alignment: Alignment.centerLeft,
-                      widthFactor: math.max(0.04, stageProgress(streak)),
-                      child: const DecoratedBox(
-                        decoration: BoxDecoration(gradient: AppGradients.plasma),
+                      widthFactor: math.max(0.02, stageProgress(streak)),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(gradient: fire.sweep),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-          ] else ...<Widget>[
-            const SizedBox(height: 3),
-            Text(
-              l10n.stageFinal,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.primarySoft,
-                    fontSize: 12,
-                  ),
-            ),
           ],
-        ],
+        ),
       ),
-    );
-  }
-}
-
-TextStyle? _chipText(BuildContext context) =>
-    Theme.of(context).textTheme.bodyMedium?.copyWith(
-          fontSize: 12,
-          fontWeight: FontWeight.w800,
-          color: AppColors.textPrimary,
-        );
-
-class _HeroChip extends StatelessWidget {
-  const _HeroChip({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: AppColors.glass,
-        borderRadius: AppRadius.pill,
-        border: Border.all(color: AppColors.glassEdge),
-      ),
-      child: child,
     );
   }
 }
@@ -408,128 +300,98 @@ class _StatusLine extends StatelessWidget {
   const _StatusLine({
     required this.status,
     required this.streak,
-    this.onTap,
+    required this.fire,
   });
 
   final HeroStatus status;
   final int streak;
-  final VoidCallback? onTap;
+  final Fire fire;
 
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
     switch (status) {
       case HeroStatus.done:
-        return _line(context, Icons.check_circle, l10n.heroFedToday,
-            AppColors.success);
+        return _line(context, Icons.check_circle, l10n.heroFedToday, fire.light);
       case HeroStatus.rest:
-        return _line(
-            context, Icons.bedtime, l10n.heroRestDay, AppColors.cool);
+        return _line(context, Icons.bedtime, l10n.heroRestDay, AppColors.cool);
       case HeroStatus.frozen:
         return _line(context, Icons.ac_unit, l10n.heroFrozen, AppColors.cool);
       case HeroStatus.relapse:
         return _line(context, Icons.restart_alt, l10n.heroRelapse,
-            AppColors.primarySoft);
+            AppColors.textSecondary);
       case HeroStatus.open:
         return DayCountdown(
           builder: (BuildContext context, Duration left) {
             final String time = formatCountdown(left);
             final bool late = left.inHours < 4;
-            final Color accent = late ? AppColors.danger : AppColors.attention;
+            final Color accent = late ? AppColors.danger : AppColors.textPrimary;
             final String text = streak > 0
                 ? l10n.heroCountdownSave(time)
                 : l10n.heroCountdownFirst(time);
             final int at = text.indexOf(time);
-            final TextStyle base = Theme.of(context)
-                .textTheme
-                .bodyMedium!
-                .copyWith(fontWeight: FontWeight.w700, color: AppColors.textPrimary);
-            return _shell(
+            return _line(
               context,
-              accent: accent,
-              pulse: late,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Icon(Icons.hourglass_bottom, size: 18, color: accent),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text.rich(
-                      at < 0
-                          ? TextSpan(text: text)
-                          : TextSpan(children: <TextSpan>[
-                              TextSpan(text: text.substring(0, at)),
-                              TextSpan(
-                                text: time,
-                                style: displayStyle(17, color: accent).copyWith(
-                                  fontFeatures: const <FontFeature>[
-                                    FontFeature.tabularFigures(),
-                                  ],
-                                ),
-                              ),
-                              TextSpan(text: text.substring(at + time.length)),
-                            ]),
-                      style: base,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-              ),
+              Icons.hourglass_bottom_rounded,
+              text,
+              late ? AppColors.danger : AppColors.textSecondary,
+              emphasis: at < 0 ? null : time,
+              emphasisColor: accent,
             );
           },
         );
     }
   }
 
-  Widget _line(BuildContext context, IconData icon, String text, Color accent) {
-    return _shell(
-      context,
-      accent: accent,
-      pulse: false,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Icon(icon, size: 18, color: accent),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              text,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _shell(
-    BuildContext context, {
-    required Color accent,
-    required bool pulse,
-    required Widget child,
+  Widget _line(
+    BuildContext context,
+    IconData icon,
+    String text,
+    Color accent, {
+    String? emphasis,
+    Color? emphasisColor,
   }) {
-    Widget shell(double glow) => Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-          decoration: BoxDecoration(
-            borderRadius: AppRadius.pill,
-            color: Color.lerp(AppColors.surface, accent, 0.14),
-            border: Border.all(color: accent.withValues(alpha: 0.65), width: 1.5),
-            boxShadow: glow > 0 ? AppShadows.glow(accent, strength: glow) : null,
-          ),
-          child: child,
+    final TextStyle base = Theme.of(context).textTheme.bodyMedium!.copyWith(
+          fontSize: 13,
+          height: 1.3,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textSecondary,
         );
-    final Widget body = pulse
-        ? AmbientClock(
-            builder: (BuildContext context, double s, Widget? _) =>
-                shell(0.35 + 0.35 * math.sin(s * 5)),
-          )
-        : shell(0.25);
-    if (onTap == null) return body;
-    return GestureDetector(onTap: onTap, child: body);
+    final int at = emphasis == null ? -1 : text.indexOf(emphasis);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.only(top: 1),
+          child: Icon(icon, size: 16, color: accent),
+        ),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text.rich(
+            at < 0
+                ? TextSpan(text: text)
+                : TextSpan(
+                    children: <TextSpan>[
+                      TextSpan(text: text.substring(0, at)),
+                      TextSpan(
+                        text: emphasis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14.5,
+                          color: emphasisColor,
+                          fontFeatures: const <FontFeature>[
+                            FontFeature.tabularFigures(),
+                          ],
+                        ),
+                      ),
+                      TextSpan(text: text.substring(at + emphasis!.length)),
+                    ],
+                  ),
+            style: base,
+          ),
+        ),
+      ],
+    );
   }
 }
 

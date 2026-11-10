@@ -195,12 +195,12 @@ class StreakWidgetProvider : HomeWidgetProvider() {
         private const val LATE_HOUR = 20
 
         private const val PLASMA = 0xFFC084FC.toInt()
-        private const val ATTENTION = 0xFFE879F9.toInt()
-        private const val SUCCESS = 0xFF34E0B5.toInt()
-        private const val COOL = 0xFF7DD3FC.toInt()
-        private const val DANGER = 0xFFFB7185.toInt()
-        private const val COLD = 0xFFB9B3DB.toInt()
-        private const val MUTED = 0xFF7A73A6.toInt()
+        private const val ATTENTION = 0xFFFF7EB6.toInt()
+        private const val SUCCESS = 0xFF3FE0B0.toInt()
+        private const val COOL = 0xFF8ADCFF.toInt()
+        private const val DANGER = 0xFFFF5A5F.toInt()
+        private const val COLD = 0xFFA4A9BC.toInt()
+        private const val MUTED = 0xFF6C7186.toInt()
 
         private val WEEK_LETTERS = intArrayOf(
             R.id.week_letter_0, R.id.week_letter_1, R.id.week_letter_2, R.id.week_letter_3,

@@ -89,12 +89,9 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.foodAddTo(l10n.mealName(widget.meal))),
-          bottom: TabBar(
+          bottom: GlassTabBar(
             // Four short labels fit a phone; scrolling would hide the last.
             labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-            labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.textSecondary,
-            indicatorColor: AppColors.primary,
             tabs: <Widget>[
               Tab(text: l10n.foodTabSearch),
               Tab(text: l10n.foodTabDescribe),

@@ -9,10 +9,12 @@ import 'data/app_repository.dart';
 import 'data/locale_store.dart';
 import 'l10n/l10n.dart';
 import 'state/providers.dart';
+import 'theme/fire.dart';
 import 'theme/theme.dart';
 import 'ui/home/home_screen.dart';
 import 'ui/mascot/flame_mascot.dart';
-import 'ui/motion/aurora.dart';
+import 'ui/home/today.dart';
+import 'ui/motion/sky.dart';
 import 'ui/onboarding/onboarding_flow.dart';
 import 'ui/plan/plan_screen.dart';
 import 'ui/settings/settings_screen.dart';
@@ -34,9 +36,9 @@ class HundredDaysApp extends ConsumerWidget {
       locale: locale,
       supportedLocales: kSupportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      // One sky behind every page: screens are glass over it.
+      // One sky behind every page.
       builder: (BuildContext context, Widget? child) =>
-          AuroraBackdrop(child: child ?? const SizedBox.shrink()),
+          _Sky(child: child ?? const SizedBox.shrink()),
       home: const _Gate(),
     );
   }
@@ -119,6 +121,30 @@ class _Splash extends StatelessWidget {
   }
 }
 
+/// The sky of the person using the app: a star for every finished day, an
+/// aurora as high as today is done, in the colour of their flame.
+class _Sky extends ConsumerWidget {
+  const _Sky({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppSnapshot? snapshot = ref.watch(appStateProvider).valueOrNull;
+    if (snapshot == null || !snapshot.hasChallenge) {
+      // Before the first challenge: an inviting sky, no stars earned yet.
+      return NightSky(glow: 0.55, child: child);
+    }
+    final TodayState today = TodayState.of(snapshot);
+    return NightSky(
+      fire: today.fire,
+      glow: today.glow,
+      stars: snapshot.me.streak.completedDays,
+      child: child,
+    );
+  }
+}
+
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
 
@@ -129,7 +155,7 @@ class AppShell extends ConsumerStatefulWidget {
 class _AppShellState extends ConsumerState<AppShell> {
   int _index = 0;
 
-  void _openSocial() => setState(() => _index = 2);
+  void _open(int index) => setState(() => _index = index);
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +170,10 @@ class _AppShellState extends ConsumerState<AppShell> {
     final StreakStats? stats =
         ref.watch(appStateProvider).valueOrNull?.me.streak;
     final List<Widget> pages = <Widget>[
-      HomeScreen(onOpenSocial: _openSocial),
+      HomeScreen(
+        onOpenSocial: () => _open(2),
+        onOpenStats: () => _open(3),
+      ),
       const PlanScreen(),
       const SocialScreen(),
       const StatsScreen(),
@@ -153,9 +182,10 @@ class _AppShellState extends ConsumerState<AppShell> {
 
     return Scaffold(
       extendBody: true,
-      // Today is the whole screen: Funki needs no title above him.
+      // Today is the whole screen: it needs no title above it.
       appBar: _index == 0 ? null : AppBar(title: Text(titles[_index])),
       body: SafeArea(
+        bottom: false,
         // Hidden tabs stay built, so their flames would keep flickering and
         // draining the battery; only the visible one gets to animate.
         child: IndexedStack(
@@ -168,13 +198,16 @@ class _AppShellState extends ConsumerState<AppShell> {
       ),
       bottomNavigationBar: GlassDock(
         index: _index,
-        onSelect: (int index) => setState(() => _index = index),
+        onSelect: _open,
         items: <DockItem>[
           DockItem(
             icon: Icons.local_fire_department_outlined,
             selectedIcon: Icons.local_fire_department,
             label: l10n.navToday,
-            badge: _StreakBadge.of(stats),
+            // The streak is at stake: a dot in its colour until today is done.
+            dot: stats != null && stats.atRisk
+                ? Fire.ofStreak(stats.current).main
+                : null,
           ),
           DockItem(
             icon: Icons.assignment_outlined,
@@ -207,17 +240,19 @@ class DockItem {
     required this.icon,
     required this.selectedIcon,
     required this.label,
-    this.badge,
+    this.dot,
   });
 
   final IconData icon;
   final IconData selectedIcon;
   final String label;
-  final Widget? badge;
+
+  /// A small light on the icon: something here is waiting.
+  final Color? dot;
 }
 
-/// The navigation: a pane of frosted glass floating over the aurora, with a
-/// neon pill that glides to whatever you pick.
+/// The navigation: a matte bar floating over the sky. What is selected is
+/// lit, everything else is not.
 class GlassDock extends StatelessWidget {
   const GlassDock({
     super.key,
@@ -230,71 +265,82 @@ class GlassDock extends StatelessWidget {
   final List<DockItem> items;
   final ValueChanged<int> onSelect;
 
-  static const double height = 68;
+  static const double height = 62;
 
   @override
   Widget build(BuildContext context) {
     final double bottom = MediaQuery.paddingOf(context).bottom;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(14, 6, 14, 10 + bottom),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 22, sigmaY: 22),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: <Color>[
-                  AppColors.surfaceHigh.withValues(alpha: 0.72),
-                  AppColors.surface.withValues(alpha: 0.82),
-                ],
+    return DecoratedBox(
+      // Whatever scrolls under the dock sinks into the night first.
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: <Color>[
+            AppColors.inkDeep.withValues(alpha: 0),
+            AppColors.inkDeep.withValues(alpha: 0.92),
+          ],
+          stops: const <double>[0, 0.55],
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16, 14, 16, 10 + bottom),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(height / 2),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(height / 2),
+                color: AppColors.surface.withValues(alpha: 0.9),
+                border: Border.all(color: AppColors.glassEdge),
               ),
-              border: Border.all(color: AppColors.glassEdge),
-            ),
-            child: SizedBox(
-              height: height,
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  final double cell = constraints.maxWidth / items.length;
-                  return Stack(
-                    children: <Widget>[
-                      AnimatedPositioned(
-                        duration: const Duration(milliseconds: 420),
-                        curve: Curves.easeOutBack,
-                        left: cell * index + 6,
-                        top: 7,
-                        width: cell - 12,
-                        height: height - 14,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(22),
-                            gradient: AppGradients.primary,
-                            boxShadow:
-                                AppShadows.glow(AppColors.primary, strength: 0.9),
+              child: SizedBox(
+                height: height,
+                child: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    final double cell =
+                        (constraints.maxWidth - 12) / items.length;
+                    return Stack(
+                      children: <Widget>[
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 320),
+                          curve: Curves.easeOutCubic,
+                          left: 6 + cell * index,
+                          top: 6,
+                          width: cell,
+                          height: height - 14,
+                          child: const DecoratedBox(
+                            decoration: BoxDecoration(
+                              borderRadius: AppRadius.pill,
+                              color: AppColors.glassHigh,
+                            ),
                           ),
                         ),
-                      ),
-                      Row(
-                        children: <Widget>[
-                          for (int i = 0; i < items.length; i++)
-                            Expanded(
-                              child: _DockButton(
-                                item: items[i],
-                                selected: i == index,
-                                onTap: () {
-                                  if (i != index) HapticFeedback.selectionClick();
-                                  onSelect(i);
-                                },
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                  );
-                },
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          child: Row(
+                            children: <Widget>[
+                              for (int i = 0; i < items.length; i++)
+                                Expanded(
+                                  child: _DockButton(
+                                    item: items[i],
+                                    selected: i == index,
+                                    onTap: () {
+                                      if (i != index) {
+                                        HapticFeedback.selectionClick();
+                                      }
+                                      onSelect(i);
+                                    },
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -317,20 +363,28 @@ class _DockButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color color = selected ? Colors.white : AppColors.textSecondary;
-    Widget icon = AnimatedScale(
-      scale: selected ? 1.12 : 1,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOutBack,
-      child: Icon(selected ? item.selectedIcon : item.icon,
-          color: color, size: 24),
-    );
-    if (item.badge != null) {
+    final Color color =
+        selected ? AppColors.textPrimary : AppColors.textTertiary;
+    Widget icon = Icon(selected ? item.selectedIcon : item.icon,
+        color: color, size: 23);
+    if (item.dot != null) {
       icon = Stack(
         clipBehavior: Clip.none,
         children: <Widget>[
           icon,
-          Positioned(right: -12, top: -6, child: item.badge!),
+          Positioned(
+            right: -4,
+            top: -2,
+            child: Container(
+              width: 9,
+              height: 9,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: item.dot,
+                border: Border.all(color: AppColors.surface, width: 1.5),
+              ),
+            ),
+          ),
         ],
       );
     }
@@ -360,44 +414,6 @@ class _DockButton extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// The streak on the dock: plasma once today is fed, a hungry magenta
-/// while it is not.
-class _StreakBadge extends StatelessWidget {
-  const _StreakBadge({required this.streak, required this.doneToday});
-
-  final int streak;
-  final bool doneToday;
-
-  static Widget? of(StreakStats? stats) {
-    if (stats == null || stats.current <= 0) return null;
-    return _StreakBadge(streak: stats.current, doneToday: stats.doneToday);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-      constraints: const BoxConstraints(minWidth: 18),
-      decoration: BoxDecoration(
-        borderRadius: AppRadius.pill,
-        gradient: doneToday ? AppGradients.plasma : null,
-        color: doneToday ? null : AppColors.attention,
-        border: Border.all(color: AppColors.ink, width: 1.5),
-      ),
-      child: Text(
-        '$streak',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontFamily: kDisplayFont,
-          fontSize: 9.5,
-          fontWeight: FontWeight.w800,
-          color: doneToday ? Colors.white : AppColors.ink,
         ),
       ),
     );

@@ -10,9 +10,9 @@ enum JuicyHaptic { none, light, medium, heavy }
 
 /// The button that wants to be pressed.
 ///
-/// A raised face on a darker lip, so it looks like something you push in;
-/// it sinks under the finger and springs back with a buzz. The main call to
-/// action can breathe and catch a sheen of light every few seconds.
+/// A raised face of light on a darker lip, so it looks like something you
+/// push in; it sinks under the finger and springs back with a buzz. The
+/// main call to action can breathe and catch a sheen every few seconds.
 class JuicyButton extends StatefulWidget {
   const JuicyButton({
     super.key,
@@ -20,8 +20,8 @@ class JuicyButton extends StatefulWidget {
     required this.onPressed,
     this.icon,
     this.gradient = AppGradients.primary,
-    this.lipColor = const Color(0xFF3B1A8C),
-    this.foreground = Colors.white,
+    this.lipColor = const Color(0xFF9399AE),
+    this.foreground = AppColors.onPrimary,
     this.height = 54,
     this.shimmer = false,
     this.pulse = false,
@@ -43,7 +43,7 @@ class JuicyButton extends StatefulWidget {
     this.fontSize = 17,
     this.glow,
   })  : gradient = AppGradients.success,
-        lipColor = const Color(0xFF0F6B5C),
+        lipColor = const Color(0xFF1B8E70),
         foreground = const Color(0xFF032019);
 
   /// Holographic foil: rewards and "keep going".
@@ -57,10 +57,10 @@ class JuicyButton extends StatefulWidget {
     this.pulse = false,
     this.haptic = JuicyHaptic.heavy,
     this.fontSize = 18,
-    this.glow = AppColors.primary,
+    this.glow = AppColors.reward,
   })  : gradient = AppGradients.holo,
-        lipColor = const Color(0xFF5B34B8),
-        foreground = const Color(0xFF1A0D3D);
+        lipColor = const Color(0xFF6A5BC4),
+        foreground = const Color(0xFF14102E);
 
   final String label;
   final VoidCallback? onPressed;
@@ -81,7 +81,7 @@ class JuicyButton extends StatefulWidget {
 
 class _JuicyButtonState extends State<JuicyButton>
     with SingleTickerProviderStateMixin {
-  static const double _lip = 5;
+  static const double _lip = 4;
   late final AnimationController _press = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 90),
@@ -134,19 +134,12 @@ class _JuicyButtonState extends State<JuicyButton>
             widget.label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: displayStyle(widget.fontSize * 0.86,
-                    color: foreground, weight: FontWeight.w700)
-                .copyWith(
-              letterSpacing: 0.2,
-              shadows: _enabled
-                  ? <Shadow>[
-                      Shadow(
-                        color: Colors.black.withValues(alpha: 0.25),
-                        offset: const Offset(0, 1),
-                        blurRadius: 2,
-                      ),
-                    ]
-                  : null,
+            style: TextStyle(
+              fontFamily: kTextFont,
+              fontSize: widget.fontSize * 0.95,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.1,
+              color: foreground,
             ),
           ),
         ),
@@ -237,19 +230,6 @@ class _Face extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: <Widget>[
-          // A gloss along the top edge, like light on plastic.
-          Positioned(
-            left: 14,
-            right: 14,
-            top: 4,
-            height: 9,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: AppRadius.pill,
-                color: Colors.white.withValues(alpha: 0.22),
-              ),
-            ),
-          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18),
             child: Center(child: child),

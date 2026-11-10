@@ -1,8 +1,9 @@
 # The reward design
 
 The app is built to make showing up feel good — loudly. A flame with a face,
-a ring of fire, a slot machine when the day is done. This page explains what
-each piece does, why it works, and the line it does not cross.
+a night sky you light yourself, a slot machine when the day is done. This
+page explains what each piece does, why it works, and the line it does not
+cross.
 
 ## The line
 
@@ -57,24 +58,48 @@ answers; poke it five times in a row and it complains.
 
 ## The home screen
 
-No title bar: Today is the whole screen. Top to bottom, the order of what
-matters:
+Today fits on one screen: the streak, the state of the day and every habit
+you have to do, without scrolling. The title is the day itself — "Day 13 /
+100". Top to bottom, the order of what matters:
 
-1. **The hero panel.** One pane of glass with the streak as a huge number
-   that counts up every time the app opens, the current form and the bar to
-   the next one, and on the right Funki floating in an orb inside the orbit
-   of the cycle. The comet on the orbit is today and its trail how far you
-   have come; the planets are the milestone days, lit once passed, the next
-   one pulsing. Funki's line sits above, pointing at him.
-2. **The clock.** While today is open, a live countdown to midnight — when
+1. **The streak, hollow or lit.** A huge number that counts up every time
+   the app opens. While today is open it is an outline: the streak exists,
+   but it is at stake. Once the day is done — or held by a freeze or a rest
+   day — it fills with fire. Nobody has to read a status line to know which
+   it is.
+2. **Funki in the ring of today.** The ring around Funki has one segment per
+   habit scheduled today. A segment lights when its habit is done (and shows
+   how far a half-read chapter got before that). The last segment closes the
+   ring. On a rest day it is a dotted line; under a freeze it is closed in
+   ice. Funki's line sits above, pointing at him.
+3. **The clock.** While today is open, a live countdown to midnight — when
    the streak really ends. Red from four hours out.
-3. **The week as gems.** Done days glow in plasma and are linked by a neon
-   wire; the gap you are about to leave is impossible to miss.
-4. **Today's quests** — visible on the first screen. Checking in is a
-   **hold**: the bar fills with plasma, the phone ticks at every quarter,
-   and when it is full it fires with a hard knock. Let go early and nothing
-   is logged. Then sparks fly, the XP the check-in earned floats up, the
-   card turns mint. Screen readers get a plain tap instead of the hold.
+4. **The week as lamps.** A finished day is lit, and lit days next to each
+   other are joined into a chain, so the gap you are about to leave is
+   impossible to miss. Tap a day to see what was logged on it.
+5. **The way to the next form**: the current one, the next one and the bar
+   between them. Opens the whole ladder.
+6. **Today's quests.** One row per habit, and the whole row is the button
+   (`app/lib/ui/widgets/habit_tile.dart`). Checking in is a **hold**: the row
+   fills with fire, the phone ticks at every quarter, and when it is full it
+   fires with a hard knock and logs the habit at its target. Let go early and
+   nothing is logged. Then sparks fly, the XP the check-in earned floats up
+   and the row stays lit. A quick tap is not a check-in; it opens what else
+   the habit can do — a different amount than the target, or an honest
+   relapse. Screen readers get a plain tap instead of the hold.
+
+Below that: who of your friends was already active, the freeze as a way out
+(offered, not pushed), today's workout and macros, the coach, and the whole
+cycle as a strip of a hundred lamps.
+
+## The board
+
+A hundred days is a number you cannot picture; a hundred lamps you can
+(`app/lib/ui/widgets/day_board.dart`). The numbers screen shows the cycle
+ten by ten: finished days lit in the colour of the flame, frozen days in
+ice, missed days dark with a red rim, and the days still to come as dim
+dots — with the milestone days ringed, so you can see what you are walking
+towards. Tap any day that has happened for what was logged on it.
 
 ## The slot machine
 
@@ -106,25 +131,39 @@ Widget tests run with reduced motion on (`reducedMotion` in
 `app/test/helpers.dart`); otherwise `pumpAndSettle` would wait for a flame
 that never stops.
 
-## The look: Nightglow
+## The look: Lights
 
-Deep space with an aurora moving behind every screen
-(`app/lib/ui/motion/aurora.dart`): four slow lights — violet, blue, rose,
-cyan — and a scatter of twinkling stars, painted once behind the navigator
-so every page is glass over the same sky. Pages fade through each other
-instead of sliding, so two transparent screens never overlap.
+A quiet night that you light yourself. The rule the whole look follows:
 
-- **Glass.** Cards are translucent panes with a bright rim where the light
-  hits them; things that matter glow in neon.
-- **Colour.** No orange anywhere. Violet is what you can press, red to blue
-  is the plasma of the streak, cyan is XP, mint is done, ice blue is a
-  freeze or a rest day, and rewards are holographic foil.
-- **Type.** Unbounded — wide, round, a little sci-fi — for numbers,
-  headlines and buttons; Manrope for everything that is read (both SIL OFL,
-  `app/assets/fonts`).
-- **Navigation.** A frosted glass dock floats over the sky, with a neon pill
-  that glides to the selected tab and the streak as a badge on Today.
-- **Tabs** are segmented controls; the weekly league has a podium.
+> **The chrome has no colour. Light is earned.**
+
+- **The sky is yours** (`app/lib/ui/motion/sky.dart`). Painted once behind
+  the navigator, so every page lies over the same sky. Nothing in it is
+  decoration: **every star is a day you finished** — a new challenge starts
+  under an almost empty sky, day 100 under a full one, and every seventh
+  star is a bigger one with a flare. **The aurora is today**: barely there in
+  the morning, higher with every check-in, all the way up once the day is
+  done. An unfinished day looks unfinished.
+- **The app burns in the colour of your flame** (`Fire` in
+  `app/lib/theme/fire.dart`). Whatever is lit — the streak number, the ring,
+  a finished habit, the lamps, the aurora — takes the colour of Funki's
+  current form: pink in the first days, then magenta, violet, blue, cyan,
+  white-hot. Day 50 does not look like day 5. Break the streak and the
+  colour goes back with the form. A friend's streak is shown in *their*
+  colour.
+- **Matte, not glass.** Panels are dark and flat with a hairline rim. No
+  gradient borders, no glow on things that are not lit. Light itself — white
+  — is what you can press: buttons, the selected tab, a switch that is on.
+- **Colour that means something.** Mint is verified or logged, ice blue is a
+  freeze or a rest day, red is a relapse or the last hours of the day,
+  lavender is XP, blue is other people. No orange anywhere. Holographic foil
+  is kept for jackpots.
+- **Type.** Unbounded — wide and round — only for the numbers the app exists
+  for and the few lines that are meant as a statement; Manrope for titles,
+  buttons and everything that is read (both SIL OFL, `app/assets/fonts`).
+- **Navigation.** A matte dock floats over the sky; what scrolls under it
+  sinks into the night first. The selected tab is lit. While today is open,
+  the Today tab carries a dot in the colour of the streak.
 
 ## The home screen widget
 

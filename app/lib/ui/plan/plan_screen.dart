@@ -126,11 +126,12 @@ class _TrainingTab extends StatelessWidget {
         plan.weekFor(challenge.startDay, snapshot.today);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         AppSpacing.md,
         AppSpacing.md,
         AppSpacing.md,
-        AppSpacing.xxl,
+        // The dock floats over the end of the list.
+        AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
       ),
       children: <Widget>[
         AppCard(
@@ -264,11 +265,12 @@ class _AbstinenceTab extends StatelessWidget {
         .toList();
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         AppSpacing.md,
         AppSpacing.md,
         AppSpacing.md,
-        AppSpacing.xxl,
+        // The dock floats over the end of the list.
+        AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
       ),
       children: <Widget>[
         for (final Habit habit in habits)
@@ -368,7 +370,12 @@ class _EnablePlanCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
+      ),
       children: <Widget>[
         AppCard(
           border: AppColors.success.withValues(alpha: 0.5),

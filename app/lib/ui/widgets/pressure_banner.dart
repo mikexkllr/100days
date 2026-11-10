@@ -30,61 +30,54 @@ class PressureBanner extends StatelessWidget {
     final bool behind = !doneToday;
     final Color accent = behind ? AppColors.social : AppColors.success;
 
-    return AppCard(
-      onTap: onTap,
-      border: accent.withValues(alpha: 0.45),
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: <Color>[
-          accent.withValues(alpha: 0.16),
-          AppColors.surface.withValues(alpha: 0.9),
-        ],
-      ),
-      child: Row(
-        children: <Widget>[
-          SizedBox(
-            width: (activePeers.length.clamp(1, 4) * 22.0) + 20,
-            height: 42,
-            child: Stack(
-              children: <Widget>[
-                for (int i = activePeers.length.clamp(0, 4) - 1; i >= 0; i--)
-                  Positioned(
-                    left: i * 22,
-                    child: EmojiAvatar(
-                      activePeers[i].profile.avatarEmoji,
-                      size: 42,
-                      ringColor: accent,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  _headline(l10n),
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(color: accent),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  _body(l10n),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                        fontSize: 13,
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm),
+      child: AppCard(
+        onTap: onTap,
+        padding: const EdgeInsets.fromLTRB(12, 12, 8, 12),
+        child: Row(
+          children: <Widget>[
+            SizedBox(
+              width: (activePeers.length.clamp(1, 4) * 22.0) + 20,
+              height: 42,
+              child: Stack(
+                children: <Widget>[
+                  for (int i = activePeers.length.clamp(0, 4) - 1; i >= 0; i--)
+                    Positioned(
+                      left: i * 22,
+                      child: EmojiAvatar(
+                        activePeers[i].profile.avatarEmoji,
+                        size: 42,
+                        ringColor: accent,
                       ),
-                ),
-              ],
+                    ),
+                ],
+              ),
             ),
-          ),
-          const Icon(Icons.chevron_right, color: AppColors.textTertiary),
-        ],
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    _headline(l10n),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _body(l10n),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                          height: 1.35,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+          ],
+        ),
       ),
     );
   }

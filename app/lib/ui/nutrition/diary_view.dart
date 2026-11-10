@@ -60,11 +60,12 @@ class _NutritionDiaryViewState extends ConsumerState<NutritionDiaryView> {
     final bool isToday = _day == snapshot.today;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         AppSpacing.md,
         AppSpacing.sm,
         AppSpacing.md,
-        AppSpacing.xxl,
+        // The dock floats over the end of the list.
+        AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
       ),
       children: <Widget>[
         Row(

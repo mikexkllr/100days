@@ -1,168 +1,161 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// "Nightglow": deep space, an aurora moving behind everything, glass on top.
+/// "Lights": a quiet night that you light yourself.
 ///
 /// The app is opened at 6am and at 11pm, both dark-room moments, so the base
-/// is a violet-black night. Colour comes from light, not paint: the aurora
-/// behind the screens, the plasma of the streak, the neon of what you can
-/// press. Red, magenta, violet and blue carry the whole thing — the same
-/// colours Funki burns through as the streak grows.
+/// is a near-black night. The chrome on top of it is matte and has no colour
+/// of its own: white is what you can press, grey is what you read. Colour is
+/// earned — it comes from the fire of the streak ([Fire], which changes with
+/// the form of the flame), from the stars of the days you finished and from
+/// the aurora that rises as today gets done.
 class AppColors {
   /// The night itself, and its deepest corner.
-  static const Color ink = Color(0xFF07051A);
-  static const Color inkDeep = Color(0xFF030210);
+  static const Color ink = Color(0xFF05060B);
+  static const Color inkDeep = Color(0xFF020308);
 
-  /// Solid surfaces for what cannot be glass: sheets, dialogs, menus.
-  static const Color surface = Color(0xFF14102E);
-  static const Color surfaceHigh = Color(0xFF221B47);
-  static const Color outline = Color(0xFF3A3170);
+  /// Solid surfaces for what cannot be translucent: sheets, dialogs, menus.
+  static const Color surface = Color(0xFF10121A);
+  static const Color surfaceHigh = Color(0xFF1B1E2A);
+  static const Color outline = Color(0xFF2C3040);
 
-  /// What you can press, what is selected, what is yours. Electric violet.
-  static const Color primary = Color(0xFF8B5CF6);
-  static const Color primarySoft = Color(0xFFC4B5FD);
+  /// What you can press, what is selected: light itself.
+  static const Color primary = Color(0xFFF4F5FA);
 
-  /// The red root of the plasma: urgency, the streak at stake.
-  static const Color hot = Color(0xFFF43F5E);
+  /// What sits on a lit surface.
+  static const Color onPrimary = Color(0xFF07080D);
+  static const Color primarySoft = Color(0xFFC6CADA);
 
-  /// Magenta, for the moments in between: today is open.
-  static const Color attention = Color(0xFFE879F9);
+  /// Urgency: the streak at stake, the last hours of the day.
+  static const Color hot = Color(0xFFFF4D6D);
 
-  /// Near-white lavender: highlights, cores, the head of the comet.
-  static const Color glow = Color(0xFFEDE9FE);
+  /// Today is open.
+  static const Color attention = Color(0xFFFF7EB6);
 
-  /// XP and everything you earn. Electric cyan.
-  static const Color reward = Color(0xFF22D3EE);
+  /// Near-white: highlights, cores, stars.
+  static const Color glow = Color(0xFFF1F2FF);
+
+  /// XP and everything you earn. Lavender.
+  static const Color reward = Color(0xFFB4A7FF);
 
   /// Done. Mint.
-  static const Color success = Color(0xFF34E0B5);
+  static const Color success = Color(0xFF3FE0B0);
 
   /// Other people: blue.
-  static const Color social = Color(0xFF60A5FA);
+  static const Color social = Color(0xFF6EA8FF);
 
   /// Freezes and rest days: the streak is held, not fed.
-  static const Color cool = Color(0xFF7DD3FC);
+  static const Color cool = Color(0xFF8ADCFF);
 
   /// Danger: a relapse, a broken day.
-  static const Color danger = Color(0xFFFB7185);
+  static const Color danger = Color(0xFFFF5A5F);
 
-  static const Color textPrimary = Color(0xFFF5F3FF);
-  static const Color textSecondary = Color(0xFFB9B3DB);
-  static const Color textTertiary = Color(0xFF7A73A6);
+  static const Color textPrimary = Color(0xFFF4F5FA);
+  static const Color textSecondary = Color(0xFFA4A9BC);
+  static const Color textTertiary = Color(0xFF6C7186);
 
-  /// Glass: a breath of white over whatever glows behind it.
-  static const Color glass = Color(0x14FFFFFF);
-  static const Color glassHigh = Color(0x22FFFFFF);
-  static const Color glassEdge = Color(0x2EFFFFFF);
-
-  /// The aurora's lights.
-  static const Color auroraViolet = Color(0xFF6D28D9);
-  static const Color auroraBlue = Color(0xFF1D4ED8);
-  static const Color auroraRose = Color(0xFFBE123C);
-  static const Color auroraCyan = Color(0xFF0E7490);
+  /// Panels: a breath of white over the night.
+  static const Color glass = Color(0x0FFFFFFF);
+  static const Color glassHigh = Color(0x1CFFFFFF);
+  static const Color glassEdge = Color(0x1FFFFFFF);
 
   static const List<Color> heat = <Color>[
-    Color(0x1AFFFFFF),
-    Color(0xFF3B1F7A),
-    Color(0xFF6D3BD8),
-    Color(0xFFA855F7),
-    Color(0xFFF472B6),
+    Color(0x14FFFFFF),
+    Color(0x40FFFFFF),
+    Color(0x73FFFFFF),
+    Color(0xB3FFFFFF),
+    Color(0xFFF4F5FA),
   ];
 }
 
 class AppGradients {
-  /// The streak's own light: red at the root, violet, blue at the tip.
+  /// Fire without a stage: where no streak is known.
   static const LinearGradient plasma = LinearGradient(
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
-    colors: <Color>[AppColors.hot, Color(0xFFD946EF), AppColors.primary],
+    colors: <Color>[Color(0xFFFF5C8A), Color(0xFFE25CFF), Color(0xFF8F7CFF)],
   );
 
-  /// The streak number: a synthwave sunset, blue sky down to red ground.
+  /// The streak number in the celebration: cool sky down to hot ground.
   static const LinearGradient streakText = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: <Color>[
-      Color(0xFFBFDBFE),
-      Color(0xFFA78BFA),
-      Color(0xFFF472B6),
+      Color(0xFFFFFFFF),
+      Color(0xFFD9B8FF),
+      Color(0xFFFF7EB6),
       AppColors.hot,
     ],
-    stops: <double>[0, 0.35, 0.7, 1],
+    stops: <double>[0, 0.4, 0.75, 1],
   );
 
-  /// Holographic foil: rewards, jackpots, level-ups.
+  /// Holographic foil: jackpots only.
   static const LinearGradient holo = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: <Color>[
       Color(0xFFC4B5FD),
-      Color(0xFF67E8F9),
+      Color(0xFF8DE8F5),
       Color(0xFFF9A8D4),
-      Color(0xFFA78BFA),
+      Color(0xFFB4A7FF),
     ],
     stops: <double>[0, 0.35, 0.7, 1],
   );
 
-  /// Buttons: violet into blue.
+  /// Buttons: light, a touch warmer at the top.
   static const LinearGradient primary = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: <Color>[Color(0xFFA855F7), AppColors.primary, Color(0xFF3B82F6)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: <Color>[Color(0xFFFFFFFF), Color(0xFFE6E8F2)],
   );
 
   static const LinearGradient success = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: <Color>[Color(0xFF99F6E4), AppColors.success, Color(0xFF14B8A6)],
+    colors: <Color>[Color(0xFF9CF5DA), AppColors.success],
   );
 
   static const LinearGradient cool = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: <Color>[Color(0xFFE0F2FE), AppColors.cool, Color(0xFF3B82F6)],
+    colors: <Color>[Color(0xFFDDF4FF), AppColors.cool],
   );
 
   static const LinearGradient danger = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: <Color>[Color(0xFFFDA4AF), AppColors.danger, AppColors.hot],
+    colors: <Color>[Color(0xFFFF9A9D), AppColors.danger],
   );
 
-  /// Glass fill: brighter where the light comes from.
+  /// Panel fill: flat, a tint of [tint] when it means something.
   static LinearGradient card([Color tint = Colors.white]) => LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: <Color>[
-          tint.withValues(alpha: tint == Colors.white ? 0.10 : 0.18),
-          tint.withValues(alpha: tint == Colors.white ? 0.035 : 0.05),
+          tint.withValues(alpha: tint == Colors.white ? 0.065 : 0.16),
+          tint.withValues(alpha: tint == Colors.white ? 0.045 : 0.06),
         ],
       );
 
-  /// Glass edge: a bright rim at the top left fading out.
+  /// Panel edge: a hairline, coloured when the panel is.
   static LinearGradient edge([Color tint = Colors.white]) => LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: <Color>[
-          tint.withValues(alpha: tint == Colors.white ? 0.32 : 0.75),
-          tint.withValues(alpha: tint == Colors.white ? 0.06 : 0.18),
+          tint.withValues(alpha: tint == Colors.white ? 0.14 : 0.55),
+          tint.withValues(alpha: tint == Colors.white ? 0.06 : 0.22),
         ],
       );
 }
 
 class AppShadows {
-  /// A coloured glow, for anything that should feel lit.
+  /// A soft halo, for the few things that are actually lit.
   static List<BoxShadow> glow(Color color, {double strength = 1}) =>
       <BoxShadow>[
         BoxShadow(
-          color: color.withValues(alpha: (0.5 * strength).clamp(0.0, 1.0)),
-          blurRadius: 24,
-          spreadRadius: -6,
-        ),
-        BoxShadow(
-          color: color.withValues(alpha: (0.22 * strength).clamp(0.0, 1.0)),
-          blurRadius: 48,
-          spreadRadius: -2,
+          color: color.withValues(alpha: (0.34 * strength).clamp(0.0, 1.0)),
+          blurRadius: 28,
+          spreadRadius: -8,
         ),
       ];
 }
@@ -177,15 +170,16 @@ class AppSpacing {
 }
 
 class AppRadius {
-  static const Radius card = Radius.circular(26);
+  static const Radius card = Radius.circular(22);
   static const BorderRadius cardAll = BorderRadius.all(card);
   static const BorderRadius pill = BorderRadius.all(Radius.circular(999));
 }
 
-/// Wide, round, a little sci-fi: numbers, headlines and buttons.
+/// Wide and round: the numbers the app exists for, and the few lines that
+/// are meant to be a statement.
 const String kDisplayFont = 'Unbounded';
 
-/// Everything that is read rather than glanced at.
+/// Everything else — titles, buttons and whatever is read.
 const String kTextFont = 'Manrope';
 
 /// The display face at [size].
@@ -204,10 +198,21 @@ TextStyle displayStyle(
       color: color,
     );
 
+/// A small caps label: what a number is, what a section holds.
+TextStyle labelStyle({Color color = AppColors.textTertiary, double size = 11}) =>
+    TextStyle(
+      fontFamily: kTextFont,
+      fontSize: size,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 1.4,
+      height: 1.2,
+      color: color,
+    );
+
 ThemeData buildAppTheme() {
   const ColorScheme scheme = ColorScheme.dark(
     primary: AppColors.primary,
-    onPrimary: Colors.white,
+    onPrimary: AppColors.onPrimary,
     secondary: AppColors.reward,
     onSecondary: AppColors.ink,
     tertiary: AppColors.hot,
@@ -215,22 +220,38 @@ ThemeData buildAppTheme() {
     surface: AppColors.surface,
     onSurface: AppColors.textPrimary,
     error: AppColors.danger,
-    onError: Colors.white,
+    onError: AppColors.ink,
     outline: AppColors.outline,
+  );
+
+  const TextStyle button = TextStyle(
+    fontFamily: kTextFont,
+    fontSize: 15.5,
+    fontWeight: FontWeight.w800,
+    letterSpacing: 0.1,
   );
 
   final TextTheme text = TextTheme(
     displayLarge: displayStyle(64, height: 1),
     displayMedium: displayStyle(40),
-    headlineMedium: displayStyle(24, height: 1.15),
-    titleLarge: displayStyle(17, height: 1.2, weight: FontWeight.w700),
-    titleMedium: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+    headlineMedium: displayStyle(23, height: 1.18),
+    titleLarge: const TextStyle(
+      fontSize: 18.5,
+      height: 1.2,
+      fontWeight: FontWeight.w800,
+      letterSpacing: -0.2,
+    ),
+    titleMedium: const TextStyle(
+      fontSize: 16,
+      height: 1.25,
+      fontWeight: FontWeight.w800,
+      letterSpacing: -0.1,
+    ),
     bodyLarge: const TextStyle(
         fontSize: 16, height: 1.45, fontWeight: FontWeight.w500),
     bodyMedium: const TextStyle(
         fontSize: 14.5, height: 1.45, fontWeight: FontWeight.w500),
-    labelLarge: displayStyle(14.5, weight: FontWeight.w700)
-        .copyWith(letterSpacing: 0.3),
+    labelLarge: button,
     labelSmall: const TextStyle(
       fontSize: 11,
       fontWeight: FontWeight.w800,
@@ -246,8 +267,6 @@ ThemeData buildAppTheme() {
     displayLarge: text.displayLarge!.copyWith(fontFamily: kDisplayFont),
     displayMedium: text.displayMedium!.copyWith(fontFamily: kDisplayFont),
     headlineMedium: text.headlineMedium!.copyWith(fontFamily: kDisplayFont),
-    titleLarge: text.titleLarge!.copyWith(fontFamily: kDisplayFont),
-    labelLarge: text.labelLarge!.copyWith(fontFamily: kDisplayFont),
   );
 
   return ThemeData(
@@ -255,7 +274,7 @@ ThemeData buildAppTheme() {
     brightness: Brightness.dark,
     colorScheme: scheme,
     fontFamily: kTextFont,
-    // Every screen is glass over the aurora painted behind the navigator.
+    // Every screen lies over the one sky painted behind the navigator.
     scaffoldBackgroundColor: Colors.transparent,
     canvasColor: AppColors.surface,
     textTheme: themed,
@@ -269,14 +288,20 @@ ThemeData buildAppTheme() {
         TargetPlatform.windows: FadeThroughPageTransitionsBuilder(),
       },
     ),
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: false,
       systemOverlayStyle: SystemUiOverlayStyle.light,
-      titleTextStyle: displayStyle(21, color: AppColors.textPrimary),
+      titleTextStyle: TextStyle(
+        fontFamily: kTextFont,
+        fontSize: 26,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.6,
+        color: AppColors.textPrimary,
+      ),
     ),
     cardTheme: const CardThemeData(
       color: AppColors.glass,
@@ -292,14 +317,14 @@ ThemeData buildAppTheme() {
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        minimumSize: const Size.fromHeight(56),
+        minimumSize: const Size.fromHeight(54),
         backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.onPrimary,
         disabledBackgroundColor: AppColors.glassHigh,
+        disabledForegroundColor: AppColors.textTertiary,
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.pill),
-        textStyle: themed.labelLarge,
-        elevation: 8,
-        shadowColor: AppColors.primary.withValues(alpha: 0.7),
+        textStyle: button,
+        elevation: 0,
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -307,19 +332,26 @@ ThemeData buildAppTheme() {
         minimumSize: const Size.fromHeight(52),
         foregroundColor: AppColors.textPrimary,
         backgroundColor: AppColors.glass,
-        side: const BorderSide(color: AppColors.glassEdge, width: 1.5),
+        side: const BorderSide(color: AppColors.glassEdge, width: 1.2),
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.pill),
-        textStyle: themed.labelLarge,
+        textStyle: button,
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: AppColors.primarySoft,
-        textStyle: themed.labelLarge?.copyWith(fontSize: 13.5),
+        foregroundColor: AppColors.textPrimary,
+        textStyle: button.copyWith(fontSize: 14.5),
       ),
     ),
     iconButtonTheme: IconButtonThemeData(
       style: IconButton.styleFrom(foregroundColor: AppColors.textSecondary),
+    ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: AppColors.primary,
+      foregroundColor: AppColors.onPrimary,
+      elevation: 0,
+      highlightElevation: 0,
+      extendedTextStyle: button,
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
@@ -330,39 +362,38 @@ ThemeData buildAppTheme() {
         vertical: AppSpacing.md,
       ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         borderSide: const BorderSide(color: AppColors.glassEdge),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         borderSide: const BorderSide(color: AppColors.glassEdge),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: AppColors.primary, width: 1.6),
       ),
     ),
-    tabBarTheme: TabBarThemeData(
+    tabBarTheme: const TabBarThemeData(
       indicator: BoxDecoration(
-        gradient: AppGradients.primary,
+        color: AppColors.primary,
         borderRadius: AppRadius.pill,
-        boxShadow: AppShadows.glow(AppColors.primary, strength: 0.6),
       ),
       indicatorSize: TabBarIndicatorSize.tab,
       dividerColor: Colors.transparent,
-      labelColor: Colors.white,
+      labelColor: AppColors.onPrimary,
       unselectedLabelColor: AppColors.textSecondary,
-      labelStyle: const TextStyle(
+      labelStyle: TextStyle(
           fontFamily: kTextFont, fontWeight: FontWeight.w800, fontSize: 13.5),
-      unselectedLabelStyle: const TextStyle(
+      unselectedLabelStyle: TextStyle(
           fontFamily: kTextFont, fontWeight: FontWeight.w700, fontSize: 13.5),
-      overlayColor: const WidgetStatePropertyAll<Color>(Colors.transparent),
+      overlayColor: WidgetStatePropertyAll<Color>(Colors.transparent),
       splashFactory: NoSplash.splashFactory,
     ),
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith<Color>(
         (Set<WidgetState> states) => states.contains(WidgetState.selected)
-            ? Colors.white
+            ? AppColors.onPrimary
             : AppColors.textSecondary,
       ),
       trackColor: WidgetStateProperty.resolveWith<Color>(
@@ -379,8 +410,16 @@ ThemeData buildAppTheme() {
             ? AppColors.primary
             : Colors.transparent,
       ),
+      checkColor: const WidgetStatePropertyAll<Color>(AppColors.onPrimary),
       side: const BorderSide(color: AppColors.textTertiary, width: 1.5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+    ),
+    radioTheme: RadioThemeData(
+      fillColor: WidgetStateProperty.resolveWith<Color>(
+        (Set<WidgetState> states) => states.contains(WidgetState.selected)
+            ? AppColors.primary
+            : AppColors.textTertiary,
+      ),
     ),
     sliderTheme: const SliderThemeData(
       activeTrackColor: AppColors.primary,
@@ -396,13 +435,14 @@ ThemeData buildAppTheme() {
     ),
     chipTheme: ChipThemeData(
       backgroundColor: AppColors.glass,
-      selectedColor: AppColors.primary.withValues(alpha: 0.35),
+      selectedColor: AppColors.primary.withValues(alpha: 0.2),
+      checkmarkColor: AppColors.textPrimary,
       side: const BorderSide(color: AppColors.glassEdge),
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.pill),
       labelStyle: themed.bodyMedium!,
     ),
     listTileTheme: const ListTileThemeData(
-      iconColor: AppColors.primarySoft,
+      iconColor: AppColors.textSecondary,
       textColor: AppColors.textPrimary,
     ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
@@ -414,7 +454,7 @@ ThemeData buildAppTheme() {
       backgroundColor: AppColors.surface,
       surfaceTintColor: Colors.transparent,
       showDragHandle: true,
-      dragHandleColor: AppColors.textTertiary,
+      dragHandleColor: AppColors.outline,
     ),
     dialogTheme: const DialogThemeData(
       backgroundColor: AppColors.surface,
@@ -427,13 +467,13 @@ ThemeData buildAppTheme() {
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: Colors.transparent,
-      indicatorColor: AppColors.primary.withValues(alpha: 0.25),
+      indicatorColor: AppColors.primary.withValues(alpha: 0.16),
       labelTextStyle: WidgetStatePropertyAll<TextStyle>(themed.labelSmall!),
     ),
   );
 }
 
-/// Pages fade through each other over the one aurora they share: the old
+/// Pages fade through each other over the one sky they share: the old
 /// page sinks away as the new one rises, so two transparent screens never
 /// sit on top of each other.
 class FadeThroughPageTransitionsBuilder extends PageTransitionsBuilder {

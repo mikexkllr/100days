@@ -96,7 +96,7 @@ class _GoalCard extends StatelessWidget {
               ),
             ),
             child: selected
-                ? const Icon(Icons.check, size: 14, color: Colors.white)
+                ? const Icon(Icons.check, size: 14, color: AppColors.onPrimary)
                 : null,
           ),
         ],

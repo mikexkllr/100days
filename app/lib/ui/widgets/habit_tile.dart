@@ -3,23 +3,24 @@ import 'package:flutter/services.dart';
 import 'package:hundred_core/hundred_core.dart';
 
 import '../../l10n/l10n.dart';
+import '../../theme/fire.dart';
 import '../../theme/theme.dart';
 import '../motion/motion.dart';
 import '../motion/particles.dart';
 import '../motion/rolling_number.dart';
-import 'app_card.dart';
 import 'hold_button.dart';
-import 'juicy_button.dart';
 
-/// One habit for today, with the check-in control it actually needs.
+/// One habit for today: a single row, and the whole row is the button.
 ///
-/// A "no sugar" day is a yes/no; twenty pages of reading is a number you have
-/// to be able to overshoot. Forcing both into a single checkbox is how habit
-/// apps end up feeling like paperwork.
+/// Hold it and it fills with fire; when it is full the habit is logged at
+/// its target. That is the one gesture for the common case, the same for
+/// every habit. Whatever a habit needs beyond that sits one tap away, under
+/// the row: a different amount than the target ("I read 35 pages"), or an
+/// honest relapse.
 ///
 /// Checking in is the moment the app exists for, so it is loud: sparks out
-/// of the button, the XP it earned floating up, the card lighting up green.
-class HabitTile extends StatelessWidget {
+/// of the row, the XP it earned floating up, the row staying lit.
+class HabitTile extends StatefulWidget {
   const HabitTile({
     super.key,
     required this.habit,
@@ -27,6 +28,11 @@ class HabitTile extends StatelessWidget {
     required this.entry,
     required this.onCheckIn,
     required this.onRelapse,
+    this.fire = const Fire(
+      light: Color(0xFFFFA3BC),
+      main: Color(0xFFFF5C8A),
+      deep: Color(0xFFB3184A),
+    ),
     this.scheduledToday = true,
     this.xpGain,
     this.celebration = 0,
@@ -37,6 +43,9 @@ class HabitTile extends StatelessWidget {
   final CheckIn? entry;
   final void Function(num value) onCheckIn;
   final VoidCallback onRelapse;
+
+  /// The colour a done habit is lit in.
+  final Fire fire;
   final bool scheduledToday;
 
   /// What the last check-in on this tile earned, shown as it floats away.
@@ -45,100 +54,228 @@ class HabitTile extends StatelessWidget {
   /// Bumped by the screen after each check-in to replay the celebration.
   final int celebration;
 
-  bool get _isDone =>
-      entry != null && !entry!.relapse && entry!.value >= habit.target;
+  @override
+  State<HabitTile> createState() => _HabitTileState();
+}
 
-  bool get _isRelapse => entry?.relapse ?? false;
+class _HabitTileState extends State<HabitTile> {
+  bool _open = false;
+  int _nudges = 0;
+
+  Habit get _habit => widget.habit;
+  CheckIn? get _entry => widget.entry;
+
+  bool get _isDone =>
+      _entry != null && !_entry!.relapse && _entry!.value >= _habit.target;
+  bool get _isRelapse => _entry?.relapse ?? false;
+  bool get _isAmount => _habit.definition.unit != HabitUnit.done;
+  bool get _isAbstain => _habit.kind == HabitKind.abstain;
+
+  /// Whether a tap has anything to reveal.
+  bool get _hasMore => _isAmount || (_isAbstain && !_isRelapse);
+
+  @override
+  void didUpdateWidget(HabitTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Logged: fold the extras away again.
+    if (oldWidget.celebration != widget.celebration ||
+        (!(oldWidget.entry?.relapse ?? false) && _isRelapse)) {
+      _open = false;
+    }
+  }
+
+  void _onTap() {
+    HapticFeedback.selectionClick();
+    setState(() {
+      if (_hasMore) {
+        _open = !_open;
+      } else {
+        // Nothing to open: point at the gesture instead.
+        _nudges++;
+      }
+    });
+  }
+
+  String _action(AppLocalizations l10n) => _isAmount
+      ? l10n.tileLogAmount
+      : _isAbstain
+          ? l10n.tileCleanToday
+          : l10n.tileCheckOff;
 
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
+    final Fire fire = widget.fire;
+    final bool canHold = !_isDone && !_isRelapse;
+    final Color accent = _isRelapse ? AppColors.danger : fire.main;
+    final bool tinted = _isDone || _isRelapse;
 
-    final Widget card = AppCard(
-      border: _isRelapse
-          ? AppColors.danger
-          : _isDone
-              ? AppColors.success
-              : null,
-      glow: _isDone ? AppColors.success.withValues(alpha: 0.5) : null,
-      color: _isDone ? AppColors.success : null,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              _EmojiBadge(emoji: habit.emoji, lit: _isDone),
-              const SizedBox(width: AppSpacing.sm + 4),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      l10n.habitLabel(habit),
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      _subtitle(l10n),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: _isRelapse
-                                ? AppColors.danger
-                                : AppColors.textSecondary,
-                            fontSize: 13,
-                          ),
-                    ),
-                  ],
-                ),
+    final Widget card = AnimatedContainer(
+      duration: const Duration(milliseconds: 420),
+      curve: Curves.easeOutCubic,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: tinted
+            ? Color.alphaBlend(
+                accent.withValues(alpha: 0.13),
+                AppColors.ink.withValues(alpha: 0.6),
+              )
+            : Color.alphaBlend(
+                AppColors.glass,
+                AppColors.ink.withValues(alpha: 0.55),
               ),
-              if (streak > 0 && !_isRelapse) _StreakBadge(streak: streak),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _control(context, l10n),
-        ],
+        border: Border.all(
+          color: tinted ? accent.withValues(alpha: 0.42) : AppColors.glassEdge,
+        ),
+      ),
+      // The stepper's ink needs a Material to paint on.
+      child: Material(
+        type: MaterialType.transparency,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            HoldButton(
+              label: '${l10n.habitLabel(_habit)}, '
+                  '${_isDone ? l10n.tileDone : _action(l10n)}',
+              onConfirmed:
+                  canHold ? () => widget.onCheckIn(_habit.target) : null,
+              onTap: _onTap,
+              builder: (BuildContext context, double fill) => Stack(
+                children: <Widget>[
+                  if (fill > 0)
+                    Positioned.fill(
+                      child: FractionallySizedBox(
+                        alignment: Alignment.centerLeft,
+                        widthFactor: fill,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: <Color>[
+                                fire.main.withValues(alpha: 0.28),
+                                fire.main.withValues(alpha: 0.62),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
+                    child: Row(
+                      children: <Widget>[
+                        _EmojiBadge(
+                          emoji: _habit.emoji,
+                          tint: tinted ? accent : null,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Text(
+                                l10n.habitLabel(_habit),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 2),
+                              _Subtitle(
+                                text: _subtitle(l10n),
+                                streak: _isRelapse ? 0 : widget.streak,
+                                color: _isRelapse
+                                    ? AppColors.danger
+                                    : AppColors.textSecondary,
+                                fire: fire,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        if (_isDone)
+                          DoneBadge(label: l10n.tileDone, color: fire.light)
+                        else if (canHold)
+                          TriggeredAnimation(
+                            trigger: _nudges,
+                            duration: const Duration(milliseconds: 520),
+                            builder: (BuildContext context, double t,
+                                    Widget? child) =>
+                                Transform.scale(
+                              scale: _nudges == 0 ? 1 : bounceScale(t),
+                              child: child,
+                            ),
+                            child: _HoldChip(
+                              label: _action(l10n),
+                              active: fill > 0,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topCenter,
+              child: _open && _hasMore
+                  ? _More(
+                      habit: _habit,
+                      current: _entry == null || _isRelapse ? 0 : _entry!.value,
+                      isDone: _isDone,
+                      canHold: canHold,
+                      onCheckIn: widget.onCheckIn,
+                      onRelapse: widget.onRelapse,
+                    )
+                  : const SizedBox(width: double.infinity),
+            ),
+          ],
+        ),
       ),
     );
 
     return TriggeredAnimation(
-      trigger: celebration,
+      trigger: widget.celebration,
       duration: const Duration(milliseconds: 1300),
       child: card,
       builder: (BuildContext context, double t, Widget? card) {
-        final bool playing = celebration > 0 && t < 1;
+        final bool playing = widget.celebration > 0 && t < 1;
         return Stack(
           clipBehavior: Clip.none,
           children: <Widget>[
             Transform.scale(
-              scale: playing ? bounceScale((t / 0.4).clamp(0, 1)) : 1,
+              scale: playing
+                  ? 1 + (bounceScale((t / 0.4).clamp(0, 1)) - 1) * 0.35
+                  : 1,
               child: ParticleBurst(
-                trigger: celebration == 0 ? null : celebration,
-                origin: const Alignment(0, 0.6),
-                count: 34,
+                trigger: widget.celebration == 0 ? null : widget.celebration,
+                origin: const Alignment(0.7, 0),
+                count: 30,
                 kinds: const <ParticleKind>[
                   ParticleKind.spark,
                   ParticleKind.star,
-                  ParticleKind.confetti,
                 ],
-                colors: kHoloParticles,
-                power: 0.8,
+                colors: <Color>[fire.light, fire.main, AppColors.glow],
+                power: 0.75,
                 upward: true,
                 child: card,
               ),
             ),
-            if (playing && xpGain != null && xpGain! > 0)
+            if (playing && widget.xpGain != null && widget.xpGain! > 0)
               Positioned(
-                right: AppSpacing.lg,
-                bottom: 40 + 70 * Curves.easeOutCubic.transform(t),
+                right: AppSpacing.md,
+                bottom: 30 + 54 * Curves.easeOutCubic.transform(t),
                 child: IgnorePointer(
                   child: Opacity(
                     opacity: t < 0.15 ? t / 0.15 : (1 - (t - 0.15) / 0.85),
                     child: Transform.scale(
                       scale: 0.6 + 0.6 * popCurve((t / 0.5).clamp(0, 1)),
                       child: GlowText(
-                        '+${l10n.homeXp(xpGain!)}',
-                        style: displayStyle(26, color: AppColors.reward),
-                        gradient: AppGradients.holo,
-                        glow: AppColors.reward,
+                        '+${l10n.homeXp(widget.xpGain!)}',
+                        style: displayStyle(22, color: AppColors.textPrimary),
+                        glow: fire.main,
                       ),
                     ),
                   ),
@@ -150,180 +287,137 @@ class HabitTile extends StatelessWidget {
     );
   }
 
-  String _subtitle(AppLocalizations l10n) {
+  String? _subtitle(AppLocalizations l10n) {
     if (_isRelapse) return l10n.tileRelapseLogged;
-    if (!scheduledToday) return l10n.tileRestToday;
-    if (_isDone) return l10n.tileDoneWith(l10n.formatTarget(habit));
-    return l10n.tileTarget(l10n.formatTarget(habit));
-  }
-
-  Widget _control(BuildContext context, AppLocalizations l10n) {
-    if (habit.definition.unit == HabitUnit.done) {
-      return _DoneControl(
-        isDone: _isDone,
-        isRelapse: _isRelapse,
-        isAbstain: habit.kind == HabitKind.abstain,
-        onCheckIn: () => onCheckIn(habit.target),
-        onRelapse: onRelapse,
-      );
+    if (!widget.scheduledToday && !_isDone) return l10n.tileRestToday;
+    if (!_isAmount) return widget.streak > 0 ? null : l10n.tileHoldExplain;
+    final num value = _entry?.value ?? 0;
+    // Under the target: what is there, of what it takes.
+    if (value > 0 && !_isDone) {
+      return '${value.round()} / ${l10n.formatTarget(_habit)}';
     }
-    return _AmountControl(
-      habit: habit,
-      current: entry?.value ?? 0,
-      onCheckIn: onCheckIn,
-    );
+    return l10n.formatTarget(_habit, value: _isDone ? value : null);
   }
 }
 
-class _EmojiBadge extends StatelessWidget {
-  const _EmojiBadge({required this.emoji, required this.lit});
-
-  final String emoji;
-  final bool lit;
-
-  @override
-  Widget build(BuildContext context) {
-    final Color accent = lit ? AppColors.success : AppColors.primary;
-    return Container(
-      width: 50,
-      height: 50,
-      padding: const EdgeInsets.all(1.5),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(17),
-        gradient: AppGradients.edge(accent),
-        boxShadow: lit ? AppShadows.glow(accent, strength: 0.6) : null,
-      ),
-      child: Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15.5),
-          gradient: RadialGradient(
-            colors: <Color>[
-              accent.withValues(alpha: 0.4),
-              AppColors.surface,
-            ],
-          ),
-        ),
-        child: Text(emoji, style: const TextStyle(fontSize: 24)),
-      ),
-    );
-  }
-}
-
-class _StreakBadge extends StatelessWidget {
-  const _StreakBadge({required this.streak});
-
-  final int streak;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        gradient: AppGradients.plasma,
-        borderRadius: AppRadius.pill,
-        boxShadow: AppShadows.glow(AppColors.hot, strength: 0.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Text(
-            '$streak',
-            style:
-                displayStyle(12, color: Colors.white, weight: FontWeight.w700),
-          ),
-          const SizedBox(width: 3),
-          const Icon(Icons.local_fire_department, size: 14, color: Colors.white),
-        ],
-      ),
-    );
-  }
-}
-
-class _DoneControl extends StatelessWidget {
-  const _DoneControl({
-    required this.isDone,
-    required this.isRelapse,
-    required this.isAbstain,
-    required this.onCheckIn,
-    required this.onRelapse,
+class _Subtitle extends StatelessWidget {
+  const _Subtitle({
+    required this.text,
+    required this.streak,
+    required this.color,
+    required this.fire,
   });
 
-  final bool isDone;
-  final bool isRelapse;
-  final bool isAbstain;
-  final VoidCallback onCheckIn;
-  final VoidCallback onRelapse;
+  final String? text;
+  final int streak;
+  final Color color;
+  final Fire fire;
 
   @override
   Widget build(BuildContext context) {
-    final AppLocalizations l10n = context.l10n;
+    final TextStyle style = Theme.of(context)
+        .textTheme
+        .bodyMedium!
+        .copyWith(color: color, fontSize: 12.5, height: 1.25);
     return Row(
       children: <Widget>[
-        Expanded(
-          child: isDone
-              ? DoneBadge(label: l10n.tileDone)
-              : HoldButton(
-                  label: isAbstain ? l10n.tileCleanToday : l10n.tileCheckOff,
-                  hint: l10n.tileHoldHint,
-                  icon: isAbstain ? Icons.shield_outlined : Icons.bolt,
-                  onConfirmed: onCheckIn,
-                ),
-        ),
-        if (isAbstain) ...<Widget>[
-          const SizedBox(width: AppSpacing.sm),
-          SizedBox(
-            height: 56,
-            child: OutlinedButton(
-              onPressed: isRelapse ? null : onRelapse,
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(60, 52),
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                foregroundColor: AppColors.danger,
-                side: BorderSide(
-                  color: AppColors.danger.withValues(alpha: 0.5),
-                  width: 1.5,
-                ),
-                textStyle: displayStyle(12, weight: FontWeight.w700),
-              ),
-              child: Text(l10n.tileRelapse),
+        if (streak > 0) ...<Widget>[
+          Icon(Icons.local_fire_department, size: 14, color: fire.main),
+          const SizedBox(width: 2),
+          Text(
+            '$streak',
+            style: style.copyWith(
+              color: fire.light,
+              fontWeight: FontWeight.w800,
             ),
           ),
+          if (text != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Text('·', style: style),
+            ),
         ],
+        if (text != null)
+          Flexible(
+            child: Text(
+              text!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: style,
+            ),
+          ),
       ],
     );
   }
 }
 
-/// A finished check-in: the green of a done thing, nothing left to press.
-class DoneBadge extends StatelessWidget {
-  const DoneBadge({super.key, required this.label});
+class _EmojiBadge extends StatelessWidget {
+  const _EmojiBadge({required this.emoji, required this.tint});
+
+  final String emoji;
+  final Color? tint;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 420),
+      width: 42,
+      height: 42,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: tint == null
+            ? AppColors.glassHigh
+            : tint!.withValues(alpha: 0.22),
+      ),
+      child: Text(emoji, style: const TextStyle(fontSize: 21)),
+    );
+  }
+}
+
+/// What holding the row will do — the one place the gesture is spelled out.
+class _HoldChip extends StatelessWidget {
+  const _HoldChip({required this.label, required this.active});
 
   final String label;
+  final bool active;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 56,
-      alignment: Alignment.center,
+      height: 36,
+      constraints: const BoxConstraints(maxWidth: 138),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         borderRadius: AppRadius.pill,
-        color: AppColors.success.withValues(alpha: 0.14),
+        color: active ? AppColors.primary : Colors.transparent,
         border: Border.all(
-            color: AppColors.success.withValues(alpha: 0.7), width: 1.5),
+          color: active
+              ? AppColors.primary
+              : AppColors.primary.withValues(alpha: 0.32),
+          width: 1.2,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          const Icon(Icons.check_circle, color: AppColors.success, size: 21),
-          const SizedBox(width: 8),
+          Icon(
+            Icons.touch_app_outlined,
+            size: 14,
+            color: active ? AppColors.onPrimary : AppColors.textSecondary,
+          ),
+          const SizedBox(width: 5),
           Flexible(
             child: Text(
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: displayStyle(14,
-                  color: AppColors.success, weight: FontWeight.w700),
+              style: TextStyle(
+                fontFamily: kTextFont,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: active ? AppColors.onPrimary : AppColors.textPrimary,
+              ),
             ),
           ),
         ],
@@ -332,34 +426,68 @@ class DoneBadge extends StatelessWidget {
   }
 }
 
-class _AmountControl extends StatefulWidget {
-  const _AmountControl({
+/// A finished check-in: lit, nothing left to press.
+class DoneBadge extends StatelessWidget {
+  const DoneBadge({
+    super.key,
+    required this.label,
+    this.color = AppColors.success,
+  });
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Text(
+          label,
+          maxLines: 1,
+          style: TextStyle(
+            fontFamily: kTextFont,
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            color: color,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Icon(Icons.check_circle, color: color, size: 24),
+      ],
+    );
+  }
+}
+
+/// Under the row: a different amount than the target, or a relapse.
+class _More extends StatefulWidget {
+  const _More({
     required this.habit,
     required this.current,
+    required this.isDone,
+    required this.canHold,
     required this.onCheckIn,
+    required this.onRelapse,
   });
 
   final Habit habit;
   final num current;
+  final bool isDone;
+  final bool canHold;
   final void Function(num value) onCheckIn;
+  final VoidCallback onRelapse;
 
   @override
-  State<_AmountControl> createState() => _AmountControlState();
+  State<_More> createState() => _MoreState();
 }
 
-class _AmountControlState extends State<_AmountControl> {
+class _MoreState extends State<_More> {
   late num _value = widget.current > 0 ? widget.current : widget.habit.target;
 
-  @override
-  void didUpdateWidget(_AmountControl oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.current != widget.current && widget.current > 0) {
-      _value = widget.current;
-    }
-  }
+  bool get _isAmount => widget.habit.definition.unit != HabitUnit.done;
 
   num get _step {
-    final target = widget.habit.target;
+    final num target = widget.habit.target;
     if (target >= 100) return 30;
     if (target >= 20) return 5;
     return 1;
@@ -368,44 +496,81 @@ class _AmountControlState extends State<_AmountControl> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
-    final bool isDone = widget.current >= widget.habit.target;
-    return Row(
-      children: <Widget>[
-        _StepButton(
-          icon: Icons.remove,
-          onTap: () => setState(() {
-            _value = (_value - _step).clamp(0, double.infinity);
-          }),
-        ),
-        Expanded(
-          child: Center(
-            child: Text(
-              l10n.formatTarget(widget.habit, value: _value),
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-          ),
-        ),
-        _StepButton(
-          icon: Icons.add,
-          onTap: () => setState(() => _value = _value + _step),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        SizedBox(
-          width: 130,
-          child: isDone
-              ? JuicyButton.success(
-                  label: l10n.tileUpdateAmount,
-                  onPressed: () => widget.onCheckIn(_value),
-                  fontSize: 15,
-                )
-              : HoldButton(
-                  label: l10n.tileLogAmount,
-                  icon: Icons.bolt,
-                  compact: true,
-                  onConfirmed: () => widget.onCheckIn(_value),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.glassEdge)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          if (_isAmount)
+            Row(
+              children: <Widget>[
+                _StepButton(
+                  icon: Icons.remove,
+                  onTap: () => setState(() {
+                    _value = (_value - _step).clamp(0, double.infinity);
+                  }),
                 ),
-        ),
-      ],
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      l10n.formatTarget(widget.habit, value: _value),
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                ),
+                _StepButton(
+                  icon: Icons.add,
+                  onTap: () => setState(() => _value = _value + _step),
+                ),
+                const SizedBox(width: 12),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(104, 42),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                  ),
+                  onPressed: () => widget.onCheckIn(_value),
+                  child: Text(
+                    widget.isDone ? l10n.tileUpdateAmount : l10n.tileLogAmount,
+                  ),
+                ),
+              ],
+            )
+          else
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    widget.canHold ? l10n.tileHoldExplain : '',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textTertiary,
+                          fontSize: 12.5,
+                        ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                OutlinedButton(
+                  onPressed: widget.onRelapse,
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(60, 40),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    foregroundColor: AppColors.danger,
+                    backgroundColor: Colors.transparent,
+                    side: BorderSide(
+                      color: AppColors.danger.withValues(alpha: 0.5),
+                      width: 1.2,
+                    ),
+                  ),
+                  child: Text(l10n.tileRelapse),
+                ),
+              ],
+            ),
+        ],
+      ),
     );
   }
 }

@@ -212,7 +212,6 @@ class NutritionGoalsForm extends StatelessWidget {
           key: const Key('custom-kcal-switch'),
           contentPadding: EdgeInsets.zero,
           value: custom,
-          activeThumbColor: AppColors.primary,
           title: Text(l10n.goalsOwnTarget),
           subtitle: Text(l10n.goalsOwnTargetSub),
           onChanged: (bool on) => onChanged(on

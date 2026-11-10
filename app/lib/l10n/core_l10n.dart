@@ -82,6 +82,25 @@ extension CoreL10n on AppLocalizations {
   /// A user-supplied title always wins: they named it, we do not translate it.
   String habitLabel(Habit habit) => habit.title ?? habitTitle(habit.category);
 
+  /// How a day went, in a word or two.
+  String dayMarkLabel(DayMark mark) {
+    switch (mark) {
+      case DayMark.done:
+        return dayDone;
+      case DayMark.frozen:
+        return dayFrozen;
+      case DayMark.missed:
+        return dayMissed;
+      case DayMark.rest:
+        return dayRest;
+      case DayMark.open:
+        return dayOpen;
+      case DayMark.upcoming:
+      case DayMark.none:
+        return dayUpcoming;
+    }
+  }
+
   String goalTitle(GoalArchetype archetype) {
     switch (archetype) {
       case GoalArchetype.buildMuscle:

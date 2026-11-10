@@ -116,17 +116,17 @@ struct StreakProvider: TimelineProvider {
 }
 
 private extension Color {
-    static let ink = Color(red: 7 / 255, green: 5 / 255, blue: 26 / 255)
+    static let ink = Color(red: 5 / 255, green: 6 / 255, blue: 11 / 255)
     static let plasma = Color(red: 192 / 255, green: 132 / 255, blue: 252 / 255)
-    static let hot = Color(red: 244 / 255, green: 63 / 255, blue: 94 / 255)
-    static let attention = Color(red: 232 / 255, green: 121 / 255, blue: 249 / 255)
+    static let hot = Color(red: 255 / 255, green: 77 / 255, blue: 109 / 255)
+    static let attention = Color(red: 255 / 255, green: 126 / 255, blue: 182 / 255)
     static let sky = Color(red: 191 / 255, green: 219 / 255, blue: 254 / 255)
     static let violet = Color(red: 167 / 255, green: 139 / 255, blue: 250 / 255)
-    static let success = Color(red: 52 / 255, green: 224 / 255, blue: 181 / 255)
-    static let cool = Color(red: 125 / 255, green: 211 / 255, blue: 252 / 255)
-    static let danger = Color(red: 251 / 255, green: 113 / 255, blue: 133 / 255)
-    static let muted = Color(red: 185 / 255, green: 179 / 255, blue: 219 / 255)
-    static let quiet = Color(red: 122 / 255, green: 115 / 255, blue: 166 / 255)
+    static let success = Color(red: 63 / 255, green: 224 / 255, blue: 176 / 255)
+    static let cool = Color(red: 138 / 255, green: 220 / 255, blue: 255 / 255)
+    static let danger = Color(red: 255 / 255, green: 90 / 255, blue: 95 / 255)
+    static let muted = Color(red: 164 / 255, green: 169 / 255, blue: 188 / 255)
+    static let quiet = Color(red: 108 / 255, green: 113 / 255, blue: 134 / 255)
 }
 
 struct StreakWidgetView: View {
@@ -149,7 +149,7 @@ struct StreakWidgetView: View {
         case "done": return Color(red: 59 / 255, green: 31 / 255, blue: 122 / 255)
         case "open": return Color(red: 58 / 255, green: 23 / 255, blue: 88 / 255)
         case "rest", "frozen": return Color(red: 16 / 255, green: 42 / 255, blue: 74 / 255)
-        default: return Color(red: 26 / 255, green: 23 / 255, blue: 53 / 255)
+        default: return Color(red: 27 / 255, green: 30 / 255, blue: 42 / 255)
         }
     }
 
@@ -223,7 +223,7 @@ struct StreakWidgetView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
 
         let background = LinearGradient(
-            colors: [tint, Color(red: 18 / 255, green: 14 / 255, blue: 42 / 255), .ink],
+            colors: [tint, Color(red: 16 / 255, green: 18 / 255, blue: 26 / 255), .ink],
             startPoint: .topLeading, endPoint: .bottomTrailing)
 
         if #available(iOSApplicationExtension 17.0, *) {

@@ -7,6 +7,7 @@ import 'package:hundred_core/hundred_core.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../l10n/l10n.dart';
+import '../../theme/fire.dart';
 import '../../theme/theme.dart';
 import '../mascot/flame_mascot.dart';
 import '../mascot/flame_painter.dart';
@@ -167,7 +168,8 @@ class _DayCompleteCelebrationState extends State<DayCompleteCelebration>
     final DayReward reward = widget.reward;
     final bool jackpot = reward.isJackpot;
     final bool done = _landed[2];
-    final Color accent = jackpot ? AppColors.attention : AppColors.primary;
+    // The night takes the colour of the form the streak just reached.
+    final Color accent = Fire.of(reward.stage).main;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -184,8 +186,8 @@ class _DayCompleteCelebrationState extends State<DayCompleteCelebration>
                     radius: 1.1,
                     colors: <Color>[
                       Color.lerp(AppColors.ink, accent, 0.28)!,
-                      AppColors.ink.withValues(alpha: 0.97),
-                      AppColors.inkDeep.withValues(alpha: 0.98),
+                      AppColors.ink,
+                      AppColors.inkDeep,
                     ],
                   ),
                 ),
@@ -356,7 +358,7 @@ class _Title extends StatelessWidget {
             text,
             style: displayStyle(gold ? 40 : 34),
             gradient: gold ? AppGradients.holo : AppGradients.streakText,
-            glow: gold ? AppColors.reward : AppColors.primary,
+            glow: gold ? AppColors.reward : AppColors.attention,
           ),
         ),
       ),
@@ -472,7 +474,7 @@ class _SlotMachine extends StatelessWidget {
         gradient: AppGradients.holo,
         borderRadius: BorderRadius.circular(30),
         boxShadow: AppShadows.glow(
-          jackpot && landed[2] ? AppColors.reward : AppColors.primary,
+          AppColors.reward,
           strength: jackpot && landed[2] ? 1.4 : 0.8,
         ),
       ),
@@ -509,8 +511,8 @@ class _SlotMachine extends StatelessWidget {
                         result: GlowText(
                           '${reward.streak}',
                           style: displayStyle(38),
-                          gradient: AppGradients.streakText,
-                          glow: AppColors.primary,
+                          gradient: Fire.of(reward.stage).text,
+                          glow: Fire.of(reward.stage).main,
                         ),
                       ),
                       const SizedBox(width: 8),

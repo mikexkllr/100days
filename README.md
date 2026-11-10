@@ -35,8 +35,11 @@ because there is no server at all. The coach runs on the device.
 
 **Showing up feels like winning.** Your streak is Funki, a flame with a face
 that grows through ten forms — from a red ember to a holographic galaxy — and
-goes hungry, worried or proud with your day. You check in by holding until the
-bar ignites, and a clock runs to midnight while today is open.
+goes hungry, worried or proud with your day. You check in by holding a habit
+until it ignites, and a clock runs to midnight while today is open. The night
+sky behind the app is yours: a star for every day you finished, an aurora that
+rises as today gets done, and everything lit burns in the colour of your
+flame — so day 50 does not look like day 5.
 Finishing the day rolls a slot machine: streak, XP and bonus reels, and a
 jackpot when something rare really happened — a milestone, a level-up, a new
 form, a record. Every reel lands on a real number; only the size of the
