@@ -1,13 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Peer-to-peer replication over the local network. There is no backend
-         server: INTERNET is needed for direct socket connections to peers,
-         and multicast for discovering them on the same Wi-Fi. Besides that,
-         exactly two requests ever leave the phone, both on a tap: the
-         on-device model download (a pinned file from Hugging Face) and a
-         barcode lookup in Open Food Facts (the barcode number only). -->
+    <!-- INTERNET: the app's backend (Supabase), the AI gateway, and a
+         barcode lookup in Open Food Facts (the barcode number only).
+         READ_CONTACTS: only when the user asks to find friends in the
+         address book; contacts are compared as keyed hashes and not
+         stored. -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
 
     <!-- Local reminders and friend-activity alerts, and the streak widget's
          redraws at midnight. All scheduled on device. -->

@@ -872,6 +872,20 @@
       }
     }
   },
+  "findAdd": "Add",
+  "findAlreadyFriends": "Friends",
+  "findAlsoFindMe": "Let my contacts find me too",
+  "findAlsoFindMeSub": "By your verified e-mail address. You can switch it off in settings.",
+  "findContactsAction": "Search my contacts",
+  "findContactsDenied": "Without access to contacts this does not work — search by name or send a link instead.",
+  "findContactsNone": "None of your contacts is findable yet. Send them a link!",
+  "findContactsSub": "Phone numbers and e-mail addresses are compared on the server as keyed hashes and not stored. Only people who chose to be findable show up.",
+  "findContactsTitle": "From your contacts",
+  "findInviteTitle": "Or invite them",
+  "findNoResults": "Nobody found. People can be found by name once they chose a username.",
+  "findRequested": "Requested",
+  "findSearchHint": "Name or @username",
+  "findTitle": "Find friends",
   "foodAddAll": "{count, plural, =1{Add 1 entry · {kcal} kcal} other{Add {count} entries · {kcal} kcal}}",
   "@foodAddAll": {
     "placeholders": {
@@ -1023,6 +1037,7 @@
   "friendsEmptyTitle": "Nobody connected yet",
   "friendsFallbackName": "Friend",
   "friendsInvite": "Invite",
+  "friendsLeagueSection": "Among friends",
   "friendsNetworkNote": "Friends see what you share: your streak, shared habits and, if you want, your workouts. Body stats, targets and the food diary stay private — the server hands them to nobody but you.",
   "friendsNoActivity": "No activity yet",
   "friendsNudgeSection": "Nudge",
@@ -1041,6 +1056,31 @@
   "friendsRequestsTitle": "Friend requests",
   "friendsScan": "Scan",
   "friendsYourPeople": "Your people",
+  "globalLeagueEmpty": "Your league group starts with your first check-in this week: up to 30 people of your division, the best move up on Monday.",
+  "globalLeagueHonesty": "Strangers' XP is what their phones report, capped per day. Among friends every phone recomputes XP from the shared check-ins.",
+  "globalLeagueSection": "This week's league",
+  "globalLeagueSub": "{size} people · top {up} up, bottom {down} down",
+  "@globalLeagueSub": {
+    "placeholders": {
+      "size": {
+        "type": "int"
+      },
+      "up": {
+        "type": "int"
+      },
+      "down": {
+        "type": "int"
+      }
+    }
+  },
+  "globalLeagueXp": "{xp} XP",
+  "@globalLeagueXp": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
   "goalBuildMuscle": "Build muscle",
   "goalBuildMusclePitch": "Get heavier, get stronger. Plan, protein, progression.",
   "goalClarity": "Clear your head",
@@ -2642,6 +2682,10 @@
   "promptUnitClean": "days clean",
   "promptUnitStreak": "days streak",
   "promptYes": "yes",
+  "pushCheer": "Cheers from friends",
+  "pushFriendActivity": "A friend showed up and you have not yet",
+  "pushFriendRequest": "Friend requests",
+  "pushNudge": "Nudges from friends",
   "qtyPieces": "{n} pc",
   "@qtyPieces": {
     "placeholders": {
@@ -2663,6 +2707,29 @@
     "placeholders": {
       "n": {
         "type": "String"
+      }
+    }
+  },
+  "questDone": "Quest done — together.",
+  "questProgress": "You {mine} · {name} {theirs}",
+  "@questProgress": {
+    "placeholders": {
+      "mine": {
+        "type": "int"
+      },
+      "theirs": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "questTitle": "Quest this week: {target} check-ins together",
+  "@questTitle": {
+    "placeholders": {
+      "target": {
+        "type": "int"
       }
     }
   },
@@ -2881,6 +2948,15 @@
       }
     }
   },
+  "socialFindable": "Findable via contacts",
+  "socialFindableSub": "People with your e-mail address (or verified number) in their contacts can find you.",
+  "socialFoundTitle": "Being found",
+  "socialLeague": "Public weekly league",
+  "socialLeagueSub": "Compete with people beyond your friends. They see your name, emoji and weekly XP — nothing else.",
+  "socialPushNotConfigured": "This build has no push service set up; reminders still come from the phone itself.",
+  "socialPushTitle": "Push notifications",
+  "socialSettingsSub": "Username, being found, league, pushes",
+  "socialSettingsTitle": "Friends & notifications",
   "socialTabFeed": "Feed",
   "socialTabFriends": "Friends ({count})",
   "@socialTabFriends": {
@@ -3098,6 +3174,22 @@
     }
   },
   "tileUpdateAmount": "Update",
+  "togetherNoStreak": "Start a streak with {name}: both show up today.",
+  "@togetherNoStreak": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "togetherStreak": "{days, plural, =1{1 day in a row together} other{{days} days in a row together}}",
+  "@togetherStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "trainingPhaseBuild": "Build {week}/3 · Block {block}",
   "@trainingPhaseBuild": {
     "placeholders": {
@@ -3121,6 +3213,10 @@
       }
     }
   },
+  "usernameNone": "None — you are found by invite only",
+  "usernameRules": "3–20 letters a–z, digits or _",
+  "usernameTaken": "That username is taken.",
+  "usernameTitle": "Username",
   "weekdayFri": "FRI",
   "weekdayMon": "MON",
   "weekdaySat": "SAT",

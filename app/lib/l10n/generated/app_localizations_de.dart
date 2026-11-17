@@ -1150,6 +1150,53 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get findAdd => 'Hinzufügen';
+
+  @override
+  String get findAlreadyFriends => 'Befreundet';
+
+  @override
+  String get findAlsoFindMe => 'Meine Kontakte dürfen mich auch finden';
+
+  @override
+  String get findAlsoFindMeSub =>
+      'Über deine bestätigte E-Mail-Adresse. Abschalten geht in den Einstellungen.';
+
+  @override
+  String get findContactsAction => 'Kontakte durchsuchen';
+
+  @override
+  String get findContactsDenied =>
+      'Ohne Zugriff auf die Kontakte geht das nicht. Such per Name oder schick einen Link.';
+
+  @override
+  String get findContactsNone =>
+      'Noch keiner deiner Kontakte ist auffindbar. Schick ihnen einen Link!';
+
+  @override
+  String get findContactsSub =>
+      'Telefonnummern und E-Mail-Adressen werden auf dem Server als verschlüsselte Hashes verglichen und nicht gespeichert. Es erscheint nur, wer auffindbar sein will.';
+
+  @override
+  String get findContactsTitle => 'Aus deinen Kontakten';
+
+  @override
+  String get findInviteTitle => 'Oder einladen';
+
+  @override
+  String get findNoResults =>
+      'Niemand gefunden. Per Name findbar ist, wer sich einen Benutzernamen gegeben hat.';
+
+  @override
+  String get findRequested => 'Angefragt';
+
+  @override
+  String get findSearchHint => 'Name oder @benutzername';
+
+  @override
+  String get findTitle => 'Freunde finden';
+
+  @override
   String foodAddAll(int count, int kcal) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1377,6 +1424,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get friendsInvite => 'Einladen';
 
   @override
+  String get friendsLeagueSection => 'Unter Freunden';
+
+  @override
   String get friendsNetworkNote =>
       'Freunde sehen, was du teilst: deinen Streak, geteilte Gewohnheiten und auf Wunsch deine Trainings. Körperdaten, Ziele und das Ernährungstagebuch bleiben privat; der Server gibt sie nur dir.';
 
@@ -1411,6 +1461,27 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get friendsYourPeople => 'Deine Leute';
+
+  @override
+  String get globalLeagueEmpty =>
+      'Deine Liga-Gruppe beginnt mit deinem ersten Check-in diese Woche: bis zu 30 Leute deiner Division, die Besten steigen am Montag auf.';
+
+  @override
+  String get globalLeagueHonesty =>
+      'Die XP von Fremden meldet deren Handy, pro Tag gedeckelt. Unter Freunden rechnet jedes Handy die XP aus den geteilten Check-ins nach.';
+
+  @override
+  String get globalLeagueSection => 'Liga dieser Woche';
+
+  @override
+  String globalLeagueSub(int size, int up, int down) {
+    return '$size Leute · Top $up steigen auf, letzte $down ab';
+  }
+
+  @override
+  String globalLeagueXp(int xp) {
+    return '$xp XP';
+  }
 
   @override
   String get goalBuildMuscle => 'Muskeln aufbauen';
@@ -3711,6 +3782,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get promptYes => 'ja';
 
   @override
+  String get pushCheer => 'Anfeuern von Freunden';
+
+  @override
+  String get pushFriendActivity => 'Ein Freund war schon dran, du noch nicht';
+
+  @override
+  String get pushFriendRequest => 'Freundschaftsanfragen';
+
+  @override
+  String get pushNudge => 'Anstupser von Freunden';
+
+  @override
   String qtyPieces(String n) {
     return '$n Stk.';
   }
@@ -3723,6 +3806,19 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String qtyTsp(String n) {
     return '$n TL';
+  }
+
+  @override
+  String get questDone => 'Quest geschafft, zusammen.';
+
+  @override
+  String questProgress(int mine, int theirs, String name) {
+    return 'Du $mine · $name $theirs';
+  }
+
+  @override
+  String questTitle(int target) {
+    return 'Quest diese Woche: $target Check-ins zusammen';
   }
 
   @override
@@ -4004,6 +4100,36 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get socialFindable => 'Über Kontakte auffindbar';
+
+  @override
+  String get socialFindableSub =>
+      'Wer deine E-Mail-Adresse (oder bestätigte Nummer) in den Kontakten hat, kann dich finden.';
+
+  @override
+  String get socialFoundTitle => 'Gefunden werden';
+
+  @override
+  String get socialLeague => 'Öffentliche Wochenliga';
+
+  @override
+  String get socialLeagueSub =>
+      'Tritt gegen Leute außerhalb deiner Freunde an. Sie sehen Name, Emoji und Wochen-XP, sonst nichts.';
+
+  @override
+  String get socialPushNotConfigured =>
+      'Diese Version hat keinen Push-Dienst eingerichtet; Erinnerungen kommen weiterhin vom Handy selbst.';
+
+  @override
+  String get socialPushTitle => 'Push-Benachrichtigungen';
+
+  @override
+  String get socialSettingsSub => 'Benutzername, Auffindbarkeit, Liga, Pushes';
+
+  @override
+  String get socialSettingsTitle => 'Freunde & Benachrichtigungen';
+
+  @override
   String get socialTabFeed => 'Feed';
 
   @override
@@ -4277,6 +4403,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tileUpdateAmount => 'Update';
 
   @override
+  String togetherNoStreak(String name) {
+    return 'Starte einen Streak mit $name: Beide heute dran sein.';
+  }
+
+  @override
+  String togetherStreak(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days Tage am Stück zusammen',
+      one: '1 Tag am Stück zusammen',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trainingPhaseBuild(int week, int block) {
     return 'Aufbau $week/3 · Block $block';
   }
@@ -4288,6 +4430,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String trainingRationale(int days, String split) {
     return '$days Trainingstage pro Woche als \"$split\". Drei Wochen Aufbau, dann eine Deload-Woche — so hältst du 100 Tage durch, ohne auszubrennen.';
   }
+
+  @override
+  String get usernameNone => 'Keiner, du bist nur per Einladung findbar';
+
+  @override
+  String get usernameRules => '3–20 Zeichen: a–z, Ziffern oder _';
+
+  @override
+  String get usernameTaken => 'Dieser Benutzername ist vergeben.';
+
+  @override
+  String get usernameTitle => 'Benutzername';
 
   @override
   String get weekdayFri => 'FR';

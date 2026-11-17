@@ -1148,6 +1148,53 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get findAdd => 'Add';
+
+  @override
+  String get findAlreadyFriends => 'Friends';
+
+  @override
+  String get findAlsoFindMe => 'Let my contacts find me too';
+
+  @override
+  String get findAlsoFindMeSub =>
+      'By your verified e-mail address. You can switch it off in settings.';
+
+  @override
+  String get findContactsAction => 'Search my contacts';
+
+  @override
+  String get findContactsDenied =>
+      'Without access to contacts this does not work — search by name or send a link instead.';
+
+  @override
+  String get findContactsNone =>
+      'None of your contacts is findable yet. Send them a link!';
+
+  @override
+  String get findContactsSub =>
+      'Phone numbers and e-mail addresses are compared on the server as keyed hashes and not stored. Only people who chose to be findable show up.';
+
+  @override
+  String get findContactsTitle => 'From your contacts';
+
+  @override
+  String get findInviteTitle => 'Or invite them';
+
+  @override
+  String get findNoResults =>
+      'Nobody found. People can be found by name once they chose a username.';
+
+  @override
+  String get findRequested => 'Requested';
+
+  @override
+  String get findSearchHint => 'Name or @username';
+
+  @override
+  String get findTitle => 'Find friends';
+
+  @override
   String foodAddAll(int count, int kcal) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1374,6 +1421,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get friendsInvite => 'Invite';
 
   @override
+  String get friendsLeagueSection => 'Among friends';
+
+  @override
   String get friendsNetworkNote =>
       'Friends see what you share: your streak, shared habits and, if you want, your workouts. Body stats, targets and the food diary stay private — the server hands them to nobody but you.';
 
@@ -1408,6 +1458,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get friendsYourPeople => 'Your people';
+
+  @override
+  String get globalLeagueEmpty =>
+      'Your league group starts with your first check-in this week: up to 30 people of your division, the best move up on Monday.';
+
+  @override
+  String get globalLeagueHonesty =>
+      'Strangers\' XP is what their phones report, capped per day. Among friends every phone recomputes XP from the shared check-ins.';
+
+  @override
+  String get globalLeagueSection => 'This week\'s league';
+
+  @override
+  String globalLeagueSub(int size, int up, int down) {
+    return '$size people · top $up up, bottom $down down';
+  }
+
+  @override
+  String globalLeagueXp(int xp) {
+    return '$xp XP';
+  }
 
   @override
   String get goalBuildMuscle => 'Build muscle';
@@ -3696,6 +3767,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get promptYes => 'yes';
 
   @override
+  String get pushCheer => 'Cheers from friends';
+
+  @override
+  String get pushFriendActivity => 'A friend showed up and you have not yet';
+
+  @override
+  String get pushFriendRequest => 'Friend requests';
+
+  @override
+  String get pushNudge => 'Nudges from friends';
+
+  @override
   String qtyPieces(String n) {
     return '$n pc';
   }
@@ -3708,6 +3791,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String qtyTsp(String n) {
     return '$n tsp';
+  }
+
+  @override
+  String get questDone => 'Quest done — together.';
+
+  @override
+  String questProgress(int mine, int theirs, String name) {
+    return 'You $mine · $name $theirs';
+  }
+
+  @override
+  String questTitle(int target) {
+    return 'Quest this week: $target check-ins together';
   }
 
   @override
@@ -3988,6 +4084,36 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get socialFindable => 'Findable via contacts';
+
+  @override
+  String get socialFindableSub =>
+      'People with your e-mail address (or verified number) in their contacts can find you.';
+
+  @override
+  String get socialFoundTitle => 'Being found';
+
+  @override
+  String get socialLeague => 'Public weekly league';
+
+  @override
+  String get socialLeagueSub =>
+      'Compete with people beyond your friends. They see your name, emoji and weekly XP — nothing else.';
+
+  @override
+  String get socialPushNotConfigured =>
+      'This build has no push service set up; reminders still come from the phone itself.';
+
+  @override
+  String get socialPushTitle => 'Push notifications';
+
+  @override
+  String get socialSettingsSub => 'Username, being found, league, pushes';
+
+  @override
+  String get socialSettingsTitle => 'Friends & notifications';
+
+  @override
   String get socialTabFeed => 'Feed';
 
   @override
@@ -4261,6 +4387,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tileUpdateAmount => 'Update';
 
   @override
+  String togetherNoStreak(String name) {
+    return 'Start a streak with $name: both show up today.';
+  }
+
+  @override
+  String togetherStreak(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days in a row together',
+      one: '1 day in a row together',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String trainingPhaseBuild(int week, int block) {
     return 'Build $week/3 · Block $block';
   }
@@ -4272,6 +4414,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String trainingRationale(int days, String split) {
     return '$days training days a week as \"$split\". Three weeks of building, then a deload week — so you last 100 days without burning out.';
   }
+
+  @override
+  String get usernameNone => 'None — you are found by invite only';
+
+  @override
+  String get usernameRules => '3–20 letters a–z, digits or _';
+
+  @override
+  String get usernameTaken => 'That username is taken.';
+
+  @override
+  String get usernameTitle => 'Username';
 
   @override
   String get weekdayFri => 'FRI';

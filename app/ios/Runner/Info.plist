@@ -18,14 +18,10 @@
 	<string>100 Tage</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Zum Scannen von Einladungs-QR-Codes und Barcodes und, wenn du willst, für ein Foto deiner Mahlzeit, das die KI schätzt. Fotos werden nicht gespeichert.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Damit du Freunde findest, die 100 Days schon nutzen. Deine Kontakte werden nur verschlüsselt abgeglichen und nicht gespeichert.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Damit du ein Foto deiner Mahlzeit aus der Galerie wählen kannst, das die KI schätzt. Es wird nicht gespeichert.</string>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>Damit sich deine App und die deiner Freunde im selben WLAN direkt finden können. Es gibt keinen Server — die Daten gehen ausschließlich von Gerät zu Gerät.</string>
-	<key>NSBonjourServices</key>
-	<array>
-		<string>_hundreddays._tcp</string>
-	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

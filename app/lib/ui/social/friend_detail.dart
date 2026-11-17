@@ -7,6 +7,7 @@ import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
+import 'together_card.dart';
 import '../widgets/heatmap.dart';
 
 /// One friend, in detail — and the two buttons that make the app social.
@@ -146,6 +147,12 @@ class FriendDetailScreen extends ConsumerWidget {
                 ),
               ),
               if (!isMe) ...<Widget>[
+                const SizedBox(height: AppSpacing.md),
+                TogetherCard(
+                  me: snapshot.me,
+                  friend: friend,
+                  today: snapshot.today,
+                ),
                 const SizedBox(height: AppSpacing.md),
                 Row(
                   children: <Widget>[

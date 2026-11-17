@@ -381,7 +381,7 @@ class AppController extends AsyncNotifier<AppSnapshot> {
     DayKey? day,
   }) async {
     final snapshot = state.valueOrNull;
-    await _repository.checkIn(
+    final FeedEvent event = await _repository.checkIn(
       habit: habit,
       day: day ?? snapshot?.today ?? DayKey.today(),
       value: value,
@@ -390,6 +390,7 @@ class AppController extends AsyncNotifier<AppSnapshot> {
       tracked: tracked,
       challenge: snapshot?.challenge,
     );
+    unawaited(_repository.notifyFriends(event));
     await refresh();
   }
 
@@ -456,7 +457,8 @@ class AppController extends AsyncNotifier<AppSnapshot> {
   }
 
   Future<void> nudge(String targetId, String text) async {
-    await _repository.nudge(targetId, text);
+    final FeedEvent event = await _repository.nudge(targetId, text);
+    unawaited(_repository.notifyFriends(event));
     await refresh();
   }
 
@@ -465,7 +467,9 @@ class AppController extends AsyncNotifier<AppSnapshot> {
     String text, {
     String? eventId,
   }) async {
-    await _repository.cheer(targetId, text, eventId: eventId);
+    final FeedEvent event =
+        await _repository.cheer(targetId, text, eventId: eventId);
+    unawaited(_repository.notifyFriends(event));
     await refresh();
   }
 

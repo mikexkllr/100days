@@ -14,6 +14,8 @@ import 'data/app_repository.dart';
 import 'data/feed_sync.dart';
 import 'data/locale_store.dart';
 import 'data/notifications.dart';
+import 'data/push_service.dart';
+import 'data/social_backend.dart';
 import 'l10n/l10n.dart';
 import 'state/providers.dart';
 import 'ai/dartantic_llm_client.dart';
@@ -68,6 +70,7 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
   ProviderSubscription<AsyncValue<AppSnapshot>>? _subscription;
   ProviderSubscription<AsyncValue<SyncReport>>? _syncSubscription;
   ProviderSubscription<AiFailure?>? _aiFailures;
+  ProviderSubscription<AsyncValue<AppRepository?>>? _session;
   StreamSubscription<Uri>? _links;
   Timer? _periodicSync;
 
@@ -88,9 +91,23 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
         if (snapshot == null) return;
         if (snapshot.hasChallenge) {
           _redeemPendingInvite();
+          unawaited(ref.read(repositoryProvider).reportLeagueXp(snapshot));
           unawaited(_scheduleReminders(snapshot));
           unawaited(_publishWidget(snapshot));
         }
+      },
+      fireImmediately: true,
+    );
+
+    // Once signed in: register for pushes, and tell the server which
+    // language the user reads, for the texts it sends.
+    _session = ref.listenManual<AsyncValue<AppRepository?>>(
+      sessionRepositoryProvider,
+      (AsyncValue<AppRepository?>? _, AsyncValue<AppRepository?> next) {
+        final AppRepository? repository = next.valueOrNull;
+        if (repository == null) return;
+        unawaited(PushService.start(repository.social));
+        unawaited(_saveLanguage(repository));
       },
       fireImmediately: true,
     );
@@ -122,6 +139,18 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
     // Realtime delivers while the app is open; this catches what a dropped
     // connection missed.
     _periodicSync = Timer.periodic(const Duration(minutes: 2), (_) => _sync());
+  }
+
+  Future<void> _saveLanguage(AppRepository repository) async {
+    try {
+      final SocialSettings settings = await repository.social.settings();
+      final String language = ref.read(effectiveLocaleProvider).languageCode;
+      if (settings.language != language) {
+        await repository.social.saveSettings(settings.copyWith(language: language));
+      }
+    } on Object {
+      // Offline: the next start tries again.
+    }
   }
 
   void _onLink(Uri? uri) {
@@ -249,6 +278,7 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
     _subscription?.close();
     _syncSubscription?.close();
     _aiFailures?.close();
+    _session?.close();
     unawaited(_links?.cancel());
     _periodicSync?.cancel();
     super.dispose();

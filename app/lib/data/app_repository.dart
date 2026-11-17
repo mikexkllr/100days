@@ -403,12 +403,12 @@ class AppRepository {
     );
   }
 
-  Future<void> nudge(String targetId, String text) => writer.append(
+  Future<FeedEvent> nudge(String targetId, String text) => writer.append(
         FeedEventType.nudge,
         <String, dynamic>{'target': targetId, 'text': text},
       );
 
-  Future<void> cheer(
+  Future<FeedEvent> cheer(
     String targetId,
     String text, {
     String? eventId,
@@ -444,8 +444,43 @@ class AppRepository {
   }
 
   Future<void> sendFriendRequest(String otherId) async {
-    await social.sendFriendRequest(otherId);
-    await refreshFriends();
+    final bool friendsNow = await social.sendFriendRequest(otherId);
+    if (!friendsNow) unawaited(social.notify(friendRequestTo: otherId));
+    await syncNow();
+  }
+
+  /// Sends [event] now and asks the server to tell the friends it concerns
+  /// — a nudge's target, or friends who have not shown up yet. Best effort.
+  Future<void> notifyFriends(FeedEvent event) async {
+    if (event.visibility != EventVisibility.friends) return;
+    try {
+      await sync.syncNow();
+      await social.notify(eventId: event.id);
+    } on Object {
+      // Offline: the event goes out with the next sync; the push does not.
+    }
+  }
+
+  int? _reportedXp;
+  String? _reportedWeek;
+
+  /// Tells the public league this week's XP — the number friends can verify
+  /// from the shared events, so the user ranks the same everywhere.
+  Future<void> reportLeagueXp(AppSnapshot snapshot) async {
+    final String week = snapshot.today.isoWeekKey;
+    final int xp = snapshot.league.entries
+            .where((LeagueEntry e) => e.userId == userId)
+            .firstOrNull
+            ?.weeklyXp ??
+        0;
+    if (week == _reportedWeek && xp == _reportedXp) return;
+    try {
+      await social.reportWeekXp(week, xp);
+      _reportedWeek = week;
+      _reportedXp = xp;
+    } on Object {
+      // Next snapshot tries again.
+    }
   }
 
   Future<void> respondToRequest(String requesterId, {required bool accept}) async {

@@ -42,6 +42,13 @@ dependencies:
   image: ^4.5.4
   # Premium, through the stores' own billing.
   in_app_purchase: ^3.3.0
+  # Finding friends in the address book. Contacts are compared on the
+  # server as keyed hashes and never stored.
+  flutter_contacts: 2.6.0
+  # Push notifications from friends (nudges, cheers, requests). Only active
+  # when the build carries a Firebase configuration (docs/self-hosting.md).
+  firebase_core: 5.1.0
+  firebase_messaging: 17.0.1
   # Invite links (hundreddays://invite/CODE) that open the app.
   app_links: ^7.2.2
   # The nonce that binds a sign-in to this request.

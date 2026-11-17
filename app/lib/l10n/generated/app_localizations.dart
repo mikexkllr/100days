@@ -1842,6 +1842,90 @@ abstract class AppLocalizations {
   /// **'{sets} sets · {tonnes} t moved'**
   String feedWorkoutDetail(int sets, String tonnes);
 
+  /// No description provided for @findAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get findAdd;
+
+  /// No description provided for @findAlreadyFriends.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends'**
+  String get findAlreadyFriends;
+
+  /// No description provided for @findAlsoFindMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Let my contacts find me too'**
+  String get findAlsoFindMe;
+
+  /// No description provided for @findAlsoFindMeSub.
+  ///
+  /// In en, this message translates to:
+  /// **'By your verified e-mail address. You can switch it off in settings.'**
+  String get findAlsoFindMeSub;
+
+  /// No description provided for @findContactsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Search my contacts'**
+  String get findContactsAction;
+
+  /// No description provided for @findContactsDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Without access to contacts this does not work — search by name or send a link instead.'**
+  String get findContactsDenied;
+
+  /// No description provided for @findContactsNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None of your contacts is findable yet. Send them a link!'**
+  String get findContactsNone;
+
+  /// No description provided for @findContactsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone numbers and e-mail addresses are compared on the server as keyed hashes and not stored. Only people who chose to be findable show up.'**
+  String get findContactsSub;
+
+  /// No description provided for @findContactsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'From your contacts'**
+  String get findContactsTitle;
+
+  /// No description provided for @findInviteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Or invite them'**
+  String get findInviteTitle;
+
+  /// No description provided for @findNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody found. People can be found by name once they chose a username.'**
+  String get findNoResults;
+
+  /// No description provided for @findRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested'**
+  String get findRequested;
+
+  /// No description provided for @findSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name or @username'**
+  String get findSearchHint;
+
+  /// No description provided for @findTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Find friends'**
+  String get findTitle;
+
   /// No description provided for @foodAddAll.
   ///
   /// In en, this message translates to:
@@ -2202,6 +2286,12 @@ abstract class AppLocalizations {
   /// **'Invite'**
   String get friendsInvite;
 
+  /// No description provided for @friendsLeagueSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Among friends'**
+  String get friendsLeagueSection;
+
   /// No description provided for @friendsNetworkNote.
   ///
   /// In en, this message translates to:
@@ -2267,6 +2357,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your people'**
   String get friendsYourPeople;
+
+  /// No description provided for @globalLeagueEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your league group starts with your first check-in this week: up to 30 people of your division, the best move up on Monday.'**
+  String get globalLeagueEmpty;
+
+  /// No description provided for @globalLeagueHonesty.
+  ///
+  /// In en, this message translates to:
+  /// **'Strangers\' XP is what their phones report, capped per day. Among friends every phone recomputes XP from the shared check-ins.'**
+  String get globalLeagueHonesty;
+
+  /// No description provided for @globalLeagueSection.
+  ///
+  /// In en, this message translates to:
+  /// **'This week\'s league'**
+  String get globalLeagueSection;
+
+  /// No description provided for @globalLeagueSub.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} people · top {up} up, bottom {down} down'**
+  String globalLeagueSub(int size, int up, int down);
+
+  /// No description provided for @globalLeagueXp.
+  ///
+  /// In en, this message translates to:
+  /// **'{xp} XP'**
+  String globalLeagueXp(int xp);
 
   /// No description provided for @goalBuildMuscle.
   ///
@@ -6043,6 +6163,30 @@ abstract class AppLocalizations {
   /// **'yes'**
   String get promptYes;
 
+  /// No description provided for @pushCheer.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheers from friends'**
+  String get pushCheer;
+
+  /// No description provided for @pushFriendActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'A friend showed up and you have not yet'**
+  String get pushFriendActivity;
+
+  /// No description provided for @pushFriendRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend requests'**
+  String get pushFriendRequest;
+
+  /// No description provided for @pushNudge.
+  ///
+  /// In en, this message translates to:
+  /// **'Nudges from friends'**
+  String get pushNudge;
+
   /// No description provided for @qtyPieces.
   ///
   /// In en, this message translates to:
@@ -6060,6 +6204,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{n} tsp'**
   String qtyTsp(String n);
+
+  /// No description provided for @questDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Quest done — together.'**
+  String get questDone;
+
+  /// No description provided for @questProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'You {mine} · {name} {theirs}'**
+  String questProgress(int mine, int theirs, String name);
+
+  /// No description provided for @questTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quest this week: {target} check-ins together'**
+  String questTitle(int target);
 
   /// No description provided for @recipeEatenAsPlanned.
   ///
@@ -6492,6 +6654,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{No star in your sky yet. The first comes with the first day you finish.} =1{1 star in your sky — one for every day you finish.} other{{count} stars in your sky — one for every day you finish.}}'**
   String skyStars(int count);
+
+  /// No description provided for @socialFindable.
+  ///
+  /// In en, this message translates to:
+  /// **'Findable via contacts'**
+  String get socialFindable;
+
+  /// No description provided for @socialFindableSub.
+  ///
+  /// In en, this message translates to:
+  /// **'People with your e-mail address (or verified number) in their contacts can find you.'**
+  String get socialFindableSub;
+
+  /// No description provided for @socialFoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Being found'**
+  String get socialFoundTitle;
+
+  /// No description provided for @socialLeague.
+  ///
+  /// In en, this message translates to:
+  /// **'Public weekly league'**
+  String get socialLeague;
+
+  /// No description provided for @socialLeagueSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Compete with people beyond your friends. They see your name, emoji and weekly XP — nothing else.'**
+  String get socialLeagueSub;
+
+  /// No description provided for @socialPushNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'This build has no push service set up; reminders still come from the phone itself.'**
+  String get socialPushNotConfigured;
+
+  /// No description provided for @socialPushTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Push notifications'**
+  String get socialPushTitle;
+
+  /// No description provided for @socialSettingsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Username, being found, league, pushes'**
+  String get socialSettingsSub;
+
+  /// No description provided for @socialSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends & notifications'**
+  String get socialSettingsTitle;
 
   /// No description provided for @socialTabFeed.
   ///
@@ -6931,6 +7147,18 @@ abstract class AppLocalizations {
   /// **'Update'**
   String get tileUpdateAmount;
 
+  /// No description provided for @togetherNoStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a streak with {name}: both show up today.'**
+  String togetherNoStreak(String name);
+
+  /// No description provided for @togetherStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day in a row together} other{{days} days in a row together}}'**
+  String togetherStreak(int days);
+
   /// No description provided for @trainingPhaseBuild.
   ///
   /// In en, this message translates to:
@@ -6948,6 +7176,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{days} training days a week as \"{split}\". Three weeks of building, then a deload week — so you last 100 days without burning out.'**
   String trainingRationale(int days, String split);
+
+  /// No description provided for @usernameNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None — you are found by invite only'**
+  String get usernameNone;
+
+  /// No description provided for @usernameRules.
+  ///
+  /// In en, this message translates to:
+  /// **'3–20 letters a–z, digits or _'**
+  String get usernameRules;
+
+  /// No description provided for @usernameTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'That username is taken.'**
+  String get usernameTaken;
+
+  /// No description provided for @usernameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get usernameTitle;
 
   /// No description provided for @weekdayFri.
   ///

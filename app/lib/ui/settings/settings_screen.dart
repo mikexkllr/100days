@@ -13,6 +13,7 @@ import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
 import 'ai_screen.dart';
 import 'privacy_screen.dart';
+import 'social_settings_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -75,6 +76,18 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => Navigator.of(context).push<void>(
               MaterialPageRoute<void>(
                 builder: (BuildContext context) => const PrivacyScreen(),
+              ),
+            ),
+          ),
+          _Row(
+            icon: Icons.people_outline,
+            iconColor: AppColors.social,
+            title: l10n.socialSettingsTitle,
+            subtitle: l10n.socialSettingsSub,
+            onTap: () => Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) =>
+                    const SocialSettingsScreen(),
               ),
             ),
           ),

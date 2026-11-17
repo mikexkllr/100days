@@ -101,7 +101,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Noch niemand verbunden'), findsOneWidget);
-    expect(find.widgetWithText(FilledButton, 'Einladen'), findsOneWidget);
+    expect(find.byKey(const Key('friends-find')), findsOneWidget);
   });
 
   testWidgets('a friend\'s streak is computed from their events, not claimed',

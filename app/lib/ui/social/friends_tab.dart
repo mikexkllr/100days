@@ -7,9 +7,9 @@ import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
+import 'find_friends_screen.dart';
 import 'friend_detail.dart';
 import 'invite_flow.dart';
-import 'invite_screen.dart';
 import 'scan_screen.dart';
 
 /// Your people, and the ready-made jabs to throw at them.
@@ -38,15 +38,17 @@ class FriendsTab extends ConsumerWidget {
           children: <Widget>[
             Expanded(
               child: FilledButton.icon(
+                key: const Key('friends-find'),
                 onPressed: () => Navigator.of(context).push<void>(
                   MaterialPageRoute<void>(
-                    builder: (BuildContext context) => const InviteScreen(),
+                    builder: (BuildContext context) =>
+                        const FindFriendsScreen(),
                   ),
                 ),
                 style: FilledButton.styleFrom(
                     minimumSize: const Size.fromHeight(48)),
-                icon: const Icon(Icons.qr_code_2, size: 19),
-                label: Text(l10n.friendsInvite),
+                icon: const Icon(Icons.person_add_alt, size: 19),
+                label: Text(l10n.findTitle),
               ),
             ),
             const SizedBox(width: AppSpacing.sm),

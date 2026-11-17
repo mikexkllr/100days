@@ -5,12 +5,14 @@ import '../../data/app_repository.dart';
 import '../../l10n/l10n.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
+import 'global_league_card.dart';
 
-/// Weekly league among your friends.
+/// Weekly leagues: the public one with a division, and the one among
+/// friends.
 ///
-/// Duolingo's mechanic with one deliberate change: the pool is people you
-/// actually know, not strangers. Losing to a stranger costs nothing; losing to
-/// your flatmate is a conversation at breakfast.
+/// Duolingo's mechanic, twice. The public group gives everyone a race every
+/// week; the friends' one is where it bites — losing to a stranger costs
+/// nothing, losing to your flatmate is a conversation at breakfast.
 class LeagueTab extends StatelessWidget {
   const LeagueTab({super.key, required this.snapshot});
 
@@ -31,6 +33,9 @@ class LeagueTab extends StatelessWidget {
         AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
       ),
       children: <Widget>[
+        SectionHeader(l10n.globalLeagueSection),
+        GlobalLeagueCard(myId: snapshot.me.userId),
+        SectionHeader(l10n.friendsLeagueSection),
         AppCard(
           gradient: LinearGradient(
             begin: Alignment.topLeft,

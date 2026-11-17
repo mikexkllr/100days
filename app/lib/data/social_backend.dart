@@ -56,6 +56,90 @@ class InviteRejection implements Exception {
   String toString() => 'InviteRejection(${problem.name})';
 }
 
+/// Someone found by search or in the address book.
+class PersonResult {
+  const PersonResult({
+    required this.userId,
+    required this.displayName,
+    required this.emoji,
+    this.username,
+  });
+
+  final String userId;
+  final String displayName;
+  final String emoji;
+  final String? username;
+}
+
+/// Why a username was not taken.
+enum UsernameProblem { invalid, taken }
+
+class UsernameRejection implements Exception {
+  const UsernameRejection(this.problem);
+  final UsernameProblem problem;
+}
+
+/// What the user decides about being found and being notified.
+class SocialSettings {
+  const SocialSettings({
+    this.findable = false,
+    this.leagueOptIn = true,
+    this.language = 'de',
+    this.notify = const <String, bool>{
+      'nudge': true,
+      'cheer': true,
+      'friend_request': true,
+      'friend_activity': true,
+    },
+  });
+
+  final bool findable;
+  final bool leagueOptIn;
+  final String language;
+  final Map<String, bool> notify;
+
+  SocialSettings copyWith({
+    bool? leagueOptIn,
+    String? language,
+    Map<String, bool>? notify,
+  }) =>
+      SocialSettings(
+        findable: findable,
+        leagueOptIn: leagueOptIn ?? this.leagueOptIn,
+        language: language ?? this.language,
+        notify: notify ?? this.notify,
+      );
+}
+
+/// One row of the weekly league group.
+class GlobalLeagueRow {
+  const GlobalLeagueRow({
+    required this.userId,
+    required this.displayName,
+    required this.emoji,
+    required this.xp,
+    required this.rank,
+  });
+
+  final String userId;
+  final String displayName;
+  final String emoji;
+  final int xp;
+  final int rank;
+}
+
+class GlobalLeague {
+  const GlobalLeague({required this.division, required this.rows});
+
+  /// Index into hundred_core's League enum.
+  final int division;
+  final List<GlobalLeagueRow> rows;
+}
+
+/// The username rule the server enforces: 3–20 of a–z, 0–9 and _.
+bool isValidUsername(String name) =>
+    RegExp(r'^[a-z0-9_]{3,20}$').hasMatch(name);
+
 /// The server side of friends and profiles. The rules — who may befriend
 /// whom, which invite is still valid — live in the database functions of
 /// `supabase/migrations`; this is the thin client for them.
@@ -90,6 +174,40 @@ abstract class SocialBackend {
     required String displayName,
     required String emoji,
   });
+
+  /// The user's own username, or null.
+  Future<String?> username();
+
+  /// Sets or clears the username. Throws [UsernameRejection].
+  Future<void> setUsername(String? username);
+
+  /// People with a username, by its start or their name.
+  Future<List<PersonResult>> search(String query);
+
+  /// Who of these contacts uses the app and wants to be found.
+  Future<List<PersonResult>> matchContacts({
+    required List<String> emails,
+    required List<String> phones,
+  });
+
+  /// Lets people who have the user's verified e-mail or phone in their
+  /// contacts find them — or stops it.
+  Future<void> setFindable(bool findable);
+
+  Future<SocialSettings> settings();
+  Future<void> saveSettings(SocialSettings settings);
+
+  /// The user's XP this week for the public league.
+  Future<void> reportWeekXp(String week, int xp);
+
+  /// The user's league group this week, or null before the first report.
+  Future<GlobalLeague?> league(String week);
+
+  Future<void> registerPushToken(String token, {required String platform});
+
+  /// Asks the server to tell the friends an event concerns, or the person a
+  /// request went to. Best effort: a missed push is not an error.
+  Future<void> notify({String? eventId, String? friendRequestTo});
 
   Future<void> dispose();
 }
@@ -222,6 +340,167 @@ class SupabaseSocialBackend implements SocialBackend {
       }).eq('id', userId);
 
   @override
+  Future<String?> username() async {
+    final Map<String, dynamic>? row = await _client
+        .from('profiles')
+        .select('username')
+        .eq('id', userId)
+        .maybeSingle();
+    return row?['username'] as String?;
+  }
+
+  @override
+  Future<void> setUsername(String? name) async {
+    final String? clean = name?.trim().toLowerCase();
+    if (clean != null && clean.isNotEmpty && !isValidUsername(clean)) {
+      throw const UsernameRejection(UsernameProblem.invalid);
+    }
+    try {
+      await _client.from('profiles').update(<String, dynamic>{
+        'username': clean == null || clean.isEmpty ? null : clean,
+      }).eq('id', userId);
+    } on PostgrestException catch (error) {
+      if (error.code == '23505') {
+        throw const UsernameRejection(UsernameProblem.taken);
+      }
+      if (error.code == '23514') {
+        throw const UsernameRejection(UsernameProblem.invalid);
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<PersonResult>> search(String query) async {
+    final Object? rows = await _client
+        .rpc('search_profiles', params: <String, dynamic>{'p_query': query});
+    return <PersonResult>[
+      for (final Object? r in rows is List ? rows : const <Object?>[])
+        if (r is Map)
+          PersonResult(
+            userId: r['user_id'] as String,
+            displayName: r['display_name'] as String? ?? '',
+            emoji: r['emoji'] as String? ?? '🙂',
+            username: r['username'] as String?,
+          ),
+    ];
+  }
+
+  @override
+  Future<List<PersonResult>> matchContacts({
+    required List<String> emails,
+    required List<String> phones,
+  }) async {
+    final FunctionResponse response = await _client.functions.invoke(
+      'match-contacts',
+      body: <String, dynamic>{
+        'action': 'match',
+        'emails': emails,
+        'phones': phones,
+      },
+    );
+    final Object? matches = (response.data as Map?)?['matches'];
+    return <PersonResult>[
+      for (final Object? m in matches is List ? matches : const <Object?>[])
+        if (m is Map)
+          PersonResult(
+            userId: m['userId'] as String,
+            displayName: m['displayName'] as String? ?? '',
+            emoji: m['emoji'] as String? ?? '🙂',
+            username: m['username'] as String?,
+          ),
+    ];
+  }
+
+  @override
+  Future<void> setFindable(bool findable) => _client.functions.invoke(
+        'match-contacts',
+        body: <String, dynamic>{
+          'action': findable ? 'register' : 'unregister',
+        },
+      );
+
+  @override
+  Future<SocialSettings> settings() async {
+    final Map<String, dynamic>? row = await _client
+        .from('user_settings')
+        .select()
+        .eq('user_id', userId)
+        .maybeSingle();
+    if (row == null) return const SocialSettings();
+    return SocialSettings(
+      findable: row['discoverable'] as bool? ?? false,
+      leagueOptIn: row['league_opt_in'] as bool? ?? true,
+      language: row['language'] as String? ?? 'de',
+      notify: <String, bool>{
+        for (final MapEntry<String, dynamic> e
+            in ((row['notify'] as Map?) ?? const <String, dynamic>{})
+                .cast<String, dynamic>()
+                .entries)
+          e.key: e.value == true,
+      },
+    );
+  }
+
+  @override
+  Future<void> saveSettings(SocialSettings settings) =>
+      _client.from('user_settings').upsert(<String, dynamic>{
+        'user_id': userId,
+        'league_opt_in': settings.leagueOptIn,
+        'language': settings.language,
+        'notify': settings.notify,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      });
+
+  @override
+  Future<void> reportWeekXp(String week, int xp) => _client.rpc(
+        'report_week_xp',
+        params: <String, dynamic>{'p_week': week, 'p_xp': xp},
+      );
+
+  @override
+  Future<GlobalLeague?> league(String week) async {
+    final Object? rows = await _client
+        .rpc('league_standing', params: <String, dynamic>{'p_week': week});
+    if (rows is! List || rows.isEmpty) return null;
+    return GlobalLeague(
+      division: ((rows.first as Map)['division'] as num?)?.toInt() ?? 1,
+      rows: <GlobalLeagueRow>[
+        for (final Object? r in rows)
+          if (r is Map)
+            GlobalLeagueRow(
+              userId: r['user_id'] as String,
+              displayName: r['display_name'] as String? ?? '',
+              emoji: r['emoji'] as String? ?? '🙂',
+              xp: (r['xp'] as num?)?.toInt() ?? 0,
+              rank: (r['rank'] as num?)?.toInt() ?? 0,
+            ),
+      ],
+    );
+  }
+
+  @override
+  Future<void> registerPushToken(String token, {required String platform}) =>
+      _client.from('push_tokens').upsert(<String, dynamic>{
+        'token': token,
+        'user_id': userId,
+        'platform': platform,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      });
+
+  @override
+  Future<void> notify({String? eventId, String? friendRequestTo}) async {
+    try {
+      await _client.functions.invoke('push', body: <String, dynamic>{
+        if (eventId != null) 'eventId': eventId,
+        if (friendRequestTo != null) 'friendRequestTo': friendRequestTo,
+      });
+    } on Object {
+      // Push is a courtesy; the event itself is already shared.
+    }
+  }
+
+  @override
   Future<void> dispose() async {
     final RealtimeChannel? channel = _channel;
     _channel = null;
@@ -322,6 +601,88 @@ class MemorySocialBackend implements SocialBackend {
     this.displayName = displayName;
     this.emoji = emoji;
   }
+
+  String? _username;
+  SocialSettings _settings = const SocialSettings();
+
+  /// Test hooks.
+  final List<PersonResult> people = <PersonResult>[];
+  final Map<String, int> reportedXp = <String, int>{};
+  final List<String> notified = <String>[];
+
+  @override
+  Future<String?> username() async => _username;
+
+  @override
+  Future<void> setUsername(String? name) async {
+    final String? clean = name?.trim().toLowerCase();
+    if (clean != null && clean.isNotEmpty && !isValidUsername(clean)) {
+      throw const UsernameRejection(UsernameProblem.invalid);
+    }
+    if (people.any((PersonResult p) => p.username == clean)) {
+      throw const UsernameRejection(UsernameProblem.taken);
+    }
+    _username = clean == null || clean.isEmpty ? null : clean;
+  }
+
+  @override
+  Future<List<PersonResult>> search(String query) async {
+    final String q = query.trim().toLowerCase().replaceFirst('@', '');
+    if (q.length < 2) return const <PersonResult>[];
+    return people
+        .where((PersonResult p) =>
+            (p.username?.startsWith(q) ?? false) ||
+            p.displayName.toLowerCase().startsWith(q))
+        .toList();
+  }
+
+  @override
+  Future<List<PersonResult>> matchContacts({
+    required List<String> emails,
+    required List<String> phones,
+  }) async =>
+      people;
+
+  @override
+  Future<void> setFindable(bool findable) async {
+    _settings = SocialSettings(
+      findable: findable,
+      leagueOptIn: _settings.leagueOptIn,
+      language: _settings.language,
+      notify: _settings.notify,
+    );
+  }
+
+  @override
+  Future<SocialSettings> settings() async => _settings;
+
+  @override
+  Future<void> saveSettings(SocialSettings settings) async =>
+      _settings = settings;
+
+  @override
+  Future<void> reportWeekXp(String week, int xp) async =>
+      reportedXp[week] = xp;
+
+  @override
+  Future<GlobalLeague?> league(String week) async => reportedXp[week] == null
+      ? null
+      : GlobalLeague(division: 1, rows: <GlobalLeagueRow>[
+          GlobalLeagueRow(
+            userId: userId,
+            displayName: displayName,
+            emoji: emoji,
+            xp: reportedXp[week]!,
+            rank: 1,
+          ),
+        ]);
+
+  @override
+  Future<void> registerPushToken(String token, {required String platform}) async {}
+
+  @override
+  Future<void> notify({String? eventId, String? friendRequestTo}) async =>
+      notified.add(eventId ?? 'request:$friendRequestTo');
 
   @override
   Future<void> dispose() async => _changes.close();
