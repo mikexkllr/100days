@@ -7,6 +7,7 @@ export 'core_l10n.dart';
 export 'exercise_l10n.dart';
 export 'generated/app_localizations.dart';
 export 'mascot_l10n.dart';
+export 'mealplan_l10n.dart';
 export 'nutrition_l10n.dart';
 export 'plan_l10n.dart';
 export 'social_l10n.dart';

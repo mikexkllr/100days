@@ -48,6 +48,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get actionShare => 'Link teilen';
 
   @override
+  String get addMealKcal => 'kcal pro Portion (optional)';
+
+  @override
+  String get addMealTitle => 'Was gibt\'s?';
+
+  @override
   String adviceCutScope(int percent) {
     return 'Du triffst nur $percent % deiner Tage. Nimm eine Gewohnheit raus statt weiter zu scheitern — drei sichere Tage schlagen fünf geplante.';
   }
@@ -244,6 +250,19 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String boardTitle(int days) {
     return 'Deine $days Tage';
+  }
+
+  @override
+  String cadenceEveryNDays(int days) {
+    return 'Alle $days Tage';
+  }
+
+  @override
+  String get cadenceManual => 'Nach Bedarf';
+
+  @override
+  String cadenceWeekly(String weekday) {
+    return 'Jeden $weekday';
   }
 
   @override
@@ -1778,6 +1797,110 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get householdAllergies => 'Allergien & Unverträglichkeiten';
+
+  @override
+  String get householdDiet => 'Ernährungsweise';
+
+  @override
+  String get householdDietHint => 'z. B. vegetarisch';
+
+  @override
+  String get householdDislikes => 'Mag nicht';
+
+  @override
+  String get householdInviteShort => 'Einladen';
+
+  @override
+  String get householdInviteTitle => 'In den Haushalt einladen';
+
+  @override
+  String get householdJoin => 'Einem Haushalt beitreten';
+
+  @override
+  String get householdJoinAction => 'Beitreten';
+
+  @override
+  String get householdJoinBody =>
+      'Ihr teilt Essensplan und Einkaufsliste. Dein Tagebuch bleibt privat, deine Ziele auch, außer du teilst sie.';
+
+  @override
+  String householdJoinTitle(String name) {
+    return '$name beitreten?';
+  }
+
+  @override
+  String get householdJoined => 'Du bist drin. Der Plan ist jetzt geteilt.';
+
+  @override
+  String get householdJustYou =>
+      'Nur du. Lade jemanden zum gemeinsamen Planen ein';
+
+  @override
+  String get householdListHint => 'mit Komma getrennt';
+
+  @override
+  String get householdMeSub =>
+      'Damit, wer plant, deine Portionen passend macht und weglässt, was du nicht isst.';
+
+  @override
+  String get householdMeTitle => 'Du im Haushalt';
+
+  @override
+  String householdMembers(int count) {
+    return '$count Personen';
+  }
+
+  @override
+  String get householdMembersTitle => 'Wer zusammen kocht und einkauft';
+
+  @override
+  String get householdNoTarget => 'Ziele privat, je eine Portion';
+
+  @override
+  String get householdPantry => 'Meistens zuhause';
+
+  @override
+  String get householdPantryHint =>
+      'Salz, Öl, Pfeffer: kommt nicht auf erzeugte Listen';
+
+  @override
+  String get householdSaved => 'Für den Haushalt gespeichert.';
+
+  @override
+  String get householdShareTargets => 'Meine Ziele mit dem Haushalt teilen';
+
+  @override
+  String get householdShareTargetsNoPlan =>
+      'Schalte zuerst den Ernährungsplan ein, damit es Ziele zum Teilen gibt.';
+
+  @override
+  String householdShareTargetsSub(int kcal, int protein) {
+    return '$kcal kcal und $protein g Eiweiß am Tag. Nur diese zwei Zahlen.';
+  }
+
+  @override
+  String householdShareText(String link, String code) {
+    return 'Plan unser Essen mit mir in 100 Days: $link (oder gib den Haushalts-Code $code ein)';
+  }
+
+  @override
+  String householdSharesTarget(int kcal) {
+    return 'Teilt Ziele · $kcal kcal am Tag';
+  }
+
+  @override
+  String get householdShoppingTitle => 'Wann ihr einkauft';
+
+  @override
+  String get householdTitle => 'Haushalt';
+
+  @override
+  String householdYou(String name) {
+    return '$name (du)';
+  }
+
+  @override
   String inviteAlreadyFriends(String name) {
     return 'Du und $name seid schon befreundet.';
   }
@@ -3046,6 +3169,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get peerActivityStarted => 'Challenge gestartet';
 
   @override
+  String planAccepted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Mahlzeiten geplant.',
+      one: 'Eine Mahlzeit geplant.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get planAddMeal => 'Mahlzeit eintragen';
+
+  @override
   String get planBmr => 'Grundumsatz (BMR)';
 
   @override
@@ -3053,6 +3190,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get planCarbsShort => 'Carbs';
+
+  @override
+  String get planChat => 'Planungs-Chat';
 
   @override
   String planCleanDays(int days) {
@@ -3070,6 +3210,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get planEditTraining => 'Split und Übungen bearbeiten';
+
+  @override
+  String get planEmptySlot => 'Noch nichts geplant';
 
   @override
   String get planEnableNutrition => 'Ernährungsplan einschalten';
@@ -3108,6 +3251,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get planKcalPerDayShort => 'kcal / Tag';
 
   @override
+  String get planLoadFailed =>
+      'Konnte nicht laden. Zum Neuladen nach unten ziehen.';
+
+  @override
   String planMealMacros(int kcal, int protein) {
     return '$kcal kcal · ${protein}g P';
   }
@@ -3116,11 +3263,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get planMeals => 'Mahlzeiten';
 
   @override
-  String get planNothingBody =>
-      'Deine Gewohnheiten brauchen keinen Plan — hak sie unter Heute ab. Training, Ernährung und Verzicht bekommen hier einen.';
+  String planMinutes(int minutes) {
+    return '$minutes Min.';
+  }
 
   @override
-  String get planNothingTitle => 'Nichts zu planen';
+  String get planNeedsAi =>
+      'Planen mit der KI braucht dein Kontingent oder einen eigenen Key (Einstellungen → KI). Von Hand eintragen geht immer.';
 
   @override
   String planNutritionDeficit(int percent, int tdee) {
@@ -3154,7 +3303,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get planTabAbstinence => 'Clean bleiben';
 
   @override
+  String get planTabMeals => 'Essen';
+
+  @override
   String get planTabNutrition => 'Ernährung';
+
+  @override
+  String get planTabShopping => 'Einkauf';
 
   @override
   String get planTabTraining => 'Training';
@@ -3163,7 +3318,37 @@ class AppLocalizationsDe extends AppLocalizations {
   String get planTdee => 'Gesamtumsatz (TDEE)';
 
   @override
+  String get planToday => 'HEUTE';
+
+  @override
   String get planWater => 'Wasser';
+
+  @override
+  String planWeekAccept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Diese $count Mahlzeiten übernehmen',
+      one: 'Diese Mahlzeit übernehmen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get planWeekAgain => 'Neuer Vorschlag';
+
+  @override
+  String get planWeekAi => 'Woche planen';
+
+  @override
+  String get planWeekAnyTime => 'Egal';
+
+  @override
+  String get planWeekDays => 'Tage';
+
+  @override
+  String get planWeekFailed =>
+      'Diesmal kein brauchbarer Plan. Versuch es noch einmal oder mit weniger Tagen.';
 
   @override
   String planWeekNumber(int week) {
@@ -3171,8 +3356,69 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get planWeekPropose => 'Vorschlag machen';
+
+  @override
+  String get planWeekSlots => 'Mahlzeiten';
+
+  @override
+  String get planWeekTime => 'Kochzeit';
+
+  @override
+  String get planWeekWishHint =>
+      'Wünsche? z. B. kein Fisch, Mittwoch was Schnelles, viel Gemüse';
+
+  @override
+  String get planWeekWorking => 'Plane eure Woche … das dauert einen Moment.';
+
+  @override
   String planWorkoutSummary(int sets, int minutes) {
     return '$sets Sätze · ≈ $minutes Min';
+  }
+
+  @override
+  String plannerAdded(String name) {
+    return 'Auf der Liste: $name';
+  }
+
+  @override
+  String get plannerDone => 'Erledigt.';
+
+  @override
+  String get plannerFailed =>
+      'Das hat nicht geklappt. Versuch es gleich noch einmal.';
+
+  @override
+  String get plannerHint => 'Was soll sich ändern?';
+
+  @override
+  String get plannerIntro =>
+      'Sag mir, was ihr braucht: „diese Woche kein Fisch“, „Mittwoch was Schnelles“, „Reis haben wir noch“. Ich ändere Plan und Liste direkt, und jede Änderung lässt sich rückgängig machen.';
+
+  @override
+  String get plannerListMade => 'Neue Einkaufsliste aus dem Plan';
+
+  @override
+  String plannerRemoved(String name) {
+    return 'Von der Liste: $name';
+  }
+
+  @override
+  String plannerRemovedMeal(String day, String slot) {
+    return '$day, $slot: entfernt';
+  }
+
+  @override
+  String plannerSetMeal(String day, String slot, String title) {
+    return '$day, $slot: $title';
+  }
+
+  @override
+  String get plannerUndo => 'Rückgängig';
+
+  @override
+  String portionsCount(String n) {
+    return '$n Portionen';
   }
 
   @override
@@ -3362,6 +3608,16 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String promptMealPlan(
+    String days,
+    String people,
+    String extra,
+    String format,
+  ) {
+    return 'Du planst Hausmannskost für einen Haushalt. Plane diese Mahlzeiten (Tag: Slots, die Namen in Klammern sind nur für dich):\n$days\n\nWer isst:\n$people\n$extra\n\nEinfache, abwechslungsreiche Gerichte aus einem normalen Supermarkt. Verwende Zutaten über die Woche mehrfach, damit wenig übrig bleibt. Ein Rezept pro Mahlzeit mit Portionen für den ganzen Haushalt, Kalorien und Makros EINER Portion, Zutaten für alle Portionen in g, ml oder Stück (unit \"g\", \"ml\", \"piece\", \"tbsp\" oder \"tsp\") mit Kategorie (produce, bakery, dairy, meat, fish, pantry, frozen, drinks, other) und kurzen Schritten. Slot-Namen: breakfast, lunch, snack, dinner. Titel, Zutaten und Schritte auf Deutsch.\nAntworte nur mit JSON, in dieser Form:\n$format';
+  }
+
+  @override
   String get promptNo => 'nein';
 
   @override
@@ -3401,6 +3657,51 @@ class AppLocalizationsDe extends AppLocalizations {
       'Du bist nüchtern und respektvoll. Kein Mitleid, keine Vorwürfe.';
 
   @override
+  String promptPlanAllergies(String list) {
+    return 'allergisch gegen $list';
+  }
+
+  @override
+  String promptPlanAvoid(String titles) {
+    return 'Kürzlich gegessen, bitte nicht wieder: $titles.';
+  }
+
+  @override
+  String promptPlanDislikes(String list) {
+    return 'mag kein(e) $list';
+  }
+
+  @override
+  String promptPlanKcal(int kcal) {
+    return '$kcal kcal am Tag';
+  }
+
+  @override
+  String promptPlanMinutes(int minutes) {
+    return 'Höchstens $minutes Minuten Kochzeit pro Mahlzeit.';
+  }
+
+  @override
+  String promptPlanProtein(int grams) {
+    return '$grams g Eiweiß am Tag';
+  }
+
+  @override
+  String promptPlanWish(String wish) {
+    return 'Ihr Wunsch: „$wish“';
+  }
+
+  @override
+  String promptPlannerChat(
+    String today,
+    String weekday,
+    String start,
+    String end,
+  ) {
+    return 'Du hilfst einem Haushalt in der App 100 Days beim Planen von Essen und Einkauf. Heute ist $today ($weekday); geplant wird die Woche vom $start bis $end. Lies den Plan mit get_plan, bevor du ihn änderst. Ändere ihn mit den Tools, beschreib Änderungen nie nur. Rezepte: einfach, aus einem normalen Supermarkt, Portionen für den ganzen Haushalt, Kalorien und Makros pro Portion. Antworte in ein bis zwei kurzen Sätzen, auf Deutsch, per du.';
+  }
+
+  @override
   String get promptUnitClean => 'Tage clean';
 
   @override
@@ -3408,6 +3709,48 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get promptYes => 'ja';
+
+  @override
+  String qtyPieces(String n) {
+    return '$n Stk.';
+  }
+
+  @override
+  String qtyTbsp(String n) {
+    return '$n EL';
+  }
+
+  @override
+  String qtyTsp(String n) {
+    return '$n TL';
+  }
+
+  @override
+  String get recipeEatenAsPlanned => 'Gegessen wie geplant';
+
+  @override
+  String recipeIngredients(int servings) {
+    return 'Zutaten für $servings';
+  }
+
+  @override
+  String get recipeLogged => 'Steht im Tagebuch.';
+
+  @override
+  String recipePerServing(int kcal, int protein, int carbs, int fat) {
+    return 'Eine Portion: $kcal kcal · $protein g Eiweiß · $carbs g Kohlenhydrate · $fat g Fett';
+  }
+
+  @override
+  String get recipeRemove => 'Aus dem Plan nehmen';
+
+  @override
+  String get recipeSteps => 'So geht\'s';
+
+  @override
+  String recipeYourShare(String portions, int kcal, int protein) {
+    return 'Dein Teil: $portions · $kcal kcal · $protein g Eiweiß';
+  }
 
   @override
   String relativeDays(int count) {
@@ -3570,6 +3913,81 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get setViewSource => 'Quellcode ansehen';
+
+  @override
+  String get shopAddHint => 'Etwas hinzufügen …';
+
+  @override
+  String get shopBakery => 'Brot & Backwaren';
+
+  @override
+  String shopCadenceLine(String cadence) {
+    return 'Einkauf: $cadence';
+  }
+
+  @override
+  String shopCheckedBy(String name) {
+    return 'im Korb · $name';
+  }
+
+  @override
+  String get shopDairy => 'Milch & Eier';
+
+  @override
+  String get shopDrinks => 'Getränke';
+
+  @override
+  String get shopEmptyBody =>
+      'Mach eine aus dem Plan: alles für die Tage bis zum nächsten Einkauf, zusammengerechnet und nach Gängen sortiert. Oder fang eine leere an.';
+
+  @override
+  String get shopEmptyTitle => 'Noch keine Liste';
+
+  @override
+  String get shopExtraList => 'Extra-Liste';
+
+  @override
+  String get shopFinish => 'Einkauf erledigt';
+
+  @override
+  String shopFinishMoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Erledigt, $count aufs nächste Mal',
+      one: 'Erledigt, den Rest aufs nächste Mal',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopFish => 'Fisch';
+
+  @override
+  String get shopFromPlan => 'Liste aus Plan';
+
+  @override
+  String get shopFrozen => 'Tiefkühl';
+
+  @override
+  String get shopHousehold => 'Haushalt';
+
+  @override
+  String get shopMeat => 'Fleisch & Wurst';
+
+  @override
+  String get shopOther => 'Sonstiges';
+
+  @override
+  String get shopPantry => 'Vorrat';
+
+  @override
+  String get shopProduce => 'Obst & Gemüse';
+
+  @override
+  String shopProgress(int done, int total) {
+    return '$done von $total';
+  }
 
   @override
   String skyStars(int count) {

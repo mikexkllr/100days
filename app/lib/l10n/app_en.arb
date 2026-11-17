@@ -13,6 +13,8 @@
   "actionSend": "Send",
   "actionSent": "Sent",
   "actionShare": "Share link",
+  "addMealKcal": "kcal per portion (optional)",
+  "addMealTitle": "What is it?",
   "adviceCutScope": "You only hit {percent}% of your days. Take a habit out instead of carrying on failing — three certain days beat five planned ones.",
   "@adviceCutScope": {
     "placeholders": {
@@ -168,6 +170,23 @@
     "placeholders": {
       "days": {
         "type": "int"
+      }
+    }
+  },
+  "cadenceEveryNDays": "Every {days} days",
+  "@cadenceEveryNDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "cadenceManual": "Whenever you like",
+  "cadenceWeekly": "Every {weekday}",
+  "@cadenceWeekly": {
+    "placeholders": {
+      "weekday": {
+        "type": "String"
       }
     }
   },
@@ -1306,6 +1325,83 @@
       }
     }
   },
+  "householdAllergies": "Allergies & intolerances",
+  "householdDiet": "Diet",
+  "householdDietHint": "e.g. vegetarian",
+  "householdDislikes": "Does not like",
+  "householdInviteShort": "Invite",
+  "householdInviteTitle": "Invite to the household",
+  "householdJoin": "Join a household",
+  "householdJoinAction": "Join",
+  "householdJoinBody": "You will share the meal plan and the shopping list. Your diary stays private; your targets only if you choose to share them.",
+  "householdJoinTitle": "Join {name}?",
+  "@householdJoinTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "householdJoined": "You are in. The plan is now shared.",
+  "householdJustYou": "Just you — invite someone to plan together",
+  "householdListHint": "comma-separated",
+  "householdMeSub": "So whoever plans can size your portions and skip what you do not eat.",
+  "householdMeTitle": "You in the household",
+  "householdMembers": "{count} people",
+  "@householdMembers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "householdMembersTitle": "Who cooks and shops together",
+  "householdNoTarget": "Targets private — one portion each",
+  "householdPantry": "Usually at home",
+  "householdPantryHint": "salt, oil, pepper — left off generated lists",
+  "householdSaved": "Saved for the household.",
+  "householdShareTargets": "Share my targets with the household",
+  "householdShareTargetsNoPlan": "Turn on the nutrition plan first to have targets to share.",
+  "householdShareTargetsSub": "{kcal} kcal and {protein} g protein a day — only these two numbers.",
+  "@householdShareTargetsSub": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      }
+    }
+  },
+  "householdShareText": "Plan our meals with me in 100 Days: {link} (or enter the household code {code})",
+  "@householdShareText": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "householdSharesTarget": "Shares targets · {kcal} kcal a day",
+  "@householdSharesTarget": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "householdShoppingTitle": "When you shop",
+  "householdTitle": "Household",
+  "householdYou": "{name} (you)",
+  "@householdYou": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "inviteAlreadyFriends": "You and {name} are already friends.",
   "@inviteAlreadyFriends": {
     "placeholders": {
@@ -1959,9 +2055,19 @@
   "peerActivityNone": "Nothing yet",
   "peerActivityRelapse": "Relapse logged",
   "peerActivityStarted": "Challenge started",
+  "planAccepted": "{count, plural, =1{One meal planned.} other{{count} meals planned.}}",
+  "@planAccepted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "planAddMeal": "Add a meal",
   "planBmr": "Basal metabolic rate (BMR)",
   "planCarbs": "Carbs",
   "planCarbsShort": "Carbs",
+  "planChat": "Planning chat",
   "planCleanDays": "{days} days clean",
   "@planCleanDays": {
     "placeholders": {
@@ -1974,6 +2080,7 @@
   "planCurrentBadge": "current",
   "planDeloadBadge": "deload",
   "planEditTraining": "Edit split and exercises",
+  "planEmptySlot": "Nothing planned",
   "planEnableNutrition": "Turn on the nutrition plan",
   "planEnableNutritionBody": "Set a calorie target and keep a food diary — every day closed on target earns +{percent} % XP.",
   "@planEnableNutritionBody": {
@@ -2005,6 +2112,7 @@
     }
   },
   "planKcalPerDayShort": "kcal / day",
+  "planLoadFailed": "Could not load. Pull to try again.",
   "planMealMacros": "{kcal} kcal · {protein}g P",
   "@planMealMacros": {
     "placeholders": {
@@ -2017,8 +2125,15 @@
     }
   },
   "planMeals": "Meals",
-  "planNothingBody": "Your habits need no plan — check them off on Today. Training, nutrition and abstinence habits get one here.",
-  "planNothingTitle": "Nothing to plan",
+  "planMinutes": "{minutes} min",
+  "@planMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "planNeedsAi": "Planning with the AI needs your account's allowance or your own key (Settings → AI). You can always add meals by hand.",
   "planNutritionDeficit": "A {percent}% deficit below your {tdee} kcal expenditure. That is roughly 0.5 kg of fat a week — fast enough to see, slow enough to keep the muscle.",
   "@planNutritionDeficit": {
     "placeholders": {
@@ -2067,10 +2182,26 @@
   },
   "planProtein": "Protein",
   "planTabAbstinence": "Staying clean",
+  "planTabMeals": "Meals",
   "planTabNutrition": "Nutrition",
+  "planTabShopping": "Shopping",
   "planTabTraining": "Training",
   "planTdee": "Total expenditure (TDEE)",
+  "planToday": "TODAY",
   "planWater": "Water",
+  "planWeekAccept": "{count, plural, =1{Take this meal} other{Take these {count} meals}}",
+  "@planWeekAccept": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "planWeekAgain": "Another proposal",
+  "planWeekAi": "Plan the week",
+  "planWeekAnyTime": "Any",
+  "planWeekDays": "Days",
+  "planWeekFailed": "No usable plan this time. Try again, or with fewer days.",
   "planWeekNumber": "Week {week}",
   "@planWeekNumber": {
     "placeholders": {
@@ -2079,6 +2210,11 @@
       }
     }
   },
+  "planWeekPropose": "Make a proposal",
+  "planWeekSlots": "Meals",
+  "planWeekTime": "Cooking time",
+  "planWeekWishHint": "Wishes? e.g. no fish, Wednesday something quick, lots of veg",
+  "planWeekWorking": "Planning your week … this takes a moment.",
   "planWorkoutSummary": "{sets} sets · ≈ {minutes} min",
   "@planWorkoutSummary": {
     "placeholders": {
@@ -2087,6 +2223,61 @@
       },
       "minutes": {
         "type": "int"
+      }
+    }
+  },
+  "plannerAdded": "On the list: {name}",
+  "@plannerAdded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerDone": "Done.",
+  "plannerFailed": "That did not work. Try again in a moment.",
+  "plannerHint": "What should change?",
+  "plannerIntro": "Tell me what you need: \"no fish this week\", \"Wednesday something quick\", \"we still have rice\". I change the plan and the list directly — every change can be undone.",
+  "plannerListMade": "New shopping list from the plan",
+  "plannerRemoved": "Off the list: {name}",
+  "@plannerRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerRemovedMeal": "{day}, {slot}: removed",
+  "@plannerRemovedMeal": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "slot": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSetMeal": "{day}, {slot}: {title}",
+  "@plannerSetMeal": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "slot": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerUndo": "Undo",
+  "portionsCount": "{n} portions",
+  "@portionsCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
       }
     }
   },
@@ -2321,6 +2512,23 @@
       }
     }
   },
+  "promptMealPlan": "You plan home cooking for a household. Plan these meals (day: slots, the slot names in brackets are only for you):\n{days}\n\nWho eats:\n{people}\n{extra}\n\nSimple, varied dishes from a normal supermarket. Reuse ingredients across the week so little is left over. One recipe per meal with servings for the whole household, the calories and macros of ONE serving, ingredients for all servings in g, ml or pieces (unit \"g\", \"ml\", \"piece\", \"tbsp\" or \"tsp\") with a category (produce, bakery, dairy, meat, fish, pantry, frozen, drinks, other), and short steps. Use the slot names breakfast, lunch, snack, dinner. Titles, ingredients and steps in English.\nAnswer with JSON only, in this form:\n{format}",
+  "@promptMealPlan": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      },
+      "people": {
+        "type": "String"
+      },
+      "extra": {
+        "type": "String"
+      },
+      "format": {
+        "type": "String"
+      }
+    }
+  },
   "promptNo": "no",
   "promptNoFriends": "- no friends connected",
   "promptNudge": "Write a single short taunt in English aimed at {name}, who has done nothing for their own challenge today. The sender is on day {day} with a {streak} day streak. At most 12 words, cheeky but friendly, no bullying, no quotation marks. Output only the message.",
@@ -2358,9 +2566,149 @@
   "promptPersonaDemanding": "You are demanding and concrete.",
   "promptPersonaDirect": "You are direct and mildly provocative, never insulting.",
   "promptPersonaRecover": "You are sober and respectful. No pity, no blame.",
+  "promptPlanAllergies": "allergic to {list}",
+  "@promptPlanAllergies": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "promptPlanAvoid": "Recently eaten, please not again: {titles}.",
+  "@promptPlanAvoid": {
+    "placeholders": {
+      "titles": {
+        "type": "String"
+      }
+    }
+  },
+  "promptPlanDislikes": "does not like {list}",
+  "@promptPlanDislikes": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "promptPlanKcal": "{kcal} kcal a day",
+  "@promptPlanKcal": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "promptPlanMinutes": "At most {minutes} minutes of cooking per meal.",
+  "@promptPlanMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "promptPlanProtein": "{grams} g protein a day",
+  "@promptPlanProtein": {
+    "placeholders": {
+      "grams": {
+        "type": "int"
+      }
+    }
+  },
+  "promptPlanWish": "Their wish: \"{wish}\"",
+  "@promptPlanWish": {
+    "placeholders": {
+      "wish": {
+        "type": "String"
+      }
+    }
+  },
+  "promptPlannerChat": "You help a household plan its meals and shopping in the 100 Days app. Today is {today} ({weekday}); the week being planned runs from {start} to {end}. Read the plan with get_plan before changing it. Change it with the tools; never just describe a change. Recipes: simple, from a normal supermarket, servings for the whole household, calories and macros per serving. Keep answers to one or two short sentences, in English.",
+  "@promptPlannerChat": {
+    "placeholders": {
+      "today": {
+        "type": "String"
+      },
+      "weekday": {
+        "type": "String"
+      },
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "promptUnitClean": "days clean",
   "promptUnitStreak": "days streak",
   "promptYes": "yes",
+  "qtyPieces": "{n} pc",
+  "@qtyPieces": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "qtyTbsp": "{n} tbsp",
+  "@qtyTbsp": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "qtyTsp": "{n} tsp",
+  "@qtyTsp": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "recipeEatenAsPlanned": "Eaten as planned",
+  "recipeIngredients": "Ingredients for {servings}",
+  "@recipeIngredients": {
+    "placeholders": {
+      "servings": {
+        "type": "int"
+      }
+    }
+  },
+  "recipeLogged": "In your diary.",
+  "recipePerServing": "One portion: {kcal} kcal · {protein} g protein · {carbs} g carbs · {fat} g fat",
+  "@recipePerServing": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "carbs": {
+        "type": "int"
+      },
+      "fat": {
+        "type": "int"
+      }
+    }
+  },
+  "recipeRemove": "Take off the plan",
+  "recipeSteps": "How to",
+  "recipeYourShare": "Your share: {portions} · {kcal} kcal · {protein} g protein",
+  "@recipeYourShare": {
+    "placeholders": {
+      "portions": {
+        "type": "String"
+      },
+      "kcal": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      }
+    }
+  },
   "relativeDays": "{count} days ago",
   "@relativeDays": {
     "placeholders": {
@@ -2474,6 +2822,57 @@
   "setSyncNow": "Sync now",
   "setSyncOffline": "Offline — everything is kept and sent later.",
   "setViewSource": "View the source",
+  "shopAddHint": "Add something …",
+  "shopBakery": "Bakery",
+  "shopCadenceLine": "Shopping: {cadence}",
+  "@shopCadenceLine": {
+    "placeholders": {
+      "cadence": {
+        "type": "String"
+      }
+    }
+  },
+  "shopCheckedBy": "in the basket · {name}",
+  "@shopCheckedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shopDairy": "Dairy & eggs",
+  "shopDrinks": "Drinks",
+  "shopEmptyBody": "Make one from the meal plan — everything for the days until the next trip, added up and sorted by aisle — or start an empty one.",
+  "shopEmptyTitle": "No list yet",
+  "shopExtraList": "Extra list",
+  "shopFinish": "Done shopping",
+  "shopFinishMoving": "{count, plural, =1{Done — move the rest to next time} other{Done — move {count} to next time}}",
+  "@shopFinishMoving": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shopFish": "Fish",
+  "shopFromPlan": "List from plan",
+  "shopFrozen": "Frozen",
+  "shopHousehold": "Household",
+  "shopMeat": "Meat",
+  "shopOther": "Other",
+  "shopPantry": "Pantry",
+  "shopProduce": "Fruit & veg",
+  "shopProgress": "{done} of {total}",
+  "@shopProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "skyStars": "{count, plural, =0{No star in your sky yet. The first comes with the first day you finish.} =1{1 star in your sky — one for every day you finish.} other{{count} stars in your sky — one for every day you finish.}}",
   "@skyStars": {
     "placeholders": {

@@ -17,6 +17,7 @@ import 'data/notifications.dart';
 import 'l10n/l10n.dart';
 import 'state/providers.dart';
 import 'ai/dartantic_llm_client.dart';
+import 'ui/mealplan/household_screen.dart';
 import 'ui/settings/ai_screen.dart';
 import 'ui/social/invite_flow.dart';
 
@@ -124,9 +125,8 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
   }
 
   void _onLink(Uri? uri) {
-    if (uri == null || uri.scheme != kInviteScheme || uri.host != 'invite') {
-      return;
-    }
+    if (uri == null || uri.scheme != kInviteScheme) return;
+    if (uri.host != 'invite' && uri.host != 'household') return;
     _pendingInvite = uri.toString();
     _redeemPendingInvite();
   }
@@ -138,7 +138,9 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
     if (invite == null || context == null || snapshot == null) return;
     if (!snapshot.hasChallenge) return;
     _pendingInvite = null;
-    unawaited(redeemInviteFlow(context, ref, invite));
+    unawaited(Uri.parse(invite).host == 'household'
+        ? joinHouseholdFlow(context, ref, invite)
+        : redeemInviteFlow(context, ref, invite));
   }
 
   void _sync() {

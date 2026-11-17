@@ -13,6 +13,8 @@
   "actionSend": "Senden",
   "actionSent": "Gesendet",
   "actionShare": "Link teilen",
+  "addMealKcal": "kcal pro Portion (optional)",
+  "addMealTitle": "Was gibt's?",
   "adviceCutScope": "Du triffst nur {percent} % deiner Tage. Nimm eine Gewohnheit raus statt weiter zu scheitern — drei sichere Tage schlagen fünf geplante.",
   "@adviceCutScope": {
     "placeholders": {
@@ -133,6 +135,9 @@
       }
     }
   },
+  "cadenceEveryNDays": "Alle {days} Tage",
+  "cadenceManual": "Nach Bedarf",
+  "cadenceWeekly": "Jeden {weekday}",
   "celebrateBonusCycle": "ZYKLUS",
   "celebrateBonusEvolution": "EVOLUTION",
   "celebrateBonusLevel": "LEVEL UP",
@@ -1080,6 +1085,35 @@
       }
     }
   },
+  "householdAllergies": "Allergien & Unverträglichkeiten",
+  "householdDiet": "Ernährungsweise",
+  "householdDietHint": "z. B. vegetarisch",
+  "householdDislikes": "Mag nicht",
+  "householdInviteShort": "Einladen",
+  "householdInviteTitle": "In den Haushalt einladen",
+  "householdJoin": "Einem Haushalt beitreten",
+  "householdJoinAction": "Beitreten",
+  "householdJoinBody": "Ihr teilt Essensplan und Einkaufsliste. Dein Tagebuch bleibt privat, deine Ziele auch, außer du teilst sie.",
+  "householdJoinTitle": "{name} beitreten?",
+  "householdJoined": "Du bist drin. Der Plan ist jetzt geteilt.",
+  "householdJustYou": "Nur du. Lade jemanden zum gemeinsamen Planen ein",
+  "householdListHint": "mit Komma getrennt",
+  "householdMeSub": "Damit, wer plant, deine Portionen passend macht und weglässt, was du nicht isst.",
+  "householdMeTitle": "Du im Haushalt",
+  "householdMembers": "{count} Personen",
+  "householdMembersTitle": "Wer zusammen kocht und einkauft",
+  "householdNoTarget": "Ziele privat, je eine Portion",
+  "householdPantry": "Meistens zuhause",
+  "householdPantryHint": "Salz, Öl, Pfeffer: kommt nicht auf erzeugte Listen",
+  "householdSaved": "Für den Haushalt gespeichert.",
+  "householdShareTargets": "Meine Ziele mit dem Haushalt teilen",
+  "householdShareTargetsNoPlan": "Schalte zuerst den Ernährungsplan ein, damit es Ziele zum Teilen gibt.",
+  "householdShareTargetsSub": "{kcal} kcal und {protein} g Eiweiß am Tag. Nur diese zwei Zahlen.",
+  "householdShareText": "Plan unser Essen mit mir in 100 Days: {link} (oder gib den Haushalts-Code {code} ein)",
+  "householdSharesTarget": "Teilt Ziele · {kcal} kcal am Tag",
+  "householdShoppingTitle": "Wann ihr einkauft",
+  "householdTitle": "Haushalt",
+  "householdYou": "{name} (du)",
   "inviteAlreadyFriends": "Du und {name} seid schon befreundet.",
   "inviteCodeHint": "z. B. K7QM4 TX29P",
   "inviteConfirmAction": "Befreunden",
@@ -1629,9 +1663,12 @@
   "peerActivityNone": "Noch nichts los",
   "peerActivityRelapse": "Rückfall eingetragen",
   "peerActivityStarted": "Challenge gestartet",
+  "planAccepted": "{count, plural, =1{Eine Mahlzeit geplant.} other{{count} Mahlzeiten geplant.}}",
+  "planAddMeal": "Mahlzeit eintragen",
   "planBmr": "Grundumsatz (BMR)",
   "planCarbs": "Kohlenhydrate",
   "planCarbsShort": "Carbs",
+  "planChat": "Planungs-Chat",
   "planCleanDays": "{days} Tage clean",
   "@planCleanDays": {
     "placeholders": {
@@ -1644,6 +1681,7 @@
   "planCurrentBadge": "aktuell",
   "planDeloadBadge": "deload",
   "planEditTraining": "Split und Übungen bearbeiten",
+  "planEmptySlot": "Noch nichts geplant",
   "planEnableNutrition": "Ernährungsplan einschalten",
   "planEnableNutritionBody": "Setz ein Kalorienziel und führ ein Ernährungstagebuch — jeder Tag im Ziel bringt +{percent} % XP.",
   "planEnableTraining": "Trainingsplan einschalten",
@@ -1661,6 +1699,7 @@
     }
   },
   "planKcalPerDayShort": "kcal / Tag",
+  "planLoadFailed": "Konnte nicht laden. Zum Neuladen nach unten ziehen.",
   "planMealMacros": "{kcal} kcal · {protein}g P",
   "@planMealMacros": {
     "placeholders": {
@@ -1673,8 +1712,8 @@
     }
   },
   "planMeals": "Mahlzeiten",
-  "planNothingBody": "Deine Gewohnheiten brauchen keinen Plan — hak sie unter Heute ab. Training, Ernährung und Verzicht bekommen hier einen.",
-  "planNothingTitle": "Nichts zu planen",
+  "planMinutes": "{minutes} Min.",
+  "planNeedsAi": "Planen mit der KI braucht dein Kontingent oder einen eigenen Key (Einstellungen → KI). Von Hand eintragen geht immer.",
   "planNutritionDeficit": "{percent} % Defizit unter deinem Verbrauch von {tdee} kcal. Das sind rund 0,5 kg Fett pro Woche — schnell genug, dass du es siehst, langsam genug, dass die Muskeln bleiben.",
   "@planNutritionDeficit": {
     "placeholders": {
@@ -1723,10 +1762,19 @@
   },
   "planProtein": "Protein",
   "planTabAbstinence": "Clean bleiben",
+  "planTabMeals": "Essen",
   "planTabNutrition": "Ernährung",
+  "planTabShopping": "Einkauf",
   "planTabTraining": "Training",
   "planTdee": "Gesamtumsatz (TDEE)",
+  "planToday": "HEUTE",
   "planWater": "Wasser",
+  "planWeekAccept": "{count, plural, =1{Diese Mahlzeit übernehmen} other{Diese {count} Mahlzeiten übernehmen}}",
+  "planWeekAgain": "Neuer Vorschlag",
+  "planWeekAi": "Woche planen",
+  "planWeekAnyTime": "Egal",
+  "planWeekDays": "Tage",
+  "planWeekFailed": "Diesmal kein brauchbarer Plan. Versuch es noch einmal oder mit weniger Tagen.",
   "planWeekNumber": "Woche {week}",
   "@planWeekNumber": {
     "placeholders": {
@@ -1735,6 +1783,11 @@
       }
     }
   },
+  "planWeekPropose": "Vorschlag machen",
+  "planWeekSlots": "Mahlzeiten",
+  "planWeekTime": "Kochzeit",
+  "planWeekWishHint": "Wünsche? z. B. kein Fisch, Mittwoch was Schnelles, viel Gemüse",
+  "planWeekWorking": "Plane eure Woche … das dauert einen Moment.",
   "planWorkoutSummary": "{sets} Sätze · ≈ {minutes} Min",
   "@planWorkoutSummary": {
     "placeholders": {
@@ -1746,6 +1799,17 @@
       }
     }
   },
+  "plannerAdded": "Auf der Liste: {name}",
+  "plannerDone": "Erledigt.",
+  "plannerFailed": "Das hat nicht geklappt. Versuch es gleich noch einmal.",
+  "plannerHint": "Was soll sich ändern?",
+  "plannerIntro": "Sag mir, was ihr braucht: „diese Woche kein Fisch“, „Mittwoch was Schnelles“, „Reis haben wir noch“. Ich ändere Plan und Liste direkt, und jede Änderung lässt sich rückgängig machen.",
+  "plannerListMade": "Neue Einkaufsliste aus dem Plan",
+  "plannerRemoved": "Von der Liste: {name}",
+  "plannerRemovedMeal": "{day}, {slot}: entfernt",
+  "plannerSetMeal": "{day}, {slot}: {title}",
+  "plannerUndo": "Rückgängig",
+  "portionsCount": "{n} Portionen",
   "pressureBodyBehind": "{activity} · {streak, plural, =1{1 Tag Streak} other{{streak} Tage Streak}}. Du stehst heute noch auf null.",
   "@pressureBodyBehind": {
     "placeholders": {
@@ -1910,6 +1974,7 @@
     }
   },
   "promptMealIdeas": "Schlag 3 einfache Ideen für {meal} vor, je etwa {kcal} kcal und mindestens {protein} g Eiweiß. Wunsch: {wish}\nEine Idee pro Zeile, höchstens 12 Wörter, mit den geschätzten kcal am Ende. Auf Deutsch. Keine Nummerierung, keine Einleitung.",
+  "promptMealPlan": "Du planst Hausmannskost für einen Haushalt. Plane diese Mahlzeiten (Tag: Slots, die Namen in Klammern sind nur für dich):\n{days}\n\nWer isst:\n{people}\n{extra}\n\nEinfache, abwechslungsreiche Gerichte aus einem normalen Supermarkt. Verwende Zutaten über die Woche mehrfach, damit wenig übrig bleibt. Ein Rezept pro Mahlzeit mit Portionen für den ganzen Haushalt, Kalorien und Makros EINER Portion, Zutaten für alle Portionen in g, ml oder Stück (unit \"g\", \"ml\", \"piece\", \"tbsp\" oder \"tsp\") mit Kategorie (produce, bakery, dairy, meat, fish, pantry, frozen, drinks, other) und kurzen Schritten. Slot-Namen: breakfast, lunch, snack, dinner. Titel, Zutaten und Schritte auf Deutsch.\nAntworte nur mit JSON, in dieser Form:\n{format}",
   "promptNo": "nein",
   "promptNoFriends": "- keine Freunde verbunden",
   "promptNudge": "Schreibe eine einzelne, kurze Stichel-Nachricht auf Deutsch an {name}, der oder die heute noch nichts für die eigene Challenge getan hat. Der Absender ist bei Tag {day} mit {streak} Tagen Streak. Maximal 12 Wörter, frech aber freundlich, kein Mobbing, keine Anführungszeichen. Nur die Nachricht, sonst nichts.",
@@ -1947,9 +2012,27 @@
   "promptPersonaDemanding": "Du bist fordernd und konkret.",
   "promptPersonaDirect": "Du bist direkt und leicht provokant, aber nie beleidigend.",
   "promptPersonaRecover": "Du bist nüchtern und respektvoll. Kein Mitleid, keine Vorwürfe.",
+  "promptPlanAllergies": "allergisch gegen {list}",
+  "promptPlanAvoid": "Kürzlich gegessen, bitte nicht wieder: {titles}.",
+  "promptPlanDislikes": "mag kein(e) {list}",
+  "promptPlanKcal": "{kcal} kcal am Tag",
+  "promptPlanMinutes": "Höchstens {minutes} Minuten Kochzeit pro Mahlzeit.",
+  "promptPlanProtein": "{grams} g Eiweiß am Tag",
+  "promptPlanWish": "Ihr Wunsch: „{wish}“",
+  "promptPlannerChat": "Du hilfst einem Haushalt in der App 100 Days beim Planen von Essen und Einkauf. Heute ist {today} ({weekday}); geplant wird die Woche vom {start} bis {end}. Lies den Plan mit get_plan, bevor du ihn änderst. Ändere ihn mit den Tools, beschreib Änderungen nie nur. Rezepte: einfach, aus einem normalen Supermarkt, Portionen für den ganzen Haushalt, Kalorien und Makros pro Portion. Antworte in ein bis zwei kurzen Sätzen, auf Deutsch, per du.",
   "promptUnitClean": "Tage clean",
   "promptUnitStreak": "Tage Streak",
   "promptYes": "ja",
+  "qtyPieces": "{n} Stk.",
+  "qtyTbsp": "{n} EL",
+  "qtyTsp": "{n} TL",
+  "recipeEatenAsPlanned": "Gegessen wie geplant",
+  "recipeIngredients": "Zutaten für {servings}",
+  "recipeLogged": "Steht im Tagebuch.",
+  "recipePerServing": "Eine Portion: {kcal} kcal · {protein} g Eiweiß · {carbs} g Kohlenhydrate · {fat} g Fett",
+  "recipeRemove": "Aus dem Plan nehmen",
+  "recipeSteps": "So geht's",
+  "recipeYourShare": "Dein Teil: {portions} · {kcal} kcal · {protein} g Eiweiß",
   "relativeDays": "vor {count} Tagen",
   "@relativeDays": {
     "placeholders": {
@@ -2046,6 +2129,26 @@
   "setSyncNow": "Jetzt synchronisieren",
   "setSyncOffline": "Offline. Alles bleibt gespeichert und geht später raus.",
   "setViewSource": "Quellcode ansehen",
+  "shopAddHint": "Etwas hinzufügen …",
+  "shopBakery": "Brot & Backwaren",
+  "shopCadenceLine": "Einkauf: {cadence}",
+  "shopCheckedBy": "im Korb · {name}",
+  "shopDairy": "Milch & Eier",
+  "shopDrinks": "Getränke",
+  "shopEmptyBody": "Mach eine aus dem Plan: alles für die Tage bis zum nächsten Einkauf, zusammengerechnet und nach Gängen sortiert. Oder fang eine leere an.",
+  "shopEmptyTitle": "Noch keine Liste",
+  "shopExtraList": "Extra-Liste",
+  "shopFinish": "Einkauf erledigt",
+  "shopFinishMoving": "{count, plural, =1{Erledigt, den Rest aufs nächste Mal} other{Erledigt, {count} aufs nächste Mal}}",
+  "shopFish": "Fisch",
+  "shopFromPlan": "Liste aus Plan",
+  "shopFrozen": "Tiefkühl",
+  "shopHousehold": "Haushalt",
+  "shopMeat": "Fleisch & Wurst",
+  "shopOther": "Sonstiges",
+  "shopPantry": "Vorrat",
+  "shopProduce": "Obst & Gemüse",
+  "shopProgress": "{done} von {total}",
   "skyStars": "{count, plural, =0{Noch kein Stern an deinem Himmel. Der erste kommt mit dem ersten geschafften Tag.} =1{1 Stern steht an deinem Himmel — einer für jeden geschafften Tag.} other{{count} Sterne stehen an deinem Himmel — einer für jeden geschafften Tag.}}",
   "@skyStars": {
     "placeholders": {

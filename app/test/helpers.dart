@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 import 'package:hundred_days/data/app_repository.dart';
+import 'package:hundred_days/data/household_backend.dart';
 import 'package:hundred_days/data/locale_store.dart';
 import 'package:hundred_days/data/social_backend.dart';
 import 'package:hundred_days/l10n/l10n.dart';
+import 'package:hundred_days/state/household_providers.dart';
 import 'package:hundred_days/state/providers.dart';
 import 'package:hundred_days/theme/theme.dart';
 
@@ -99,9 +101,19 @@ Future<String> seedFriend(
   return friend;
 }
 
-/// Keeps widget tests off the platform: no language model to reach.
-List<Override> platformFreeOverrides() => <Override>[
-      llmClientProvider.overrideWithValue(const UnavailableLlmClient()),
+/// Keeps widget tests off the platform: no language model to reach, a
+/// household that lives in memory.
+List<Override> platformFreeOverrides({
+  LlmClient llm = const UnavailableLlmClient(),
+  HouseholdBackend? household,
+  Locale locale = const Locale('de'),
+}) =>
+    <Override>[
+      // Prompts are written in this language; no stored choice to read.
+      effectiveLocaleProvider.overrideWithValue(locale),
+      llmClientProvider.overrideWithValue(llm),
+      householdBackendProvider
+          .overrideWithValue(household ?? MemoryHouseholdBackend()),
     ];
 
 /// Widget tests run with the system's "reduce motion" switched on. The
@@ -122,11 +134,13 @@ Widget wrapForTest({
   required Widget child,
   Locale locale = const Locale('de'),
   List<Override> overrides = const <Override>[],
+  LlmClient llm = const UnavailableLlmClient(),
+  HouseholdBackend? household,
 }) {
   return ProviderScope(
     overrides: <Override>[
       repositoryProvider.overrideWithValue(repository),
-      ...platformFreeOverrides(),
+      ...platformFreeOverrides(llm: llm, household: household, locale: locale),
       ...overrides,
     ],
     child: MaterialApp(

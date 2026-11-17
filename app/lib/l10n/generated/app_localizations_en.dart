@@ -48,6 +48,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionShare => 'Share link';
 
   @override
+  String get addMealKcal => 'kcal per portion (optional)';
+
+  @override
+  String get addMealTitle => 'What is it?';
+
+  @override
   String adviceCutScope(int percent) {
     return 'You only hit $percent% of your days. Take a habit out instead of carrying on failing — three certain days beat five planned ones.';
   }
@@ -244,6 +250,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String boardTitle(int days) {
     return 'Your $days days';
+  }
+
+  @override
+  String cadenceEveryNDays(int days) {
+    return 'Every $days days';
+  }
+
+  @override
+  String get cadenceManual => 'Whenever you like';
+
+  @override
+  String cadenceWeekly(String weekday) {
+    return 'Every $weekday';
   }
 
   @override
@@ -1773,6 +1792,109 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get householdAllergies => 'Allergies & intolerances';
+
+  @override
+  String get householdDiet => 'Diet';
+
+  @override
+  String get householdDietHint => 'e.g. vegetarian';
+
+  @override
+  String get householdDislikes => 'Does not like';
+
+  @override
+  String get householdInviteShort => 'Invite';
+
+  @override
+  String get householdInviteTitle => 'Invite to the household';
+
+  @override
+  String get householdJoin => 'Join a household';
+
+  @override
+  String get householdJoinAction => 'Join';
+
+  @override
+  String get householdJoinBody =>
+      'You will share the meal plan and the shopping list. Your diary stays private; your targets only if you choose to share them.';
+
+  @override
+  String householdJoinTitle(String name) {
+    return 'Join $name?';
+  }
+
+  @override
+  String get householdJoined => 'You are in. The plan is now shared.';
+
+  @override
+  String get householdJustYou => 'Just you — invite someone to plan together';
+
+  @override
+  String get householdListHint => 'comma-separated';
+
+  @override
+  String get householdMeSub =>
+      'So whoever plans can size your portions and skip what you do not eat.';
+
+  @override
+  String get householdMeTitle => 'You in the household';
+
+  @override
+  String householdMembers(int count) {
+    return '$count people';
+  }
+
+  @override
+  String get householdMembersTitle => 'Who cooks and shops together';
+
+  @override
+  String get householdNoTarget => 'Targets private — one portion each';
+
+  @override
+  String get householdPantry => 'Usually at home';
+
+  @override
+  String get householdPantryHint =>
+      'salt, oil, pepper — left off generated lists';
+
+  @override
+  String get householdSaved => 'Saved for the household.';
+
+  @override
+  String get householdShareTargets => 'Share my targets with the household';
+
+  @override
+  String get householdShareTargetsNoPlan =>
+      'Turn on the nutrition plan first to have targets to share.';
+
+  @override
+  String householdShareTargetsSub(int kcal, int protein) {
+    return '$kcal kcal and $protein g protein a day — only these two numbers.';
+  }
+
+  @override
+  String householdShareText(String link, String code) {
+    return 'Plan our meals with me in 100 Days: $link (or enter the household code $code)';
+  }
+
+  @override
+  String householdSharesTarget(int kcal) {
+    return 'Shares targets · $kcal kcal a day';
+  }
+
+  @override
+  String get householdShoppingTitle => 'When you shop';
+
+  @override
+  String get householdTitle => 'Household';
+
+  @override
+  String householdYou(String name) {
+    return '$name (you)';
+  }
+
+  @override
   String inviteAlreadyFriends(String name) {
     return 'You and $name are already friends.';
   }
@@ -3033,6 +3155,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get peerActivityStarted => 'Challenge started';
 
   @override
+  String planAccepted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count meals planned.',
+      one: 'One meal planned.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get planAddMeal => 'Add a meal';
+
+  @override
   String get planBmr => 'Basal metabolic rate (BMR)';
 
   @override
@@ -3040,6 +3176,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planCarbsShort => 'Carbs';
+
+  @override
+  String get planChat => 'Planning chat';
 
   @override
   String planCleanDays(int days) {
@@ -3057,6 +3196,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planEditTraining => 'Edit split and exercises';
+
+  @override
+  String get planEmptySlot => 'Nothing planned';
 
   @override
   String get planEnableNutrition => 'Turn on the nutrition plan';
@@ -3095,6 +3237,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planKcalPerDayShort => 'kcal / day';
 
   @override
+  String get planLoadFailed => 'Could not load. Pull to try again.';
+
+  @override
   String planMealMacros(int kcal, int protein) {
     return '$kcal kcal · ${protein}g P';
   }
@@ -3103,11 +3248,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planMeals => 'Meals';
 
   @override
-  String get planNothingBody =>
-      'Your habits need no plan — check them off on Today. Training, nutrition and abstinence habits get one here.';
+  String planMinutes(int minutes) {
+    return '$minutes min';
+  }
 
   @override
-  String get planNothingTitle => 'Nothing to plan';
+  String get planNeedsAi =>
+      'Planning with the AI needs your account\'s allowance or your own key (Settings → AI). You can always add meals by hand.';
 
   @override
   String planNutritionDeficit(int percent, int tdee) {
@@ -3141,7 +3288,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planTabAbstinence => 'Staying clean';
 
   @override
+  String get planTabMeals => 'Meals';
+
+  @override
   String get planTabNutrition => 'Nutrition';
+
+  @override
+  String get planTabShopping => 'Shopping';
 
   @override
   String get planTabTraining => 'Training';
@@ -3150,7 +3303,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planTdee => 'Total expenditure (TDEE)';
 
   @override
+  String get planToday => 'TODAY';
+
+  @override
   String get planWater => 'Water';
+
+  @override
+  String planWeekAccept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Take these $count meals',
+      one: 'Take this meal',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get planWeekAgain => 'Another proposal';
+
+  @override
+  String get planWeekAi => 'Plan the week';
+
+  @override
+  String get planWeekAnyTime => 'Any';
+
+  @override
+  String get planWeekDays => 'Days';
+
+  @override
+  String get planWeekFailed =>
+      'No usable plan this time. Try again, or with fewer days.';
 
   @override
   String planWeekNumber(int week) {
@@ -3158,8 +3341,68 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get planWeekPropose => 'Make a proposal';
+
+  @override
+  String get planWeekSlots => 'Meals';
+
+  @override
+  String get planWeekTime => 'Cooking time';
+
+  @override
+  String get planWeekWishHint =>
+      'Wishes? e.g. no fish, Wednesday something quick, lots of veg';
+
+  @override
+  String get planWeekWorking => 'Planning your week … this takes a moment.';
+
+  @override
   String planWorkoutSummary(int sets, int minutes) {
     return '$sets sets · ≈ $minutes min';
+  }
+
+  @override
+  String plannerAdded(String name) {
+    return 'On the list: $name';
+  }
+
+  @override
+  String get plannerDone => 'Done.';
+
+  @override
+  String get plannerFailed => 'That did not work. Try again in a moment.';
+
+  @override
+  String get plannerHint => 'What should change?';
+
+  @override
+  String get plannerIntro =>
+      'Tell me what you need: \"no fish this week\", \"Wednesday something quick\", \"we still have rice\". I change the plan and the list directly — every change can be undone.';
+
+  @override
+  String get plannerListMade => 'New shopping list from the plan';
+
+  @override
+  String plannerRemoved(String name) {
+    return 'Off the list: $name';
+  }
+
+  @override
+  String plannerRemovedMeal(String day, String slot) {
+    return '$day, $slot: removed';
+  }
+
+  @override
+  String plannerSetMeal(String day, String slot, String title) {
+    return '$day, $slot: $title';
+  }
+
+  @override
+  String get plannerUndo => 'Undo';
+
+  @override
+  String portionsCount(String n) {
+    return '$n portions';
   }
 
   @override
@@ -3349,6 +3592,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String promptMealPlan(
+    String days,
+    String people,
+    String extra,
+    String format,
+  ) {
+    return 'You plan home cooking for a household. Plan these meals (day: slots, the slot names in brackets are only for you):\n$days\n\nWho eats:\n$people\n$extra\n\nSimple, varied dishes from a normal supermarket. Reuse ingredients across the week so little is left over. One recipe per meal with servings for the whole household, the calories and macros of ONE serving, ingredients for all servings in g, ml or pieces (unit \"g\", \"ml\", \"piece\", \"tbsp\" or \"tsp\") with a category (produce, bakery, dairy, meat, fish, pantry, frozen, drinks, other), and short steps. Use the slot names breakfast, lunch, snack, dinner. Titles, ingredients and steps in English.\nAnswer with JSON only, in this form:\n$format';
+  }
+
+  @override
   String get promptNo => 'no';
 
   @override
@@ -3389,6 +3642,51 @@ class AppLocalizationsEn extends AppLocalizations {
       'You are sober and respectful. No pity, no blame.';
 
   @override
+  String promptPlanAllergies(String list) {
+    return 'allergic to $list';
+  }
+
+  @override
+  String promptPlanAvoid(String titles) {
+    return 'Recently eaten, please not again: $titles.';
+  }
+
+  @override
+  String promptPlanDislikes(String list) {
+    return 'does not like $list';
+  }
+
+  @override
+  String promptPlanKcal(int kcal) {
+    return '$kcal kcal a day';
+  }
+
+  @override
+  String promptPlanMinutes(int minutes) {
+    return 'At most $minutes minutes of cooking per meal.';
+  }
+
+  @override
+  String promptPlanProtein(int grams) {
+    return '$grams g protein a day';
+  }
+
+  @override
+  String promptPlanWish(String wish) {
+    return 'Their wish: \"$wish\"';
+  }
+
+  @override
+  String promptPlannerChat(
+    String today,
+    String weekday,
+    String start,
+    String end,
+  ) {
+    return 'You help a household plan its meals and shopping in the 100 Days app. Today is $today ($weekday); the week being planned runs from $start to $end. Read the plan with get_plan before changing it. Change it with the tools; never just describe a change. Recipes: simple, from a normal supermarket, servings for the whole household, calories and macros per serving. Keep answers to one or two short sentences, in English.';
+  }
+
+  @override
   String get promptUnitClean => 'days clean';
 
   @override
@@ -3396,6 +3694,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get promptYes => 'yes';
+
+  @override
+  String qtyPieces(String n) {
+    return '$n pc';
+  }
+
+  @override
+  String qtyTbsp(String n) {
+    return '$n tbsp';
+  }
+
+  @override
+  String qtyTsp(String n) {
+    return '$n tsp';
+  }
+
+  @override
+  String get recipeEatenAsPlanned => 'Eaten as planned';
+
+  @override
+  String recipeIngredients(int servings) {
+    return 'Ingredients for $servings';
+  }
+
+  @override
+  String get recipeLogged => 'In your diary.';
+
+  @override
+  String recipePerServing(int kcal, int protein, int carbs, int fat) {
+    return 'One portion: $kcal kcal · $protein g protein · $carbs g carbs · $fat g fat';
+  }
+
+  @override
+  String get recipeRemove => 'Take off the plan';
+
+  @override
+  String get recipeSteps => 'How to';
+
+  @override
+  String recipeYourShare(String portions, int kcal, int protein) {
+    return 'Your share: $portions · $kcal kcal · $protein g protein';
+  }
 
   @override
   String relativeDays(int count) {
@@ -3558,6 +3898,81 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setViewSource => 'View the source';
+
+  @override
+  String get shopAddHint => 'Add something …';
+
+  @override
+  String get shopBakery => 'Bakery';
+
+  @override
+  String shopCadenceLine(String cadence) {
+    return 'Shopping: $cadence';
+  }
+
+  @override
+  String shopCheckedBy(String name) {
+    return 'in the basket · $name';
+  }
+
+  @override
+  String get shopDairy => 'Dairy & eggs';
+
+  @override
+  String get shopDrinks => 'Drinks';
+
+  @override
+  String get shopEmptyBody =>
+      'Make one from the meal plan — everything for the days until the next trip, added up and sorted by aisle — or start an empty one.';
+
+  @override
+  String get shopEmptyTitle => 'No list yet';
+
+  @override
+  String get shopExtraList => 'Extra list';
+
+  @override
+  String get shopFinish => 'Done shopping';
+
+  @override
+  String shopFinishMoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Done — move $count to next time',
+      one: 'Done — move the rest to next time',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopFish => 'Fish';
+
+  @override
+  String get shopFromPlan => 'List from plan';
+
+  @override
+  String get shopFrozen => 'Frozen';
+
+  @override
+  String get shopHousehold => 'Household';
+
+  @override
+  String get shopMeat => 'Meat';
+
+  @override
+  String get shopOther => 'Other';
+
+  @override
+  String get shopPantry => 'Pantry';
+
+  @override
+  String get shopProduce => 'Fruit & veg';
+
+  @override
+  String shopProgress(int done, int total) {
+    return '$done of $total';
+  }
 
   @override
   String skyStars(int count) {

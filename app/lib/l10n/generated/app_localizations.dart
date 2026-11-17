@@ -176,6 +176,18 @@ abstract class AppLocalizations {
   /// **'Share link'**
   String get actionShare;
 
+  /// No description provided for @addMealKcal.
+  ///
+  /// In en, this message translates to:
+  /// **'kcal per portion (optional)'**
+  String get addMealKcal;
+
+  /// No description provided for @addMealTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What is it?'**
+  String get addMealTitle;
+
   /// No description provided for @adviceCutScope.
   ///
   /// In en, this message translates to:
@@ -462,6 +474,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your {days} days'**
   String boardTitle(int days);
+
+  /// No description provided for @cadenceEveryNDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {days} days'**
+  String cadenceEveryNDays(int days);
+
+  /// No description provided for @cadenceManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Whenever you like'**
+  String get cadenceManual;
+
+  /// No description provided for @cadenceWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {weekday}'**
+  String cadenceWeekly(String weekday);
 
   /// No description provided for @celebrateBonusCycle.
   ///
@@ -2856,6 +2886,180 @@ abstract class AppLocalizations {
   /// **'{xp} XP'**
   String homeXp(int xp);
 
+  /// No description provided for @householdAllergies.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergies & intolerances'**
+  String get householdAllergies;
+
+  /// No description provided for @householdDiet.
+  ///
+  /// In en, this message translates to:
+  /// **'Diet'**
+  String get householdDiet;
+
+  /// No description provided for @householdDietHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. vegetarian'**
+  String get householdDietHint;
+
+  /// No description provided for @householdDislikes.
+  ///
+  /// In en, this message translates to:
+  /// **'Does not like'**
+  String get householdDislikes;
+
+  /// No description provided for @householdInviteShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite'**
+  String get householdInviteShort;
+
+  /// No description provided for @householdInviteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite to the household'**
+  String get householdInviteTitle;
+
+  /// No description provided for @householdJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Join a household'**
+  String get householdJoin;
+
+  /// No description provided for @householdJoinAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Join'**
+  String get householdJoinAction;
+
+  /// No description provided for @householdJoinBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You will share the meal plan and the shopping list. Your diary stays private; your targets only if you choose to share them.'**
+  String get householdJoinBody;
+
+  /// No description provided for @householdJoinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Join {name}?'**
+  String householdJoinTitle(String name);
+
+  /// No description provided for @householdJoined.
+  ///
+  /// In en, this message translates to:
+  /// **'You are in. The plan is now shared.'**
+  String get householdJoined;
+
+  /// No description provided for @householdJustYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Just you — invite someone to plan together'**
+  String get householdJustYou;
+
+  /// No description provided for @householdListHint.
+  ///
+  /// In en, this message translates to:
+  /// **'comma-separated'**
+  String get householdListHint;
+
+  /// No description provided for @householdMeSub.
+  ///
+  /// In en, this message translates to:
+  /// **'So whoever plans can size your portions and skip what you do not eat.'**
+  String get householdMeSub;
+
+  /// No description provided for @householdMeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You in the household'**
+  String get householdMeTitle;
+
+  /// No description provided for @householdMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} people'**
+  String householdMembers(int count);
+
+  /// No description provided for @householdMembersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Who cooks and shops together'**
+  String get householdMembersTitle;
+
+  /// No description provided for @householdNoTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Targets private — one portion each'**
+  String get householdNoTarget;
+
+  /// No description provided for @householdPantry.
+  ///
+  /// In en, this message translates to:
+  /// **'Usually at home'**
+  String get householdPantry;
+
+  /// No description provided for @householdPantryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'salt, oil, pepper — left off generated lists'**
+  String get householdPantryHint;
+
+  /// No description provided for @householdSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved for the household.'**
+  String get householdSaved;
+
+  /// No description provided for @householdShareTargets.
+  ///
+  /// In en, this message translates to:
+  /// **'Share my targets with the household'**
+  String get householdShareTargets;
+
+  /// No description provided for @householdShareTargetsNoPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on the nutrition plan first to have targets to share.'**
+  String get householdShareTargetsNoPlan;
+
+  /// No description provided for @householdShareTargetsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'{kcal} kcal and {protein} g protein a day — only these two numbers.'**
+  String householdShareTargetsSub(int kcal, int protein);
+
+  /// No description provided for @householdShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan our meals with me in 100 Days: {link} (or enter the household code {code})'**
+  String householdShareText(String link, String code);
+
+  /// No description provided for @householdSharesTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Shares targets · {kcal} kcal a day'**
+  String householdSharesTarget(int kcal);
+
+  /// No description provided for @householdShoppingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When you shop'**
+  String get householdShoppingTitle;
+
+  /// No description provided for @householdTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Household'**
+  String get householdTitle;
+
+  /// No description provided for @householdYou.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (you)'**
+  String householdYou(String name);
+
   /// No description provided for @inviteAlreadyFriends.
   ///
   /// In en, this message translates to:
@@ -5040,6 +5244,18 @@ abstract class AppLocalizations {
   /// **'Challenge started'**
   String get peerActivityStarted;
 
+  /// No description provided for @planAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{One meal planned.} other{{count} meals planned.}}'**
+  String planAccepted(int count);
+
+  /// No description provided for @planAddMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a meal'**
+  String get planAddMeal;
+
   /// No description provided for @planBmr.
   ///
   /// In en, this message translates to:
@@ -5057,6 +5273,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Carbs'**
   String get planCarbsShort;
+
+  /// No description provided for @planChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning chat'**
+  String get planChat;
 
   /// No description provided for @planCleanDays.
   ///
@@ -5087,6 +5309,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit split and exercises'**
   String get planEditTraining;
+
+  /// No description provided for @planEmptySlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing planned'**
+  String get planEmptySlot;
 
   /// No description provided for @planEnableNutrition.
   ///
@@ -5148,6 +5376,12 @@ abstract class AppLocalizations {
   /// **'kcal / day'**
   String get planKcalPerDayShort;
 
+  /// No description provided for @planLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load. Pull to try again.'**
+  String get planLoadFailed;
+
   /// No description provided for @planMealMacros.
   ///
   /// In en, this message translates to:
@@ -5160,17 +5394,17 @@ abstract class AppLocalizations {
   /// **'Meals'**
   String get planMeals;
 
-  /// No description provided for @planNothingBody.
+  /// No description provided for @planMinutes.
   ///
   /// In en, this message translates to:
-  /// **'Your habits need no plan — check them off on Today. Training, nutrition and abstinence habits get one here.'**
-  String get planNothingBody;
+  /// **'{minutes} min'**
+  String planMinutes(int minutes);
 
-  /// No description provided for @planNothingTitle.
+  /// No description provided for @planNeedsAi.
   ///
   /// In en, this message translates to:
-  /// **'Nothing to plan'**
-  String get planNothingTitle;
+  /// **'Planning with the AI needs your account\'s allowance or your own key (Settings → AI). You can always add meals by hand.'**
+  String get planNeedsAi;
 
   /// No description provided for @planNutritionDeficit.
   ///
@@ -5214,11 +5448,23 @@ abstract class AppLocalizations {
   /// **'Staying clean'**
   String get planTabAbstinence;
 
+  /// No description provided for @planTabMeals.
+  ///
+  /// In en, this message translates to:
+  /// **'Meals'**
+  String get planTabMeals;
+
   /// No description provided for @planTabNutrition.
   ///
   /// In en, this message translates to:
   /// **'Nutrition'**
   String get planTabNutrition;
+
+  /// No description provided for @planTabShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping'**
+  String get planTabShopping;
 
   /// No description provided for @planTabTraining.
   ///
@@ -5232,11 +5478,53 @@ abstract class AppLocalizations {
   /// **'Total expenditure (TDEE)'**
   String get planTdee;
 
+  /// No description provided for @planToday.
+  ///
+  /// In en, this message translates to:
+  /// **'TODAY'**
+  String get planToday;
+
   /// No description provided for @planWater.
   ///
   /// In en, this message translates to:
   /// **'Water'**
   String get planWater;
+
+  /// No description provided for @planWeekAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Take this meal} other{Take these {count} meals}}'**
+  String planWeekAccept(int count);
+
+  /// No description provided for @planWeekAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Another proposal'**
+  String get planWeekAgain;
+
+  /// No description provided for @planWeekAi.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan the week'**
+  String get planWeekAi;
+
+  /// No description provided for @planWeekAnyTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get planWeekAnyTime;
+
+  /// No description provided for @planWeekDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get planWeekDays;
+
+  /// No description provided for @planWeekFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'No usable plan this time. Try again, or with fewer days.'**
+  String get planWeekFailed;
 
   /// No description provided for @planWeekNumber.
   ///
@@ -5244,11 +5532,107 @@ abstract class AppLocalizations {
   /// **'Week {week}'**
   String planWeekNumber(int week);
 
+  /// No description provided for @planWeekPropose.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a proposal'**
+  String get planWeekPropose;
+
+  /// No description provided for @planWeekSlots.
+  ///
+  /// In en, this message translates to:
+  /// **'Meals'**
+  String get planWeekSlots;
+
+  /// No description provided for @planWeekTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooking time'**
+  String get planWeekTime;
+
+  /// No description provided for @planWeekWishHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Wishes? e.g. no fish, Wednesday something quick, lots of veg'**
+  String get planWeekWishHint;
+
+  /// No description provided for @planWeekWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning your week … this takes a moment.'**
+  String get planWeekWorking;
+
   /// No description provided for @planWorkoutSummary.
   ///
   /// In en, this message translates to:
   /// **'{sets} sets · ≈ {minutes} min'**
   String planWorkoutSummary(int sets, int minutes);
+
+  /// No description provided for @plannerAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'On the list: {name}'**
+  String plannerAdded(String name);
+
+  /// No description provided for @plannerDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done.'**
+  String get plannerDone;
+
+  /// No description provided for @plannerFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That did not work. Try again in a moment.'**
+  String get plannerFailed;
+
+  /// No description provided for @plannerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What should change?'**
+  String get plannerHint;
+
+  /// No description provided for @plannerIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell me what you need: \"no fish this week\", \"Wednesday something quick\", \"we still have rice\". I change the plan and the list directly — every change can be undone.'**
+  String get plannerIntro;
+
+  /// No description provided for @plannerListMade.
+  ///
+  /// In en, this message translates to:
+  /// **'New shopping list from the plan'**
+  String get plannerListMade;
+
+  /// No description provided for @plannerRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Off the list: {name}'**
+  String plannerRemoved(String name);
+
+  /// No description provided for @plannerRemovedMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'{day}, {slot}: removed'**
+  String plannerRemovedMeal(String day, String slot);
+
+  /// No description provided for @plannerSetMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'{day}, {slot}: {title}'**
+  String plannerSetMeal(String day, String slot, String title);
+
+  /// No description provided for @plannerUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get plannerUndo;
+
+  /// No description provided for @portionsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} portions'**
+  String portionsCount(String n);
 
   /// No description provided for @pressureBodyBehind.
   ///
@@ -5511,6 +5895,17 @@ abstract class AppLocalizations {
   /// **'Suggest 3 simple ideas for {meal} with about {kcal} kcal and at least {protein} g protein each. Wish: {wish}\nOne idea per line, at most 12 words each, with the estimated kcal at the end. In English. No numbering, no preamble.'**
   String promptMealIdeas(String meal, int kcal, int protein, String wish);
 
+  /// No description provided for @promptMealPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'You plan home cooking for a household. Plan these meals (day: slots, the slot names in brackets are only for you):\n{days}\n\nWho eats:\n{people}\n{extra}\n\nSimple, varied dishes from a normal supermarket. Reuse ingredients across the week so little is left over. One recipe per meal with servings for the whole household, the calories and macros of ONE serving, ingredients for all servings in g, ml or pieces (unit \"g\", \"ml\", \"piece\", \"tbsp\" or \"tsp\") with a category (produce, bakery, dairy, meat, fish, pantry, frozen, drinks, other), and short steps. Use the slot names breakfast, lunch, snack, dinner. Titles, ingredients and steps in English.\nAnswer with JSON only, in this form:\n{format}'**
+  String promptMealPlan(
+    String days,
+    String people,
+    String extra,
+    String format,
+  );
+
   /// No description provided for @promptNo.
   ///
   /// In en, this message translates to:
@@ -5577,6 +5972,59 @@ abstract class AppLocalizations {
   /// **'You are sober and respectful. No pity, no blame.'**
   String get promptPersonaRecover;
 
+  /// No description provided for @promptPlanAllergies.
+  ///
+  /// In en, this message translates to:
+  /// **'allergic to {list}'**
+  String promptPlanAllergies(String list);
+
+  /// No description provided for @promptPlanAvoid.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently eaten, please not again: {titles}.'**
+  String promptPlanAvoid(String titles);
+
+  /// No description provided for @promptPlanDislikes.
+  ///
+  /// In en, this message translates to:
+  /// **'does not like {list}'**
+  String promptPlanDislikes(String list);
+
+  /// No description provided for @promptPlanKcal.
+  ///
+  /// In en, this message translates to:
+  /// **'{kcal} kcal a day'**
+  String promptPlanKcal(int kcal);
+
+  /// No description provided for @promptPlanMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'At most {minutes} minutes of cooking per meal.'**
+  String promptPlanMinutes(int minutes);
+
+  /// No description provided for @promptPlanProtein.
+  ///
+  /// In en, this message translates to:
+  /// **'{grams} g protein a day'**
+  String promptPlanProtein(int grams);
+
+  /// No description provided for @promptPlanWish.
+  ///
+  /// In en, this message translates to:
+  /// **'Their wish: \"{wish}\"'**
+  String promptPlanWish(String wish);
+
+  /// No description provided for @promptPlannerChat.
+  ///
+  /// In en, this message translates to:
+  /// **'You help a household plan its meals and shopping in the 100 Days app. Today is {today} ({weekday}); the week being planned runs from {start} to {end}. Read the plan with get_plan before changing it. Change it with the tools; never just describe a change. Recipes: simple, from a normal supermarket, servings for the whole household, calories and macros per serving. Keep answers to one or two short sentences, in English.'**
+  String promptPlannerChat(
+    String today,
+    String weekday,
+    String start,
+    String end,
+  );
+
   /// No description provided for @promptUnitClean.
   ///
   /// In en, this message translates to:
@@ -5594,6 +6042,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'yes'**
   String get promptYes;
+
+  /// No description provided for @qtyPieces.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} pc'**
+  String qtyPieces(String n);
+
+  /// No description provided for @qtyTbsp.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} tbsp'**
+  String qtyTbsp(String n);
+
+  /// No description provided for @qtyTsp.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} tsp'**
+  String qtyTsp(String n);
+
+  /// No description provided for @recipeEatenAsPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Eaten as planned'**
+  String get recipeEatenAsPlanned;
+
+  /// No description provided for @recipeIngredients.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients for {servings}'**
+  String recipeIngredients(int servings);
+
+  /// No description provided for @recipeLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'In your diary.'**
+  String get recipeLogged;
+
+  /// No description provided for @recipePerServing.
+  ///
+  /// In en, this message translates to:
+  /// **'One portion: {kcal} kcal · {protein} g protein · {carbs} g carbs · {fat} g fat'**
+  String recipePerServing(int kcal, int protein, int carbs, int fat);
+
+  /// No description provided for @recipeRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Take off the plan'**
+  String get recipeRemove;
+
+  /// No description provided for @recipeSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'How to'**
+  String get recipeSteps;
+
+  /// No description provided for @recipeYourShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Your share: {portions} · {kcal} kcal · {protein} g protein'**
+  String recipeYourShare(String portions, int kcal, int protein);
 
   /// No description provided for @relativeDays.
   ///
@@ -5858,6 +6366,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View the source'**
   String get setViewSource;
+
+  /// No description provided for @shopAddHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add something …'**
+  String get shopAddHint;
+
+  /// No description provided for @shopBakery.
+  ///
+  /// In en, this message translates to:
+  /// **'Bakery'**
+  String get shopBakery;
+
+  /// No description provided for @shopCadenceLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping: {cadence}'**
+  String shopCadenceLine(String cadence);
+
+  /// No description provided for @shopCheckedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'in the basket · {name}'**
+  String shopCheckedBy(String name);
+
+  /// No description provided for @shopDairy.
+  ///
+  /// In en, this message translates to:
+  /// **'Dairy & eggs'**
+  String get shopDairy;
+
+  /// No description provided for @shopDrinks.
+  ///
+  /// In en, this message translates to:
+  /// **'Drinks'**
+  String get shopDrinks;
+
+  /// No description provided for @shopEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Make one from the meal plan — everything for the days until the next trip, added up and sorted by aisle — or start an empty one.'**
+  String get shopEmptyBody;
+
+  /// No description provided for @shopEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No list yet'**
+  String get shopEmptyTitle;
+
+  /// No description provided for @shopExtraList.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra list'**
+  String get shopExtraList;
+
+  /// No description provided for @shopFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Done shopping'**
+  String get shopFinish;
+
+  /// No description provided for @shopFinishMoving.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Done — move the rest to next time} other{Done — move {count} to next time}}'**
+  String shopFinishMoving(int count);
+
+  /// No description provided for @shopFish.
+  ///
+  /// In en, this message translates to:
+  /// **'Fish'**
+  String get shopFish;
+
+  /// No description provided for @shopFromPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'List from plan'**
+  String get shopFromPlan;
+
+  /// No description provided for @shopFrozen.
+  ///
+  /// In en, this message translates to:
+  /// **'Frozen'**
+  String get shopFrozen;
+
+  /// No description provided for @shopHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'Household'**
+  String get shopHousehold;
+
+  /// No description provided for @shopMeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Meat'**
+  String get shopMeat;
+
+  /// No description provided for @shopOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get shopOther;
+
+  /// No description provided for @shopPantry.
+  ///
+  /// In en, this message translates to:
+  /// **'Pantry'**
+  String get shopPantry;
+
+  /// No description provided for @shopProduce.
+  ///
+  /// In en, this message translates to:
+  /// **'Fruit & veg'**
+  String get shopProduce;
+
+  /// No description provided for @shopProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String shopProgress(int done, int total);
 
   /// No description provided for @skyStars.
   ///

@@ -6,6 +6,8 @@ import '../../data/app_repository.dart';
 import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
+import '../mealplan/shopping_view.dart';
+import '../mealplan/week_plan_view.dart';
 import '../nutrition/diary_view.dart';
 import '../nutrition/nutrition_goals_screen.dart';
 import '../widgets/app_card.dart';
@@ -69,17 +71,13 @@ class PlanScreen extends ConsumerWidget {
                       ),
                     ),
             ),
+          // The household's meals and shopping: for everyone, whatever the
+          // habits — a week of dinners helps a reading streak too.
+          _Tab(l10n.planTabMeals, const WeekPlanView()),
+          _Tab(l10n.planTabShopping, const ShoppingView()),
           if (habits.any((Habit h) => h.kind == HabitKind.abstain))
             _Tab(l10n.planTabAbstinence, _AbstinenceTab(snapshot: snapshot)),
         ];
-
-        if (tabs.isEmpty) {
-          return EmptyState(
-            emoji: '🗺️',
-            title: l10n.planNothingTitle,
-            body: l10n.planNothingBody,
-          );
-        }
 
         return DefaultTabController(
           length: tabs.length,
