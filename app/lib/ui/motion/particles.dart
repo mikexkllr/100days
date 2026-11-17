@@ -106,7 +106,9 @@ class _ParticleBurstState extends State<ParticleBurst>
     with SingleTickerProviderStateMixin {
   final List<_Particle> _particles = <_Particle>[];
   final math.Random _random = math.Random();
-  late final Ticker _ticker = createTicker(_tick);
+  /// Created with the first burst — a burst that never fires (motion
+  /// reduced) must not create one in [dispose].
+  Ticker? _ticker;
   final ValueNotifier<int> _frame = ValueNotifier<int>(0);
   Duration _last = Duration.zero;
   Size _size = Size.zero;
@@ -166,9 +168,10 @@ class _ParticleBurstState extends State<ParticleBurst>
         flicker: _random.nextDouble() * 10,
       ));
     }
-    if (!_ticker.isActive) {
+    final Ticker ticker = _ticker ??= createTicker(_tick);
+    if (!ticker.isActive) {
       _last = Duration.zero;
-      _ticker.start();
+      ticker.start();
     }
   }
 
@@ -189,13 +192,13 @@ class _ParticleBurstState extends State<ParticleBurst>
       p.rotation += p.spin * dt;
     }
     _particles.removeWhere((_Particle p) => p.dead);
-    if (_particles.isEmpty) _ticker.stop();
+    if (_particles.isEmpty) _ticker?.stop();
     _frame.value++;
   }
 
   @override
   void dispose() {
-    _ticker.dispose();
+    _ticker?.dispose();
     _frame.dispose();
     super.dispose();
   }

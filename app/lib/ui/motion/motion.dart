@@ -33,7 +33,10 @@ class AmbientClock extends StatefulWidget {
 
 class _AmbientClockState extends State<AmbientClock>
     with SingleTickerProviderStateMixin {
-  late final Ticker _ticker = createTicker(_onTick);
+  /// Created on first start: with motion reduced it is never needed, and
+  /// creating it lazily in [dispose] would look up an inherited widget on a
+  /// deactivated element.
+  Ticker? _ticker;
   final ValueNotifier<double> _seconds = ValueNotifier<double>(0);
   bool _running = false;
 
@@ -42,9 +45,9 @@ class _AmbientClockState extends State<AmbientClock>
     super.didChangeDependencies();
     final bool shouldRun = ambientMotionOf(context);
     if (shouldRun && !_running) {
-      _ticker.start();
+      (_ticker ??= createTicker(_onTick)).start();
     } else if (!shouldRun && _running) {
-      _ticker.stop();
+      _ticker?.stop();
     }
     _running = shouldRun;
     if (!shouldRun) _seconds.value = widget.frozenAt;
@@ -56,7 +59,7 @@ class _AmbientClockState extends State<AmbientClock>
 
   @override
   void dispose() {
-    _ticker.dispose();
+    _ticker?.dispose();
     _seconds.dispose();
     super.dispose();
   }
