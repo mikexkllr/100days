@@ -1,0 +1,127 @@
+/* The website of 100 Days & Beyond: support, privacy, terms, account
+   deletion. Static, no scripts, no cookies, no third-party requests —
+   the fonts are served from here. */
+
+@font-face {
+  font-family: "Manrope";
+  src: url("fonts/Manrope-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Manrope";
+  src: url("fonts/Manrope-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Unbounded";
+  src: url("fonts/Unbounded-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+
+:root {
+  --ink: #05060b;
+  --surface: #10121a;
+  --outline: #2c3040;
+  --text: #f4f5fa;
+  --text-2: #a4a9bc;
+  --text-3: #6c7186;
+  --accent: #b4a7ff;
+  --hot: #ff4d6d;
+  --link: #8adcff;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--text);
+  font: 500 17px/1.6 "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
+header.top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 40px;
+}
+header.top img { width: 48px; height: 48px; border-radius: 12px; }
+header.top a.brand {
+  font: 700 18px/1.2 "Unbounded", "Manrope", sans-serif;
+  color: var(--text);
+  text-decoration: none;
+}
+header.top nav { margin-left: auto; font-size: 15px; }
+header.top nav a { color: var(--text-2); margin-left: 14px; }
+
+h1 {
+  font: 700 clamp(28px, 6vw, 40px)/1.15 "Unbounded", "Manrope", sans-serif;
+  margin: 0 0 12px;
+  background: linear-gradient(90deg, #ff5c8a, #e25cff 50%, #8f7cff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+h2 { font-size: 22px; margin: 40px 0 8px; }
+h3 { font-size: 18px; margin: 28px 0 6px; color: var(--text); }
+p, li { color: var(--text-2); }
+strong { color: var(--text); }
+a { color: var(--link); }
+.meta { color: var(--text-3); font-size: 15px; }
+.lead { font-size: 19px; color: var(--text); }
+
+address {
+  font-style: normal;
+  background: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: 14px;
+  padding: 16px 18px;
+  color: var(--text);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 15px;
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--outline);
+  color: var(--text-2);
+}
+th { color: var(--text); font-weight: 700; }
+.table-scroll { overflow-x: auto; }
+
+.cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin: 24px 0; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: 16px;
+  padding: 18px;
+}
+.card h3 { margin-top: 0; }
+.card p { margin-bottom: 0; }
+
+footer {
+  margin-top: 56px;
+  padding-top: 20px;
+  border-top: 1px solid var(--outline);
+  font-size: 14px;
+  color: var(--text-3);
+}
+footer a { color: var(--text-2); margin-right: 14px; }

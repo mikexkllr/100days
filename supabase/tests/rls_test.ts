@@ -214,6 +214,14 @@ Deno.test({
         await as(tx, carol);
         assertEquals((await tx`select id from public.recipes where household_id = ${home}`).length, 0);
 
+        // The last member leaving takes the household with them, so a deleted
+        // account leaves no plan or list behind.
+        await as(tx, bob);
+        await tx`delete from public.household_members where household_id = ${bobs} and user_id = ${bob}`;
+        await as(tx, null);
+        assertEquals((await tx`select id from public.households where id = ${bobs}`).length, 0);
+        assertEquals((await tx`select id from public.households where id = ${home}`).length, 1);
+
         // --- Social ---------------------------------------------------------
         await as(tx, alice);
         await tx`update public.profiles set username = 'alice_runs' where id = ${alice}`;
