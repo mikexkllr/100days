@@ -1,0 +1,6 @@
+/* Der Name unter dem Icon und die Gründe, die iOS bei Zugriffsanfragen
+   zeigt, auf Deutsch. */
+"CFBundleDisplayName" = "100 Tage";
+"NSCameraUsageDescription" = "Zum Scannen von Einladungs-QR-Codes und Barcodes und, wenn du willst, für ein Foto deiner Mahlzeit, das die KI schätzt. Fotos werden nicht gespeichert.";
+"NSContactsUsageDescription" = "Damit du Freunde findest, die 100 Tage schon nutzen. Deine Kontakte werden nur verschlüsselt abgeglichen und nicht gespeichert.";
+"NSPhotoLibraryUsageDescription" = "Damit du ein Foto deiner Mahlzeit aus der Galerie wählen kannst, das die KI schätzt. Es wird nicht gespeichert.";

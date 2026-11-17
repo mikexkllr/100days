@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../ai/allowance.dart';
 import '../../ai/own_key.dart';
 import '../../ai/subscription_service.dart';
+import '../../config/legal_links.dart';
 import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
@@ -237,9 +239,20 @@ class _PremiumCardState extends ConsumerState<_PremiumCard> {
                                   if (mounted) setState(() => _busy = false);
                                 }
                               },
-                        child: Text(l10n.aiPremiumBuy(product.price)),
+                        child: Text(switch (kPremiumProducts[product.id]) {
+                          PremiumPeriod.monthly =>
+                            l10n.aiPremiumMonthly(product.price),
+                          PremiumPeriod.yearly =>
+                            l10n.aiPremiumYearly(product.price),
+                          null => l10n.aiPremiumBuy(product.price),
+                        }),
                       ),
                     ),
+                  Text(
+                    l10n.aiPremiumRenewal,
+                    style: text.bodySmall
+                        ?.copyWith(color: AppColors.textTertiary),
+                  ),
                 ],
               );
             },
@@ -250,8 +263,38 @@ class _PremiumCardState extends ConsumerState<_PremiumCard> {
                 : () => ref.read(subscriptionServiceProvider).restore(),
             child: Text(l10n.aiPremiumRestore),
           ),
+          const LegalLinks(),
         ],
       ),
+    );
+  }
+}
+
+/// The terms and the privacy policy: next to every subscription offer, as
+/// both stores require, and in the settings.
+class LegalLinks extends StatelessWidget {
+  const LegalLinks({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    final Locale locale = Localizations.localeOf(context);
+    Future<void> open(Uri uri) =>
+        launchUrl(uri, mode: LaunchMode.externalApplication);
+    return Wrap(
+      spacing: AppSpacing.sm,
+      children: <Widget>[
+        TextButton(
+          key: const Key('legal-terms'),
+          onPressed: () => open(termsUri(locale)),
+          child: Text(l10n.legalTerms),
+        ),
+        TextButton(
+          key: const Key('legal-privacy'),
+          onPressed: () => open(privacyPolicyUri(locale)),
+          child: Text(l10n.legalPrivacy),
+        ),
+      ],
     );
   }
 }

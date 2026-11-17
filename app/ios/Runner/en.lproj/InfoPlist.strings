@@ -1,0 +1,6 @@
+/* The name under the icon and the reasons iOS shows when the app asks for
+   access, in English. German: de.lproj/InfoPlist.strings. */
+"CFBundleDisplayName" = "100 Days";
+"NSCameraUsageDescription" = "To scan invite QR codes and barcodes and, if you like, to take a photo of your meal for the AI to estimate. Photos are not stored.";
+"NSContactsUsageDescription" = "To find friends who already use 100 Days. Your contacts are only compared in encrypted form and are not stored.";
+"NSPhotoLibraryUsageDescription" = "To pick a photo of your meal from your library for the AI to estimate. It is not stored.";

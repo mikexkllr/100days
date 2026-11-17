@@ -9,7 +9,7 @@
 // role. A restore on a new phone works the same way.
 //
 // Secrets:
-//   PREMIUM_PRODUCT_IDS          comma-separated, default hundred_days_premium
+//   PREMIUM_PRODUCT_IDS          comma-separated, default hundred_days_premium_monthly,_yearly
 //   App Store:   APPSTORE_ISSUER_ID, APPSTORE_KEY_ID, APPSTORE_PRIVATE_KEY, APP_BUNDLE_ID
 //   Google Play: GOOGLE_SERVICE_ACCOUNT_JSON, ANDROID_PACKAGE_NAME
 
@@ -26,7 +26,7 @@ import {
 const deps: StoreDeps = { fetch, env: (name) => Deno.env.get(name) };
 
 const productIds = () =>
-  new Set((Deno.env.get('PREMIUM_PRODUCT_IDS') ?? 'hundred_days_premium').split(',').map((s) => s.trim()));
+  new Set((Deno.env.get('PREMIUM_PRODUCT_IDS') ?? 'hundred_days_premium_monthly,hundred_days_premium_yearly').split(',').map((s) => s.trim()));
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });

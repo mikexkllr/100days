@@ -7,21 +7,24 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Hundred Days</string>
+	<string>100 Days</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>de</string>
+	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
-	<key>CFBundleDisplayName</key>
-	<string>100 Tage</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Zum Scannen von Einladungs-QR-Codes und Barcodes und, wenn du willst, für ein Foto deiner Mahlzeit, das die KI schätzt. Fotos werden nicht gespeichert.</string>
+	<string>To scan invite QR codes and barcodes and, if you like, to take a photo of your meal for the AI to estimate. Photos are not stored.</string>
 	<key>NSContactsUsageDescription</key>
-	<string>Damit du Freunde findest, die 100 Days schon nutzen. Deine Kontakte werden nur verschlüsselt abgeglichen und nicht gespeichert.</string>
+	<string>To find friends who already use 100 Days. Your contacts are only compared in encrypted form and are not stored.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Damit du ein Foto deiner Mahlzeit aus der Galerie wählen kannst, das die KI schätzt. Es wird nicht gespeichert.</string>
+	<string>To pick a photo of your meal from your library for the AI to estimate. It is not stored.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -30,6 +33,14 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>hundreddays</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.googleusercontent.apps</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.261519856662-o0fnk8in98j0gsinrah0gn4jerusktue</string>
 			</array>
 		</dict>
 	</array>
@@ -85,5 +96,7 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

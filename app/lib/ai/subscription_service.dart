@@ -4,8 +4,16 @@ import 'dart:io' show Platform;
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// The premium subscription's product id in both stores.
-const String kPremiumProductId = 'hundred_days_premium';
+/// How often a premium subscription renews.
+enum PremiumPeriod { monthly, yearly }
+
+/// The premium subscriptions, with the same product ids in the App Store
+/// (one subscription group) and on Google Play (one base plan each). The
+/// server accepts exactly these (`PREMIUM_PRODUCT_IDS` in verify-purchase).
+const Map<String, PremiumPeriod> kPremiumProducts = <String, PremiumPeriod>{
+  'hundred_days_premium_monthly': PremiumPeriod.monthly,
+  'hundred_days_premium_yearly': PremiumPeriod.yearly,
+};
 
 /// What a purchase attempt ended in.
 enum PurchaseOutcome { premium, pending, cancelled, failed, notVerified }
@@ -36,14 +44,21 @@ class SubscriptionService {
     });
   }
 
-  /// The premium product as the store sells it, with its localised price.
-  /// Empty when the store is unavailable or the product is not set up yet.
+  /// The premium subscriptions as the store sells them, with localised
+  /// prices, monthly first. Empty when the store is unavailable or the
+  /// products are not set up yet.
   Future<List<ProductDetails>> products() async {
     try {
       if (!await _store.isAvailable()) return const <ProductDetails>[];
       final ProductDetailsResponse response =
-          await _store.queryProductDetails(<String>{kPremiumProductId});
-      return response.productDetails;
+          await _store.queryProductDetails(kPremiumProducts.keys.toSet());
+      return <ProductDetails>[
+        for (final String id in kPremiumProducts.keys)
+          // Google Play lists a product once per offer; one is enough.
+          ...response.productDetails
+              .where((ProductDetails p) => p.id == id)
+              .take(1),
+      ];
     } on Object {
       // No store on this device (emulator without Play, desktop).
       return const <ProductDetails>[];
@@ -59,7 +74,7 @@ class SubscriptionService {
 
   Future<void> _onPurchases(List<PurchaseDetails> purchases) async {
     for (final PurchaseDetails purchase in purchases) {
-      if (purchase.productID != kPremiumProductId) continue;
+      if (!kPremiumProducts.containsKey(purchase.productID)) continue;
       switch (purchase.status) {
         case PurchaseStatus.pending:
           _outcomes.add(PurchaseOutcome.pending);

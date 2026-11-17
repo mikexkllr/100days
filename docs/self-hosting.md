@@ -58,7 +58,7 @@ supabase config push          # auth providers from config.toml
 | `FCM_SERVICE_ACCOUNT_JSON` | push notifications | no pushes; local reminders still work |
 | `APPSTORE_ISSUER_ID`, `APPSTORE_KEY_ID`, `APPSTORE_PRIVATE_KEY`, `APP_BUNDLE_ID` | premium on iOS | no purchases on iOS |
 | `GOOGLE_SERVICE_ACCOUNT_JSON`, `ANDROID_PACKAGE_NAME` | premium on Android | no purchases on Android |
-| `PREMIUM_PRODUCT_IDS` | store product ids | `hundred_days_premium` |
+| `PREMIUM_PRODUCT_IDS` | store product ids | `hundred_days_premium_monthly`, `hundred_days_premium_yearly` |
 
 Want a premium tier without stores, e.g. for your family? Insert rows into
 `subscriptions` with platform `manual` as the service role.

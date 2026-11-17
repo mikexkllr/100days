@@ -3,6 +3,7 @@
      before the app has ever run, so Flutter cannot supply them. Keep them in
      step with values-de/strings.xml. -->
 <resources>
+    <string name="app_name">100 Days</string>
     <string name="streak_widget_label">Streak</string>
     <string name="streak_widget_description">Your streak and Funki, at a glance.</string>
     <string name="streak_widget_open_app">Open the app to light your flame</string>

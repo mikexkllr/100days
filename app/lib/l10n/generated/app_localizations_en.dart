@@ -151,6 +151,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String aiPremiumMonthly(String price) {
+    return 'Monthly · $price';
+  }
+
+  @override
   String get aiPremiumPoint1 => 'Meal photos and estimates without counting';
 
   @override
@@ -159,6 +164,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiPremiumPoint3 => 'A coach who writes your daily line';
+
+  @override
+  String get aiPremiumRenewal =>
+      'Premium renews automatically at the price shown until you cancel. Cancel at least 24 hours before the end of a period in your App Store or Google Play account.';
 
   @override
   String get aiPremiumRestore => 'Restore purchase';
@@ -176,6 +185,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String aiPremiumUntil(String date) {
     return 'Premium runs until $date.';
+  }
+
+  @override
+  String aiPremiumYearly(String price) {
+    return 'Yearly · $price';
   }
 
   @override
@@ -2088,6 +2102,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leagueYourRank => 'your place';
+
+  @override
+  String get legalPrivacy => 'Privacy policy';
+
+  @override
+  String get legalTerms => 'Terms of use';
 
   @override
   String get loggerAddSet => 'Add a set';

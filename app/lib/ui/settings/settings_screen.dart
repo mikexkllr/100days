@@ -171,6 +171,7 @@ class SettingsScreen extends ConsumerWidget {
                   icon: const Icon(Icons.code, size: 18),
                   label: Text(l10n.setViewSource),
                 ),
+                const LegalLinks(),
               ],
             ),
           ),

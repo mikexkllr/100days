@@ -91,9 +91,18 @@
       }
     }
   },
+  "aiPremiumMonthly": "Monthly · {price}",
+  "@aiPremiumMonthly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "aiPremiumPoint1": "Meal photos and estimates without counting",
   "aiPremiumPoint2": "Weekly meal plans, shopping lists and the planning chat for your household",
   "aiPremiumPoint3": "A coach who writes your daily line",
+  "aiPremiumRenewal": "Premium renews automatically at the price shown until you cancel. Cancel at least 24 hours before the end of a period in your App Store or Google Play account.",
   "aiPremiumRestore": "Restore purchase",
   "aiPremiumSub": "For everyday use of the AI.",
   "aiPremiumTitle": "Premium",
@@ -102,6 +111,14 @@
   "@aiPremiumUntil": {
     "placeholders": {
       "date": {
+        "type": "String"
+      }
+    }
+  },
+  "aiPremiumYearly": "Yearly · {price}",
+  "@aiPremiumYearly": {
+    "placeholders": {
+      "price": {
         "type": "String"
       }
     }
@@ -1525,6 +1542,8 @@
     }
   },
   "leagueYourRank": "your place",
+  "legalPrivacy": "Privacy policy",
+  "legalTerms": "Terms of use",
   "loggerAddSet": "Add a set",
   "loggerAdviceAddReps": "Same weight, one more rep per set",
   "loggerAdviceAddWeight": "Top of the range reached — go to {weight} kg",

@@ -151,6 +151,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String aiPremiumMonthly(String price) {
+    return 'Monatlich · $price';
+  }
+
+  @override
   String get aiPremiumPoint1 => 'Fotos und Schätzungen, ohne zu zählen';
 
   @override
@@ -159,6 +164,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiPremiumPoint3 => 'Ein Coach, der deine Tageszeile schreibt';
+
+  @override
+  String get aiPremiumRenewal =>
+      'Premium verlängert sich automatisch zum angezeigten Preis, bis du kündigst. Kündige spätestens 24 Stunden vor Ende eines Zeitraums in deinem App-Store- oder Google-Play-Konto.';
 
   @override
   String get aiPremiumRestore => 'Kauf wiederherstellen';
@@ -176,6 +185,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String aiPremiumUntil(String date) {
     return 'Premium läuft bis $date.';
+  }
+
+  @override
+  String aiPremiumYearly(String price) {
+    return 'Jährlich · $price';
   }
 
   @override
@@ -2095,6 +2109,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get leagueYourRank => 'dein Platz';
+
+  @override
+  String get legalPrivacy => 'Datenschutz';
+
+  @override
+  String get legalTerms => 'Nutzungsbedingungen';
 
   @override
   String get loggerAddSet => 'Satz hinzufügen';

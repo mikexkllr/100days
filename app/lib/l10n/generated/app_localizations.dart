@@ -331,6 +331,12 @@ abstract class AppLocalizations {
   /// **'Get Premium · {price}'**
   String aiPremiumBuy(String price);
 
+  /// No description provided for @aiPremiumMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly · {price}'**
+  String aiPremiumMonthly(String price);
+
   /// No description provided for @aiPremiumPoint1.
   ///
   /// In en, this message translates to:
@@ -348,6 +354,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A coach who writes your daily line'**
   String get aiPremiumPoint3;
+
+  /// No description provided for @aiPremiumRenewal.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium renews automatically at the price shown until you cancel. Cancel at least 24 hours before the end of a period in your App Store or Google Play account.'**
+  String get aiPremiumRenewal;
 
   /// No description provided for @aiPremiumRestore.
   ///
@@ -378,6 +390,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Premium runs until {date}.'**
   String aiPremiumUntil(String date);
+
+  /// No description provided for @aiPremiumYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly · {price}'**
+  String aiPremiumYearly(String price);
 
   /// No description provided for @aiProviderName.
   ///
@@ -3389,6 +3407,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'your place'**
   String get leagueYourRank;
+
+  /// No description provided for @legalPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get legalPrivacy;
+
+  /// No description provided for @legalTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of use'**
+  String get legalTerms;
 
   /// No description provided for @loggerAddSet.
   ///

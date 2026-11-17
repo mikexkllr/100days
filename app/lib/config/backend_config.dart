@@ -115,13 +115,20 @@ const String kDefaultSupabaseKey = String.fromEnvironment(
   defaultValue: 'sb_publishable_uFEHsxoudTMHIuhM8HOayA_6qCrYYFi',
 );
 
-/// Google OAuth client ids of the hosted instance. Empty until they are set
-/// up in Google Cloud (docs/self-hosting.md); the sign-in screen then hides
-/// the Google button rather than offering one that cannot work.
-const String kDefaultGoogleWebClientId =
-    String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
-const String kDefaultGoogleIosClientId =
-    String.fromEnvironment('GOOGLE_IOS_CLIENT_ID');
+/// Google OAuth client ids of the hosted instance — public identifiers, like
+/// the key above. A build for another backend overrides them
+/// (docs/self-hosting.md) and must also change the reversed iOS client id in
+/// `ios/Runner/Info.plist`; an empty web client id hides the Google button.
+const String kDefaultGoogleWebClientId = String.fromEnvironment(
+  'GOOGLE_WEB_CLIENT_ID',
+  defaultValue:
+      '261519856662-n0d5k78fm1le9olipohnqfv8g2asdj9r.apps.googleusercontent.com',
+);
+const String kDefaultGoogleIosClientId = String.fromEnvironment(
+  'GOOGLE_IOS_CLIENT_ID',
+  defaultValue:
+      '261519856662-o0fnk8in98j0gsinrah0gn4jerusktue.apps.googleusercontent.com',
+);
 
 /// Where invite links point. Opens the app through its URL scheme.
 const String kInviteScheme = 'hundreddays';
