@@ -431,3 +431,9 @@ verify_jwt = false
 
 [functions.verify-purchase]
 verify_jwt = false
+
+[functions.match-contacts]
+verify_jwt = false
+
+[functions.push]
+verify_jwt = false

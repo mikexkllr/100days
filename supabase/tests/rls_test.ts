@@ -214,6 +214,44 @@ Deno.test({
         await as(tx, carol);
         assertEquals((await tx`select id from public.recipes where household_id = ${home}`).length, 0);
 
+        // --- Social ---------------------------------------------------------
+        await as(tx, alice);
+        await tx`update public.profiles set username = 'alice_runs' where id = ${alice}`;
+        await refused(tx, (sp) => sp`update public.profiles set username = 'Bad Name!' where id = ${alice}`);
+        await tx`insert into public.user_settings (user_id, discoverable) values (${alice}, true)`;
+        await tx`insert into public.push_tokens (token, user_id, platform) values ('tok-alice', ${alice}, 'ios')`;
+
+        await as(tx, bob);
+        // Only people with a username are found, by its start or their name.
+        const found = await tx`select * from public.search_profiles('ali')`;
+        assertEquals(found.map((r: { username: string }) => r.username), ['alice_runs']);
+        assertEquals((await tx`select * from public.search_profiles('carol')`).length, 0);
+        // Settings, tokens and contact hashes are nobody else's business.
+        assertEquals((await tx`select * from public.user_settings where user_id = ${alice}`).length, 0);
+        assertEquals((await tx`select * from public.push_tokens where user_id = ${alice}`).length, 0);
+        await refused(tx, (sp) => sp`select * from public.contact_identifiers`);
+        await refused(tx, (sp) => sp`select public.contact_match_allowed(${bob}, 1)`);
+        await refused(tx, (sp) =>
+          sp`insert into public.push_tokens (token, user_id, platform) values ('x', ${alice}, 'ios')`);
+
+        // A week's XP is capped at what the days so far can earn, and a
+        // reporter lands in a group with others of the division.
+        const [{ current_week: week }] = await tx`select public.current_week()`;
+        await tx`select public.report_week_xp(${week}, 999999)`;
+        await as(tx, alice);
+        await tx`select public.report_week_xp(${week}, 120)`;
+        const standing = await tx`select * from public.league_standing(${week})`;
+        assertEquals(standing.length, 2);
+        assertEquals(standing[0].user_id, bob);
+        assert(standing[0].xp <= 7000, 'the cap holds');
+        assertEquals(standing[1].xp, 120);
+        await refused(tx, (sp) => sp`select * from public.league_entries`);
+        await refused(tx, (sp) => sp`select public.close_league_week(${week})`);
+        // An old week cannot be rewritten.
+        await tx`select public.report_week_xp('2020-W01', 50)`;
+        await as(tx, null);
+        assertEquals((await tx`select * from public.league_entries where week = '2020-W01'`).length, 0);
+
         throw new Rollback();
       });
     } catch (e) {
