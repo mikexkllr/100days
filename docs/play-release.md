@@ -161,6 +161,17 @@ Cloud Console issues a new one whenever you need it. Set
 separate key password (a JKS store made with `-storetype JKS`); otherwise
 leave it out and the store password is used.
 
+Optionally, the build-time ids of the deployment — Google OAuth client ids,
+the Firebase app — as one JSON secret in the same environment
+([`self-hosting.md`](self-hosting.md#5-the-app) lists the keys):
+
+```bash
+gh secret set APP_DEFINES_JSON --repo $R --env play-internal < release-defines.json
+```
+
+Without it the bundle uses the defaults in `backend_config.dart`: the
+project's backend, no Google sign-in, no push.
+
 If you set any of these as repository secrets earlier, delete them under
 **Settings → Secrets and variables → Actions** — repository secrets are
 readable from every workflow on every branch.

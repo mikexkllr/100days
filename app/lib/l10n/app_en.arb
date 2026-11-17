@@ -140,7 +140,7 @@
     }
   },
   "aiUsageUnknown": "No AI used this month yet.",
-  "aiWhatItSeesBody": "Only what a feature needs, at the moment you use it: the meal you describe or photograph, your targets and preferences for a meal plan, your streak and your friends' first names for a coach line. It goes through the app's gateway to Google's Gemini (or straight to your own provider) and is not used to train models. Nothing is stored beyond the month's token count.",
+  "aiWhatItSeesBody": "Only what a feature needs, at the moment you use it: the meal you describe or photograph, your targets and preferences for a meal plan, your streak and your friends' first names for a coach line. It goes through the app's gateway to Google's Gemini (or straight to your own provider). The app's server keeps only the month's token count.",
   "aiWhatItSeesTitle": "What the AI sees",
   "appTitle": "100 Days",
   "boardMilestone": "Milestone day {day} in {days, plural, =1{1 day} other{{days} days}}",

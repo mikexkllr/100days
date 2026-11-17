@@ -95,13 +95,30 @@ jobs:
           echo "VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
           echo "Shipping $(sed -n 's/^version: *//p' pubspec.yaml | cut -d+ -f1) as version code $((1000 + GITHUB_RUN_NUMBER))"
 
+      # Build-time ids that belong to this deployment rather than to the
+      # code — Google OAuth client ids, the Firebase app — as a JSON secret
+      # (docs/self-hosting.md). Without it the build uses the defaults in
+      # backend_config.dart, and the features that need them stay off.
+      - name: Write the build defines
+        env:
+          APP_DEFINES_JSON: ${{ secrets.APP_DEFINES_JSON }}
+        run: |
+          mkdir -p config
+          if [ -n "$APP_DEFINES_JSON" ]; then
+            printf '%s' "$APP_DEFINES_JSON" > config/release.json
+          else
+            echo '{}' > config/release.json
+          fi
+
       - name: Build the release bundle
         env:
           HUNDRED_REQUIRE_UPLOAD_KEY: "true"
           HUNDRED_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           HUNDRED_KEY_ALIAS: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
           HUNDRED_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: flutter build appbundle --release --build-number="$VERSION_CODE"
+        run: >-
+          flutter build appbundle --release --build-number="$VERSION_CODE"
+          --dart-define-from-file=config/release.json
 
       # An AAB is for the store, not for sideloading — kept as an artifact so
       # the first release can be uploaded by hand and every later one can be

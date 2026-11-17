@@ -27,3 +27,7 @@ models/
 *.keystore
 upload-keystore.b64
 service-account*.json
+
+# Build-time backend configuration (docs/self-hosting.md): may carry ids
+# that belong to someone's own deployment.
+app/config/*.json

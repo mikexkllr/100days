@@ -21,10 +21,9 @@ pipeline: [`play-release.md`](play-release.md).
 
 **Pick one channel per phone.** The CI APK and the Play internal build are
 signed with different keys, so Android will not install one over the other:
-switching means uninstalling first. Uninstalling deletes everything the app
-holds — identity, streaks, check-ins — because there is no server with a copy,
-and the app cannot yet import a recovery key. Whoever switches starts again
-at day 1.
+switching means uninstalling first. Nothing is lost: streaks, check-ins and
+plans are in the account and come back after signing in again — only what
+was logged offline and not yet sent stays on the old install.
 
 ## Android — building it yourself
 
@@ -90,32 +89,39 @@ English.
 
 ## What to test with two people
 
-The interesting part of the app needs two devices on the **same Wi-Fi**:
+The interesting part of the app needs two accounts — two phones, anywhere:
 
-1. Run through onboarding on both devices.
-2. On device A: **Friends → Invite**, show the QR code.
-3. On device B: **Friends → Scan**, scan it.
-4. Tick something off on both devices.
-5. Pull to refresh — the other person's entries appear in the feed with a
-   **VERIFIED** badge, and the league fills up.
+1. Sign in and run through onboarding on both.
+2. On phone A: **Friends → Find friends → Invite**, show the QR code or send
+   the link.
+3. On phone B: **Friends → Scan** (or open the link, or enter the code).
+4. Tick something off on both — the other person's entry appears within
+   seconds, and the league fills up.
+5. **Plan → Meals → household bar → invite**, join on phone B, make a list
+   from the plan and tick things off on both phones.
 
-Without a second device everything works except the social part: setting a
-goal, getting a plan, checking in, streaks, statistics, the coach.
+Without a second account everything works except the social part.
 
-With no model installed the coach runs rule-based — that is the normal case,
-not a fault. See [`local-ai.md`](local-ai.md).
+Sign-in needs the OAuth clients of the backend the build points at; the
+project's hosted instance has them, your own needs them set up
+([`self-hosting.md`](self-hosting.md#4-sign-in)). Without AI allowance or an
+own key, the coach runs rule-based and plans are made by hand — that is a
+normal state, not a fault ([`ai.md`](ai.md)).
 
 ## When something goes wrong
 
 **"App not installed"** — usually the wrong ABI. Take `arm64-v8a`. Or a
 version with a different signing key is still on the device — typically the
 Play internal build when sideloading the CI APK, or the other way round:
-uninstall it first, which wipes the app's data (see above).
+uninstall it first; your data is in your account and comes back on sign-in.
 
-**Friends do not find each other** — are both devices on the same Wi-Fi? Guest
-networks and many corporate networks block multicast between clients. As a
-fallback use the invite *link* instead of the QR code: it contains the IP
-address.
+**A friend's entries do not show up** — pull to refresh, or check
+**Settings → Sync now**: "Offline" means the phone has no connection to the
+backend; everything logged meanwhile is kept and sent later.
+
+**Sign-in fails** — the build's backend has no OAuth client for this app id
+or signing key (Google needs the SHA-1 of the exact key the APK is signed
+with, debug included).
 
 **No notifications** — Android 13+ asks on first launch; if you declined, the
 only fix is system settings → Apps → 100 Days → Notifications.

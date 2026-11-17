@@ -442,7 +442,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiWhatItSeesBody.
   ///
   /// In en, this message translates to:
-  /// **'Only what a feature needs, at the moment you use it: the meal you describe or photograph, your targets and preferences for a meal plan, your streak and your friends\' first names for a coach line. It goes through the app\'s gateway to Google\'s Gemini (or straight to your own provider) and is not used to train models. Nothing is stored beyond the month\'s token count.'**
+  /// **'Only what a feature needs, at the moment you use it: the meal you describe or photograph, your targets and preferences for a meal plan, your streak and your friends\' first names for a coach line. It goes through the app\'s gateway to Google\'s Gemini (or straight to your own provider). The app\'s server keeps only the month\'s token count.'**
   String get aiWhatItSeesBody;
 
   /// No description provided for @aiWhatItSeesTitle.

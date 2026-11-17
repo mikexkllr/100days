@@ -7,39 +7,53 @@ cd packages/hundred_core && dart pub get
 cd ../../app             && flutter pub get
 ```
 
-Flutter 3.38 or newer, Dart 3.10.7 or newer — llamadart, the on-device model
-engine, needs both. iOS builds target iOS 16.4 for the same reason.
+Flutter 3.44 or newer (CI uses the current stable). For the backend:
+the [Supabase CLI](https://supabase.com/docs/guides/cli) and
+[Deno](https://deno.com) 2.
 
 ## Before every commit
 
 ```bash
 cd packages/hundred_core && dart analyze && dart test
 cd ../../app             && flutter analyze && flutter test
+cd ..                    && deno test --allow-env supabase/functions && deno lint supabase
 ```
 
-Both must come back clean. CI runs exactly these four commands.
+All must come back clean; CI runs them. A change to a migration or a policy
+also runs the RLS tests against a development database:
+
+```bash
+DATABASE_URL=postgresql://… deno test -A supabase/tests/rls_test.ts
+```
 
 ## Where code belongs
 
 **In `hundred_core`** if it needs no Flutter, no network and no filesystem:
-domain logic, calculations, the protocol, validation rules. That boundary is
+domain logic, calculations, validation rules, the checks on what a language
+model answers. That boundary is
 the reason the parts that have to be correct can be tested at all. If you find
 yourself needing `import 'package:flutter/…'` in there, the code is in the
 wrong place or an interface is missing.
 
-**In `app`** if it touches the platform: UI, SQLite, the keystore, sockets,
-notifications, the camera.
+**In `app`** if it touches the platform: UI, SQLite, the network and the
+backend client, the keychain, notifications, the camera, purchases.
+
+**In `supabase/`** if the server must enforce it: who may read and write
+what (policies), what a client may not be trusted with (the AI key, the
+premium tier, contact hashes). A new table gets RLS, explicit grants and a
+case in `supabase/tests/rls_test.ts`; a secret goes into `.env.example` and
+`docs/self-hosting.md`, never into the repository.
 
 New platform capabilities arrive as a port in the core and an adapter in the
-app — the way `FeedStore`, `PeerTransport` and `LocalLlmRuntime` did.
+app — the way `FeedStore` and `LlmClient` did.
 
 ## What we expect from changes
 
-- **New event types** must be added to `FeedEventType.all`, or every peer
-  rejects them as `unknownType`. Events are forever: a feed written today has
-  to still verify in two years.
-- **Changes to the canonical format** break every existing signature. If it
-  cannot be avoided, it needs a protocol version.
+- **New event types** go into `FeedEventType.all`. Older apps skip types
+  they do not know, so a new type must never be needed to read an old one.
+  Events are forever: a feed written today has to fold the same in two years.
+- **Migrations only move forward.** A pushed migration is never edited; a
+  change is a new one.
 - **Rules about streaks, XP or plans** need a test. Not on principle — because
   a mistake there only shows up weeks later, by which point the history is
   already wrong.

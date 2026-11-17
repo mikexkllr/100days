@@ -1,50 +1,61 @@
 # Architecture
 
-## Two packages, one boundary
+## Three parts, two boundaries
 
 ```
 packages/hundred_core/     pure Dart — no Flutter, network or filesystem
                            dependency, and no display language
-app/                       Flutter — UI, persistence, transports, platform
+app/                       Flutter — UI, the local cache and sync, sign-in,
+                           AI clients, purchases, platform
+supabase/                  the backend — schema, policies, edge functions
 ```
 
-The boundary is not a matter of taste. Everything that has to be *correct* —
-chain validation, streak arithmetic, the calorie formula, a complete sync round
-— lives in the core and is testable without an emulator, without a camera and
-without two phones on the same Wi-Fi. The core has over 100 tests that run in
-two seconds.
+The first boundary is not a matter of taste. Everything that has to be
+*correct* — streak arithmetic, XP, the calorie formula, shopping-list sums,
+what counts as a usable answer from a language model — lives in the core and
+is testable without an emulator, a camera or a network. The core has about
+200 tests that run in seconds.
+
+The second boundary is the server's: who may read and write what is decided
+by Row Level Security in Postgres, not by the app, and tested against a real
+database ([`backend.md`](backend.md)).
 
 The core also knows nothing about display language. It hands out identifiers
-(`HabitCategory.noSugar`, an `exerciseId`, a `CoachTemplate`) and the app turns
-them into sentences. See [`localization.md`](localization.md).
+(`HabitCategory.noSugar`, an `exerciseId`, a `CoachTemplate`, a
+`ShopCategory`) and the app turns them into sentences. See
+[`localization.md`](localization.md).
 
 ## The feed is the only truth
 
 There is no state "beside" the log. Every action — setting a profile, starting
-a challenge, a check-in, a relapse, a streak freeze, a nudge, an ascent —
-becomes an entry in your own feed. Everything on screen is a fold over those
-entries (`projectUser`).
+a challenge, a check-in, a relapse, a streak freeze, a nudge, an ascent, a
+logged meal — becomes an event in your own feed. Everything on screen is a
+fold over those events (`projectUser`).
 
 That has two practical consequences:
 
 1. **Someone else's streak is computed, not claimed.** Your device folds your
-   friend's signed entries itself. There is no number to fake without breaking
-   a signature.
-2. **Replication is trivial.** Merging feeds means appending missing entries.
-   No merge conflicts, no consensus round — each DID only ever writes its own
-   feed.
+   friend's events itself. There is no number to send.
+2. **History cannot be rewritten.** The `events` table is append-only for
+   everyone; a correction is a new event.
 
 ```
-FeedEvent { author, seq, prev, timestamp, type, payload, hash, sig }
-             │      │      │                                 │     │
-             │      │      └── hash of the predecessor ──────┘     │
-             │      └───────── gapless from 1                      │
-             └──────────────── did:key of the only writer ─────────┘
+FeedEvent { id, author, timestamp, type, payload, visibility,
+            createdAt, serverSeq }
+             │    │        │                         │          │
+             │    │        │                         │          └ pull cursor
+             │    │        │                         └ when the server got it
+             │    │        └ when the phone says it happened
+             │    └ the account; the server checks author = auth.uid()
+             └ generated on the phone: an offline event keeps its identity
 ```
 
-`hash` is SHA-256 over the canonical JSON encoding of the body (keys sorted, no
-whitespace — otherwise two devices derive different bytes from the same event
-and every check fails). `sig` is Ed25519 over that hash.
+Events fold by the phone's time, then id. `FeedWriter` keeps one device's
+timestamps strictly increasing, so two events written in the same instant
+(a challenge's public view and its private twin) fold in the order they were
+written, on every device. Meal plans and shopping lists are the exception to
+the log: they are edited by several people at once, so they are ordinary
+rows ([`backend.md`](backend.md#households)).
 
 ## Layers
 
@@ -55,23 +66,21 @@ and every check fails). `sig` is Ed25519 over that hash.
    AppController (Riverpod AsyncNotifier)
       │  debounced re-projection on every feed event
    ▼
-   AppRepository ──── FeedWriter ──► FeedStore ──► SQLite
+   AppRepository ──── FeedWriter ──► FeedStore (SQLite: cache + outbox)
       │                                  ▲
       │                                  │
-      │              FeedReplicator ─────┘   (the single point where
-      │                     ▲                 foreign bytes become state)
-      ▼                     │
-   projectUser()        Syncer ◄──── PeerTransport ◄──── LAN / relay later
+      │                            SupabaseFeedSync ◄──► events (Postgres, RLS)
+      ▼                                                  + realtime
+   projectUser()
 ```
 
-**Why re-projection is debounced:** a sync round can land two hundred events at
+**Why re-projection is debounced:** a pull can land two hundred events at
 once. Re-projecting per event would make the UI stutter; a 120 ms window is
 enough.
 
-**Why `FeedReplicator` is the only entrance:** there should be exactly one place
-where unverified bytes become trusted state. It checks type, hash, signature,
-sequence, chain link and timestamp — and stops at the first failure for that
-author, because nothing behind a broken link is verifiable any more.
+**Why the phone keeps a cache:** a check-in in a basement gym has to work.
+Events are written to SQLite first and wait there (pending) until the sync
+has sent them; the server's copy then replaces the pending one.
 
 ## Ports and adapters
 
@@ -80,16 +89,17 @@ The core defines interfaces, the app supplies the implementations:
 | Port (core) | Adapter (app) | Test double |
 | --- | --- | --- |
 | `FeedStore` | `SqliteFeedStore` | `MemoryFeedStore` |
-| `PeerTransport` / `PeerSession` | `LanTransport` / `SocketPeerSession` | `LoopbackSession` |
-| `LocalLlmRuntime` | `LlamaCppRuntime` (llamadart) | fake in tests |
+| `LlmClient` | `DartanticLlmClient` (gateway or own key) | fakes in tests |
 | `CoachPromptBuilder` | `LocalizedCoachPrompts` | `EnglishCoachPrompts` |
 | `NutritionPromptBuilder` | `LocalizedNutritionPrompts` | `EnglishNutritionPrompts` |
+| `MealPlanPromptBuilder` | `LocalizedMealPlanPrompts` | `EnglishMealPlanPrompts` |
 | `FoodLookup` / `FoodVocabulary` | `FoodIndex`, `foodVocabularyFor` | English fixture |
 | `CoachEngine` | — | `HeuristicCoach` is itself the fallback layer |
 
-The sync logic is tested against `LoopbackSession` — two nodes in one process,
-running a real protocol round. That leaves only the socket plumbing untested,
-and that is the part you cannot meaningfully simulate anyway.
+And the app has its own seams to the backend, each with an in-memory
+version for widget tests: `FeedSync` (`SupabaseFeedSync` / `OfflineFeedSync`),
+`SocialBackend` (`SupabaseSocialBackend` / `MemorySocialBackend`),
+`HouseholdBackend` (`SupabaseHouseholdBackend` / `MemoryHouseholdBackend`).
 
 ## Time
 
@@ -118,20 +128,17 @@ writing (`timestamp`). When they differ it was a backfill, and the feed says so.
   counting as a completed day. If a missed day were free, the whole point of
   the app would collapse.
 
-## Private data in a shared log
+## Private data in the same feed
 
-"The feed is the only truth" holds for private data too. Body stats,
-nutrition targets, the food diary and habits the user keeps to themselves go
-into the same feed as **sealed** events — ChaCha20-Poly1305 under a key
-derived from the identity seed. Friends replicate and verify them like any
-other event but cannot read them; the owner's device opens them before
-folding. The chain stays complete, and a restore from the recovery key brings
-the diary back from friends' copies. Details:
-[`protocol.md`](protocol.md#sealed-events).
-
-A challenge is published twice: a public view (no body stats, no targets, no
-private habits) and the full one, sealed. A friend's device computes the
-streak from the public view — the shared habits only.
+Body stats, nutrition targets, the food diary and habits the user keeps to
+themselves go into the same feed as everything else, with visibility
+`private`: the server hands them to nobody but their author. A challenge is
+published twice — the public view (no body stats, no targets, no private
+habits, the goal sentence only if shared) and the full one, private. A
+friend's device computes the streak from the public view: the shared habits
+only, which is the honest number to show them. A habit that was private and
+is shared later carries a `sharedSince` day in the public view, so its
+private past does not look like misses.
 
 ## XP, levels, league
 
@@ -139,16 +146,18 @@ XP per check-in scales with difficulty (1–5 from the catalogue), streak length
 (up to 2× at 50 days), a ×1.5 bonus for **tracked** check-ins — a workout
 logged set by set, a diary day closed on target — and a bonus for logging on
 the day itself. On top of that comes a bonus for a complete day and for
-milestone days. The tracked flag is part of the signed check-in, so every
+milestone days. The tracked flag is part of the check-in event, so every
 device computes the same XP.
 
 Importantly, `_computeXpByDay` replays the challenge day by day so each
 check-in is scored with the streak the user had *at the time*. Using today's
 streak would retroactively inflate the entire past.
 
-The weekly league buckets XP by ISO week. Promotion and relegation only kick in
-from six participants — below that a rank says nothing. The league is friends
-only, by construction: there is no server that knows anyone else.
+The weekly league among friends buckets XP by ISO week. Promotion and
+relegation only kick in from six participants — below that a rank says
+nothing. Every phone computes it from the friends' events, so it is the same
+verifiable number everywhere. The public league with divisions runs on the
+server from XP each phone reports, capped per day ([`backend.md`](backend.md#leagues)).
 
 ## Flame, outlook, rewards
 
@@ -171,7 +180,7 @@ the streak: they have to be right.
 ## Plans
 
 Both plans are optional and stored on the goal, so they are part of the
-signed challenge and survive a restore.
+challenge and live in the account.
 
 - **Training.** The user picks a split; sessions rotate across training days
   rather than being pinned to weekdays, so any split works with any number of

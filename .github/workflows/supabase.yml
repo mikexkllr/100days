@@ -1,0 +1,58 @@
+name: Supabase
+
+# Rolls the backend forward: migrations, then edge functions. On main when
+# something under supabase/ changed, or by hand. Does nothing on forks or
+# repositories without the secrets, so a self-hosted copy runs its own.
+#
+# Secrets: SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_REF, SUPABASE_DB_PASSWORD.
+# Function secrets (the AI key and the rest) are set once with
+# `supabase secrets set`, not here — see docs/self-hosting.md.
+
+on:
+  push:
+    branches: [main]
+    paths: ["supabase/**"]
+  workflow_dispatch:
+
+concurrency:
+  group: supabase-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - name: Check for secrets
+        id: secrets
+        run: |
+          if [ -n "$SUPABASE_ACCESS_TOKEN" ] && [ -n "$PROJECT_REF" ] && [ -n "$SUPABASE_DB_PASSWORD" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No Supabase secrets configured; skipping the deploy."
+          fi
+      - uses: actions/checkout@v4
+        if: steps.secrets.outputs.ok == 'true'
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        if: steps.secrets.outputs.ok == 'true'
+        with:
+          deno-version: v2.x
+      - name: Test the functions first
+        if: steps.secrets.outputs.ok == 'true'
+        run: deno test --allow-env supabase/functions
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
+        if: steps.secrets.outputs.ok == 'true'
+        with:
+          version: latest
+      - name: Link
+        if: steps.secrets.outputs.ok == 'true'
+        run: supabase link --project-ref "$PROJECT_REF" -p "$SUPABASE_DB_PASSWORD"
+      - name: Migrations
+        if: steps.secrets.outputs.ok == 'true'
+        run: supabase db push -p "$SUPABASE_DB_PASSWORD" --yes
+      - name: Functions
+        if: steps.secrets.outputs.ok == 'true'
+        run: supabase functions deploy --use-api --project-ref "$PROJECT_REF"

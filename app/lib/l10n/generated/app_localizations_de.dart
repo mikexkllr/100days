@@ -223,7 +223,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiWhatItSeesBody =>
-      'Nur, was eine Funktion braucht, in dem Moment, in dem du sie nutzt: die Mahlzeit, die du beschreibst oder fotografierst, deine Ziele und Vorlieben für einen Ernährungsplan, dein Streak und die Vornamen deiner Freunde für eine Coach-Zeile. Es geht über das Gateway der App zu Googles Gemini (oder direkt zu deinem eigenen Anbieter) und wird nicht zum Trainieren von Modellen genutzt. Gespeichert wird nur die Zahl der Tokens im Monat.';
+      'Nur, was eine Funktion braucht, in dem Moment, in dem du sie nutzt: die Mahlzeit, die du beschreibst oder fotografierst, deine Ziele und Vorlieben für einen Ernährungsplan, dein Streak und die Vornamen deiner Freunde für eine Coach-Zeile. Es geht über das Gateway der App zu Googles Gemini (oder direkt zu deinem eigenen Anbieter). Der Server der App behält nur die Zahl der Tokens im Monat.';
 
   @override
   String get aiWhatItSeesTitle => 'Was die KI sieht';
