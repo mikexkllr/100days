@@ -88,7 +88,7 @@ final RegExp _fraction = RegExp(r'^(\d+)/(\d+)$');
 /// Splits a sentence like "2 Eier, 1 Scheibe Vollkornbrot und Kaffee mit
 /// Milch" into items, reads the amount of each and looks the food up.
 ///
-/// Deterministic and offline: this is the floor the on-device model improves
+/// Deterministic and offline: this is the floor the language model improves
 /// on, and what runs when no model is installed. Items it cannot place come
 /// back with [ParsedFood.food] null so the UI can ask instead of guessing.
 List<ParsedFood> parseFoodText(

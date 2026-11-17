@@ -16,10 +16,10 @@ Challenge _challenge() => Challenge(
       startDay: _start,
     );
 
-Future<(Identity, MemoryFeedStore, FeedWriter)> _peer(String name) async {
-  final identity = await Identity.generate();
+Future<(String, MemoryFeedStore, FeedWriter)> _peer(String name) async {
+  final identity = 'user-$name';
   final store = MemoryFeedStore();
-  final writer = FeedWriter(identity: identity, store: store);
+  final writer = FeedWriter(author: identity, store: store);
   await writer.append(FeedEventType.profile, <String, dynamic>{
     'displayName': name,
     'avatarEmoji': '🐺',
@@ -61,7 +61,7 @@ void main() {
   group('projectUser', () {
     test('is total on an empty feed', () {
       final projection =
-          projectUser('did:key:zNobody', const <FeedEvent>[], today: _start);
+          projectUser('userId:key:zNobody', const <FeedEvent>[], today: _start);
 
       expect(projection.challenge, isNull);
       expect(projection.streak.current, 0);
@@ -70,7 +70,7 @@ void main() {
     });
 
     test('folds profile, challenge and check-ins into state', () async {
-      final (Identity id, MemoryFeedStore store, FeedWriter writer) =
+      final (String id, MemoryFeedStore store, FeedWriter writer) =
           await _peer('Lisa');
       final challenge = _challenge();
       await _start100(writer, challenge);
@@ -83,8 +83,8 @@ void main() {
       }
 
       final projection = projectUser(
-        id.did,
-        await store.eventsOf(id.did),
+        id,
+        await store.eventsOf(id),
         today: _start.addDays(2),
       );
 
@@ -93,11 +93,11 @@ void main() {
       expect(projection.challenge!.goal.statement, 'Kopf frei kriegen');
       expect(projection.streak.current, 3);
       expect(projection.lifetimeXp, greaterThan(0));
-      expect(projection.headSeq, 8);
+      expect(projection.eventCount, 8);
     });
 
     test('the newest check-in for a habit and day wins', () async {
-      final (Identity id, MemoryFeedStore store, FeedWriter writer) =
+      final (String id, MemoryFeedStore store, FeedWriter writer) =
           await _peer('Lisa');
       final challenge = _challenge();
       await _start100(writer, challenge);
@@ -107,7 +107,7 @@ void main() {
       await _checkIn(writer, reading, _start, value: 40);
 
       final projection =
-          projectUser(id.did, await store.eventsOf(id.did), today: _start);
+          projectUser(id, await store.eventsOf(id), today: _start);
 
       expect(projection.logsByDay[_start.toString()]!.entries, hasLength(1));
       expect(
@@ -117,7 +117,7 @@ void main() {
     });
 
     test('scores each day with the streak the user had at the time', () async {
-      final (Identity id, MemoryFeedStore store, FeedWriter writer) =
+      final (String id, MemoryFeedStore store, FeedWriter writer) =
           await _peer('Lisa');
       final challenge = _challenge();
       await _start100(writer, challenge);
@@ -129,8 +129,8 @@ void main() {
       }
 
       final projection = projectUser(
-        id.did,
-        await store.eventsOf(id.did),
+        id,
+        await store.eventsOf(id),
         today: _start.addDays(5),
       );
 
@@ -140,7 +140,7 @@ void main() {
     });
 
     test('records a relapse and resets the streak', () async {
-      final (Identity id, MemoryFeedStore store, FeedWriter writer) =
+      final (String id, MemoryFeedStore store, FeedWriter writer) =
           await _peer('Lisa');
       final challenge = _challenge();
       await _start100(writer, challenge);
@@ -154,8 +154,8 @@ void main() {
           relapse: true);
 
       final projection = projectUser(
-        id.did,
-        await store.eventsOf(id.did),
+        id,
+        await store.eventsOf(id),
         today: _start.addDays(4),
       );
 
@@ -165,7 +165,7 @@ void main() {
     });
 
     test('exposes weekly XP for the league', () async {
-      final (Identity id, MemoryFeedStore store, FeedWriter writer) =
+      final (String id, MemoryFeedStore store, FeedWriter writer) =
           await _peer('Lisa');
       final challenge = _challenge();
       await _start100(writer, challenge);
@@ -177,8 +177,8 @@ void main() {
       }
 
       final projection = projectUser(
-        id.did,
-        await store.eventsOf(id.did),
+        id,
+        await store.eventsOf(id),
         today: _start.addDays(2),
       );
 
@@ -188,32 +188,32 @@ void main() {
     });
 
     test('ignores events from other authors', () async {
-      final (Identity a, MemoryFeedStore aStore, FeedWriter aWriter) =
+      final (String a, MemoryFeedStore aStore, FeedWriter aWriter) =
           await _peer('Alice');
-      final (Identity b, MemoryFeedStore bStore, FeedWriter bWriter) =
+      final (String b, MemoryFeedStore bStore, FeedWriter bWriter) =
           await _peer('Bob');
       await _start100(aWriter, _challenge());
       await _start100(bWriter, _challenge());
 
       final mixed = <FeedEvent>[
-        ...await aStore.eventsOf(a.did),
-        ...await bStore.eventsOf(b.did),
+        ...await aStore.eventsOf(a),
+        ...await bStore.eventsOf(b),
       ];
 
-      expect(projectUser(a.did, mixed, today: _start).profile.displayName,
+      expect(projectUser(a, mixed, today: _start).profile.displayName,
           'Alice');
       expect(
-          projectUser(b.did, mixed, today: _start).profile.displayName, 'Bob');
+          projectUser(b, mixed, today: _start).profile.displayName, 'Bob');
     });
 
     test('produces a peer state the social screens can render', () async {
-      final (Identity id, MemoryFeedStore store, FeedWriter writer) =
+      final (String id, MemoryFeedStore store, FeedWriter writer) =
           await _peer('Lisa');
       final challenge = _challenge();
       await _start100(writer, challenge);
       await _checkIn(writer, challenge.habits[0], _start);
 
-      final peer = projectUser(id.did, await store.eventsOf(id.did),
+      final peer = projectUser(id, await store.eventsOf(id),
               today: _start)
           .toPeerState(today: _start);
 
@@ -227,7 +227,7 @@ void main() {
 
   group('buildActivityFeed', () {
     test('renders check-ins newest first', () async {
-      final (Identity id, MemoryFeedStore store, FeedWriter writer) =
+      final (String id, MemoryFeedStore store, FeedWriter writer) =
           await _peer('Lisa');
       final challenge = _challenge();
       await _start100(writer, challenge);
@@ -235,12 +235,12 @@ void main() {
       await _checkIn(writer, challenge.habits[1], _start.addDays(1));
 
       final items = buildActivityFeed(
-        await store.eventsOf(id.did),
+        await store.eventsOf(id),
         profiles: <String, PeerProfile>{
-          id.did: PeerProfile(
-              did: id.did, displayName: 'Lisa', avatarEmoji: '🐺'),
+          id: PeerProfile(
+              userId: id, displayName: 'Lisa', avatarEmoji: '🐺'),
         },
-        selfDid: 'did:key:zMe',
+        selfId: 'userId:key:zMe',
       );
 
       expect(items.first.kind, ActivityKind.checkIn);
@@ -251,7 +251,7 @@ void main() {
     });
 
     test('marks a backfilled check-in as not verified live', () async {
-      final (Identity id, MemoryFeedStore store, FeedWriter writer) =
+      final (String id, MemoryFeedStore store, FeedWriter writer) =
           await _peer('Lisa');
       final challenge = _challenge();
       await _start100(writer, challenge);
@@ -269,9 +269,9 @@ void main() {
       );
 
       final items = buildActivityFeed(
-        await store.eventsOf(id.did),
+        await store.eventsOf(id),
         profiles: const <String, PeerProfile>{},
-        selfDid: 'did:key:zMe',
+        selfId: 'userId:key:zMe',
       );
 
       final checkIn =
@@ -281,17 +281,17 @@ void main() {
     });
 
     test('hides nudges aimed at third parties', () async {
-      final (Identity id, MemoryFeedStore store, FeedWriter writer) =
+      final (String id, MemoryFeedStore store, FeedWriter writer) =
           await _peer('Lisa');
       await writer.append(FeedEventType.nudge, <String, dynamic>{
-        'target': 'did:key:zSomeoneElse',
+        'target': 'userId:key:zSomeoneElse',
         'text': 'Los jetzt',
       });
 
       final items = buildActivityFeed(
-        await store.eventsOf(id.did),
+        await store.eventsOf(id),
         profiles: const <String, PeerProfile>{},
-        selfDid: 'did:key:zMe',
+        selfId: 'userId:key:zMe',
       );
 
       expect(items.where((ActivityItem i) => i.kind == ActivityKind.nudge),
@@ -299,20 +299,20 @@ void main() {
     });
 
     test('shows a nudge aimed at me', () async {
-      final (Identity id, MemoryFeedStore store, FeedWriter writer) =
+      final (String id, MemoryFeedStore store, FeedWriter writer) =
           await _peer('Lisa');
       await writer.append(FeedEventType.nudge, <String, dynamic>{
-        'target': 'did:key:zMe',
+        'target': 'userId:key:zMe',
         'text': 'Ich war heute schon.',
       });
 
       final items = buildActivityFeed(
-        await store.eventsOf(id.did),
+        await store.eventsOf(id),
         profiles: <String, PeerProfile>{
-          id.did: PeerProfile(
-              did: id.did, displayName: 'Lisa', avatarEmoji: '🐺'),
+          id: PeerProfile(
+              userId: id, displayName: 'Lisa', avatarEmoji: '🐺'),
         },
-        selfDid: 'did:key:zMe',
+        selfId: 'userId:key:zMe',
       );
 
       expect(items.single.kind, ActivityKind.nudge);

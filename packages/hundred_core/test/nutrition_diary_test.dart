@@ -48,11 +48,12 @@ FoodItem? _lookup(String phrase) {
   return id == null ? null : kFoodById[id];
 }
 
-class _FakeRuntime implements LocalLlmRuntime {
+class _FakeRuntime implements LlmClient {
   _FakeRuntime(this.response);
 
   final String response;
   Duration? lastTimeout;
+  List<LlmImage> lastImages = const <LlmImage>[];
 
   @override
   String get modelName => 'fake';
@@ -61,25 +62,19 @@ class _FakeRuntime implements LocalLlmRuntime {
   bool get isReady => true;
 
   @override
-  int? get sizeBytes => 1;
-
-  @override
-  Future<void> load() async {}
-
-  @override
   Future<String> generate(
     String prompt, {
-    int maxTokens = 200,
-    double temperature = 0.8,
-    Duration timeout = const Duration(seconds: 20),
+    List<LlmImage> images = const <LlmImage>[],
+    LlmPurpose purpose = LlmPurpose.food,
+    int maxTokens = 400,
+    double temperature = 0.7,
+    Duration timeout = const Duration(seconds: 30),
     bool json = false,
   }) async {
     lastTimeout = timeout;
+    lastImages = images;
     return response;
   }
-
-  @override
-  Future<void> dispose() async {}
 }
 
 void main() {
@@ -307,7 +302,7 @@ void main() {
   group('nutrition assistant', () {
     test('reads JSON wrapped in prose', () async {
       final assistant = NutritionAssistant(
-        runtime: _FakeRuntime('Sure! Here you go:\n```json\n'
+        llm: _FakeRuntime('Sure! Here you go:\n```json\n'
             '[{"name":"Porridge","grams":300,"kcal":320,"protein":12,'
             '"carbs":50,"fat":7}]\n```'),
       );
@@ -320,7 +315,7 @@ void main() {
       final runtime = _FakeRuntime(
           '{"foods":[{"name":"Rührei","grams":120,"kcal":180}]}');
       await NutritionAssistant(
-        runtime: runtime,
+        llm: runtime,
         timeout: const Duration(seconds: 45),
       ).estimateFoods('Rührei');
       expect(runtime.lastTimeout, const Duration(seconds: 45));
@@ -332,7 +327,7 @@ void main() {
         '{"name":"Rührei","grams":120,"kcal":180,"protein":12}',
         '[{"name":"Rührei","grams":120,"kcal":180,"protein":12}]',
       ]) {
-        final result = await NutritionAssistant(runtime: _FakeRuntime(answer))
+        final result = await NutritionAssistant(llm: _FakeRuntime(answer))
             .estimateFoods('Rührei');
         expect(result!.single.name, 'Rührei', reason: answer);
         expect(result.single.nutrients.proteinG, 12, reason: answer);
@@ -341,7 +336,7 @@ void main() {
 
     test('drops estimates that break physics', () async {
       final assistant = NutritionAssistant(
-        runtime: _FakeRuntime(
+        llm: _FakeRuntime(
             '[{"name":"Apple","grams":100,"kcal":5000,"protein":0}]'),
       );
       expect(await assistant.estimateFoods('apple'), isNull);
@@ -350,7 +345,7 @@ void main() {
     test('a proposal below the guard rail is refused', () async {
       final plan = buildNutritionPlan(_goal());
       final assistant = NutritionAssistant(
-        runtime: _FakeRuntime(
+        llm: _FakeRuntime(
             '{"kcal":1000,"protein_pct":40,"carbs_pct":30,"fat_pct":30}'),
       );
       expect(await assistant.adjustTargets(plan: plan, wish: 'fast'), isNull);
@@ -359,7 +354,7 @@ void main() {
     test('a sensible proposal becomes custom goals', () async {
       final plan = buildNutritionPlan(_goal());
       final assistant = NutritionAssistant(
-        runtime: _FakeRuntime('{"kcal":${plan.kcal - 100},"protein_pct":35,'
+        llm: _FakeRuntime('{"kcal":${plan.kcal - 100},"protein_pct":35,'
             '"carbs_pct":30,"fat_pct":35,"reason":"Less carbs."}'),
       );
       final proposal =
@@ -372,7 +367,7 @@ void main() {
 
     test('a hanging model times out to null', () async {
       final assistant = NutritionAssistant(
-        runtime: _HangingRuntime(),
+        llm: _HangingRuntime(),
         timeout: const Duration(milliseconds: 20),
       );
       expect(await assistant.estimateFoods('x'), isNull);
@@ -386,9 +381,11 @@ class _HangingRuntime extends _FakeRuntime {
   @override
   Future<String> generate(
     String prompt, {
-    int maxTokens = 200,
-    double temperature = 0.8,
-    Duration timeout = const Duration(seconds: 20),
+    List<LlmImage> images = const <LlmImage>[],
+    LlmPurpose purpose = LlmPurpose.food,
+    int maxTokens = 400,
+    double temperature = 0.7,
+    Duration timeout = const Duration(seconds: 30),
     bool json = false,
   }) =>
       Completer<String>().future;

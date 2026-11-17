@@ -32,8 +32,12 @@ class DayKey implements Comparable<DayKey> {
   DayKey addDays(int days) =>
       DayKey.fromDateTime(DateTime(year, month, day + days));
 
-  int differenceInDays(DayKey other) =>
-      toDateTime().difference(other.toDateTime()).inDays;
+  /// Whole calendar days from [other] to this day. Computed in UTC: in a
+  /// local time zone the night the clocks go forward is 23 hours long, and
+  /// `Duration.inDays` would then count one day too few.
+  int differenceInDays(DayKey other) => DateTime.utc(year, month, day)
+      .difference(DateTime.utc(other.year, other.month, other.day))
+      .inDays;
 
   bool isAfter(DayKey other) => compareTo(other) > 0;
 

@@ -86,7 +86,7 @@ class Challenge {
   /// missing a day is free.
   final int streakFreezesRemaining;
 
-  /// What friends get to see. Only ever present on the user's own, sealed
+  /// What friends get to see. Only ever present on the user's own, private
   /// copy of the challenge — the public copy carries the defaults.
   final SharingPrefs sharing;
 

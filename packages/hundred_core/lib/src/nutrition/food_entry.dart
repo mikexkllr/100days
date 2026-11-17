@@ -16,7 +16,7 @@ enum FoodSource {
   /// Parsed from free text against the food table.
   parsed,
 
-  /// Estimated by the on-device model.
+  /// Estimated by the language model from a description.
   ai,
 
   /// Looked up by barcode — the numbers on the packaging.

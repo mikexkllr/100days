@@ -33,27 +33,27 @@ class PeerActivity {
 
 /// The public profile a peer publishes on their own feed. Everything here is
 /// self-asserted, which is fine — the numbers that matter (streak, XP) are
-/// derived from their signed check-ins, not from what they claim.
+/// derived from their check-ins, not from what they claim.
 @immutable
 class PeerProfile {
   const PeerProfile({
-    required this.did,
+    required this.userId,
     required this.displayName,
     required this.avatarEmoji,
     this.goalStatement,
     this.accentColor,
   });
 
-  factory PeerProfile.fromPayload(String did, Map<String, dynamic> payload) =>
+  factory PeerProfile.fromPayload(String userId, Map<String, dynamic> payload) =>
       PeerProfile(
-        did: did,
+        userId: userId,
         displayName: payload['displayName'] as String? ?? 'Anonym',
         avatarEmoji: payload['avatarEmoji'] as String? ?? '🙂',
         goalStatement: payload['goalStatement'] as String?,
         accentColor: (payload['accentColor'] as num?)?.toInt(),
       );
 
-  final String did;
+  final String userId;
   final String displayName;
   final String avatarEmoji;
   final String? goalStatement;
@@ -73,7 +73,7 @@ class PeerProfile {
     int? accentColor,
   }) =>
       PeerProfile(
-        did: did,
+        userId: userId,
         displayName: displayName ?? this.displayName,
         avatarEmoji: avatarEmoji ?? this.avatarEmoji,
         goalStatement: goalStatement ?? this.goalStatement,
@@ -95,7 +95,7 @@ class PeerState {
     required this.activeToday,
     required this.lastActivityAt,
     required this.lastActivity,
-    required this.headSeq,
+    required this.eventCount,
     this.challenge,
   });
 
@@ -109,10 +109,10 @@ class PeerState {
   final bool activeToday;
   final DateTime? lastActivityAt;
   final PeerActivity lastActivity;
-  final int headSeq;
+  final int eventCount;
   final Challenge? challenge;
 
-  String get did => profile.did;
+  String get userId => profile.userId;
 
   League get league => leagueForXp(lifetimeXp);
 
@@ -127,7 +127,7 @@ class PeerState {
   }
 
   LeagueEntry toLeagueEntry({required int checkInsThisWeek}) => LeagueEntry(
-        did: did,
+        userId: userId,
         displayName: profile.displayName,
         avatarEmoji: profile.avatarEmoji,
         weeklyXp: weeklyXp,

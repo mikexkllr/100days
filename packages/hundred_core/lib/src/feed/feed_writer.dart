@@ -1,32 +1,37 @@
 import 'dart:async';
 
-import '../identity/identity.dart';
 import 'event.dart';
 import 'feed_store.dart';
 
-/// Serialises appends to the local feed.
+/// Writes the user's own events into the local store, where they wait as
+/// pending until the sync sends them.
 ///
-/// Two concurrent check-ins that both read `head.seq == 41` would both try to
-/// write 42 and one would tear the chain, so every local write goes through
-/// the single-entry queue here.
+/// Every write goes through a single-entry queue so that one device's
+/// timestamps are strictly increasing: two events written in the same
+/// microsecond (a challenge's public view and its private twin) must fold in
+/// the order they were written, on every device.
 class FeedWriter {
-  FeedWriter({required this.identity, required this.store});
+  FeedWriter({required this.author, required this.store, this.onWritten});
 
-  final Identity identity;
+  final String author;
   final FeedStore store;
 
-  /// Completes when the append currently in flight has finished. Null when the
-  /// writer is idle.
+  /// Called after each write — the sync uses it to send soon.
+  final void Function(FeedEvent event)? onWritten;
+
+  /// Completes when the write currently in flight has finished. Null when
+  /// the writer is idle.
   ///
   /// Deliberately *not* seeded with a `Future.value()` at construction: that
-  /// binds the whole chain to whatever zone built the writer, and an append
-  /// issued from a different zone then never runs. Creating the link at call
-  /// time keeps each append in its caller's zone.
+  /// binds the whole chain to whatever zone built the writer, and a write
+  /// issued from a different zone then never runs.
   Future<void>? _pending;
+  DateTime? _last;
 
   Future<FeedEvent> append(
     String type,
     Map<String, dynamic> payload, {
+    EventVisibility visibility = EventVisibility.friends,
     DateTime? timestamp,
   }) async {
     final previous = _pending;
@@ -34,110 +39,34 @@ class FeedWriter {
     _pending = gate.future;
 
     try {
-      // Two concurrent check-ins that both read `head.seq == 41` would both
-      // try to write 42 and tear the chain, so appends are serialised.
       if (previous != null) await previous;
 
-      final head = await store.head(identity.did);
-      final event = await FeedEvent.create(
-        identity: identity,
-        seq: (head?.seq ?? 0) + 1,
-        prevHash: head?.hash,
+      var ts = (timestamp ?? DateTime.now()).toUtc();
+      final last = _last ?? await _lastTimestamp();
+      if (last != null && !ts.isAfter(last)) {
+        ts = last.add(const Duration(microseconds: 1));
+      }
+      final event = FeedEvent.create(
+        author: author,
         type: type,
         payload: payload,
-        timestamp: timestamp,
+        visibility: visibility,
+        timestamp: ts,
       );
-      await store.append(event);
+      await store.put(event);
+      _last = ts;
+      onWritten?.call(event);
       return event;
     } finally {
-      // Never completes with an error: a failed append must not poison every
-      // append queued behind it.
+      // Never completes with an error: a failed write must not poison every
+      // write queued behind it.
       gate.complete();
       if (identical(_pending, gate.future)) _pending = null;
     }
   }
-}
 
-/// Applies events received from peers.
-///
-/// Validation happens here and only here, so there is exactly one place where
-/// untrusted bytes become trusted state.
-class FeedReplicator {
-  FeedReplicator(this.store);
-
-  final FeedStore store;
-
-  /// Applies [incoming] in order, stopping at the first event that fails
-  /// validation — after a break, everything downstream of it is unverifiable
-  /// anyway, so continuing would let a peer inject a forged tail.
-  Future<ReplicationReport> apply(
-    Iterable<FeedEvent> incoming, {
-    DateTime? now,
-  }) async {
-    var applied = 0;
-    var skipped = 0;
-    final rejections = <EventRejection>[];
-
-    final ordered = incoming.toList()
-      ..sort((FeedEvent a, FeedEvent b) {
-        final byAuthor = a.author.compareTo(b.author);
-        return byAuthor != 0 ? byAuthor : a.seq.compareTo(b.seq);
-      });
-
-    final blocked = <String>{};
-    for (final event in ordered) {
-      if (blocked.contains(event.author)) {
-        skipped++;
-        continue;
-      }
-      final head = await store.head(event.author);
-      if (head != null && event.seq <= head.seq) {
-        skipped++;
-        continue;
-      }
-      if ((head?.seq ?? 0) + 1 != event.seq) {
-        // A gap: we are missing an ancestor, so we cannot verify the chain.
-        // The next sync round will request the missing range.
-        blocked.add(event.author);
-        skipped++;
-        continue;
-      }
-      final previous =
-          head == null ? null : await store.eventAt(event.author, head.seq);
-      final result =
-          await validateEvent(event, previous: previous, now: now);
-      if (!result.isValid) {
-        rejections.add(result.rejection!);
-        blocked.add(event.author);
-        continue;
-      }
-      await store.append(event);
-      applied++;
-    }
-
-    return ReplicationReport(
-      applied: applied,
-      skipped: skipped,
-      rejections: rejections,
-    );
+  Future<DateTime?> _lastTimestamp() async {
+    final own = await store.eventsOf(author);
+    return own.isEmpty ? null : own.last.timestamp;
   }
-}
-
-class ReplicationReport {
-  const ReplicationReport({
-    required this.applied,
-    required this.skipped,
-    required this.rejections,
-  });
-
-  final int applied;
-  final int skipped;
-  final List<EventRejection> rejections;
-
-  bool get hasRejections => rejections.isNotEmpty;
-
-  @override
-  String toString() =>
-      'ReplicationReport(applied: $applied, skipped: $skipped, '
-      'rejected: ${rejections.length})';
 }

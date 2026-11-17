@@ -1,7 +1,6 @@
-import 'package:meta/meta.dart';
+import 'dart:math';
 
-import '../identity/identity.dart';
-import '../util/codec.dart';
+import 'package:meta/meta.dart';
 
 /// The event types that make up a user's feed. Everything the app knows about
 /// a person — their challenge, their check-ins, their misses — is derived by
@@ -15,7 +14,6 @@ class FeedEventType {
   static const String streakFreeze = 'streak.freeze';
   static const String nudge = 'nudge';
   static const String cheer = 'cheer';
-  static const String friendRequest = 'friend.request';
 
   /// The challenge after an edit: a new split, own nutrition targets, a habit
   /// added, a sharing change. Replaces goal and habits, never the history.
@@ -28,9 +26,6 @@ class FeedEventType {
   static const String foodLogged = 'food.logged';
   static const String foodRemoved = 'food.removed';
 
-  /// An event only its author can read; see `PrivateBox`.
-  static const String private = 'private';
-
   static const Set<String> all = <String>{
     profile,
     challengeStarted,
@@ -40,212 +35,177 @@ class FeedEventType {
     streakFreeze,
     nudge,
     cheer,
-    friendRequest,
     challengeUpdated,
     workoutLogged,
     foodLogged,
     foodRemoved,
-    private,
   };
 }
 
-/// One entry in an append-only, hash-chained, signed feed.
+/// Who may read an event. Enforced by the server (Row Level Security on the
+/// `events` table), not by the client.
+enum EventVisibility {
+  /// Only the author: body stats, nutrition targets, the food diary, habits
+  /// kept to oneself.
+  private,
+
+  /// The author's accepted friends as well.
+  friends,
+}
+
+/// How long an event may sit unsent on a phone (a basement gym, a flight)
+/// before its claimed time stops being believed. Past this, the time the
+/// server received it counts instead — so a "live" check-in cannot be forged
+/// by writing it with yesterday's clock and sending it a week later.
+const Duration kOfflineGrace = Duration(hours: 48);
+
+/// Tolerance for devices whose clocks run ahead. The server refuses anything
+/// further in the future than this.
+const Duration kClockSkewTolerance = Duration(minutes: 10);
+
+/// One entry in a user's append-only feed.
 ///
-/// The chain is what makes a streak worth bragging about: because every event
-/// commits to the hash of its predecessor and the whole body is signed, a peer
-/// can prove nobody spliced a workout into last Tuesday after the fact. It is
-/// the same structure as a single-writer blockchain, minus the consensus — no
-/// global ordering is needed because each DID only ever writes its own feed.
+/// The feed lives in the `events` table. Each account only ever appends to
+/// its own feed (the server checks `author = auth.uid()`), nobody can edit
+/// or delete an event, and the server stamps when it arrived. A friend's
+/// streak is still computed by *your* device, from *their* events — they
+/// cannot simply claim a number.
 @immutable
 class FeedEvent {
   const FeedEvent({
+    required this.id,
     required this.author,
-    required this.seq,
-    required this.prevHash,
     required this.timestamp,
     required this.type,
     required this.payload,
-    required this.hash,
-    required this.signature,
+    this.visibility = EventVisibility.friends,
+    this.createdAt,
+    this.serverSeq,
   });
 
-  factory FeedEvent.fromJson(Map<String, dynamic> json) => FeedEvent(
-        author: json['author'] as String,
-        seq: (json['seq'] as num).toInt(),
-        prevHash: json['prev'] as String?,
-        timestamp:
-            DateTime.parse(json['timestamp'] as String).toUtc(),
-        type: json['type'] as String,
-        payload: Map<String, dynamic>.from(
-            json['payload'] as Map? ?? const <String, dynamic>{}),
-        hash: json['hash'] as String,
-        signature: json['sig'] as String,
+  /// A new event, not yet sent.
+  factory FeedEvent.create({
+    required String author,
+    required String type,
+    required Map<String, dynamic> payload,
+    EventVisibility visibility = EventVisibility.friends,
+    DateTime? timestamp,
+    String? id,
+  }) =>
+      FeedEvent(
+        id: id ?? newEventId(),
+        author: author,
+        timestamp: (timestamp ?? DateTime.now()).toUtc(),
+        type: type,
+        payload: payload,
+        visibility: visibility,
       );
 
-  /// DID of the only account allowed to append to this feed.
+  /// From a row of the `events` table (or the local cache, which stores the
+  /// same columns).
+  factory FeedEvent.fromRow(Map<String, dynamic> row) => FeedEvent(
+        id: row['id'] as String,
+        author: row['author'] as String,
+        timestamp: DateTime.parse(row['client_ts'] as String).toUtc(),
+        type: row['type'] as String,
+        payload: Map<String, dynamic>.from(
+            row['payload'] as Map? ?? const <String, dynamic>{}),
+        visibility:
+            EventVisibility.values.asNameMap()[row['visibility'] as String?] ??
+                EventVisibility.private,
+        createdAt: row['created_at'] == null
+            ? null
+            : DateTime.parse(row['created_at'] as String).toUtc(),
+        serverSeq: (row['server_seq'] as num?)?.toInt(),
+      );
+
+  /// Generated on the device, so an event written offline keeps its identity
+  /// when it is sent later, and a retried send is a no-op.
+  final String id;
+
+  /// Account id of the only user allowed to append to this feed.
   final String author;
 
-  /// 1-based position in the author's feed. Gaps are not permitted.
-  final int seq;
-
-  /// Hash of event `seq - 1`, or null for the genesis event.
-  final String? prevHash;
-
+  /// When the device says it happened.
   final DateTime timestamp;
   final String type;
   final Map<String, dynamic> payload;
-  final String hash;
-  final String signature;
+  final EventVisibility visibility;
 
-  /// The exact bytes that get hashed and signed.
-  static String canonicalBody({
-    required String author,
-    required int seq,
-    required String? prevHash,
-    required DateTime timestamp,
-    required String type,
-    required Map<String, dynamic> payload,
-  }) =>
-      canonicalJson(<String, Object?>{
+  /// When the server received it. Null while it waits in the outbox.
+  final DateTime? createdAt;
+
+  /// The server's pull cursor. Null while it waits in the outbox.
+  final int? serverSeq;
+
+  bool get isPending => serverSeq == null;
+
+  /// The time to believe: the device's, unless it reached the server far
+  /// later than [kOfflineGrace] allows.
+  DateTime get loggedAt {
+    final received = createdAt;
+    if (received != null && received.difference(timestamp) > kOfflineGrace) {
+      return received;
+    }
+    return timestamp;
+  }
+
+  /// What the client sends on insert. `created_at` and `server_seq` are the
+  /// server's to set.
+  Map<String, dynamic> toInsertRow() => <String, dynamic>{
+        'id': id,
         'author': author,
-        'seq': seq,
-        'prev': prevHash,
-        'timestamp': timestamp.toUtc().toIso8601String(),
         'type': type,
         'payload': payload,
-      });
+        'visibility': visibility.name,
+        'client_ts': timestamp.toUtc().toIso8601String(),
+      };
 
-  String get body => canonicalBody(
+  Map<String, dynamic> toRow() => <String, dynamic>{
+        ...toInsertRow(),
+        if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+        if (serverSeq != null) 'server_seq': serverSeq,
+      };
+
+  /// The same event as confirmed by the server.
+  FeedEvent confirmed({required DateTime createdAt, required int serverSeq}) =>
+      FeedEvent(
+        id: id,
         author: author,
-        seq: seq,
-        prevHash: prevHash,
         timestamp: timestamp,
         type: type,
         payload: payload,
+        visibility: visibility,
+        createdAt: createdAt.toUtc(),
+        serverSeq: serverSeq,
       );
 
-  /// Builds, hashes and signs the next event for [identity].
-  static Future<FeedEvent> create({
-    required Identity identity,
-    required int seq,
-    required String? prevHash,
-    required String type,
-    required Map<String, dynamic> payload,
-    DateTime? timestamp,
-  }) async {
-    final ts = (timestamp ?? DateTime.now()).toUtc();
-    final body = canonicalBody(
-      author: identity.did,
-      seq: seq,
-      prevHash: prevHash,
-      timestamp: ts,
-      type: type,
-      payload: payload,
-    );
-    final hash = sha256Hex(body);
-    return FeedEvent(
-      author: identity.did,
-      seq: seq,
-      prevHash: prevHash,
-      timestamp: ts,
-      type: type,
-      payload: payload,
-      hash: hash,
-      signature: await identity.sign(hash),
-    );
-  }
-
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'author': author,
-        'seq': seq,
-        'prev': prevHash,
-        'timestamp': timestamp.toUtc().toIso8601String(),
-        'type': type,
-        'payload': payload,
-        'hash': hash,
-        'sig': signature,
-      };
+  @override
+  String toString() => 'FeedEvent($type $id by $author)';
 
   @override
-  String toString() => 'FeedEvent($type #$seq by ${Identity.shortDid(author)})';
+  bool operator ==(Object other) => other is FeedEvent && other.id == id;
 
   @override
-  bool operator ==(Object other) => other is FeedEvent && other.hash == hash;
-
-  @override
-  int get hashCode => hash.hashCode;
+  int get hashCode => id.hashCode;
 }
 
-/// Why an incoming event was refused. Peers are untrusted, so every rejection
-/// reason is something a malicious or buggy peer can actually trigger.
-enum EventRejection {
-  unknownType,
-  badHash,
-  badSignature,
-  seqOutOfOrder,
-  chainBroken,
-  timestampRegression,
-  timestampInFuture,
+/// Folding order: the device's clock, then the id. [FeedWriter] keeps the
+/// timestamps of one device strictly increasing, so the order a phone wrote
+/// its events in is the order every device folds them in.
+int compareEvents(FeedEvent a, FeedEvent b) {
+  final byTime = a.timestamp.compareTo(b.timestamp);
+  return byTime != 0 ? byTime : a.id.compareTo(b.id);
 }
 
-class EventValidationResult {
-  const EventValidationResult.ok()
-      : rejection = null,
-        isValid = true;
-  const EventValidationResult.rejected(EventRejection this.rejection)
-      : isValid = false;
+final Random _random = Random.secure();
 
-  final bool isValid;
-  final EventRejection? rejection;
-}
-
-/// Tolerance for peers whose clocks run ahead of ours. Anything beyond this is
-/// treated as an attempt to claim tomorrow's check-in today.
-const Duration kClockSkewTolerance = Duration(minutes: 10);
-
-/// Validates an event against the previous event in the same feed.
-///
-/// [previous] must be `null` exactly when [event] is the genesis event.
-Future<EventValidationResult> validateEvent(
-  FeedEvent event, {
-  required FeedEvent? previous,
-  DateTime? now,
-}) async {
-  if (!FeedEventType.all.contains(event.type)) {
-    return const EventValidationResult.rejected(EventRejection.unknownType);
-  }
-  if (sha256Hex(event.body) != event.hash) {
-    return const EventValidationResult.rejected(EventRejection.badHash);
-  }
-
-  final reference = (now ?? DateTime.now()).toUtc();
-  if (event.timestamp.isAfter(reference.add(kClockSkewTolerance))) {
-    return const EventValidationResult.rejected(
-        EventRejection.timestampInFuture);
-  }
-
-  if (previous == null) {
-    if (event.seq != 1) {
-      return const EventValidationResult.rejected(EventRejection.seqOutOfOrder);
-    }
-    if (event.prevHash != null) {
-      return const EventValidationResult.rejected(EventRejection.chainBroken);
-    }
-  } else {
-    if (event.seq != previous.seq + 1) {
-      return const EventValidationResult.rejected(EventRejection.seqOutOfOrder);
-    }
-    if (event.prevHash != previous.hash) {
-      return const EventValidationResult.rejected(EventRejection.chainBroken);
-    }
-    if (event.timestamp.isBefore(previous.timestamp)) {
-      return const EventValidationResult.rejected(
-          EventRejection.timestampRegression);
-    }
-  }
-
-  if (!await Identity.verify(event.author, event.hash, event.signature)) {
-    return const EventValidationResult.rejected(EventRejection.badSignature);
-  }
-  return const EventValidationResult.ok();
+/// A random (version 4) UUID.
+String newEventId() {
+  final bytes = List<int>.generate(16, (_) => _random.nextInt(256));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  final hex = bytes.map((int b) => b.toRadixString(16).padLeft(2, '0')).join();
+  return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-'
+      '${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
 }

@@ -2,7 +2,7 @@ import '../domain/habit.dart';
 import '../domain/peer.dart';
 import 'coach.dart';
 
-/// Builds the prompts sent to the on-device model.
+/// Builds the prompts sent to the language model.
 ///
 /// A port rather than a constant, because the prompt has to be written in the
 /// language the user reads: asking a model for German output from an English

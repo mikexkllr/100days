@@ -3,46 +3,45 @@ import 'dart:async';
 import '../domain/peer.dart';
 import 'coach.dart';
 import 'heuristic_coach.dart';
-import 'local_llm.dart';
+import '../ai/llm_client.dart';
 import 'prompts.dart';
 
-/// Coach backed by an on-device language model, with the rule-based coach as
-/// a hard fallback.
+/// Coach backed by a language model, with the rule-based coach as a hard
+/// fallback.
 ///
 /// Every failure mode — no model, slow model, empty or malformed output —
 /// degrades to [HeuristicCoach] rather than surfacing an error, because a
 /// motivation screen that says "generation failed" is worse than a slightly
 /// generic sentence.
-class LocalLlmCoach implements CoachEngine {
-  LocalLlmCoach({
-    required this.runtime,
+class LlmCoach implements CoachEngine {
+  LlmCoach({
+    required this.llm,
     this.prompts = const EnglishCoachPrompts(),
     this.fallback = const HeuristicCoach(),
     this.timeout = const Duration(seconds: 12),
   });
 
-  final LocalLlmRuntime runtime;
+  final LlmClient llm;
   final CoachPromptBuilder prompts;
   final CoachEngine fallback;
 
-  /// Handed to the runtime too: its own default is shorter, and a phone
-  /// that needs 25 seconds for a line would otherwise never get to show it.
+  /// The whole budget for one line, handed down to the client.
   final Duration timeout;
 
   @override
-  bool get isReady => runtime.isReady;
+  bool get isReady => llm.isReady;
 
   @override
-  String? get modelName => runtime.isReady ? runtime.modelName : null;
+  String? get modelName => llm.isReady ? llm.modelName : null;
 
   @override
   Future<CoachDirective> dailyBriefing(CoachContext context) async {
-    if (!runtime.isReady) return fallback.dailyBriefing(context);
+    if (!llm.isReady) return fallback.dailyBriefing(context);
     final tone = selectTone(context);
     try {
-      final raw = await runtime
+      final raw = await llm
           .generate(prompts.briefing(context, tone),
-              maxTokens: 140, timeout: timeout)
+              purpose: LlmPurpose.coach, maxTokens: 140, timeout: timeout)
           .timeout(timeout);
       final parsed = _parseHeadlineBody(raw);
       if (parsed == null) return await fallback.dailyBriefing(context);
@@ -67,29 +66,29 @@ class LocalLlmCoach implements CoachEngine {
   @override
   Future<List<NudgeSuggestion>> nudgeSuggestions(CoachContext context) async {
     final base = await fallback.nudgeSuggestions(context);
-    if (!runtime.isReady || base.isEmpty) return base;
+    if (!llm.isReady || base.isEmpty) return base;
 
-    final byDid = <String, PeerState>{
-      for (final PeerState p in context.peers) p.did: p,
+    final byId = <String, PeerState>{
+      for (final PeerState p in context.peers) p.userId: p,
     };
 
     final result = <NudgeSuggestion>[];
     for (final suggestion in base) {
-      final peer = byDid[suggestion.targetDid];
+      final peer = byId[suggestion.targetId];
       if (peer == null) {
         result.add(suggestion);
         continue;
       }
       try {
-        final raw = await runtime
+        final raw = await llm
             .generate(prompts.nudge(context, peer),
-                maxTokens: 40, timeout: timeout)
+                purpose: LlmPurpose.coach, maxTokens: 40, timeout: timeout)
             .timeout(timeout);
         final line = _firstLine(raw);
         result.add(line == null
             ? suggestion
             : NudgeSuggestion(
-                targetDid: suggestion.targetDid,
+                targetId: suggestion.targetId,
                 template: NudgeTemplate.freeform,
                 reason: suggestion.reason,
                 dayNumber: suggestion.dayNumber,
@@ -106,11 +105,11 @@ class LocalLlmCoach implements CoachEngine {
   @override
   Future<List<PlanAdvice>> planAdjustments(CoachContext context) async {
     final base = await fallback.planAdjustments(context);
-    if (!runtime.isReady) return base;
+    if (!llm.isReady) return base;
     try {
-      final raw = await runtime
+      final raw = await llm
           .generate(prompts.adjustments(context),
-              maxTokens: 180, timeout: timeout)
+              purpose: LlmPurpose.coach, maxTokens: 180, timeout: timeout)
           .timeout(timeout);
       final lines = raw
           .split('\n')

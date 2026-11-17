@@ -1,276 +1,202 @@
+import 'dart:async';
+
 import 'package:hundred_core/hundred_core.dart';
 import 'package:test/test.dart';
 
-Future<FeedEvent> _append(
-  FeedWriter writer,
-  String type,
-  Map<String, dynamic> payload, {
-  DateTime? at,
-}) =>
-    writer.append(type, payload, timestamp: at);
-
-/// Fails the first append, then behaves like a normal store.
 class _ExplodingStore extends MemoryFeedStore {
-  _ExplodingStore({required this.failOnSeq});
+  _ExplodingStore(this.failOnCall);
 
-  final int failOnSeq;
-  bool _exploded = false;
+  final int failOnCall;
+  int calls = 0;
 
   @override
-  Future<void> append(FeedEvent event) async {
-    if (!_exploded && event.seq == failOnSeq) {
-      _exploded = true;
-      throw StateError('disk on fire');
-    }
-    return super.append(event);
+  Future<void> put(FeedEvent event) async {
+    calls++;
+    if (calls == failOnCall) throw StateError('disk full');
+    return super.put(event);
   }
 }
 
 void main() {
-  late Identity identity;
   late MemoryFeedStore store;
   late FeedWriter writer;
 
-  setUp(() async {
-    identity = await Identity.generate();
+  setUp(() {
     store = MemoryFeedStore();
-    writer = FeedWriter(identity: identity, store: store);
+    writer = FeedWriter(author: 'alice', store: store);
   });
 
   group('FeedWriter', () {
-    test('builds a hash chain', () async {
-      final first = await _append(writer, FeedEventType.profile,
-          <String, dynamic>{'displayName': 'Mike'});
-      final second = await _append(writer, FeedEventType.checkIn,
-          <String, dynamic>{'habitId': 'gym'});
-
-      expect(first.seq, 1);
-      expect(first.prevHash, isNull);
-      expect(second.seq, 2);
-      expect(second.prevHash, equals(first.hash));
-    });
-
-    test('a failed append does not poison the ones queued behind it',
-        () async {
-      final failing = _ExplodingStore(failOnSeq: 1);
-      final brokenWriter =
-          FeedWriter(identity: identity, store: failing);
-
-      await expectLater(
-        brokenWriter.append(FeedEventType.checkIn, <String, dynamic>{}),
-        throwsA(isA<StateError>()),
-      );
-
-      // The second append must still run rather than waiting forever on the
-      // failed one.
-      final recovered =
-          await brokenWriter.append(FeedEventType.checkIn, <String, dynamic>{});
-      expect(recovered.seq, 1);
-    });
-
-    test('serialises concurrent appends without tearing the chain', () async {
-      final events = await Future.wait<FeedEvent>(<Future<FeedEvent>>[
-        for (var i = 0; i < 25; i++)
-          writer.append(FeedEventType.checkIn, <String, dynamic>{'i': i}),
-      ]);
-
-      final seqs = events.map((FeedEvent e) => e.seq).toList()..sort();
-      expect(seqs, equals(List<int>.generate(25, (int i) => i + 1)));
-
-      final stored = await store.eventsOf(identity.did);
-      for (var i = 1; i < stored.length; i++) {
-        expect(stored[i].prevHash, equals(stored[i - 1].hash));
-      }
-    });
-  });
-
-  group('validateEvent', () {
-    test('accepts a well-formed genesis event', () async {
-      final event = await _append(
-          writer, FeedEventType.profile, <String, dynamic>{'displayName': 'M'});
-
-      final result = await validateEvent(event, previous: null);
-      expect(result.isValid, isTrue);
-    });
-
-    test('rejects a tampered payload', () async {
-      final event = await _append(writer, FeedEventType.checkIn,
-          <String, dynamic>{'habitId': 'gym', 'value': 1});
-      final forged = FeedEvent(
-        author: event.author,
-        seq: event.seq,
-        prevHash: event.prevHash,
-        timestamp: event.timestamp,
-        type: event.type,
-        payload: <String, dynamic>{'habitId': 'gym', 'value': 99},
-        hash: event.hash,
-        signature: event.signature,
-      );
-
-      final result = await validateEvent(forged, previous: null);
-      expect(result.rejection, EventRejection.badHash);
-    });
-
-    test('rejects an event signed by someone else', () async {
-      final mallory = await Identity.generate();
-      final malloryStore = MemoryFeedStore();
-      final malloryWriter =
-          FeedWriter(identity: mallory, store: malloryStore);
-      final stolen = await _append(
-          malloryWriter, FeedEventType.checkIn, <String, dynamic>{'x': 1});
-
-      final impostor = FeedEvent(
-        author: identity.did,
-        seq: stolen.seq,
-        prevHash: stolen.prevHash,
-        timestamp: stolen.timestamp,
-        type: stolen.type,
-        payload: stolen.payload,
-        hash: stolen.hash,
-        signature: stolen.signature,
-      );
-
-      // The body commits to the author, so re-labelling breaks the hash first.
-      final result = await validateEvent(impostor, previous: null);
-      expect(result.rejection, EventRejection.badHash);
-    });
-
-    test('rejects an event whose prev hash points elsewhere', () async {
-      final first = await _append(
-          writer, FeedEventType.profile, <String, dynamic>{'displayName': 'M'});
+    test('writes pending events with unique ids', () async {
+      final first =
+          await writer.append(FeedEventType.profile, <String, dynamic>{});
       final second =
-          await _append(writer, FeedEventType.checkIn, <String, dynamic>{});
+          await writer.append(FeedEventType.profile, <String, dynamic>{});
+      expect(first.author, 'alice');
+      expect(first.isPending, isTrue);
+      expect(first.id, isNot(second.id));
+      expect(await store.pending('alice'), <FeedEvent>[first, second]);
+    });
 
-      expect((await validateEvent(second, previous: first)).isValid, isTrue);
+    test('keeps one device\'s timestamps strictly increasing', () async {
+      final at = DateTime.utc(2026, 11, 1, 12);
+      final events = <FeedEvent>[
+        for (var i = 0; i < 5; i++)
+          await writer.append(FeedEventType.checkIn, <String, dynamic>{'i': i},
+              timestamp: at),
+      ];
+      for (var i = 1; i < events.length; i++) {
+        expect(events[i].timestamp.isAfter(events[i - 1].timestamp), isTrue);
+      }
+      final stored = await store.eventsOf('alice');
+      expect(stored.map((FeedEvent e) => e.payload['i']), <int>[0, 1, 2, 3, 4]);
+    });
 
-      // A different, genuinely stored predecessor: same author and seq, but a
-      // different body, so its hash is not what `second` committed to.
-      final divergent = await FeedEvent.create(
-        identity: identity,
-        seq: 1,
-        prevHash: null,
+    test('concurrent writes are serialised in call order', () async {
+      final futures = <Future<FeedEvent>>[
+        for (var i = 0; i < 20; i++)
+          writer.append(FeedEventType.checkIn, <String, dynamic>{'i': i}),
+      ];
+      await Future.wait(futures);
+      final stored = await store.eventsOf('alice');
+      expect(stored.map((FeedEvent e) => e.payload['i']),
+          List<int>.generate(20, (int i) => i));
+    });
+
+    test('a failed write does not block the ones behind it', () async {
+      final failing = _ExplodingStore(1);
+      final w = FeedWriter(author: 'alice', store: failing);
+      await expectLater(w.append(FeedEventType.profile, <String, dynamic>{}),
+          throwsStateError);
+      final ok = await w.append(FeedEventType.profile, <String, dynamic>{});
+      expect(await failing.eventsOf('alice'), <FeedEvent>[ok]);
+    });
+
+    test('tells the sync about every write', () async {
+      final written = <FeedEvent>[];
+      final w =
+          FeedWriter(author: 'alice', store: store, onWritten: written.add);
+      final e = await w.append(FeedEventType.profile, <String, dynamic>{});
+      expect(written, <FeedEvent>[e]);
+    });
+
+    test('continues after the newest stored event, even from another device',
+        () async {
+      final later = DateTime.now().toUtc().add(const Duration(minutes: 5));
+      await store.put(FeedEvent(
+        id: 'other-device',
+        author: 'alice',
+        timestamp: later,
         type: FeedEventType.profile,
-        payload: const <String, dynamic>{'displayName': 'Anders'},
-      );
-
-      final result = await validateEvent(second, previous: divergent);
-      expect(result.rejection, EventRejection.chainBroken);
-    });
-
-    test('rejects an event that skips a sequence number', () async {
-      final first = await _append(
-          writer, FeedEventType.profile, <String, dynamic>{'displayName': 'M'});
-      await _append(writer, FeedEventType.checkIn, <String, dynamic>{});
-      final third =
-          await _append(writer, FeedEventType.checkIn, <String, dynamic>{});
-
-      final result = await validateEvent(third, previous: first);
-      expect(result.rejection, EventRejection.seqOutOfOrder);
-    });
-
-    test('rejects a check-in dated in the future', () async {
-      final event = await _append(
-        writer,
-        FeedEventType.checkIn,
-        <String, dynamic>{'habitId': 'gym'},
-        at: DateTime.now().add(const Duration(hours: 6)),
-      );
-
-      final result = await validateEvent(event, previous: null);
-      expect(result.rejection, EventRejection.timestampInFuture);
-    });
-
-    test('rejects an unknown event type', () async {
-      final event = await FeedEvent.create(
-        identity: identity,
-        seq: 1,
-        prevHash: null,
-        type: 'checkin.premium',
         payload: const <String, dynamic>{},
-      );
-
-      final result = await validateEvent(event, previous: null);
-      expect(result.rejection, EventRejection.unknownType);
+        createdAt: later,
+        serverSeq: 7,
+      ));
+      final fresh = FeedWriter(author: 'alice', store: store);
+      final e = await fresh.append(FeedEventType.profile, <String, dynamic>{});
+      expect(e.timestamp.isAfter(later), isTrue);
     });
   });
 
-  group('FeedReplicator', () {
-    test('applies a peer feed in order', () async {
-      final peer = await Identity.generate();
-      final peerStore = MemoryFeedStore();
-      final peerWriter = FeedWriter(identity: peer, store: peerStore);
-      await _append(peerWriter, FeedEventType.profile,
-          <String, dynamic>{'displayName': 'Lisa'});
-      await _append(
-          peerWriter, FeedEventType.checkIn, <String, dynamic>{'habitId': 'g'});
-
-      final report = await FeedReplicator(store)
-          .apply(await peerStore.eventsOf(peer.did));
-
-      expect(report.applied, 2);
-      expect(report.hasRejections, isFalse);
-      expect((await store.head(peer.did))!.seq, 2);
+  group('FeedEvent', () {
+    test('round-trips through a table row', () {
+      final e = FeedEvent.create(
+        author: 'alice',
+        type: FeedEventType.checkIn,
+        payload: <String, dynamic>{'habitId': 'gym'},
+        visibility: EventVisibility.private,
+      ).confirmed(createdAt: DateTime.utc(2026, 11, 2), serverSeq: 42);
+      final back = FeedEvent.fromRow(e.toRow());
+      expect(back.id, e.id);
+      expect(back.visibility, EventVisibility.private);
+      expect(back.serverSeq, 42);
+      expect(back.timestamp, e.timestamp);
+      expect(back.payload['habitId'], 'gym');
     });
 
-    test('stops at the first invalid event in a feed', () async {
-      final peer = await Identity.generate();
-      final peerStore = MemoryFeedStore();
-      final peerWriter = FeedWriter(identity: peer, store: peerStore);
-      final good = await _append(peerWriter, FeedEventType.profile,
-          <String, dynamic>{'displayName': 'Lisa'});
-      final real = await _append(
-          peerWriter, FeedEventType.checkIn, <String, dynamic>{'habitId': 'g'});
-      final third = await _append(
-          peerWriter, FeedEventType.checkIn, <String, dynamic>{'habitId': 'h'});
+    test('an insert never carries the server\'s columns', () {
+      final row = FeedEvent.create(
+        author: 'alice',
+        type: FeedEventType.profile,
+        payload: <String, dynamic>{},
+      ).confirmed(createdAt: DateTime.utc(2026), serverSeq: 1).toInsertRow();
+      expect(row.containsKey('created_at'), isFalse);
+      expect(row.containsKey('server_seq'), isFalse);
+    });
 
-      final forged = FeedEvent(
-        author: real.author,
-        seq: real.seq,
-        prevHash: real.prevHash,
-        timestamp: real.timestamp,
-        type: real.type,
-        payload: <String, dynamic>{'habitId': 'gym', 'value': 999},
-        hash: real.hash,
-        signature: real.signature,
+    test('ids are random version-4 UUIDs', () {
+      final ids = List<String>.generate(100, (_) => newEventId()).toSet();
+      expect(ids, hasLength(100));
+      expect(
+          ids.first,
+          matches(RegExp(
+              r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$')));
+    });
+
+    test('a claimed time is believed within the offline grace', () {
+      final claimed = DateTime.utc(2026, 11, 1, 20);
+      final e = FeedEvent(
+        id: 'x',
+        author: 'alice',
+        timestamp: claimed,
+        type: FeedEventType.checkIn,
+        payload: const <String, dynamic>{},
+        createdAt: claimed.add(const Duration(hours: 30)),
+        serverSeq: 1,
       );
-
-      final report = await FeedReplicator(store)
-          .apply(<FeedEvent>[good, forged, third]);
-
-      expect(report.applied, 1);
-      expect(report.rejections, contains(EventRejection.badHash));
-      expect((await store.head(peer.did))!.seq, 1);
+      expect(e.loggedAt, claimed);
     });
 
-    test('ignores events it already has', () async {
-      final peer = await Identity.generate();
-      final peerStore = MemoryFeedStore();
-      final peerWriter = FeedWriter(identity: peer, store: peerStore);
-      await _append(peerWriter, FeedEventType.profile,
-          <String, dynamic>{'displayName': 'Lisa'});
-      final events = await peerStore.eventsOf(peer.did);
+    test('an event sent far later counts from when it arrived', () {
+      final claimed = DateTime.utc(2026, 11, 1, 20);
+      final arrived = claimed.add(const Duration(days: 5));
+      final e = FeedEvent(
+        id: 'x',
+        author: 'alice',
+        timestamp: claimed,
+        type: FeedEventType.checkIn,
+        payload: const <String, dynamic>{},
+        createdAt: arrived,
+        serverSeq: 1,
+      );
+      expect(e.loggedAt, arrived);
+    });
+  });
 
-      final replicator = FeedReplicator(store);
-      await replicator.apply(events);
-      final second = await replicator.apply(events);
-
-      expect(second.applied, 0);
-      expect(second.skipped, 1);
+  group('MemoryFeedStore', () {
+    test('confirming replaces the pending copy', () async {
+      final e = await writer.append(FeedEventType.profile, <String, dynamic>{});
+      await store.put(e.confirmed(createdAt: DateTime.utc(2026), serverSeq: 9));
+      expect(await store.pending('alice'), isEmpty);
+      expect(await store.cursor(), 9);
+      expect(await store.eventsOf('alice'), hasLength(1));
     });
 
-    test('holds back events that arrive before their ancestor', () async {
-      final peer = await Identity.generate();
-      final peerStore = MemoryFeedStore();
-      final peerWriter = FeedWriter(identity: peer, store: peerStore);
-      await _append(peerWriter, FeedEventType.profile,
-          <String, dynamic>{'displayName': 'Lisa'});
-      final second = await _append(
-          peerWriter, FeedEventType.checkIn, <String, dynamic>{'habitId': 'g'});
+    test('forgets a former friend completely', () async {
+      await store.put(FeedEvent.create(
+          author: 'bob',
+          type: FeedEventType.profile,
+          payload: <String, dynamic>{}));
+      await writer.append(FeedEventType.profile, <String, dynamic>{});
+      await store.removeAuthor('bob');
+      expect(await store.authors(), <String>{'alice'});
+    });
 
-      final report = await FeedReplicator(store).apply(<FeedEvent>[second]);
-
-      expect(report.applied, 0);
-      expect(await store.head(peer.did), isNull);
+    test('recent is newest first across authors', () async {
+      await store.put(FeedEvent(
+          id: 'b',
+          author: 'bob',
+          timestamp: DateTime.utc(2026, 1, 2),
+          type: FeedEventType.profile,
+          payload: const <String, dynamic>{}));
+      await store.put(FeedEvent(
+          id: 'a',
+          author: 'alice',
+          timestamp: DateTime.utc(2026, 1, 1),
+          type: FeedEventType.profile,
+          payload: const <String, dynamic>{}));
+      expect((await store.recent()).map((FeedEvent e) => e.id),
+          <String>['b', 'a']);
     });
   });
 }

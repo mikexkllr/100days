@@ -7,8 +7,8 @@ import '../util/dates.dart';
 /// What the user shares with friends. Friends only — there is no "public".
 ///
 /// Some things are never shared and have no switch here: body stats, the
-/// calorie and macro targets and the food diary stay on the device (sealed in
-/// the user's own feed, see `PrivateBox`). What a friend can see is the
+/// calorie and macro targets and the food diary are private events, which
+/// the server hands to nobody but their author. What a friend can see is the
 /// streak, the habits marked as shared, and — if the user wants — the goal
 /// sentence and what they lifted.
 @immutable
@@ -49,7 +49,7 @@ class SharingPrefs {
 
   /// Habits that were private and are shared since a given day. Friends'
   /// devices only count them from then on — their check-ins before that day
-  /// are sealed, and must not look like misses. The owner's own count is
+  /// are private, and must not look like misses. The owner's own count is
   /// unaffected.
   final Map<String, DayKey> sharedSince;
 

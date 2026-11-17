@@ -194,7 +194,7 @@ class SessionPlan {
 }
 
 /// The user's training plan as configured: a split and the sessions it
-/// rotates through. Stored on [Goal], so it is part of the signed challenge
+/// rotates through. Stored on [Goal], so it is part of the challenge
 /// and survives a restore from the recovery key.
 @immutable
 class TrainingSetup {

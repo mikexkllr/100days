@@ -269,7 +269,7 @@ void main() {
         league: League.silver,
         entries: const <LeagueEntry>[
           LeagueEntry(
-            did: 'did:key:zA',
+            userId: 'user-A',
             displayName: 'Ali',
             avatarEmoji: '🐺',
             weeklyXp: 300,
@@ -278,7 +278,7 @@ void main() {
             activeToday: true,
           ),
           LeagueEntry(
-            did: 'did:key:zB',
+            userId: 'user-B',
             displayName: 'Bea',
             avatarEmoji: '🦊',
             weeklyXp: 300,
@@ -287,7 +287,7 @@ void main() {
             activeToday: false,
           ),
           LeagueEntry(
-            did: 'did:key:zC',
+            userId: 'user-C',
             displayName: 'Cem',
             avatarEmoji: '🦈',
             weeklyXp: 900,
@@ -299,8 +299,15 @@ void main() {
       );
 
       expect(standing.entries.first.displayName, 'Cem');
-      expect(standing.rankOf('did:key:zB'), 2);
-      expect(standing.rankOf('did:key:zA'), 3);
+      expect(standing.rankOf('user-B'), 2);
+      expect(standing.rankOf('user-A'), 3);
     });
+  });
+
+  test('day differences survive the clocks going forward', () {
+    // Europe switches to summer time on 29 March 2026: that night has 23
+    // hours, which must not cost anyone a day of their streak.
+    expect(DayKey(2026, 4, 1).differenceInDays(DayKey(2026, 3, 2)), 30);
+    expect(DayKey(2026, 11, 1).differenceInDays(DayKey(2026, 10, 1)), 31);
   });
 }

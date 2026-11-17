@@ -25,7 +25,7 @@ enum ActivityKind {
 /// was a live proof or a backfill.
 class ActivityItem {
   const ActivityItem({
-    required this.eventHash,
+    required this.eventId,
     required this.author,
     required this.authorName,
     required this.authorEmoji,
@@ -47,7 +47,7 @@ class ActivityItem {
     this.workoutVolumeKg,
   });
 
-  final String eventHash;
+  final String eventId;
   final String author;
   final String authorName;
   final String authorEmoji;
@@ -99,7 +99,7 @@ class ActivityItem {
 List<ActivityItem> buildActivityFeed(
   List<FeedEvent> events, {
   required Map<String, PeerProfile> profiles,
-  required String selfDid,
+  required String selfId,
   int limit = 100,
 }) {
   final items = <ActivityItem>[];
@@ -108,17 +108,17 @@ List<ActivityItem> buildActivityFeed(
     final profile = profiles[event.author];
     final name = profile?.displayName ?? '';
     final emoji = profile?.avatarEmoji ?? '🙂';
-    final isOwn = event.author == selfDid;
+    final isOwn = event.author == selfId;
 
     switch (event.type) {
       case FeedEventType.checkIn:
         final checkIn = CheckIn.fromPayload(
           event.payload,
-          loggedAt: event.timestamp,
-          eventHash: event.hash,
+          loggedAt: event.loggedAt,
+          eventId: event.id,
         );
         items.add(ActivityItem(
-          eventHash: event.hash,
+          eventId: event.id,
           author: event.author,
           authorName: name,
           authorEmoji: emoji,
@@ -135,7 +135,7 @@ List<ActivityItem> buildActivityFeed(
 
       case FeedEventType.challengeStarted:
         items.add(ActivityItem(
-          eventHash: event.hash,
+          eventId: event.id,
           author: event.author,
           authorName: name,
           authorEmoji: emoji,
@@ -149,7 +149,7 @@ List<ActivityItem> buildActivityFeed(
 
       case FeedEventType.challengeAscended:
         items.add(ActivityItem(
-          eventHash: event.hash,
+          eventId: event.id,
           author: event.author,
           authorName: name,
           authorEmoji: emoji,
@@ -164,10 +164,10 @@ List<ActivityItem> buildActivityFeed(
       case FeedEventType.nudge:
       case FeedEventType.cheer:
         final target = event.payload['target'] as String?;
-        if (target != selfDid && !isOwn) continue;
+        if (target != selfId && !isOwn) continue;
         final isNudge = event.type == FeedEventType.nudge;
         items.add(ActivityItem(
-          eventHash: event.hash,
+          eventId: event.id,
           author: event.author,
           authorName: name,
           authorEmoji: emoji,
@@ -186,7 +186,7 @@ List<ActivityItem> buildActivityFeed(
           loggedAt: event.timestamp,
         );
         items.add(ActivityItem(
-          eventHash: event.hash,
+          eventId: event.id,
           author: event.author,
           authorName: name,
           authorEmoji: emoji,
@@ -197,20 +197,13 @@ List<ActivityItem> buildActivityFeed(
           workoutKind: log.kind,
           workoutSets: log.totalSets,
           workoutVolumeKg: log.volumeKg,
-          isVerifiedLive: DayKey.fromDateTime(event.timestamp) == log.day,
+          isVerifiedLive: DayKey.fromDateTime(event.loggedAt) == log.day,
           isOwn: isOwn,
         ));
 
-      // Not timeline material: settings, edits and the food diary. Sealed
-      // events are unreadable here by design.
-      case FeedEventType.profile:
-      case FeedEventType.missed:
-      case FeedEventType.streakFreeze:
-      case FeedEventType.friendRequest:
-      case FeedEventType.challengeUpdated:
-      case FeedEventType.foodLogged:
-      case FeedEventType.foodRemoved:
-      case FeedEventType.private:
+      // Not timeline material: settings, edits and the food diary (which a
+      // friend's device never receives anyway: it is private).
+      default:
         continue;
     }
   }

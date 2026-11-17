@@ -88,20 +88,20 @@ enum RecoveryHint {
 @immutable
 class PeerMention {
   const PeerMention({
-    required this.did,
+    required this.userId,
     required this.displayName,
     required this.avatarEmoji,
     required this.streak,
   });
 
   factory PeerMention.of(PeerState peer) => PeerMention(
-        did: peer.did,
+        userId: peer.userId,
         displayName: peer.profile.displayName,
         avatarEmoji: peer.profile.avatarEmoji,
         streak: peer.currentStreak,
       );
 
-  final String did;
+  final String userId;
   final String displayName;
   final String avatarEmoji;
   final int streak;
@@ -229,11 +229,11 @@ enum NudgeTemplate {
 }
 
 /// A message aimed at a *peer* — the "hey, you were the one talking big"
-/// mechanic. Nudges are signed feed events, so they cannot be spoofed.
+/// mechanic. Nudges are feed events, and the server only lets an author write their own, so they cannot be spoofed.
 @immutable
 class NudgeSuggestion {
   const NudgeSuggestion({
-    required this.targetDid,
+    required this.targetId,
     required this.template,
     required this.reason,
     required this.dayNumber,
@@ -241,7 +241,7 @@ class NudgeSuggestion {
     this.text,
   });
 
-  final String targetDid;
+  final String targetId;
   final NudgeTemplate template;
   final NudgeReason reason;
   final int dayNumber;

@@ -19,13 +19,13 @@ class CheckIn {
     this.note,
     this.relapse = false,
     this.tracked = false,
-    this.eventHash,
+    this.eventId,
   });
 
   factory CheckIn.fromPayload(
     Map<String, dynamic> payload, {
     required DateTime loggedAt,
-    String? eventHash,
+    String? eventId,
   }) =>
       CheckIn(
         habitId: payload['habitId'] as String,
@@ -36,7 +36,7 @@ class CheckIn {
         note: payload['note'] as String?,
         relapse: payload['relapse'] as bool? ?? false,
         tracked: payload['tracked'] as bool? ?? false,
-        eventHash: eventHash,
+        eventId: eventId,
       );
 
   final String habitId;
@@ -53,7 +53,7 @@ class CheckIn {
   /// or a food diary closed on target. Earns the plan bonus in XP.
   final bool tracked;
 
-  final String? eventHash;
+  final String? eventId;
 
   /// True when the entry was logged on the day it claims. Backfilling
   /// yesterday is allowed but never gets the verified badge.

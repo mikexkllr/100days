@@ -27,43 +27,6 @@ Challenge _challenge({SharingPrefs sharing = const SharingPrefs()}) =>
       sharing: sharing,
     );
 
-class _Node {
-  _Node(this.identity, this.store)
-      : writer = FeedWriter(identity: identity, store: store),
-        replicator = FeedReplicator(store);
-
-  static Future<_Node> create() async =>
-      _Node(await Identity.generate(), MemoryFeedStore());
-
-  final Identity identity;
-  final MemoryFeedStore store;
-  final FeedWriter writer;
-  final FeedReplicator replicator;
-
-  Syncer syncer({Set<String>? follows}) => Syncer(
-        identity: identity,
-        store: store,
-        replicator: replicator,
-        localDisplayName: 'peer',
-        localAvatarEmoji: '🦊',
-        followedDids: follows,
-        timeout: const Duration(seconds: 5),
-      );
-}
-
-Future<List<SyncResult>> _sync(
-  _Node a,
-  _Node b, {
-  Set<String>? aFollows,
-  Set<String>? bFollows,
-}) {
-  final (PeerSession left, PeerSession right) = LoopbackSession.pair();
-  return Future.wait(<Future<SyncResult>>[
-    a.syncer(follows: aFollows).run(left),
-    b.syncer(follows: bFollows).run(right),
-  ]);
-}
-
 void main() {
   group('public view', () {
     test('body stats and nutrition targets never leave the device', () {
@@ -120,169 +83,70 @@ void main() {
     });
   });
 
-  group('private box', () {
-    test('only the author can open a sealed event', () async {
-      final alice = await Identity.generate();
-      final mallory = await Identity.generate();
-      final box = await PrivateBox.forIdentity(alice);
-      final sealed = await box.seal(FeedEventType.checkIn,
-          <String, dynamic>{'habitId': 'noFap', 'day': '2026-11-02'});
-
-      expect(sealed.toString(), isNot(contains('noFap')));
-      final opened = await box.open(sealed);
-      expect(opened!.type, FeedEventType.checkIn);
-      expect(opened.payload['habitId'], 'noFap');
-
-      final other = await PrivateBox.forIdentity(mallory);
-      expect(await other.open(sealed), isNull);
-    });
-
-    test('the same seed derives the same key after a restore', () async {
-      final alice = await Identity.generate();
-      final sealed = await (await PrivateBox.forIdentity(alice))
-          .seal('x', <String, dynamic>{'a': 1});
-      final restored = await Identity.fromRecoveryKey(await alice.recoveryKey);
-      final opened = await (await PrivateBox.forIdentity(restored)).open(sealed);
-      expect(opened!.payload['a'], 1);
-    });
-
-    test('a tampered box does not open', () async {
-      final alice = await Identity.generate();
-      final box = await PrivateBox.forIdentity(alice);
-      final sealed = await box.seal('x', <String, dynamic>{'a': 1});
-      final tampered = Map<String, dynamic>.from(sealed)
-        ..['c'] = 'AAAA${(sealed['c'] as String).substring(4)}';
-      expect(await box.open(tampered), isNull);
-    });
-
-    test('the owner folds sealed events, a friend only the public ones',
+  group('private events', () {
+    test('the owner folds private events, a friend only the shared ones',
         () async {
-      final alice = await _Node.create();
-      final box = await PrivateBox.forIdentity(alice.identity);
+      final store = MemoryFeedStore();
+      final writer = FeedWriter(author: 'alice', store: store);
       final full = _challenge(
         sharing: const SharingPrefs(privateHabits: <String>{'noFap'}),
       );
 
-      await alice.writer.append(FeedEventType.challengeStarted,
+      await writer.append(FeedEventType.challengeStarted,
           <String, dynamic>{'challenge': publicViewOf(full).toJson()});
-      await alice.writer.append(
-        FeedEventType.private,
-        await box.seal(FeedEventType.challengeStarted,
-            <String, dynamic>{'challenge': full.toJson()}),
+      await writer.append(
+        FeedEventType.challengeStarted,
+        <String, dynamic>{'challenge': full.toJson()},
+        visibility: EventVisibility.private,
       );
-      await alice.writer.append(
-        FeedEventType.private,
-        await box.seal(FeedEventType.checkIn, CheckIn(
+      await writer.append(
+        FeedEventType.checkIn,
+        CheckIn(
           habitId: 'noFap',
           category: HabitCategory.noFap,
           day: DayKey.parse('2026-10-01'),
           value: 1,
           loggedAt: _epoch,
-        ).toPayload()),
+        ).toPayload(),
+        visibility: EventVisibility.private,
       );
 
-      final raw = await alice.store.eventsOf(alice.identity.did);
-      // Every event, sealed or not, still verifies on a friend's device.
-      for (var i = 0; i < raw.length; i++) {
-        expect(
-          (await validateEvent(raw[i], previous: i == 0 ? null : raw[i - 1]))
-              .isValid,
-          isTrue,
-        );
-      }
+      final all = await store.eventsOf('alice');
+      // What the server's row level security hands a friend.
+      final shared = all
+          .where((FeedEvent e) => e.visibility == EventVisibility.friends)
+          .toList();
 
-      final asFriend = projectUser(alice.identity.did, raw,
-          today: DayKey.parse('2026-10-01'));
+      final asFriend =
+          projectUser('alice', shared, today: DayKey.parse('2026-10-01'));
       expect(asFriend.challenge!.habits.map((Habit h) => h.id),
           isNot(contains('noFap')));
       expect(asFriend.challenge!.goal.body, isNull);
       expect(asFriend.logsByDay, isEmpty);
 
-      final asOwner = projectUser(
-        alice.identity.did,
-        await box.openAll(raw),
-        today: DayKey.parse('2026-10-01'),
-      );
+      final asOwner =
+          projectUser('alice', all, today: DayKey.parse('2026-10-01'));
       expect(asOwner.challenge!.habits.map((Habit h) => h.id),
           contains('noFap'));
       expect(asOwner.challenge!.goal.body!.weightKg, 71);
       expect(asOwner.logsByDay['2026-10-01']!.entries.single.habitId, 'noFap');
     });
-  });
 
-  group('friends-only sync', () {
-    test('a stranger gets nothing, and is reported as a request', () async {
-      final alice = await _Node.create();
-      final stranger = await _Node.create();
-      await alice.writer.append(
-          FeedEventType.profile, <String, dynamic>{'displayName': 'Alice'});
-
-      final results = await _sync(
-        alice,
-        stranger,
-        aFollows: <String>{alice.identity.did},
-        bFollows: <String>{stranger.identity.did, alice.identity.did},
-      );
-
-      expect(await stranger.store.head(alice.identity.did), isNull);
-      expect(results[0].status, SyncOutcome.refusedStranger);
-      expect(results[0].peerDid, stranger.identity.did);
-      expect(results[0].peerEmoji, '🦊');
-      expect(results[1].status, SyncOutcome.notFriendsYet);
-    });
-
-    test('once both follow each other, they replicate', () async {
-      final alice = await _Node.create();
-      final bob = await _Node.create();
-      await alice.writer.append(
-          FeedEventType.profile, <String, dynamic>{'displayName': 'Alice'});
-      final follows = <String>{alice.identity.did, bob.identity.did};
-
-      final results =
-          await _sync(alice, bob, aFollows: follows, bFollows: follows);
-
-      expect(results.every((SyncResult r) => r.status == SyncOutcome.synced),
-          isTrue);
-      expect(await bob.store.head(alice.identity.did), isNotNull);
-    });
-
-    test('claiming a friend\'s DID without the key gets nothing', () async {
-      final alice = await _Node.create();
-      final bob = await _Node.create();
-      final mallory = await _Node.create();
-      await alice.writer.append(
-          FeedEventType.profile, <String, dynamic>{'displayName': 'Alice'});
-
-      final (PeerSession left, PeerSession right) = LoopbackSession.pair();
-      final aliceRound = alice
-          .syncer(follows: <String>{alice.identity.did, bob.identity.did})
-          .run(left);
-      final received = <Map<String, dynamic>>[];
-      right.messages.listen(received.add);
-      // Mallory says hello as Bob and signs with her own key.
-      await right.send(HelloMessage(
-        did: bob.identity.did,
-        displayName: 'Bob',
-        nonce: 'bWFsbG9yeS1ub25jZS0xMjM0NTY3OA==',
-      ).toJson());
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      final aliceNonce = (received.firstWhere(
-              (Map<String, dynamic> m) => m['t'] == 'hello'))['nonce']
-          as String;
-      await right.send(AuthMessage(await mallory.identity.sign(authChallenge(
-        nonce: aliceNonce,
-        signerDid: bob.identity.did,
-        verifierDid: alice.identity.did,
-      ))).toJson());
-      // And asks for everything anyway.
-      await right.send(WantMessage(<WantRange>[
-        WantRange(did: alice.identity.did, fromSeq: 0),
-      ]).toJson());
-
-      final result = await aliceRound;
-      expect(result.status, SyncOutcome.authFailed);
-      expect(received.where((Map<String, dynamic> m) => m['t'] == 'events'),
-          isEmpty);
+    test('a public view and its private twin written in the same instant '
+        'keep their order', () async {
+      final store = MemoryFeedStore();
+      final writer = FeedWriter(author: 'alice', store: store);
+      final at = DateTime.utc(2026, 10, 1, 8);
+      final full = _challenge();
+      await writer.append(FeedEventType.challengeStarted,
+          <String, dynamic>{'challenge': publicViewOf(full).toJson()},
+          timestamp: at);
+      await writer.append(FeedEventType.challengeStarted,
+          <String, dynamic>{'challenge': full.toJson()},
+          visibility: EventVisibility.private, timestamp: at);
+      final owner = projectUser('alice', await store.eventsOf('alice'),
+          today: DayKey.parse('2026-10-01'));
+      expect(owner.challenge!.goal.body, isNotNull);
     });
   });
 
@@ -303,7 +167,7 @@ void main() {
         }),
       ];
       final projection =
-          projectUser('did:x', events, today: DayKey.parse('2026-10-05'));
+          projectUser('user-x', events, today: DayKey.parse('2026-10-05'));
       expect(projection.challenge!.startDay, DayKey.parse('2026-10-01'));
       expect(projection.challenge!.cycle, 1);
       expect(projection.challenge!.goal.trainingDaysPerWeek, 5);
@@ -421,7 +285,7 @@ void main() {
             source: FoodSource.database,
             foodId: 'rice',
           );
-      final projection = projectUser('did:x', <FeedEvent>[
+      final projection = projectUser('user-x', <FeedEvent>[
         _fake(1, FeedEventType.foodLogged, entry('a').toPayload()),
         _fake(2, FeedEventType.foodLogged, entry('b').toPayload()),
         _fake(3, FeedEventType.foodRemoved, <String, dynamic>{'id': 'a'}),
@@ -437,12 +301,10 @@ final DateTime _epoch = DateTime.utc(2026, 10, 1, 9);
 
 FeedEvent _fake(int seq, String type, Map<String, dynamic> payload) =>
     FeedEvent(
-      author: 'did:x',
-      seq: seq,
-      prevHash: null,
+      id: 'e$seq',
+      author: 'user-x',
       timestamp: DateTime.utc(2026, 10, 1).add(Duration(minutes: seq)),
       type: type,
       payload: payload,
-      hash: 'h$seq',
-      signature: 's$seq',
+      visibility: EventVisibility.private,
     );

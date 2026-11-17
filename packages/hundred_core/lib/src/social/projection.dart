@@ -13,11 +13,11 @@ import '../util/dates.dart';
 /// Everything derived from one person's feed.
 ///
 /// The feed is the only source of truth; this is a pure fold over it. That
-/// means a peer's streak is computed by *us*, from *their signed events* —
-/// they cannot simply claim a number.
+/// means a friend's streak is computed by *us*, from *their events* — they
+/// cannot simply claim a number.
 class UserProjection {
   UserProjection({
-    required this.did,
+    required this.userId,
     required this.profile,
     required this.challenge,
     required this.logsByDay,
@@ -28,13 +28,13 @@ class UserProjection {
     required this.xpByDay,
     required this.lastActivityAt,
     required this.lastActivity,
-    required this.headSeq,
+    required this.eventCount,
     required this.lastRelapseDay,
     this.workoutLogs = const <WorkoutLog>[],
     this.foodByDay = const <String, List<FoodEntry>>{},
   });
 
-  final String did;
+  final String userId;
   final PeerProfile profile;
   final Challenge? challenge;
   final Map<String, DayLog> logsByDay;
@@ -45,14 +45,14 @@ class UserProjection {
   final Map<String, int> xpByDay;
   final DateTime? lastActivityAt;
   final PeerActivity lastActivity;
-  final int headSeq;
+  final int eventCount;
   final DayKey? lastRelapseDay;
 
   /// Logged sessions, oldest first.
   final List<WorkoutLog> workoutLogs;
 
   /// The food diary, keyed by day. Only ever filled for the user's own feed:
-  /// a friend's diary arrives sealed.
+  /// diary events are private, so a friend's device never receives them.
   final Map<String, List<FoodEntry>> foodByDay;
 
   DayIntake intakeOn(DayKey day) => DayIntake(
@@ -109,7 +109,7 @@ class UserProjection {
               false),
       lastActivityAt: lastActivityAt,
       lastActivity: lastActivity,
-      headSeq: headSeq,
+      eventCount: eventCount,
       challenge: challenge,
     );
   }
@@ -117,19 +117,19 @@ class UserProjection {
 
 /// Folds a single author's events into a projection.
 ///
-/// Events are assumed already validated — [FeedReplicator] is the gate. This
-/// function is total: a feed with no challenge, no profile or nothing but a
+/// The server has already checked who wrote each event. This function is
+/// total: a feed with no challenge, no profile or nothing but a
 /// half-written genesis still yields a usable projection.
 UserProjection projectUser(
-  String did,
+  String userId,
   List<FeedEvent> events, {
   DayKey? today,
 }) {
   final now = today ?? DayKey.today();
-  final ordered = events.where((FeedEvent e) => e.author == did).toList()
-    ..sort((FeedEvent a, FeedEvent b) => a.seq.compareTo(b.seq));
+  final ordered = events.where((FeedEvent e) => e.author == userId).toList()
+    ..sort(compareEvents);
 
-  var profile = PeerProfile(did: did, displayName: 'Anonym', avatarEmoji: '🙂');
+  var profile = PeerProfile(userId: userId, displayName: 'Anonym', avatarEmoji: '🙂');
   Challenge? challenge;
   final logs = <String, List<CheckIn>>{};
   final frozen = <String>{};
@@ -142,7 +142,7 @@ UserProjection projectUser(
   for (final event in ordered) {
     switch (event.type) {
       case FeedEventType.profile:
-        profile = PeerProfile.fromPayload(did, event.payload);
+        profile = PeerProfile.fromPayload(userId, event.payload);
 
       case FeedEventType.challengeStarted:
         challenge = Challenge.fromJson(
@@ -164,8 +164,8 @@ UserProjection projectUser(
       case FeedEventType.checkIn:
         final checkIn = CheckIn.fromPayload(
           event.payload,
-          loggedAt: event.timestamp,
-          eventHash: event.hash,
+          loggedAt: event.loggedAt,
+          eventId: event.id,
         );
         logs.putIfAbsent(checkIn.day.toString(), () => <CheckIn>[])
           ..removeWhere((CheckIn e) => e.habitId == checkIn.habitId)
@@ -207,7 +207,7 @@ UserProjection projectUser(
       case FeedEventType.workoutLogged:
         workoutLogs.add(WorkoutLog.fromPayload(
           event.payload,
-          loggedAt: event.timestamp,
+          loggedAt: event.loggedAt,
         ));
 
       case FeedEventType.foodLogged:
@@ -221,10 +221,8 @@ UserProjection projectUser(
       case FeedEventType.cheer:
         lastActivityAt ??= event.timestamp;
 
-      // Sealed events are opened by the owner before projecting; anyone
-      // else sees an opaque blob and skips it.
-      case FeedEventType.private:
-      case FeedEventType.friendRequest:
+      // Types written by a newer app version: skipped, not fatal.
+      default:
         break;
     }
   }
@@ -265,7 +263,7 @@ UserProjection projectUser(
       : _computeXpByDay(challenge, logsByDay, now);
 
   return UserProjection(
-    did: did,
+    userId: userId,
     profile: profile,
     challenge: challenge,
     logsByDay: logsByDay,
@@ -276,7 +274,7 @@ UserProjection projectUser(
     xpByDay: xpByDay,
     lastActivityAt: lastActivityAt,
     lastActivity: lastActivity,
-    headSeq: ordered.isEmpty ? 0 : ordered.last.seq,
+    eventCount: ordered.length,
     lastRelapseDay: lastRelapse,
     workoutLogs: workoutLogs,
     foodByDay: foodByDay,

@@ -7,7 +7,7 @@ import 'coach.dart';
 
 /// The always-available coach: pure rules, zero model, zero network.
 ///
-/// This is the floor of the product. If the on-device model is missing, still
+/// This is the floor of the product. If the language model is unreachable, still
 /// downloading, or too slow, the user must never get a blank screen where the
 /// motivation is supposed to be — so every path here terminates in a real
 /// directive.
@@ -136,9 +136,9 @@ class HeuristicCoach implements CoachEngine {
       if (peer.activeToday) continue;
       // Never taunt someone who is ahead of you and merely has not gone yet.
       if (!peer.isSlipping && c.streak.current <= peer.currentStreak) continue;
-      final random = math.Random(peer.did.hashCode ^ c.today.hashCode);
+      final random = math.Random(peer.userId.hashCode ^ c.today.hashCode);
       suggestions.add(NudgeSuggestion(
-        targetDid: peer.did,
+        targetId: peer.userId,
         template: _pick(random, <NudgeTemplate>[
           NudgeTemplate.iWentDidYou,
           NudgeTemplate.yourStreakIsWatching,
@@ -153,7 +153,7 @@ class HeuristicCoach implements CoachEngine {
       ));
     }
     suggestions.sort((NudgeSuggestion a, NudgeSuggestion b) =>
-        a.targetDid.compareTo(b.targetDid));
+        a.targetId.compareTo(b.targetId));
     return suggestions.take(5).toList();
   }
 

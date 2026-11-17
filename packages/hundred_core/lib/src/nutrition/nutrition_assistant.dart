@@ -3,13 +3,12 @@ import 'dart:convert';
 
 import 'package:meta/meta.dart';
 
-import '../coach/local_llm.dart';
+import '../ai/llm_client.dart';
 import '../plan/nutrition.dart';
 import 'foods.dart';
 
 /// The JSON shape the meal estimate asks for. An object rather than a bare
-/// list: a runtime that constrains its output to JSON (llama.cpp's
-/// `json_object`) only produces objects.
+/// list: a model that constrains its output to JSON only produces objects.
 ///
 /// The example carries real numbers on purpose: with zeros, small models
 /// copied the shape and put the piece count into `grams` ("2 eggs" → 2 g).
@@ -17,7 +16,8 @@ const String kFoodEstimateJson =
     '{"foods":[{"name":"Pizza","grams":100,"kcal":266,"protein":11,'
     '"carbs":33,"fat":10}]}';
 
-/// A food the on-device model recognised in free text, with its estimate.
+/// A food the language model recognised in a description or a photo, with
+/// its estimate.
 @immutable
 class FoodEstimate {
   const FoodEstimate({
@@ -119,7 +119,7 @@ Answer with JSON only, exactly in this form:
 ''';
 }
 
-/// Nutrition features that need the on-device model: estimating a meal
+/// Nutrition features that need the language model: estimating a meal
 /// from free text, suggesting meals, proposing new targets.
 ///
 /// Every method returns null on any failure — no model, timeout, output that
@@ -128,24 +128,23 @@ Answer with JSON only, exactly in this form:
 /// garbage as if it were a measurement.
 class NutritionAssistant {
   NutritionAssistant({
-    required this.runtime,
+    required this.llm,
     this.prompts = const EnglishNutritionPrompts(),
     this.timeout = const Duration(seconds: 45),
   });
 
-  final LocalLlmRuntime runtime;
+  final LlmClient llm;
   final NutritionPromptBuilder prompts;
 
-  /// The whole budget for one answer, handed down to the runtime — whose
-  /// own default (20 s) cut off most meal estimates on a slower CPU.
+  /// The whole budget for one answer, handed down to the client.
   final Duration timeout;
 
-  bool get isAvailable => runtime.isReady;
+  bool get isAvailable => llm.isReady;
 
   Future<List<FoodEstimate>?> estimateFoods(String text) async {
-    if (!runtime.isReady || text.trim().isEmpty) return null;
+    if (!llm.isReady || text.trim().isEmpty) return null;
     try {
-      final raw = await runtime
+      final raw = await llm
           .generate(prompts.estimateFoods(text.trim()),
               maxTokens: 400, temperature: 0.2, json: true, timeout: timeout)
           .timeout(timeout);
@@ -184,9 +183,9 @@ class NutritionAssistant {
     required int proteinG,
     String? wish,
   }) async {
-    if (!runtime.isReady) return null;
+    if (!llm.isReady) return null;
     try {
-      final raw = await runtime
+      final raw = await llm
           .generate(
             prompts.mealIdeas(
                 slot: slot, kcal: kcal, proteinG: proteinG, wish: wish),
@@ -212,9 +211,9 @@ class NutritionAssistant {
     required NutritionPlan plan,
     required String wish,
   }) async {
-    if (!runtime.isReady || wish.trim().isEmpty) return null;
+    if (!llm.isReady || wish.trim().isEmpty) return null;
     try {
-      final raw = await runtime
+      final raw = await llm
           .generate(prompts.adjustTargets(plan: plan, wish: wish.trim()),
               maxTokens: 160, temperature: 0.3, json: true, timeout: timeout)
           .timeout(timeout);
@@ -247,7 +246,7 @@ class NutritionAssistant {
   }
 
   /// The food objects in [raw], whichever shape the model chose: the asked
-  /// for `{"foods": [...]}`, a bare list (a runtime without JSON mode), or a
+  /// for `{"foods": [...]}`, a bare list (a llm without JSON mode), or a
   /// single food object (a JSON mode that forces one object).
   List<Object?> _foodItems(String raw) {
     final start = raw.indexOf(RegExp(r'[\[{]'));

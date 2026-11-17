@@ -1,8 +1,8 @@
 name: hundred_core
 description: >-
-  Local-first, peer-to-peer core for the 100 Days challenge app: self-sovereign
-  identity, a signed hash-chained activity feed, habit/plan domain logic, an
-  on-device coaching engine and the gossip sync protocol. Pure Dart, no Flutter.
+  Core of the 100 Days challenge app: the event feed fold, streaks, XP and
+  leagues, habit and plan domain logic, the coach, meal planning and the
+  checks on what a language model answers. Pure Dart, no Flutter.
 version: 0.1.0
 publish_to: none
 
@@ -11,8 +11,6 @@ environment:
 
 dependencies:
   collection: ^1.18.0
-  crypto: ^3.0.3
-  cryptography: ^2.7.0
   meta: ^1.15.0
 
 dev_dependencies:

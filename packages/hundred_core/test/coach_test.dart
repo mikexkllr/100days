@@ -21,7 +21,7 @@ PeerState _peer(
 }) =>
     PeerState(
       profile: PeerProfile(
-        did: 'did:key:z$name',
+        userId: 'user-$name',
         displayName: name,
         avatarEmoji: '🐺',
       ),
@@ -37,7 +37,7 @@ PeerState _peer(
         kind: PeerActivityKind.checkIn,
         category: HabitCategory.gym,
       ),
-      headSeq: streak,
+      eventCount: streak,
     );
 
 CoachContext _context({
@@ -72,7 +72,7 @@ CoachContext _context({
 
 /// Returns canned output so the parsing and fallback paths can be exercised
 /// without shipping a model into the test suite.
-class _FakeRuntime implements LocalLlmRuntime {
+class _FakeRuntime implements LlmClient {
   _FakeRuntime(this._response, {this.ready = true, this.throwOnGenerate = false});
 
   final String _response;
@@ -89,17 +89,13 @@ class _FakeRuntime implements LocalLlmRuntime {
   bool get isReady => ready;
 
   @override
-  int? get sizeBytes => 1024;
-
-  @override
-  Future<void> load() async {}
-
-  @override
   Future<String> generate(
     String prompt, {
-    int maxTokens = 200,
-    double temperature = 0.8,
-    Duration timeout = const Duration(seconds: 20),
+    List<LlmImage> images = const <LlmImage>[],
+    LlmPurpose purpose = LlmPurpose.food,
+    int maxTokens = 400,
+    double temperature = 0.7,
+    Duration timeout = const Duration(seconds: 30),
     bool json = false,
   }) async {
     calls++;
@@ -107,9 +103,6 @@ class _FakeRuntime implements LocalLlmRuntime {
     if (throwOnGenerate) throw StateError('model crashed');
     return _response;
   }
-
-  @override
-  Future<void> dispose() async {}
 }
 
 void main() {
@@ -279,7 +272,7 @@ void main() {
       ));
 
       expect(suggestions, hasLength(1));
-      expect(suggestions.single.targetDid, contains('Marcel'));
+      expect(suggestions.single.targetId, contains('Marcel'));
       expect(suggestions.single.reason, NudgeReason.nothingToday);
       expect(suggestions.single.peerStreak, 12);
     });
@@ -322,11 +315,11 @@ void main() {
     });
   });
 
-  group('LocalLlmCoach', () {
+  group('LlmCoach', () {
     test('uses the model output when it parses', () async {
       final runtime = _FakeRuntime(
           'TITLE: Today counts\nTEXT: One goal. Go and tick it off.');
-      final llm = LocalLlmCoach(runtime: runtime);
+      final llm = LlmCoach(llm: runtime);
 
       final directive = await llm
           .dailyBriefing(_context(currentStreak: 5, doneToday: false));
@@ -341,7 +334,7 @@ void main() {
     test('drops a line that slides into another script', () async {
       final runtime = _FakeRuntime('TITEL: Start der Challenge\n'
           'TEXT: Sei konsequent bei den kleinen Zलक्ष цель.');
-      final directive = await LocalLlmCoach(runtime: runtime)
+      final directive = await LlmCoach(llm: runtime)
           .dailyBriefing(_context(currentStreak: 5, doneToday: false));
 
       expect(directive.source, CoachSource.heuristic);
@@ -356,8 +349,8 @@ void main() {
 
     test('gives the model its whole time budget', () async {
       final runtime = _FakeRuntime('TITLE: Go\nTEXT: Now.');
-      await LocalLlmCoach(
-        runtime: runtime,
+      await LlmCoach(
+        llm: runtime,
         timeout: const Duration(seconds: 40),
       ).dailyBriefing(_context(currentStreak: 5, doneToday: false));
 
@@ -367,7 +360,7 @@ void main() {
     test('accepts a localized TITEL header too', () async {
       final runtime =
           _FakeRuntime('TITEL: Heute zählt\nTEXT: Mach den Haken dran.');
-      final llm = LocalLlmCoach(runtime: runtime);
+      final llm = LlmCoach(llm: runtime);
 
       final directive = await llm
           .dailyBriefing(_context(currentStreak: 5, doneToday: false));
@@ -377,7 +370,7 @@ void main() {
 
     test('falls back when the model output is unusable', () async {
       final runtime = _FakeRuntime('...');
-      final llm = LocalLlmCoach(runtime: runtime);
+      final llm = LlmCoach(llm: runtime);
 
       final directive = await llm
           .dailyBriefing(_context(currentStreak: 5, doneToday: false));
@@ -388,7 +381,7 @@ void main() {
 
     test('falls back when the model throws', () async {
       final runtime = _FakeRuntime('x', throwOnGenerate: true);
-      final llm = LocalLlmCoach(runtime: runtime);
+      final llm = LlmCoach(llm: runtime);
 
       final directive = await llm
           .dailyBriefing(_context(currentStreak: 5, doneToday: false));
@@ -398,7 +391,7 @@ void main() {
 
     test('does not call an unloaded model at all', () async {
       final runtime = _FakeRuntime('x', ready: false);
-      final llm = LocalLlmCoach(runtime: runtime);
+      final llm = LlmCoach(llm: runtime);
 
       await llm.dailyBriefing(_context(currentStreak: 5, doneToday: false));
 
@@ -408,7 +401,7 @@ void main() {
 
     test('never sends anything anywhere but the runtime', () async {
       final runtime = _FakeRuntime('TITLE: A\nTEXT: B');
-      final llm = LocalLlmCoach(runtime: runtime);
+      final llm = LlmCoach(llm: runtime);
 
       // The context carries a personal goal statement; the only sink for it is
       // the on-device runtime, which is what makes the prompt private.

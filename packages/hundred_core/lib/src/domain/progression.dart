@@ -141,7 +141,7 @@ extension LeagueInfo on League {
 @immutable
 class LeagueEntry {
   const LeagueEntry({
-    required this.did,
+    required this.userId,
     required this.displayName,
     required this.avatarEmoji,
     required this.weeklyXp,
@@ -150,7 +150,7 @@ class LeagueEntry {
     required this.activeToday,
   });
 
-  final String did;
+  final String userId;
   final String displayName;
   final String avatarEmoji;
   final int weeklyXp;
@@ -171,9 +171,9 @@ class LeagueStanding {
   final String weekKey;
   final League league;
 
-  int rankOf(String did) {
+  int rankOf(String userId) {
     for (var i = 0; i < entries.length; i++) {
-      if (entries[i].did == did) return i + 1;
+      if (entries[i].userId == userId) return i + 1;
     }
     return -1;
   }
@@ -185,13 +185,13 @@ class LeagueStanding {
   int get demotionCutoff =>
       entries.length >= 6 ? entries.length - 2 : entries.length + 1;
 
-  bool isPromoting(String did) {
-    final rank = rankOf(did);
+  bool isPromoting(String userId) {
+    final rank = rankOf(userId);
     return rank > 0 && rank <= promotionCutoff;
   }
 
-  bool isDemoting(String did) {
-    final rank = rankOf(did);
+  bool isDemoting(String userId) {
+    final rank = rankOf(userId);
     return rank > 0 && rank >= demotionCutoff;
   }
 }
