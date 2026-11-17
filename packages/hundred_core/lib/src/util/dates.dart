@@ -47,10 +47,13 @@ class DayKey implements Comparable<DayKey> {
   bool isBefore(DayKey other) => compareTo(other) < 0;
 
   /// ISO-8601 week key (`2026-W12`), the bucket the weekly league scores over.
+  /// Computed in UTC, like [differenceInDays]: across the spring clock
+  /// change a local difference loses an hour and, on Thursdays, a week.
+  /// The server buckets with Postgres' `IYYY-"W"IW`, which this matches.
   String get isoWeekKey {
-    final date = toDateTime();
+    final date = DateTime.utc(year, month, day);
     final thursday = date.add(Duration(days: 4 - (date.weekday)));
-    final firstJan = DateTime(thursday.year, 1, 1);
+    final firstJan = DateTime.utc(thursday.year, 1, 1);
     final week = ((thursday.difference(firstJan).inDays) / 7).floor() + 1;
     return '${thursday.year}-W${week.toString().padLeft(2, '0')}';
   }

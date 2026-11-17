@@ -43,6 +43,7 @@ export 'src/plan/plan.dart';
 export 'src/plan/training.dart';
 export 'src/privacy/sharing.dart';
 export 'src/social/activity.dart';
+export 'src/social/friends.dart';
 export 'src/social/projection.dart';
 export 'src/util/codec.dart';
 export 'src/util/dates.dart';
