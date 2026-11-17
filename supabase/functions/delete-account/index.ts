@@ -45,22 +45,28 @@ async function revokeAppleAccess(authorizationCode: string): Promise<void> {
     body: new URLSearchParams(params).toString(),
   });
 
-  const tokenRes = await fetch('https://appleid.apple.com/auth/token', form({
-    client_id: clientId,
-    client_secret: clientSecret,
-    code: authorizationCode,
-    grant_type: 'authorization_code',
-  }));
+  const tokenRes = await fetch(
+    'https://appleid.apple.com/auth/token',
+    form({
+      client_id: clientId,
+      client_secret: clientSecret,
+      code: authorizationCode,
+      grant_type: 'authorization_code',
+    }),
+  );
   if (!tokenRes.ok) throw new Error(`Apple token exchange failed (${tokenRes.status})`);
   const { refresh_token: refreshToken } = await tokenRes.json();
   if (!refreshToken) throw new Error('Apple returned no refresh token');
 
-  const revokeRes = await fetch('https://appleid.apple.com/auth/revoke', form({
-    client_id: clientId,
-    client_secret: clientSecret,
-    token: refreshToken,
-    token_type_hint: 'refresh_token',
-  }));
+  const revokeRes = await fetch(
+    'https://appleid.apple.com/auth/revoke',
+    form({
+      client_id: clientId,
+      client_secret: clientSecret,
+      token: refreshToken,
+      token_type_hint: 'refresh_token',
+    }),
+  );
   if (!revokeRes.ok) throw new Error(`Apple revocation failed (${revokeRes.status})`);
 }
 

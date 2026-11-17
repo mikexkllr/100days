@@ -44,10 +44,17 @@ async function refused(tx: Tx, fn: (sp: Tx) => Promise<unknown>): Promise<void> 
 
 async function event(tx: Tx, author: string, visibility: string, extra: Record<string, unknown> = {}) {
   const id = crypto.randomUUID();
-  await tx`insert into public.events ${tx({
-    id, author, type: 'checkin', payload: tx.json({ habitId: 'gym' }), visibility,
-    client_ts: new Date().toISOString(), ...extra,
-  })}`;
+  await tx`insert into public.events ${
+    tx({
+      id,
+      author,
+      type: 'checkin',
+      payload: tx.json({ habitId: 'gym' }),
+      visibility,
+      client_ts: new Date().toISOString(),
+      ...extra,
+    })
+  }`;
   return id;
 }
 
@@ -72,8 +79,10 @@ Deno.test({
         await event(tx, alice, 'private');
         await refused(tx, (sp) => event(sp, bob, 'friends'));
         // Not more than a few minutes into the future.
-        await refused(tx, (sp) =>
-          event(sp, alice, 'friends', { client_ts: new Date(Date.now() + 3600e3).toISOString() }));
+        await refused(
+          tx,
+          (sp) => event(sp, alice, 'friends', { client_ts: new Date(Date.now() + 3600e3).toISOString() }),
+        );
         // The server's receipt time is the server's, whatever the client sends.
         const stamped = await event(tx, alice, 'friends', { created_at: '2020-01-01T00:00:00Z' });
         const [{ created_at }] = await tx`select created_at from public.events where id = ${stamped}`;
@@ -87,8 +96,11 @@ Deno.test({
         await as(tx, bob);
         assertEquals((await tx`select id from public.events where author = ${alice}`).length, 0);
         // ...and cannot make himself her friend behind her back.
-        await refused(tx, (sp) =>
-          sp`insert into public.friendships (requester, addressee, status) values (${bob}, ${alice}, 'accepted')`);
+        await refused(
+          tx,
+          (sp) =>
+            sp`insert into public.friendships (requester, addressee, status) values (${bob}, ${alice}, 'accepted')`,
+        );
 
         // Alice shares her invite code; Bob redeems it.
         await as(tx, alice);
@@ -117,6 +129,28 @@ Deno.test({
         // Nobody can read someone else's invite codes.
         await as(tx, bob);
         assertEquals((await tx`select code from public.invite_codes where owner = ${alice}`).length, 0);
+
+        // Nobody makes themselves premium or resets their own AI allowance.
+        await as(tx, alice);
+        await refused(tx, (sp) =>
+          sp`insert into public.subscriptions (user_id, product_id, platform, expires_at)
+             values (${alice}, 'hundred_days_premium', 'manual', now() + interval '1 year')`);
+        await refused(tx, (sp) => sp`insert into public.ai_usage (user_id, month) values (${alice}, now())`);
+        await refused(tx, (sp) => sp`select public.ai_record_usage(${alice}, -1000000)`);
+        const [{ my_ai_allowance: allowance }] = await tx`select public.my_ai_allowance()`;
+        assertEquals(allowance.tier, 'free');
+        assertEquals(allowance.used, 0);
+
+        // A subscription the server granted counts; an expired one does not.
+        await as(tx, null);
+        await tx`insert into public.subscriptions (user_id, product_id, platform, expires_at)
+                 values (${alice}, 'hundred_days_premium', 'manual', now() + interval '1 day')`;
+        await as(tx, alice);
+        assertEquals((await tx`select public.my_ai_allowance() as a`)[0].a.tier, 'premium');
+        await as(tx, null);
+        await tx`update public.subscriptions set expires_at = now() - interval '1 second' where user_id = ${alice}`;
+        await as(tx, alice);
+        assertEquals((await tx`select public.my_ai_allowance() as a`)[0].a.tier, 'free');
 
         throw new Rollback();
       });
