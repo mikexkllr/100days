@@ -86,7 +86,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final List<FeedEvent> nudges = await repository.store.eventsOf(
-      repository.did,
+      repository.userId,
       types: <String>{FeedEventType.nudge},
     );
     expect(nudges, hasLength(1));
@@ -104,26 +104,25 @@ void main() {
     expect(find.widgetWithText(FilledButton, 'Einladen'), findsOneWidget);
   });
 
-  testWidgets('a friend\'s feed is verifiable end to end',
+  testWidgets('a friend\'s streak is computed from their events, not claimed',
       (WidgetTester tester) async {
-    final Identity friend =
+    final String friend =
         await seedFriend(repository, name: 'Marcel', emoji: '🦍');
-    final List<FeedEvent> events =
-        await repository.store.eventsOf(friend.did);
-
+    final List<FeedEvent> events = await repository.store.eventsOf(friend);
     expect(events, isNotEmpty);
-    for (int i = 0; i < events.length; i++) {
-      final EventValidationResult result = await validateEvent(
-        events[i],
-        previous: i == 0 ? null : events[i - 1],
-      );
-      expect(result.isValid, isTrue);
-    }
 
-    // And the streak the UI shows is derived from those events, not claimed.
     final AppSnapshot snapshot = await repository.snapshot();
-    final UserProjection projection = snapshot.friends
-        .firstWhere((UserProjection f) => f.did == friend.did);
+    final UserProjection projection =
+        snapshot.friends.firstWhere((UserProjection f) => f.userId == friend);
     expect(projection.streak.current, 6);
+  });
+
+  testWidgets('an ended friendship takes their feed off this device',
+      (WidgetTester tester) async {
+    final String friend =
+        await seedFriend(repository, name: 'Marcel', emoji: '🦍');
+    await repository.removeFriend(friend);
+    expect(await repository.store.eventsOf(friend), isEmpty);
+    expect((await repository.snapshot()).friends, isEmpty);
   });
 }

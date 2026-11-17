@@ -108,7 +108,7 @@ class _ActivityRow extends ConsumerWidget {
           : () => Navigator.of(context).push<void>(
                 MaterialPageRoute<void>(
                   builder: (BuildContext context) =>
-                      FriendDetailScreen(did: item.author),
+                      FriendDetailScreen(userId: item.author),
                 ),
               ),
       border: item.kind == ActivityKind.relapse
@@ -189,7 +189,7 @@ class _ActivityRow extends ConsumerWidget {
                       _CheerButton(
                         item: item,
                         alreadyCheered:
-                            snapshot.cheeredEvents.contains(item.eventHash),
+                            snapshot.cheeredEvents.contains(item.eventId),
                       ),
                   ],
                 ),
@@ -235,7 +235,7 @@ class _CheerButton extends ConsumerWidget {
           : () => ref.read(appStateProvider.notifier).cheer(
                 item.author,
                 l10n.nudgeCheerRespect(item.emoji),
-                eventHash: item.eventHash,
+                eventId: item.eventId,
               ),
       style: TextButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),

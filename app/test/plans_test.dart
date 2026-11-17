@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hundred_core/hundred_core.dart';
 import 'package:hundred_days/data/app_repository.dart';
-import 'package:hundred_days/data/device_profile.dart';
-import 'package:hundred_days/state/providers.dart';
 import 'package:hundred_days/ui/nutrition/diary_view.dart';
 import 'package:hundred_days/ui/plan/plan_screen.dart';
 import 'package:hundred_days/ui/plan/workout_logger.dart';
-import 'package:hundred_days/ui/settings/ai_screen.dart';
 import 'package:hundred_days/ui/settings/privacy_screen.dart';
 
 import 'helpers.dart';
@@ -47,7 +43,7 @@ void main() {
   });
 
   Future<void> pump(WidgetTester tester, Widget child,
-      {DeviceProfile? device}) async {
+      ) async {
     tester.view.physicalSize = const Size(1080, 4200);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.resetPhysicalSize);
@@ -55,11 +51,6 @@ void main() {
     await tester.pumpWidget(wrapForTest(
       repository: repository,
       child: child,
-      overrides: device == null
-          ? const <Override>[]
-          : <Override>[
-              deviceProfileProvider.overrideWith((Ref ref) async => device),
-            ],
     ));
     await tester.pumpAndSettle();
   }
@@ -84,7 +75,7 @@ void main() {
     expect(find.textContaining('+50 % XP'), findsOneWidget);
   });
 
-  testWidgets('logging a meal by hand updates the day and stays sealed',
+  testWidgets('logging a meal by hand updates the day and stays private',
       (WidgetTester tester) async {
     await repository.startChallenge(_fitChallenge());
     await pump(tester, const DiaryScreen());
@@ -108,9 +99,9 @@ void main() {
     expect(int.parse(before) - int.parse(after), 640);
 
     final FeedEvent last =
-        (await repository.store.eventsOf(repository.did)).last;
-    expect(last.type, FeedEventType.private);
-    expect(last.payload.toString(), isNot(contains('Gulasch')));
+        (await repository.store.eventsOf(repository.userId)).last;
+    expect(last.type, FeedEventType.foodLogged);
+    expect(last.visibility, EventVisibility.private);
   });
 
   testWidgets('describing a meal recognises foods from the table',
@@ -192,94 +183,7 @@ void main() {
     );
   });
 
-  testWidgets('onboarding offers the smaller models, not the too-big ones',
-      (WidgetTester tester) async {
-    await repository.startChallenge(_fitChallenge());
-    await pump(
-      tester,
-      const SingleChildScrollView(
-        child: ModelSetupCard(showAlternatives: false),
-      ),
-      device: const DeviceProfile(
-        model: 'Galaxy A55',
-        ramMb: 5700,
-        supportsLocalAi: true,
-      ),
-    );
-
-    expect(
-      find.descendant(
-        of: find.byKey(const Key('ai-recommended')),
-        matching: find.text('Qwen3.5 2B'),
-      ),
-      findsOneWidget,
-    );
-    expect(find.byKey(const Key('ai-option-qwen3.5-0.8b-q4')), findsOneWidget);
-    // Larger and too-big models stay out of onboarding.
-    expect(find.byKey(const Key('ai-option-gemma-4-e2b-qat')), findsNothing);
-    expect(find.byKey(const Key('ai-option-gemma-4-e2b-qat-mobile')),
-        findsNothing);
-  });
-
-  testWidgets('a small phone gets no push, only an optional model',
-      (WidgetTester tester) async {
-    await repository.startChallenge(_fitChallenge());
-    await pump(
-      tester,
-      const SingleChildScrollView(
-        child: ModelSetupCard(showAlternatives: false),
-      ),
-      device: const DeviceProfile(
-        model: 'Galaxy A15',
-        ramMb: 3700,
-        supportsLocalAi: true,
-      ),
-    );
-
-    expect(find.byKey(const Key('ai-no-recommendation')), findsOneWidget);
-    expect(find.byKey(const Key('ai-recommended')), findsNothing);
-    expect(find.byKey(const Key('ai-option-qwen3.5-0.8b-q4')), findsOneWidget);
-  });
-
-  testWidgets('the AI card names the phone and the model that fits it',
-      (WidgetTester tester) async {
-    await repository.startChallenge(_fitChallenge());
-    await pump(
-      tester,
-      const SingleChildScrollView(child: ModelSetupCard()),
-      device: const DeviceProfile(
-        model: 'Pixel 8',
-        ramMb: 7800,
-        supportsLocalAi: true,
-      ),
-    );
-
-    expect(find.text('Pixel 8 · 8 GB RAM'), findsOneWidget);
-    expect(
-      find.descendant(
-        of: find.byKey(const Key('ai-recommended')),
-        matching: find.text('Gemma 4 E2B'),
-      ),
-      findsOneWidget,
-    );
-    expect(find.textContaining('Jetzt laden (2.6 GB)'), findsOneWidget);
-
-    // Smaller models are offered next to the proposal, ready to download.
-    expect(find.text('Kleiner und schneller'), findsOneWidget);
-    for (final String id in <String>[
-      'gemma-4-e2b-qat-mobile',
-      'qwen3.5-2b-q4',
-      'qwen3.5-0.8b-q4',
-    ]) {
-      expect(find.byKey(Key('ai-option-$id')), findsOneWidget, reason: id);
-    }
-    // The one that does not fit is listed in settings, marked.
-    expect(find.byKey(const Key('ai-option-gemma-4-e4b-qat-mobile')),
-        findsOneWidget);
-    expect(find.text('ZU GROß'), findsOneWidget);
-  });
-
-  testWidgets('hiding a habit seals its check-ins from then on',
+  testWidgets('hiding a habit keeps its check-ins private from then on',
       (WidgetTester tester) async {
     await repository.saveProfile(
       displayName: 'Mia',
@@ -304,9 +208,12 @@ void main() {
     );
 
     final List<FeedEvent> raw =
-        await repository.store.eventsOf(repository.did);
-    expect(raw.last.type, FeedEventType.private);
-    final UserProjection asFriend = projectUser(repository.did, raw);
+        await repository.store.eventsOf(repository.userId);
+    expect(raw.last.visibility, EventVisibility.private);
+    final UserProjection asFriend = projectUser(
+      repository.userId,
+      raw.where((FeedEvent e) => e.visibility == EventVisibility.friends).toList(),
+    );
     expect(asFriend.challenge!.habits.map((Habit h) => h.id), <String>['gym']);
     expect(asFriend.challenge!.goal.statement, isEmpty);
     expect(asFriend.profile.goalStatement, isNull);

@@ -1,13 +1,12 @@
 name: hundred_days
 description: >-
-  100 Tage und weit darüber hinaus — eine offene, lokal-first Challenge-App
-  mit Peer-to-Peer-Sync, selbstverwalteter Identität und Coach auf dem Gerät.
+  100 days and far beyond: an open-source challenge app with friends,
+  leagues, training and nutrition plans, and an AI coach.
 publish_to: none
 version: 0.1.0+1
 
 environment:
-  # llamadart, the on-device inference engine, needs Dart 3.10.7.
-  sdk: ">=3.10.7 <4.0.0"
+  sdk: ">=3.10.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -29,12 +28,14 @@ dependencies:
   mobile_scanner: ^7.5.0
   share_plus: ^10.0.2
   url_launcher: ^6.3.0
-  # Which phone this is and how much memory it has, to pick a model that fits.
-  device_info_plus: 12.4.0
-  # llama.cpp for Dart: runs the GGUF model on the device. Pinned exactly —
-  # it moves fast, and its build hook fetches native runtimes per version.
-  llamadart: 0.13.2
-  # Verifies a downloaded model against its published SHA-256.
+  # The backend: auth, the event feed, friends, households, realtime.
+  supabase_flutter: ^2.12.0
+  # Native sign-in sheets; the ID token goes to Supabase Auth.
+  google_sign_in: ^7.2.0
+  sign_in_with_apple: ^8.2.0
+  # Invite links (hundreddays://invite/CODE) that open the app.
+  app_links: ^7.2.2
+  # The nonce that binds a sign-in to this request.
   crypto: ^3.0.3
   # The streak on the home screen: hands the native widget its data and the
   # flame, drawn by the same painter as in the app.
@@ -69,15 +70,3 @@ flutter:
           weight: 700
         - asset: assets/fonts/Manrope-ExtraBold.ttf
           weight: 800
-
-# Only the llama.cpp runtime: the app loads GGUF models and nothing else, and
-# leaving out LiteRT-LM keeps the APK tens of megabytes smaller. On Android
-# only the CPU backend: llama.cpp's Vulkan path is experimental there and
-# would add 26 MB that the app never uses.
-hooks:
-  user_defines:
-    llamadart:
-      llamadart_native_runtimes: [llama_cpp]
-      llamadart_native_backends:
-        platforms:
-          android: [cpu]

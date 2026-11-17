@@ -1,15 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:hundred_core/hundred_core.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
-/// SQLite-backed replicated log.
+/// The device's copy of every feed it can read, and the outbox of the
+/// user's own events that the server has not confirmed yet.
 ///
-/// The primary key is `(author, seq)`, which makes the "one writer per feed,
-/// no gaps" rule a database constraint rather than a convention: a bug in the
-/// sync layer cannot silently produce a forked feed.
+/// Same columns as the server's `events` table. A row without `server_seq`
+/// is pending; the sync replaces it with the confirmed copy once sent.
 class SqliteFeedStore implements FeedStore {
   SqliteFeedStore._(this._db);
 
@@ -19,153 +20,76 @@ class SqliteFeedStore implements FeedStore {
 
   static const int _schemaVersion = 1;
 
+  /// The cache of the account-based app. The peer-to-peer app before it kept
+  /// a signed log in `hundred_days_feed.db`; nothing in it belongs to an
+  /// account, so it is removed rather than migrated.
+  static const String _fileName = 'hundred_days_cache.db';
+  static const String _legacyFileName = 'hundred_days_feed.db';
+
   static Future<SqliteFeedStore> open({String? directory}) async {
     final base = directory ?? await getDatabasesPath();
+    final legacy = File(p.join(base, _legacyFileName));
+    if (legacy.existsSync()) await legacy.delete();
+
     final db = await openDatabase(
-      p.join(base, 'hundred_days_feed.db'),
+      p.join(base, _fileName),
       version: _schemaVersion,
-      onConfigure: (Database db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: (Database db, int version) async {
         await db.execute('''
           CREATE TABLE events (
+            id          TEXT PRIMARY KEY,
             author      TEXT    NOT NULL,
-            seq         INTEGER NOT NULL,
-            prev        TEXT,
-            ts          TEXT    NOT NULL,
             type        TEXT    NOT NULL,
             payload     TEXT    NOT NULL,
-            hash        TEXT    NOT NULL,
-            sig         TEXT    NOT NULL,
-            received_at TEXT    NOT NULL,
-            PRIMARY KEY (author, seq)
+            visibility  TEXT    NOT NULL,
+            client_ts   TEXT    NOT NULL,
+            created_at  TEXT,
+            server_seq  INTEGER
           )
         ''');
         await db.execute(
-            'CREATE UNIQUE INDEX idx_events_hash ON events (hash)');
-        await db.execute('CREATE INDEX idx_events_ts ON events (ts DESC)');
-        await db.execute('''
-          CREATE TABLE follows (
-            did      TEXT PRIMARY KEY,
-            name     TEXT,
-            emoji    TEXT,
-            added_at TEXT NOT NULL
-          )
-        ''');
-        await db.execute('''
-          CREATE TABLE kv (
-            k TEXT PRIMARY KEY,
-            v TEXT NOT NULL
-          )
-        ''');
+            'CREATE INDEX idx_events_author ON events (author, client_ts)');
+        await db.execute('CREATE INDEX idx_events_ts ON events (client_ts DESC)');
+        await db.execute('CREATE INDEX idx_events_seq ON events (server_seq)');
       },
     );
     return SqliteFeedStore._(db);
   }
 
   @override
-  Future<void> append(FeedEvent event) async {
-    final head = await this.head(event.author);
-    if (event.seq != (head?.seq ?? 0) + 1) {
-      throw FeedAppendException(
-        'Expected seq ${(head?.seq ?? 0) + 1} for ${event.author}, '
-        'got ${event.seq}',
-      );
-    }
-    await _db.insert(
-      'events',
-      <String, Object?>{
-        'author': event.author,
-        'seq': event.seq,
-        'prev': event.prevHash,
-        'ts': event.timestamp.toUtc().toIso8601String(),
-        'type': event.type,
-        'payload': jsonEncode(event.payload),
-        'hash': event.hash,
-        'sig': event.signature,
-        'received_at': DateTime.now().toUtc().toIso8601String(),
-      },
-      conflictAlgorithm: ConflictAlgorithm.abort,
-    );
+  Future<void> put(FeedEvent event) async {
+    await _db.insert('events', _encode(event),
+        conflictAlgorithm: ConflictAlgorithm.replace);
     _changes.add(event);
+  }
+
+  @override
+  Future<void> putAll(Iterable<FeedEvent> events) async {
+    final list = events.toList();
+    if (list.isEmpty) return;
+    final batch = _db.batch();
+    for (final event in list) {
+      batch.insert('events', _encode(event),
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    await batch.commit(noResult: true);
+    list.forEach(_changes.add);
   }
 
   @override
   Stream<FeedEvent> get changes => _changes.stream;
 
   @override
-  Future<FeedEvent?> eventAt(String did, int seq) async {
-    final rows = await _db.query(
-      'events',
-      where: 'author = ? AND seq = ?',
-      whereArgs: <Object?>[did, seq],
-      limit: 1,
-    );
-    return rows.isEmpty ? null : _decode(rows.first);
-  }
-
-  @override
-  Future<List<FeedEvent>> eventsAfter(
-    String did,
-    int fromSeqExclusive, {
-    int limit = 500,
-  }) async {
-    final rows = await _db.query(
-      'events',
-      where: 'author = ? AND seq > ?',
-      whereArgs: <Object?>[did, fromSeqExclusive],
-      orderBy: 'seq ASC',
-      limit: limit,
-    );
-    return rows.map(_decode).toList();
-  }
-
-  @override
-  Future<List<FeedEvent>> eventsOf(String did, {Set<String>? types}) async {
+  Future<List<FeedEvent>> eventsOf(String author, {Set<String>? types}) async {
     final rows = await _db.query(
       'events',
       where: types == null
           ? 'author = ?'
-          : 'author = ? AND type IN (${List<String>.filled(
-              types.length, '?').join(',')})',
-      whereArgs: <Object?>[did, ...?types],
-      orderBy: 'seq ASC',
+          : 'author = ? AND type IN (${List<String>.filled(types.length, '?').join(',')})',
+      whereArgs: <Object?>[author, ...?types],
+      orderBy: 'client_ts ASC, id ASC',
     );
     return rows.map(_decode).toList();
-  }
-
-  @override
-  Future<FeedHead?> head(String did) async {
-    final rows = await _db.query(
-      'events',
-      columns: <String>['author', 'seq', 'hash'],
-      where: 'author = ?',
-      whereArgs: <Object?>[did],
-      orderBy: 'seq DESC',
-      limit: 1,
-    );
-    if (rows.isEmpty) return null;
-    return FeedHead(
-      did: rows.first['author']! as String,
-      seq: rows.first['seq']! as int,
-      hash: rows.first['hash']! as String,
-    );
-  }
-
-  @override
-  Future<List<FeedHead>> heads() async {
-    final rows = await _db.rawQuery('''
-      SELECT e.author, e.seq, e.hash
-      FROM events e
-      JOIN (SELECT author, MAX(seq) AS seq FROM events GROUP BY author) m
-        ON e.author = m.author AND e.seq = m.seq
-    ''');
-    return rows
-        .map((Map<String, Object?> r) => FeedHead(
-              did: r['author']! as String,
-              seq: r['seq']! as int,
-              hash: r['hash']! as String,
-            ))
-        .toList();
   }
 
   @override
@@ -176,61 +100,44 @@ class SqliteFeedStore implements FeedStore {
           ? null
           : 'type IN (${List<String>.filled(types.length, '?').join(',')})',
       whereArgs: types?.toList(),
-      orderBy: 'ts DESC',
+      orderBy: 'client_ts DESC, id DESC',
       limit: limit,
     );
     return rows.map(_decode).toList();
   }
 
-  /// Feeds we replicate. The local user is always included by the caller.
-  Future<List<FollowRecord>> follows() async {
-    final rows = await _db.query('follows', orderBy: 'added_at ASC');
-    return rows
-        .map((Map<String, Object?> r) => FollowRecord(
-              did: r['did']! as String,
-              name: r['name'] as String?,
-              emoji: r['emoji'] as String?,
-              addedAt: DateTime.parse(r['added_at']! as String),
-            ))
-        .toList();
+  @override
+  Future<Set<String>> authors() async {
+    final rows = await _db.rawQuery('SELECT DISTINCT author FROM events');
+    return rows.map((Map<String, Object?> r) => r['author']! as String).toSet();
   }
 
-  Future<void> addFollow(String did, {String? name, String? emoji}) =>
-      _db.insert(
-        'follows',
-        <String, Object?>{
-          'did': did,
-          'name': name,
-          'emoji': emoji,
-          'added_at': DateTime.now().toUtc().toIso8601String(),
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-
-  Future<void> removeFollow(String did) async {
-    await _db.delete('follows', where: 'did = ?', whereArgs: <Object?>[did]);
-    // Drop their history too: unfollowing has to actually delete, or the
-    // "your data stays on your device" promise is only half true.
-    await _db.delete('events', where: 'author = ?', whereArgs: <Object?>[did]);
+  @override
+  Future<List<FeedEvent>> pending(String author) async {
+    final rows = await _db.query(
+      'events',
+      where: 'author = ? AND server_seq IS NULL',
+      whereArgs: <Object?>[author],
+      orderBy: 'client_ts ASC, id ASC',
+    );
+    return rows.map(_decode).toList();
   }
 
-  Future<String?> getValue(String key) async {
-    final rows = await _db
-        .query('kv', where: 'k = ?', whereArgs: <Object?>[key], limit: 1);
-    return rows.isEmpty ? null : rows.first['v'] as String?;
+  @override
+  Future<int> cursor() async {
+    final rows =
+        await _db.rawQuery('SELECT MAX(server_seq) AS seq FROM events');
+    return (rows.first['seq'] as int?) ?? 0;
   }
 
-  Future<void> setValue(String key, String value) => _db.insert(
-        'kv',
-        <String, Object?>{'k': key, 'v': value},
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+  @override
+  Future<void> removeAuthor(String author) async {
+    await _db.delete('events', where: 'author = ?', whereArgs: <Object?>[author]);
+  }
 
-  /// Wipes everything. Used by "Alles löschen" in settings.
-  Future<void> wipe() async {
+  @override
+  Future<void> clear() async {
     await _db.delete('events');
-    await _db.delete('follows');
-    await _db.delete('kv');
   }
 
   @override
@@ -239,29 +146,34 @@ class SqliteFeedStore implements FeedStore {
     await _db.close();
   }
 
-  FeedEvent _decode(Map<String, Object?> row) => FeedEvent(
-        author: row['author']! as String,
-        seq: row['seq']! as int,
-        prevHash: row['prev'] as String?,
-        timestamp: DateTime.parse(row['ts']! as String).toUtc(),
-        type: row['type']! as String,
-        payload: Map<String, dynamic>.from(
-            jsonDecode(row['payload']! as String) as Map),
-        hash: row['hash']! as String,
-        signature: row['sig']! as String,
+  Map<String, Object?> _encode(FeedEvent event) => <String, Object?>{
+        'id': event.id,
+        'author': event.author,
+        'type': event.type,
+        'payload': jsonEncode(event.payload),
+        'visibility': event.visibility.name,
+        'client_ts': sortableTimestamp(event.timestamp),
+        'created_at': event.createdAt?.toUtc().toIso8601String(),
+        'server_seq': event.serverSeq,
+      };
+
+  FeedEvent _decode(Map<String, Object?> row) => FeedEvent.fromRow(
+        <String, dynamic>{
+          ...row,
+          'payload': jsonDecode(row['payload']! as String),
+        },
       );
 }
 
-class FollowRecord {
-  const FollowRecord({
-    required this.did,
-    required this.addedAt,
-    this.name,
-    this.emoji,
-  });
-
-  final String did;
-  final DateTime addedAt;
-  final String? name;
-  final String? emoji;
+/// A UTC timestamp with all six fractional digits, so that comparing the
+/// text compares the time. `toIso8601String` drops trailing zero
+/// microseconds, and `12.5Z` would sort after `12.500001Z`.
+String sortableTimestamp(DateTime time) {
+  final utc = time.toUtc();
+  String two(int n) => n.toString().padLeft(2, '0');
+  final fraction =
+      (utc.millisecond * 1000 + utc.microsecond).toString().padLeft(6, '0');
+  return '${utc.year.toString().padLeft(4, '0')}-${two(utc.month)}-'
+      '${two(utc.day)}T${two(utc.hour)}:${two(utc.minute)}:${two(utc.second)}'
+      '.${fraction}Z';
 }

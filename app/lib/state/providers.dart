@@ -1,41 +1,116 @@
 import 'dart:async';
-
-import 'package:flutter/foundation.dart' show debugPrint;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hundred_core/hundred_core.dart';
-
 import 'dart:ui';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hundred_core/hundred_core.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../config/backend_config.dart';
 import '../data/app_repository.dart';
-import '../data/device_profile.dart';
-import '../data/lan_transport.dart';
-import '../data/llama_runtime.dart';
+import '../data/auth_service.dart';
+import '../data/feed_sync.dart';
 import '../data/locale_store.dart';
-import '../data/llm_runtime.dart';
-import '../data/model_download.dart';
 import '../data/notifications.dart';
+import '../data/social_backend.dart';
+import '../data/sqlite_feed_store.dart';
 import '../data/streak_widget.dart';
-import '../data/sync_service.dart';
 import '../l10n/l10n.dart';
 import '../l10n/prompt_l10n.dart';
 
-/// Overridden in `main()` once the database and keystore are open.
+/// The backend this install talks to. Overridden in `main()`.
+final Provider<BackendConfig> backendConfigProvider =
+    Provider<BackendConfig>((Ref ref) => BackendConfig.defaults);
+
+/// The Supabase client, once `Supabase.initialize` ran in `main()`.
+final Provider<SupabaseClient> supabaseClientProvider =
+    Provider<SupabaseClient>((Ref ref) => Supabase.instance.client);
+
+final Provider<AuthService> authServiceProvider = Provider<AuthService>(
+  (Ref ref) => AuthService(
+    ref.watch(supabaseClientProvider),
+    ref.watch(backendConfigProvider),
+  ),
+);
+
+/// The signed-in account's e-mail address, for the settings screen. Null
+/// when Apple hides it, or off the platform (tests).
+final Provider<String?> accountEmailProvider = Provider<String?>((Ref ref) {
+  ref.watch(signedInUserProvider);
+  try {
+    return ref.watch(supabaseClientProvider).auth.currentUser?.email;
+  } on Object {
+    return null;
+  }
+});
+
+/// The first name the identity provider reported, to prefill the profile.
+final Provider<String?> accountGivenNameProvider = Provider<String?>((Ref ref) {
+  ref.watch(signedInUserProvider);
+  try {
+    final Map<String, dynamic>? meta =
+        ref.watch(supabaseClientProvider).auth.currentUser?.userMetadata;
+    final String? name = (meta?['given_name'] ??
+        (meta?['full_name'] as String?)?.split(' ').first ??
+        (meta?['name'] as String?)?.split(' ').first) as String?;
+    return name == null || name.isEmpty ? null : name;
+  } on Object {
+    return null;
+  }
+});
+
+/// The signed-in account's id, or null while signed out.
+final StreamProvider<String?> signedInUserProvider =
+    StreamProvider<String?>((Ref ref) async* {
+  final SupabaseClient client = ref.watch(supabaseClientProvider);
+  yield client.auth.currentUser?.id;
+  yield* client.auth.onAuthStateChange
+      .map((AuthState state) => state.session?.user.id)
+      .distinct();
+});
+
+/// The signed-in account's data: its local store, its friends, its sync.
+/// Null while signed out. Rebuilt — and the previous one closed — when the
+/// account changes.
+final FutureProvider<AppRepository?> sessionRepositoryProvider =
+    FutureProvider<AppRepository?>((Ref ref) async {
+  final String? userId = await ref.watch(signedInUserProvider.future);
+  if (userId == null) return null;
+  final SupabaseClient client = ref.watch(supabaseClientProvider);
+  final SqliteFeedStore store = await SqliteFeedStore.open();
+  final SupabaseFeedSync sync =
+      SupabaseFeedSync(client: client, store: store, userId: userId);
+  final AppRepository repository = AppRepository(
+    userId: userId,
+    store: store,
+    social: SupabaseSocialBackend(client, userId: userId),
+    sync: sync,
+  );
+  // A store left over from another account on this phone is not ours.
+  final Set<String> authors = await store.authors();
+  if (authors.isNotEmpty && !authors.contains(userId)) {
+    await store.clear();
+  }
+  ref.onDispose(() => unawaited(repository.close()));
+  sync.start();
+  unawaited(repository.syncNow());
+  return repository;
+});
+
+/// The repository the screens use. Only read below the sign-in gate, where
+/// [sessionRepositoryProvider] has produced one; tests override it.
 final Provider<AppRepository> repositoryProvider = Provider<AppRepository>(
-  (Ref ref) => throw UnimplementedError('repositoryProvider not initialised'),
+  (Ref ref) {
+    final AppRepository? repository =
+        ref.watch(sessionRepositoryProvider).valueOrNull;
+    if (repository == null) throw StateError('Nobody is signed in');
+    return repository;
+  },
 );
 
 final Provider<NotificationService> notificationsProvider =
     Provider<NotificationService>(
   (Ref ref) => throw UnimplementedError('notificationsProvider not initialised'),
 );
-
-final Provider<SyncService?> syncServiceProvider =
-    Provider<SyncService?>((Ref ref) => null);
-
-/// The LAN transport, when one is running. Null on platforms or networks
-/// where it could not start.
-final Provider<LanTransport?> lanTransportProvider =
-    Provider<LanTransport?>((Ref ref) => null);
 
 /// The streak on the home screen. Talks to a platform plugin, so widget tests
 /// leave it alone: off Android and iOS it does nothing.
@@ -46,9 +121,6 @@ final Provider<StreakWidgetSync> streakWidgetProvider =
 /// launcher that supports it, and no widget there yet.
 final FutureProvider<bool> canPinStreakWidgetProvider =
     FutureProvider<bool>((Ref ref) => ref.watch(streakWidgetProvider).canPin());
-
-final Provider<LocalModelManager> modelManagerProvider =
-    Provider<LocalModelManager>((Ref ref) => LocalModelManager());
 
 final Provider<LocaleStore> localeStoreProvider = Provider<LocaleStore>(
   (Ref ref) => throw UnimplementedError('localeStoreProvider not initialised'),
@@ -82,186 +154,38 @@ final Provider<Locale> effectiveLocaleProvider = Provider<Locale>((Ref ref) {
   return kSupportedLocales.first;
 });
 
-/// The phone the app runs on. Falls back to [DeviceProfile.unknown] where
-/// the platform will not say (tests, desktop).
-final FutureProvider<DeviceProfile> deviceProfileProvider =
-    FutureProvider<DeviceProfile>((Ref ref) => DeviceProfile.detect());
-
-/// The model file on disk, if any. Invalidated after a download or removal.
-final FutureProvider<LocalModelSpec?> installedModelProvider =
-    FutureProvider<LocalModelSpec?>((Ref ref) async {
-  try {
-    return await ref.watch(modelManagerProvider).installedModel();
-  } on Object {
-    // No file system to look at (widget tests): no model.
-    return null;
-  }
-});
-
-/// The loaded on-device model, shared by the coach and the nutrition
-/// assistant — loading it twice would cost twice the memory. Null when no
-/// model is installed or it fails to load.
-final FutureProvider<LocalLlmRuntime?> llmRuntimeProvider =
-    FutureProvider<LocalLlmRuntime?>((Ref ref) async {
-  final spec = await ref.watch(installedModelProvider.future);
-  if (spec == null) return null;
-  final file = await ref.read(modelManagerProvider).fileFor(spec);
-  if (file == null) return null;
-  final runtime = LlamaCppRuntime(spec: spec, file: file);
-  ref.onDispose(runtime.dispose);
-  try {
-    await runtime.load();
-  } on Object catch (error) {
-    // A model that will not load must never take the app down with it.
-    debugPrint('Local model failed to load: $error');
-    return null;
-  }
-  return runtime;
-});
+/// The language model behind the coach, the diary's estimates and the meal
+/// planner. Unavailable until the AI gateway is wired in.
+final Provider<LlmClient> llmClientProvider =
+    Provider<LlmClient>((Ref ref) => const UnavailableLlmClient());
 
 /// The coach the app is currently using.
 ///
-/// Falls back to the rule-based engine unless a model is installed and
-/// loads, so the app is never in a state where it cannot say something
-/// useful.
+/// Falls back to the rule-based engine whenever no model is reachable, so
+/// the app is never in a state where it cannot say something useful.
 final FutureProvider<CoachEngine> coachEngineProvider =
     FutureProvider<CoachEngine>((Ref ref) async {
-  final runtime = await ref.watch(llmRuntimeProvider.future);
-  if (runtime == null) return const HeuristicCoach();
-  // Small models help with the diary, where every answer is checked; the
-  // coach's line is shown as it comes, so only models that stay on topic
-  // write it.
-  final spec = await ref.watch(installedModelProvider.future);
-  if (spec == null || !spec.writesCoach) return const HeuristicCoach();
-
+  final LlmClient llm = ref.watch(llmClientProvider);
+  if (!llm.isReady) return const HeuristicCoach();
   // The prompt is written in the user's language, so the coach has to be
   // rebuilt when that changes.
   final locale = ref.watch(effectiveLocaleProvider);
   final l10n = await AppLocalizations.delegate.load(locale);
-  return LocalLlmCoach(
-    runtime: runtime,
-    prompts: LocalizedCoachPrompts(l10n),
-    // A phone CPU writes ten to twenty tokens a second.
-    timeout: const Duration(seconds: 40),
-  );
+  return LlmCoach(llm: llm, prompts: LocalizedCoachPrompts(l10n));
 });
 
 /// Meal estimates, suggestions and target proposals — or null without a
 /// model, in which case the diary works from the food table alone.
 final FutureProvider<NutritionAssistant?> nutritionAssistantProvider =
     FutureProvider<NutritionAssistant?>((Ref ref) async {
-  final runtime = await ref.watch(llmRuntimeProvider.future);
-  if (runtime == null) return null;
+  final LlmClient llm = ref.watch(llmClientProvider);
+  if (!llm.isReady) return null;
   final locale = ref.watch(effectiveLocaleProvider);
   final l10n = await AppLocalizations.delegate.load(locale);
   return NutritionAssistant(
-    runtime: runtime,
+    llm: llm,
     prompts: LocalizedNutritionPrompts(l10n),
   );
-});
-
-enum DownloadPhase { idle, downloading, verifying, done, failed, cancelled }
-
-class ModelDownloadState {
-  const ModelDownloadState({
-    this.phase = DownloadPhase.idle,
-    this.spec,
-    this.received = 0,
-    this.total = 0,
-    this.error,
-  });
-
-  final DownloadPhase phase;
-  final LocalModelSpec? spec;
-  final int received;
-  final int total;
-  final Object? error;
-
-  bool get isActive =>
-      phase == DownloadPhase.downloading || phase == DownloadPhase.verifying;
-
-  double? get fraction => total <= 0 ? null : (received / total).clamp(0, 1);
-}
-
-/// One model download at a time, started from onboarding or settings and
-/// running while the user does other things.
-class ModelDownloadController extends Notifier<ModelDownloadState> {
-  ModelDownloader? _active;
-
-  @override
-  ModelDownloadState build() => const ModelDownloadState();
-
-  Future<void> start(LocalModelSpec spec) async {
-    if (state.isActive) return;
-    final downloader = _active = ModelDownloader();
-    state = ModelDownloadState(
-      phase: DownloadPhase.downloading,
-      spec: spec,
-      total: spec.sizeBytes,
-    );
-    try {
-      final manager = ref.read(modelManagerProvider);
-      await downloader.download(
-        spec,
-        await manager.targetFile(spec),
-        onProgress: (int received, int total) {
-          // Repainting per network chunk would be thousands of frames.
-          final step = total ~/ 400;
-          if (received - state.received < step && received < total) return;
-          state = ModelDownloadState(
-            phase: DownloadPhase.downloading,
-            spec: spec,
-            received: received,
-            total: total,
-          );
-        },
-        onVerifying: () => state = ModelDownloadState(
-          phase: DownloadPhase.verifying,
-          spec: spec,
-          received: spec.sizeBytes,
-          total: spec.sizeBytes,
-        ),
-      );
-      // One model at a time: the new one replaces whatever was there.
-      await manager.keepOnly(spec);
-      state = ModelDownloadState(
-        phase: DownloadPhase.done,
-        spec: spec,
-        received: spec.sizeBytes,
-        total: spec.sizeBytes,
-      );
-      ref.invalidate(installedModelProvider);
-    } on ModelDownloadCancelled {
-      state = ModelDownloadState(phase: DownloadPhase.cancelled, spec: spec);
-    } on Object catch (error) {
-      state = ModelDownloadState(
-        phase: DownloadPhase.failed,
-        spec: spec,
-        error: error,
-      );
-    } finally {
-      _active = null;
-    }
-  }
-
-  void cancel() => _active?.cancel();
-}
-
-final NotifierProvider<ModelDownloadController, ModelDownloadState>
-    modelDownloadProvider =
-    NotifierProvider<ModelDownloadController, ModelDownloadState>(
-        ModelDownloadController.new);
-
-/// Strangers who connected and want in.
-final StreamProvider<List<FriendRequest>> friendRequestsProvider =
-    StreamProvider<List<FriendRequest>>((Ref ref) async* {
-  final sync = ref.watch(syncServiceProvider);
-  if (sync == null) {
-    yield const <FriendRequest>[];
-    return;
-  }
-  yield sync.friendRequests;
-  yield* sync.friendRequestChanges;
 });
 
 /// The app's single source of truth for the UI.
@@ -281,9 +205,16 @@ class AppController extends AsyncNotifier<AppSnapshot> {
         ref.invalidateSelf();
       });
     });
+    // A friend request or an accepted invite arrives through the server.
+    final social = repository.social.changes.listen((void _) {
+      unawaited(repository
+          .syncNow()
+          .then((SyncReport _) => ref.invalidateSelf(), onError: (Object _) {}));
+    });
     ref.onDispose(() {
       _debounce?.cancel();
       subscription.cancel();
+      social.cancel();
     });
 
     return repository.snapshot();
@@ -384,19 +315,10 @@ class AppController extends AsyncNotifier<AppSnapshot> {
     await refresh();
   }
 
-  Future<void> acceptFriendRequest(FriendRequest request) async {
-    ref.read(syncServiceProvider)?.resolveRequest(request.did, accepted: true);
-    await _repository.addFriend(Invite(
-      did: request.did,
-      displayName: request.displayName,
-      avatarEmoji: request.avatarEmoji,
-    ));
+  Future<void> respondToRequest(FriendLink request, {required bool accept}) async {
+    await _repository.respondToRequest(request.userId, accept: accept);
     await refresh();
-    unawaited(syncNow());
   }
-
-  void declineFriendRequest(FriendRequest request) =>
-      ref.read(syncServiceProvider)?.resolveRequest(request.did, accepted: false);
 
   Future<void> useStreakFreeze() async {
     final day = state.valueOrNull?.today ?? DayKey.today();
@@ -411,48 +333,40 @@ class AppController extends AsyncNotifier<AppSnapshot> {
     await refresh();
   }
 
-  Future<void> nudge(String targetDid, String text) async {
-    await _repository.nudge(targetDid, text);
+  Future<void> nudge(String targetId, String text) async {
+    await _repository.nudge(targetId, text);
     await refresh();
   }
 
   Future<void> cheer(
-    String targetDid,
+    String targetId,
     String text, {
-    String? eventHash,
+    String? eventId,
   }) async {
-    await _repository.cheer(targetDid, text, eventHash: eventHash);
+    await _repository.cheer(targetId, text, eventId: eventId);
     await refresh();
   }
 
-  Future<void> addFriend(Invite invite) async {
-    await _repository.addFriend(invite);
-    await refresh();
-    unawaited(_syncWith(invite));
-  }
-
-  Future<void> removeFriend(String did) async {
-    await _repository.removeFriend(did);
+  /// Redeems a friend's invite. Throws [InviteRejection].
+  Future<void> redeemInvite(String code) async {
+    await _repository.redeemInvite(code);
     await refresh();
   }
 
-  Future<void> syncNow() async {
-    await ref.read(syncServiceProvider)?.syncNow();
+  Future<void> sendFriendRequest(String userId) async {
+    await _repository.sendFriendRequest(userId);
     await refresh();
   }
 
-  Future<void> _syncWith(Invite invite) async {
-    final sync = ref.read(syncServiceProvider);
-    if (sync == null) return;
-    for (final address in invite.addresses) {
-      try {
-        await sync.syncWithAddress('lan', address);
-      } on Object {
-        // The address in the invite goes stale as soon as the peer's DHCP
-        // lease changes; discovery will find them on the next round.
-      }
-    }
+  Future<void> removeFriend(String userId) async {
+    await _repository.removeFriend(userId);
     await refresh();
+  }
+
+  Future<SyncReport> syncNow() async {
+    final SyncReport report = await _repository.syncNow();
+    await refresh();
+    return report;
   }
 }
 
@@ -469,8 +383,8 @@ final FutureProvider<CoachDirective?> briefingProvider =
   return const HeuristicCoach().dailyBriefing(snapshot.toCoachContext());
 });
 
-/// The same moment phrased by the on-device model, when there is one. Takes
-/// seconds on a phone; the card swaps it in once it arrives.
+/// The same moment phrased by the language model, when one is reachable.
+/// Takes a moment; the card swaps it in once it arrives.
 final FutureProvider<CoachDirective?> modelBriefingProvider =
     FutureProvider<CoachDirective?>((Ref ref) async {
   final snapshot = await ref.watch(appStateProvider.future);
@@ -483,8 +397,8 @@ final FutureProvider<CoachDirective?> modelBriefingProvider =
 
 /// Ready-made jabs for friends who have not moved today.
 ///
-/// Templates, not the model: a phone writes a sentence in seconds, and a
-/// list of friends must not sit empty while it does — once per friend.
+/// Templates, not the model: a list of friends must not sit empty while a
+/// model writes a sentence for each of them.
 final FutureProvider<List<NudgeSuggestion>> nudgeSuggestionsProvider =
     FutureProvider<List<NudgeSuggestion>>((Ref ref) async {
   final snapshot = await ref.watch(appStateProvider.future);
@@ -492,9 +406,9 @@ final FutureProvider<List<NudgeSuggestion>> nudgeSuggestionsProvider =
   return const HeuristicCoach().nudgeSuggestions(snapshot.toCoachContext());
 });
 
-/// Live sync activity for the status strip.
-final StreamProvider<SyncEvent> syncEventsProvider =
-    StreamProvider<SyncEvent>((Ref ref) {
-  final sync = ref.watch(syncServiceProvider);
-  return sync?.events ?? const Stream<SyncEvent>.empty();
+/// What the last sync did, for the settings screen.
+final StreamProvider<SyncReport> syncReportsProvider =
+    StreamProvider<SyncReport>((Ref ref) {
+  final AppRepository repository = ref.watch(repositoryProvider);
+  return repository.sync.reports;
 });

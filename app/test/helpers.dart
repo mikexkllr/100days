@@ -2,19 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 import 'package:hundred_days/data/app_repository.dart';
-import 'package:hundred_days/data/device_profile.dart';
-import 'package:hundred_days/data/key_store.dart';
 import 'package:hundred_days/data/locale_store.dart';
+import 'package:hundred_days/data/social_backend.dart';
 import 'package:hundred_days/l10n/l10n.dart';
 import 'package:hundred_days/state/providers.dart';
 import 'package:hundred_days/theme/theme.dart';
 
 /// Builds a repository backed entirely by memory, so widget tests never touch
-/// sqflite or the platform keystore.
-Future<AppRepository> testRepository({Identity? identity}) async {
-  final KeyStore keyStore = InMemoryKeyStore(identity);
-  return AppRepository.open(keyStore: keyStore, store: MemoryFeedStore());
-}
+/// sqflite or the network.
+Future<AppRepository> testRepository({String userId = 'me'}) async =>
+    AppRepository(
+      userId: userId,
+      store: MemoryFeedStore(),
+      social: MemorySocialBackend(userId: userId),
+    );
 
 Challenge testChallenge({
   DayKey? startDay,
@@ -34,9 +35,9 @@ Challenge testChallenge({
       startDay: startDay ?? DayKey.today(),
     );
 
-/// Seeds a peer's feed into [repository] and follows them, so the social
-/// surfaces have someone to be jealous of.
-Future<Identity> seedFriend(
+/// Seeds a friend's feed into [repository] and befriends them, so the social
+/// surfaces have someone to be jealous of. Returns the friend's id.
+Future<String> seedFriend(
   AppRepository repository, {
   required String name,
   required String emoji,
@@ -45,15 +46,13 @@ Future<Identity> seedFriend(
   int inactiveDays = 0,
   int daysBack = 5,
 }) async {
-  final Identity friend = await Identity.generate();
-  final FeedWriter writer =
-      FeedWriter(identity: friend, store: repository.store);
+  final String friend = 'friend-${name.toLowerCase()}';
+  final FeedWriter writer = FeedWriter(author: friend, store: repository.store);
   final Challenge challenge =
       testChallenge(startDay: DayKey.today().addDays(-daysBack));
 
-  // Timestamps must never move backwards within a feed, or the chain fails
-  // validation on a peer's device — so the genesis events are dated to the
-  // start of the challenge, before any of the check-ins below.
+  // The profile and the challenge come first in the friend's feed: they are
+  // dated to the start of the challenge, before any of the check-ins below.
   final DateTime start =
       challenge.startDay.toDateTime().add(const Duration(hours: 8));
   await writer.append(
@@ -90,23 +89,19 @@ Future<Identity> seedFriend(
     }
   }
 
-  await repository.addFriend(Invite(
-    did: friend.did,
+  (repository.social as MemorySocialBackend).link(FriendLink(
+    userId: friend,
     displayName: name,
-    avatarEmoji: emoji,
+    emoji: emoji,
+    status: FriendStatus.friends,
   ));
+  await repository.refreshFriends();
   return friend;
 }
 
-/// Keeps widget tests off the platform: no model on disk, an unknown phone.
-/// Both would otherwise go through platform channels that answer outside
-/// the test's fake clock.
-List<Override> platformFreeOverrides({
-  DeviceProfile device = DeviceProfile.unknown,
-}) =>
-    <Override>[
-      installedModelProvider.overrideWith((Ref ref) async => null),
-      deviceProfileProvider.overrideWith((Ref ref) async => device),
+/// Keeps widget tests off the platform: no language model to reach.
+List<Override> platformFreeOverrides() => <Override>[
+      llmClientProvider.overrideWithValue(const UnavailableLlmClient()),
     ];
 
 /// Widget tests run with the system's "reduce motion" switched on. The

@@ -84,7 +84,7 @@ void main() {
     expect(find.text('Lesen'), findsOneWidget);
   });
 
-  testWidgets('checking in writes a signed event and updates the tile',
+  testWidgets('checking in writes an event and updates the tile',
       (WidgetTester tester) async {
     await startChallenge(habits: <HabitCategory>[HabitCategory.noSugar]);
     await pump(tester);
@@ -92,22 +92,16 @@ void main() {
     await holdToIgnite(tester, 'Heute clean');
 
     final List<FeedEvent> all =
-        await repository.store.eventsOf(repository.did);
+        await repository.store.eventsOf(repository.userId);
     final List<FeedEvent> checkIns = all
         .where((FeedEvent e) => e.type == FeedEventType.checkIn)
         .toList();
     expect(checkIns, hasLength(1));
     expect(checkIns.single.payload['habitId'], 'noSugar');
 
-    // The whole chain has to verify, not just the new link: that is what a
-    // friend's device will do when it replicates this feed.
-    for (int i = 0; i < all.length; i++) {
-      final EventValidationResult result = await validateEvent(
-        all[i],
-        previous: i == 0 ? null : all[i - 1],
-      );
-      expect(result.isValid, isTrue, reason: 'event ${all[i].type} at $i');
-    }
+    // Shared with friends, and waiting for the sync to send it.
+    expect(checkIns.single.visibility, EventVisibility.friends);
+    expect(checkIns.single.isPending, isTrue);
 
     expect(find.widgetWithText(DoneBadge, 'Erledigt'), findsOneWidget);
   });
@@ -340,7 +334,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final List<FeedEvent> checkIns = (await repository.store
-            .eventsOf(repository.did))
+            .eventsOf(repository.userId))
         .where((FeedEvent e) => e.type == FeedEventType.checkIn)
         .toList();
     expect(checkIns, isEmpty);

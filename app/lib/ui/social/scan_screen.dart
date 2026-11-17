@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:hundred_core/hundred_core.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../../config/backend_config.dart';
 import '../../l10n/l10n.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
@@ -36,7 +36,7 @@ class _ScanInviteScreenState extends State<ScanInviteScreen> {
     for (final Barcode barcode in capture.barcodes) {
       final String? raw = barcode.rawValue;
       if (raw == null) continue;
-      if (!raw.startsWith('${Invite.scheme}://')) continue;
+      if (!raw.startsWith('$kInviteScheme://')) continue;
       _handled = true;
       Navigator.of(context).pop(raw);
       return;

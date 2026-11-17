@@ -6,6 +6,7 @@
   "actionCopyLink": "Copy link",
   "actionDelete": "Delete",
   "actionNext": "Continue",
+  "actionOk": "OK",
   "actionRemove": "Remove",
   "actionRetry": "Try again",
   "actionSave": "Save",
@@ -63,96 +64,6 @@
       }
     }
   },
-  "aiBackendMissing": "The rule-based coach is running. It needs no model, works offline and answers instantly — the language is just less varied. Download a model below and it switches over by itself.",
-  "aiBackendPresent": "The model runs on this phone with llama.cpp. It writes your daily line, estimates meals and proposes nutrition targets — and falls back to the rule-based coach whenever it is too slow.",
-  "aiCoachStaysRuleBased": "{model} estimates meals and proposes nutrition targets — answers the app checks before you confirm them. The coach's daily line stays rule-based with it: in tests a model this small wandered off topic too often.",
-  "@aiCoachStaysRuleBased": {
-    "placeholders": {
-      "model": {
-        "type": "String"
-      }
-    }
-  },
-  "aiDeviceLine": "{model} · {ram} GB RAM",
-  "@aiDeviceLine": {
-    "placeholders": {
-      "model": {
-        "type": "String"
-      },
-      "ram": {
-        "type": "int"
-      }
-    }
-  },
-  "aiDeviceUnknown": "Phone not recognised — assuming a modest one.",
-  "aiDeviceUnsupported": "This phone cannot run a language model locally. The coach stays rule-based — it works just as well, it only talks with less variety.",
-  "aiDownloadFailed": "The download stopped. Tap to continue where it left off.",
-  "aiDownloadNote": "Best on Wi-Fi. Keeps running while you finish the setup; afterwards the model runs offline and nothing you type leaves the phone.",
-  "aiDownloadNow": "Download now ({size} GB)",
-  "@aiDownloadNow": {
-    "placeholders": {
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "aiDownloadResume": "Continue download",
-  "aiDownloadThis": "Get · {size} GB",
-  "@aiDownloadThis": {
-    "placeholders": {
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "aiDownloading": "{received} of {total} GB",
-  "@aiDownloading": {
-    "placeholders": {
-      "received": {
-        "type": "String"
-      },
-      "total": {
-        "type": "String"
-      }
-    }
-  },
-  "aiFits": "fits",
-  "aiGigabytes": "{size} GB",
-  "@aiGigabytes": {
-    "placeholders": {
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "aiInstalled": "installed",
-  "aiLargerModels": "Larger",
-  "aiLargerModelsSub": "Fits this phone, but takes more storage and is slower to answer.",
-  "aiLoading": "Loading …",
-  "aiModelBalancedDesc": "Small and quick, good German and English. Estimates meals and proposes targets; the coach stays rule-based with it.",
-  "aiModelE2bMobileDesc": "Google's phone model in its compact mobile cut, with 2-bit layers mixed in: half a gigabyte smaller than the full version, but noticeably rougher — in tests its meal estimates often missed.",
-  "aiModelLightDesc": "The smallest, for phones nothing else fits. It helps little: the coach stays rule-based, and in tests its meal estimates mostly failed the plausibility check, so you will often enter meals yourself.",
-  "aiModelMaxDesc": "The strongest model that runs on a phone, in its mobile cut. For flagships with 12 GB or more; takes longer to answer.",
-  "aiModelStrongDesc": "Google's phone model, trained for 4-bit: close to full quality at 2.6 GB. Clearly better meal estimates and coaching; needs 8 GB of RAM.",
-  "aiNoAutoDownload": "The app downloads a model only when you tap the button — from a fixed version on Hugging Face, checked against its SHA-256 before it is used. After that, no network.",
-  "aiNoNetworkBadge": "no network access",
-  "aiNoRecommendation": "This phone has little memory for a language model. The app works fully without one — the coach is rule-based, meals come from the food table. If you want to try anyway:",
-  "aiOneAtATime": "Only one model stays on the phone: a new one replaces the old one once it has finished downloading.",
-  "aiOptionalModels": "Optional",
-  "aiRecommended": "recommended",
-  "aiRemove": "Remove",
-  "aiSmallerModels": "Smaller and quicker",
-  "aiSmallerModelsSub": "Less storage and battery, quicker answers — the sentences get simpler.",
-  "aiSource": "Source",
-  "aiSupportedModels": "Supported models",
-  "aiSwitchSmaller": "Switch to a smaller one",
-  "aiTitle": "On-device AI",
-  "aiTooBig": "too big",
-  "aiTooBigModels": "Too big for this phone",
-  "aiTooBigModelsSub": "Needs more memory than this phone has. It may load, or the system may close the app.",
-  "aiVerifying": "Checking the file …",
-  "aiWhatItSeesBody": "Streak, day number, your habits and whether your friends were active today — as text, straight to the model on this device. No network call, no telemetry, no copy in anyone’s cloud.",
-  "aiWhatItSeesTitle": "What the model sees",
   "appTitle": "100 Days",
   "boardMilestone": "Milestone day {day} in {days, plural, =1{1 day} other{{days} days}}",
   "@boardMilestone": {
@@ -310,7 +221,7 @@
   "coachCelebrateMonth": "30 days. From now on you have to talk yourself into it less.",
   "coachCelebrateWeek": "One week. Most people stop exactly here.",
   "coachCelebrateYear": "A year. This is not a challenge any more, this is you.",
-  "coachEngineModel": "{model} (on-device)",
+  "coachEngineModel": "{model}",
   "@coachEngineModel": {
     "placeholders": {
       "model": {
@@ -318,7 +229,7 @@
       }
     }
   },
-  "coachEngineRuleBased": "Rule-based (on-device)",
+  "coachEngineRuleBased": "Rule-based",
   "coachHeadAtStake": "{streak, plural, =1{1 day is at stake} other{{streak} days are at stake}}",
   "@coachHeadAtStake": {
     "placeholders": {
@@ -797,7 +708,7 @@
     }
   },
   "feedCheered": "Cheered",
-  "feedEmptyBody": "As soon as you or your friends tick something off it shows up here — signed and checkable.",
+  "feedEmptyBody": "As soon as you or your friends tick something off it shows up here.",
   "feedEmptyTitle": "Nothing in the feed yet",
   "feedNudgeReceived": "{name} is nudging you",
   "@feedNudgeReceived": {
@@ -894,7 +805,7 @@
     }
   },
   "foodAiFailed": "The model could not make sense of that. Try simpler words, or enter it manually.",
-  "foodAiNotInstalled": "Recognises foods from the table. With an on-device model (Settings → On-device AI) it also estimates dishes it does not know.",
+  "foodAiNotInstalled": "Recognises foods from the table. With the AI (Settings → AI) it also estimates dishes it does not know.",
   "foodAmountLabel": "Amount",
   "foodAmountPiece": "1 piece ({grams} g)",
   "@foodAmountPiece": {
@@ -985,7 +896,7 @@
   "foodTabDescribe": "Describe",
   "foodTabManual": "Manual",
   "foodTabSearch": "Search",
-  "friendsConnected": "{name} connected.",
+  "friendsConnected": "You and {name} are friends now.",
   "@friendsConnected": {
     "placeholders": {
       "name": {
@@ -1001,19 +912,11 @@
       }
     }
   },
-  "friendsEmptyBody": "The app works alone — but it only bites once someone is watching. Show a friend your QR code.",
+  "friendsEmptyBody": "The app works alone — but it only bites once someone is watching. Send a friend your invite.",
   "friendsEmptyTitle": "Nobody connected yet",
   "friendsFallbackName": "Friend",
   "friendsInvite": "Invite",
-  "friendsInviteInvalid": "Invalid invite: {message}",
-  "@friendsInviteInvalid": {
-    "placeholders": {
-      "message": {
-        "type": "String"
-      }
-    }
-  },
-  "friendsNetworkNote": "Connections run directly between your devices — instantly on the same Wi-Fi, otherwise the next time you meet. Every connection proves who is on the other end, and only people you accepted get anything. No server in between that knows your streaks.",
+  "friendsNetworkNote": "Friends see what you share: your streak, shared habits and, if you want, your workouts. Body stats, targets and the food diary stay private — the server hands them to nobody but you.",
   "friendsNoActivity": "No activity yet",
   "friendsNudgeSection": "Nudge",
   "friendsNudgeSubtitle": "These people have not been out today.",
@@ -1027,8 +930,8 @@
       }
     }
   },
-  "friendsRequestsSub": "They scanned your code. Nothing is shared until you accept.",
-  "friendsRequestsTitle": "Wants to connect",
+  "friendsRequestsSub": "Nothing is shared until you accept.",
+  "friendsRequestsTitle": "Friend requests",
   "friendsScan": "Scan",
   "friendsYourPeople": "Your people",
   "goalBuildMuscle": "Build muscle",
@@ -1066,10 +969,10 @@
       }
     }
   },
-  "goalsAiSub": "Describe what you want; the on-device model proposes new targets. Nothing changes until you apply it.",
+  "goalsAiSub": "Describe what you want; the AI proposes new targets. Nothing changes until you apply it.",
   "goalsAiTitle": "Adjust with AI",
-  "goalsAiUnavailable": "Needs an on-device model — set one up under Settings → On-device AI.",
-  "goalsBodySub": "Only for the suggested target. They stay on this device and are never shared.",
+  "goalsAiUnavailable": "Needs the AI — see Settings → AI.",
+  "goalsBodySub": "Only for the suggested target. They are private and never shared.",
   "goalsBodyTitle": "Body stats",
   "goalsFatRest": "Fat: {percent} % (the rest)",
   "@goalsFatRest": {
@@ -1315,23 +1218,48 @@
       }
     }
   },
-  "inviteErrorMalformed": "This invite is not valid.",
-  "inviteErrorSelf": "That is you.",
-  "inviteHowTitle": "How this works",
-  "inviteLinkCopied": "Link copied.",
-  "inviteReachableAt": "Reachable at",
-  "inviteShareSubject": "100 Days challenge",
-  "inviteShareText": "Do the 100 days with me: {link}",
-  "@inviteShareText": {
+  "inviteAlreadyFriends": "You and {name} are already friends.",
+  "@inviteAlreadyFriends": {
     "placeholders": {
-      "link": {
+      "name": {
         "type": "String"
       }
     }
   },
-  "inviteStep1": "The other person scans the code or opens the link.",
-  "inviteStep2": "You follow each other directly — no account, no phone number, no provider granting permission.",
-  "inviteStep3": "From then on your devices sync whenever they see each other: same Wi-Fi, same home, same gym.",
+  "inviteCodeHint": "e.g. K7QM4 TX29P",
+  "inviteConfirmAction": "Become friends",
+  "inviteConfirmBody": "You will see each other's streak, shared habits and workouts. Body stats and food diaries stay private.",
+  "inviteConfirmTitle": "Become friends with {name}?",
+  "@inviteConfirmTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteEnterCode": "Enter a code",
+  "inviteErrorMalformed": "This invite is not valid.",
+  "inviteErrorOffline": "No connection to the server. Try again in a moment.",
+  "inviteErrorSelf": "That is you.",
+  "inviteHowTitle": "How this works",
+  "inviteLinkCopied": "Link copied.",
+  "inviteRevoke": "New code (the old one stops working)",
+  "inviteRevoked": "New code ready. The old one no longer works.",
+  "inviteShareSubject": "100 Days challenge",
+  "inviteShareText": "Do the 100 days with me: {link} (or enter the code {code} in the app)",
+  "@inviteShareText": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteStep1": "The other person scans the code, opens the link or types the code.",
+  "inviteStep2": "You are friends straight away — sharing the code is your yes. It stays valid for 14 days.",
+  "inviteStep3": "From then on you see each other's day live, wherever you are.",
   "inviteTitle": "Invite friends",
   "leagueActiveToday": "Active today",
   "leagueBronze": "Bronze",
@@ -1436,6 +1364,26 @@
       }
     }
   },
+  "loginApple": "Sign in with Apple",
+  "loginFailed": "Sign-in did not work. Check your connection and try again.",
+  "loginGoogle": "Sign in with Google",
+  "loginNotConfigured": "Sign-in is not set up for this server yet.",
+  "loginOwnServer": "Own server",
+  "loginOwnServerActive": "Own server: {host}",
+  "@loginOwnServerActive": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "loginOwnServerBody": "Run 100 Days on your own Supabase instance — hosted or self-hosted. The project URL and its publishable key are enough; the setup is described in docs/self-hosting.md.",
+  "loginOwnServerGoogle": "Google web client id (optional)",
+  "loginOwnServerKey": "Publishable key",
+  "loginOwnServerReset": "Use the default server",
+  "loginOwnServerRestart": "Saved. Close the app and open it again to connect to the new server.",
+  "loginPrivacy": "Your account only stores what the app needs. Friends see what you share; body stats, targets and the food diary stay private. The app is open source, and you can run your own server.",
+  "loginSubtitle": "Sign in, set a goal, get a plan. Your friends see whether you showed up today.",
   "macroPresetAuto": "Automatic",
   "macroPresetAutoBlurb": "Protein and fat per kilo of body weight, the rest carbs. The best default for training goals.",
   "macroPresetBalanced": "Balanced",
@@ -1709,10 +1657,6 @@
   "obActivityLight": "Lightly active",
   "obActivityModerate": "Moderate",
   "obActivitySedentary": "Sedentary",
-  "obAiEyebrow": "Coach",
-  "obAiLater": "Optional. Without a model everything works too — the coach is then rule-based. You can download it later under Settings → On-device AI.",
-  "obAiSubtitle": "The coach and the meal estimates can run on a small language model — on this phone, offline, without any prompt leaving it. We picked the one that fits your phone.",
-  "obAiTitle": "AI on your phone.",
   "obBodyActivity": "Daily life & movement",
   "obBodyAge": "Age",
   "obBodyAgeValue": "{years} years",
@@ -1726,7 +1670,7 @@
   "obBodyEyebrow": "Nutrition",
   "obBodyHeight": "Height",
   "obBodyPreviewTitle": "Your daily target",
-  "obBodySubtitle": "Only for the calorie and protein calculation. All of it stays on this device.",
+  "obBodySubtitle": "Only for the calorie and protein calculation. All of it stays private.",
   "obBodyTitle": "A few numbers.",
   "obBodyWeight": "Weight",
   "obCycleDays": "days",
@@ -1764,10 +1708,8 @@
   "obHabitsSubtitlePreselected": "What fits your goal is preselected. Change it however you like.",
   "obHabitsSubtitleTooMany": "That is a lot. Experience says people stick with three or four — better fewer and actually done.",
   "obHabitsTitle": "What counts every day?",
-  "obIdentityBoxBody": "An Ed25519 key pair on this device, as a did:key. Every check-in is signed with it — which is why nobody can fake your streak and you do not have to trust anyone. The recovery key is in settings. Back it up.",
-  "obIdentityBoxTitle": "Your identity",
   "obIdentityNameHint": "Your name",
-  "obIdentitySubtitle": "No account, no email, no password. Your key pair is already on this device.",
+  "obIdentitySubtitle": "This is how friends see you — in the feed, in requests and in the league.",
   "obIdentityTitle": "How should your people see you?",
   "obKcalEyebrow": "Nutrition",
   "obKcalSubtitle": "Computed from your numbers — or set your own. You can change both at any time.",
@@ -1788,8 +1730,8 @@
   "obPointBeyondTitle": "Day 100 is not the end",
   "obPointGoalBody": "No goal, no plan. You say what this is about — the app builds training, nutrition or a streak around it.",
   "obPointGoalTitle": "The goal comes first",
-  "obPointPrivacyBody": "No account, no server, no cloud. Your data stays on your device and goes straight to your friends.",
-  "obPointPrivacyTitle": "Nobody else",
+  "obPointPrivacyBody": "Friends see what you share, nobody else. Open source — and if you like, on your own server.",
+  "obPointPrivacyTitle": "Yours",
   "obPointSocialBody": "Not an anonymous counter. If Marcel was at the gym today and you were not, it says so. That is the point.",
   "obPointSocialTitle": "Your people see everything",
   "obPrivacyEyebrow": "Privacy",
@@ -1864,9 +1806,9 @@
   "obSummaryFriendsNote": "Next: connect friends. Almost nobody lasts 100 days alone — with an audience they do.",
   "obSummaryMissing": "A few details are still missing.",
   "obSummaryNutritionSection": "Nutrition plan",
-  "obSummaryPrivacyAllShared": "All habits and your streak. Body stats and the food diary stay on this phone.",
+  "obSummaryPrivacyAllShared": "All habits and your streak. Body stats and the food diary stay private.",
   "obSummaryPrivacySection": "Shared with friends",
-  "obSummaryPrivacySome": "Your streak and habits — except {habits}, which stays private. Body stats and the food diary stay on this phone.",
+  "obSummaryPrivacySome": "Your streak and habits — except {habits}, which stays private. Body stats and the food diary stay private too.",
   "@obSummaryPrivacySome": {
     "placeholders": {
       "habits": {
@@ -2078,7 +2020,7 @@
       }
     }
   },
-  "privacyAlwaysPrivate": "Always private, no switch needed: body stats, calorie targets and the food diary. They are sealed in your own feed — friends store the encrypted bytes as a backup but cannot read them.",
+  "privacyAlwaysPrivate": "Always private, no switch needed: body stats, calorie targets and the food diary. The server hands them to nobody but you.",
   "privacyFromNowOn": "Changes apply from now on. What friends already received stays with them — a habit you make private disappears for new entries, not for old ones.",
   "privacyHabitsSub": "A private habit is invisible to friends — its check-ins and relapses too. Your streak for them counts the shared ones.",
   "privacyHabitsTitle": "Habits",
@@ -2310,15 +2252,6 @@
   "promptUnitClean": "days clean",
   "promptUnitStreak": "days streak",
   "promptYes": "yes",
-  "recoveryCopied": "Key copied.",
-  "recoveryLookAround": "Have a look around you first.",
-  "recoveryShow": "Show the key",
-  "recoveryTip1": "A password manager — the best place for it.",
-  "recoveryTip2": "Write it down and put it in the drawer where your ID lives.",
-  "recoveryTip3": "Not into a chat, not into a cloud-synced notes app, not as a screenshot in your gallery.",
-  "recoveryTitle": "Recovery key",
-  "recoveryWarning": "Whoever has this key is you. They can sign check-ins in your name, and you cannot revoke it — there is no provider who could.",
-  "recoveryWhereTitle": "Where to keep it",
   "relativeDays": "{count} days ago",
   "@relativeDays": {
     "placeholders": {
@@ -2377,15 +2310,17 @@
   "scanPasteInstead": "Paste a link instead",
   "scanPasteTitle": "Invite link",
   "scanTitle": "Scan a code",
-  "setAboutBody": "No account, no server, no ads, no tracking. Your data lives on this device and only goes to the friends you connected yourself. The source is open — check it instead of believing it.",
+  "setAboutBody": "No ads, no tracking, no selling of data. Your account holds what the app needs, friends see what you share. The source is open — check it instead of believing it, or run your own server.",
   "setAboutSection": "About",
   "setAboutTitle": "100 days and far beyond",
+  "setAccountSection": "Account",
+  "setAi": "AI",
   "setCoachSection": "Coach",
-  "setDidCopied": "DID copied.",
-  "setIdentitySection": "Identity & data",
-  "setLan": "Local network",
-  "setLanOff": "Not active.",
-  "setLanOn": "Active — finds friends on the same Wi-Fi automatically.",
+  "setDeleteAccount": "Delete account",
+  "setDeleteAccountBody": "Your streak, your plans, your diary and your friendships are deleted on the server, for good. This cannot be undone.",
+  "setDeleteAccountFailed": "The account could not be deleted. Check your connection and try again.",
+  "setDeleteAccountSub": "Deletes your account and everything in it.",
+  "setDeleteAccountTitle": "Delete your account?",
   "setLanguage": "App language",
   "setLanguageEnglish": "English",
   "setLanguageGerman": "Deutsch",
@@ -2399,55 +2334,36 @@
       }
     }
   },
-  "setNetworkSection": "Network",
-  "setOnDeviceAi": "On-device AI",
-  "setOnThisDevice": "On this device",
-  "setOnThisDeviceSub": "{events} own entries · {friends} connected feeds",
-  "@setOnThisDeviceSub": {
-    "placeholders": {
-      "events": {
-        "type": "int"
-      },
-      "friends": {
-        "type": "int"
-      }
-    }
-  },
   "setPrivacy": "Privacy",
   "setPrivacySub": "What your friends see",
-  "setRecoveryKey": "Recovery key",
-  "setRecoveryKeySub": "The only way back into your account.",
-  "setSyncFailed": "Last attempt failed: {message}",
-  "@setSyncFailed": {
+  "setServer": "Server",
+  "setServerCustom": "Own server: {host}",
+  "@setServerCustom": {
     "placeholders": {
-      "message": {
+      "host": {
         "type": "String"
       }
     }
   },
-  "setSyncLast": "Last with {peer}: {received} received, {sent} sent.",
-  "@setSyncLast": {
+  "setServerDefault": "The 100 Days server",
+  "setSignOut": "Sign out",
+  "setSignOutBody": "Everything is saved in your account; it is back as soon as you sign in again. This phone forgets it until then.",
+  "setSignOutSub": "Your data stays in your account.",
+  "setSyncDone": "Up to date · {sent} sent, {received} received",
+  "@setSyncDone": {
     "placeholders": {
-      "peer": {
-        "type": "String"
+      "sent": {
+        "type": "int"
       },
       "received": {
         "type": "int"
-      },
-      "sent": {
-        "type": "int"
       }
     }
   },
-  "setSyncNever": "No round has run yet.",
+  "setSyncNever": "Not synced yet.",
   "setSyncNow": "Sync now",
-  "setSyncPeerFallback": "a peer",
-  "setSyncStarted": "Sync round started.",
+  "setSyncOffline": "Offline — everything is kept and sent later.",
   "setViewSource": "View the source",
-  "setWipe": "Delete everything",
-  "setWipeBody": "Without your recovery key nothing can be restored afterwards — there is no server holding a copy. That is the price of nobody else holding one either.",
-  "setWipeSub": "Remove identity, challenge and all friends.",
-  "setWipeTitle": "Really delete everything?",
   "skyStars": "{count, plural, =0{No star in your sky yet. The first comes with the first day you finish.} =1{1 star in your sky — one for every day you finish.} other{{count} stars in your sky — one for every day you finish.}}",
   "@skyStars": {
     "placeholders": {

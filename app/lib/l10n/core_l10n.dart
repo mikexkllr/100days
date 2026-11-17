@@ -297,21 +297,6 @@ extension CoreL10n on AppLocalizations {
     }
   }
 
-  /// Description of a downloadable model, keyed by its id.
-  String modelDescription(String modelId) {
-    switch (modelId) {
-      case 'qwen3.5-0.8b-q4':
-        return aiModelLightDesc;
-      case 'qwen3.5-2b-q4':
-        return aiModelBalancedDesc;
-      case 'gemma-4-e2b-qat-mobile':
-        return aiModelE2bMobileDesc;
-      case 'gemma-4-e2b-qat':
-        return aiModelStrongDesc;
-      default:
-        return aiModelMaxDesc;
-    }
-  }
 
   /// A calendar day, short: "Mo, 2.11." / "Mon, 11/2".
   String formatDay(DayKey day) {

@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
 import '../../data/app_repository.dart';
-import '../../data/sync_service.dart';
 import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
 import 'friend_detail.dart';
+import 'invite_flow.dart';
 import 'invite_screen.dart';
 import 'scan_screen.dart';
 
@@ -23,9 +23,7 @@ class FriendsTab extends ConsumerWidget {
     final AppLocalizations l10n = context.l10n;
     final AsyncValue<List<NudgeSuggestion>> nudges =
         ref.watch(nudgeSuggestionsProvider);
-    final List<FriendRequest> requests =
-        ref.watch(friendRequestsProvider).valueOrNull ??
-            const <FriendRequest>[];
+    final List<FriendLink> requests = snapshot.incomingRequests;
 
     return ListView(
       padding: EdgeInsets.fromLTRB(
@@ -63,16 +61,24 @@ class FriendsTab extends ConsumerWidget {
             ),
           ],
         ),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            key: const Key('friends-enter-code'),
+            onPressed: () => enterInviteCode(context, ref),
+            child: Text(l10n.inviteEnterCode),
+          ),
+        ),
         if (requests.isNotEmpty) ...<Widget>[
           SectionHeader(l10n.friendsRequestsTitle,
               subtitle: l10n.friendsRequestsSub),
-          for (final FriendRequest request in requests)
+          for (final FriendLink request in requests)
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
               child: AppCard(
                 child: Row(
                   children: <Widget>[
-                    EmojiAvatar(request.avatarEmoji, size: 40),
+                    EmojiAvatar(request.emoji, size: 40),
                     const SizedBox(width: AppSpacing.sm + 4),
                     Expanded(
                       child: Text(
@@ -83,7 +89,7 @@ class FriendsTab extends ConsumerWidget {
                     TextButton(
                       onPressed: () => ref
                           .read(appStateProvider.notifier)
-                          .declineFriendRequest(request),
+                          .respondToRequest(request, accept: false),
                       child: Text(l10n.friendsRequestDecline),
                     ),
                     FilledButton(
@@ -91,7 +97,7 @@ class FriendsTab extends ConsumerWidget {
                           minimumSize: const Size(90, 40)),
                       onPressed: () => ref
                           .read(appStateProvider.notifier)
-                          .acceptFriendRequest(request),
+                          .respondToRequest(request, accept: true),
                       child: Text(l10n.friendsRequestAccept),
                     ),
                   ],
@@ -131,7 +137,7 @@ class FriendsTab extends ConsumerWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              const Icon(Icons.hub_outlined, size: 19, color: AppColors.social),
+              const Icon(Icons.lock_outline, size: 19, color: AppColors.social),
               const SizedBox(width: AppSpacing.sm + 2),
               Expanded(
                 child: Text(
@@ -156,32 +162,7 @@ class FriendsTab extends ConsumerWidget {
       ),
     );
     if (raw == null || !context.mounted) return;
-
-    try {
-      final Invite invite = Invite.parse(raw);
-      await ref.read(appStateProvider.notifier).addFriend(invite);
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.friendsConnected(
-          invite.displayName,
-        ))),
-      );
-    } on InviteRejection catch (rejection) {
-      if (!context.mounted) return;
-      final AppLocalizations l10n = context.l10n;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(rejection.problem == InviteProblem.self
-            ? l10n.inviteErrorSelf
-            : l10n.inviteErrorMalformed),
-      ));
-    } on Object catch (error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.friendsInviteInvalid('$error')),
-        ),
-      );
-    }
+    await redeemInviteFlow(context, ref, raw);
   }
 }
 
@@ -205,8 +186,8 @@ class _NudgeSection extends ConsumerWidget {
             padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child: _NudgeCard(
               suggestion: suggestion,
-              profile: snapshot.profiles[suggestion.targetDid],
-              alreadySent: snapshot.nudgedToday.contains(suggestion.targetDid),
+              profile: snapshot.profiles[suggestion.targetId],
+              alreadySent: snapshot.nudgedToday.contains(suggestion.targetId),
             ),
           ),
       ],
@@ -257,7 +238,7 @@ class _NudgeCard extends ConsumerWidget {
             onPressed: alreadySent
                 ? null
                 : () => ref.read(appStateProvider.notifier).nudge(
-                      suggestion.targetDid,
+                      suggestion.targetId,
                       text,
                     ),
             style: FilledButton.styleFrom(
@@ -290,7 +271,7 @@ class _FriendRow extends StatelessWidget {
       onTap: () => Navigator.of(context).push<void>(
         MaterialPageRoute<void>(
           builder: (BuildContext context) =>
-              FriendDetailScreen(did: friend.did),
+              FriendDetailScreen(userId: friend.userId),
         ),
       ),
       child: Row(

@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../config/backend_config.dart';
 import '../../data/app_repository.dart';
+import '../../data/feed_sync.dart';
 import '../../data/locale_store.dart';
-import '../../data/sync_service.dart';
 import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
-import 'ai_screen.dart';
 import 'privacy_screen.dart';
-import 'recovery_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -26,7 +24,9 @@ class SettingsScreen extends ConsumerWidget {
     final AppLocalizations l10n = context.l10n;
     final AsyncValue<AppSnapshot> async = ref.watch(appStateProvider);
     final AsyncValue<CoachEngine> coach = ref.watch(coachEngineProvider);
-    final AsyncValue<SyncEvent> lastSync = ref.watch(syncEventsProvider);
+    final AsyncValue<SyncReport> lastSync = ref.watch(syncReportsProvider);
+    final String? email = ref.watch(accountEmailProvider);
+    final BackendConfig backend = ref.watch(backendConfigProvider);
 
     return async.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -51,46 +51,21 @@ class SettingsScreen extends ConsumerWidget {
                     children: <Widget>[
                       Text(snapshot.me.profile.displayName,
                           style: Theme.of(context).textTheme.titleLarge),
-                      Text(
-                        Identity.shortDid(snapshot.me.did),
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelSmall
-                            ?.copyWith(
-                              color: AppColors.textTertiary,
-                              fontFamily: 'monospace',
-                            ),
-                      ),
+                      if (email != null)
+                        Text(
+                          email,
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelSmall
+                              ?.copyWith(color: AppColors.textTertiary),
+                        ),
                     ],
                   ),
-                ),
-                IconButton(
-                  onPressed: () async {
-                    await Clipboard.setData(
-                        ClipboardData(text: snapshot.me.did));
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(l10n.setDidCopied)),
-                    );
-                  },
-                  icon: const Icon(Icons.copy, size: 18),
-                  color: AppColors.textSecondary,
                 ),
               ],
             ),
           ),
-          SectionHeader(l10n.setIdentitySection),
-          _Row(
-            icon: Icons.key,
-            iconColor: AppColors.social,
-            title: l10n.setRecoveryKey,
-            subtitle: l10n.setRecoveryKeySub,
-            onTap: () => Navigator.of(context).push<void>(
-              MaterialPageRoute<void>(
-                builder: (BuildContext context) => const RecoveryScreen(),
-              ),
-            ),
-          ),
+          SectionHeader(l10n.setAccountSection),
           _Row(
             icon: Icons.lock_outline,
             iconColor: AppColors.success,
@@ -103,59 +78,54 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           _Row(
-            icon: Icons.storage_outlined,
-            title: l10n.setOnThisDevice,
-            subtitle: l10n.setOnThisDeviceSub(
-                snapshot.me.headSeq, snapshot.friends.length),
+            icon: Icons.sync,
+            title: l10n.setSyncNow,
+            subtitle: lastSync.maybeWhen(
+              data: (SyncReport report) => _describeSync(l10n, report),
+              orElse: () => l10n.setSyncNever,
+            ),
+            onTap: () async {
+              final SyncReport report =
+                  await ref.read(appStateProvider.notifier).syncNow();
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(_describeSync(l10n, report))),
+              );
+            },
+          ),
+          _Row(
+            icon: Icons.dns_outlined,
+            title: l10n.setServer,
+            subtitle: backend.isCustom
+                ? l10n.setServerCustom(
+                    Uri.tryParse(backend.supabaseUrl)?.host ?? '')
+                : l10n.setServerDefault,
+          ),
+          _Row(
+            icon: Icons.logout,
+            title: l10n.setSignOut,
+            subtitle: l10n.setSignOutSub,
+            onTap: () => _confirmSignOut(context, ref),
           ),
           _Row(
             icon: Icons.delete_forever_outlined,
             iconColor: AppColors.danger,
-            title: l10n.setWipe,
-            subtitle: l10n.setWipeSub,
-            onTap: () => _confirmWipe(context, ref),
+            title: l10n.setDeleteAccount,
+            subtitle: l10n.setDeleteAccountSub,
+            onTap: () => _confirmDeleteAccount(context, ref),
           ),
           SectionHeader(l10n.setLanguageSection),
           const _LanguageRow(),
-          SectionHeader(l10n.setNetworkSection),
-          _Row(
-            icon: Icons.wifi_tethering,
-            iconColor: AppColors.success,
-            title: l10n.setLan,
-            subtitle: ref.watch(lanTransportProvider)?.isRunning ?? false
-                ? l10n.setLanOn
-                : l10n.setLanOff,
-          ),
-          _Row(
-            icon: Icons.sync,
-            title: l10n.setSyncNow,
-            subtitle: lastSync.maybeWhen(
-              data: (SyncEvent event) => _describeSync(l10n, event),
-              orElse: () => l10n.setSyncNever,
-            ),
-            onTap: () async {
-              await ref.read(appStateProvider.notifier).syncNow();
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.setSyncStarted)),
-              );
-            },
-          ),
           SectionHeader(l10n.setCoachSection),
           _Row(
-            icon: Icons.memory,
+            icon: Icons.auto_awesome,
             iconColor: AppColors.primary,
-            title: l10n.setOnDeviceAi,
+            title: l10n.setAi,
             subtitle: coach.maybeWhen(
               data: (CoachEngine engine) => engine.modelName == null
                   ? l10n.coachEngineRuleBased
                   : l10n.coachEngineModel(engine.modelName!),
-              orElse: () => l10n.aiLoading,
-            ),
-            onTap: () => Navigator.of(context).push<void>(
-              MaterialPageRoute<void>(
-                builder: (BuildContext context) => const AiScreen(),
-              ),
+              orElse: () => l10n.coachEngineRuleBased,
             ),
           ),
           SectionHeader(l10n.setAboutSection),
@@ -190,14 +160,42 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmWipe(BuildContext context, WidgetRef ref) async {
+  Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
     final AppLocalizations l10n = context.l10n;
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text(l10n.setWipeTitle),
-        content: Text(l10n.setWipeBody),
+        title: Text(l10n.setSignOut),
+        content: Text(l10n.setSignOutBody),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.setSignOut),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final AppRepository repository = ref.read(repositoryProvider);
+    // Send what is still waiting, so nothing logged offline is lost.
+    await repository.sync.syncNow();
+    await repository.clearLocal();
+    await ref.read(authServiceProvider).signOut();
+  }
+
+  Future<void> _confirmDeleteAccount(BuildContext context, WidgetRef ref) async {
+    final AppLocalizations l10n = context.l10n;
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text(l10n.setDeleteAccountTitle),
+        content: Text(l10n.setDeleteAccountBody),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -215,21 +213,23 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
     if (confirmed != true) return;
-    await ref.read(repositoryProvider).wipeEverything();
-    await ref.read(appStateProvider.notifier).refresh();
+    final AppRepository repository = ref.read(repositoryProvider);
+    try {
+      await ref.read(authServiceProvider).deleteAccount();
+      await repository.clearLocal();
+    } on Object {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.setDeleteAccountFailed)),
+      );
+    }
   }
 }
 
-/// One line describing the most recent replication round.
-String _describeSync(AppLocalizations l10n, SyncEvent event) {
-  if (!event.result.isSuccess) {
-    return l10n.setSyncFailed('${event.result.error}');
-  }
-  return l10n.setSyncLast(
-    event.peerName ?? l10n.setSyncPeerFallback,
-    event.result.received,
-    event.result.sent,
-  );
+/// One line describing the most recent sync.
+String _describeSync(AppLocalizations l10n, SyncReport report) {
+  if (!report.ok) return l10n.setSyncOffline;
+  return l10n.setSyncDone(report.sent, report.received);
 }
 
 /// System language by default, with an explicit override for the many people

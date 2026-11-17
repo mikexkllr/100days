@@ -6,6 +6,7 @@
   "actionCopyLink": "Link kopieren",
   "actionDelete": "Löschen",
   "actionNext": "Weiter",
+  "actionOk": "OK",
   "actionRemove": "Entfernen",
   "actionRetry": "Nochmal versuchen",
   "actionSave": "Speichern",
@@ -63,55 +64,6 @@
       }
     }
   },
-  "aiBackendMissing": "Aktuell läuft der regelbasierte Coach. Er braucht kein Modell, funktioniert offline und antwortet sofort — die Sprache ist nur weniger variabel. Lade unten ein Modell, dann wechselt er von selbst.",
-  "aiBackendPresent": "Das Modell läuft mit llama.cpp auf diesem Handy. Es formuliert deine Tagesansage, schätzt Mahlzeiten und schlägt Ernährungsziele vor — und fällt auf den regelbasierten Coach zurück, wenn es zu langsam ist.",
-  "aiCoachStaysRuleBased": "{model} schätzt Mahlzeiten und schlägt Ernährungsziele vor — Antworten, die die App prüft, bevor du sie bestätigst. Die Tagesansage des Coachs bleibt damit regelbasiert: Im Test ist ein so kleines Modell zu oft vom Thema abgekommen.",
-  "aiDeviceLine": "{model} · {ram} GB RAM",
-  "aiDeviceUnknown": "Gerät nicht erkannt — wir gehen von einem einfachen aus.",
-  "aiDeviceUnsupported": "Dieses Gerät kann kein Sprachmodell lokal ausführen. Der Coach bleibt regelbasiert — er funktioniert genauso, er formuliert nur weniger abwechslungsreich.",
-  "aiDownloadFailed": "Der Download wurde unterbrochen. Tippe, um dort weiterzumachen.",
-  "aiDownloadNote": "Am besten im WLAN. Läuft weiter, während du die Einrichtung abschließt; danach arbeitet das Modell offline und nichts, was du eingibst, verlässt das Gerät.",
-  "aiDownloadNow": "Jetzt laden ({size} GB)",
-  "aiDownloadResume": "Download fortsetzen",
-  "aiDownloadThis": "Laden · {size} GB",
-  "aiDownloading": "{received} von {total} GB",
-  "aiFits": "passt",
-  "aiGigabytes": "{size} GB",
-  "@aiGigabytes": {
-    "placeholders": {
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "aiInstalled": "installiert",
-  "aiLargerModels": "Größer",
-  "aiLargerModelsSub": "Passt auf dieses Gerät, braucht aber mehr Speicher und antwortet langsamer.",
-  "aiLoading": "Wird geladen …",
-  "aiModelBalancedDesc": "Klein und schnell, gutes Deutsch und Englisch. Schätzt Mahlzeiten und schlägt Ziele vor; der Coach bleibt damit regelbasiert.",
-  "aiModelE2bMobileDesc": "Googles Handy-Modell im kompakten Mobile-Zuschnitt mit eingemischten 2-Bit-Schichten: ein halbes Gigabyte kleiner als die volle Fassung, aber merklich gröber — im Test lagen die Mahlzeiten-Schätzungen oft daneben.",
-  "aiModelLightDesc": "Das kleinste, für Geräte, auf die sonst nichts passt. Es hilft wenig: Der Coach bleibt regelbasiert, und im Test fielen seine Mahlzeiten-Schätzungen meist durch die Plausibilitätsprüfung — du trägst dann oft selbst ein.",
-  "aiModelMaxDesc": "Das stärkste Modell, das auf einem Handy läuft, im Mobile-Zuschnitt. Für Flaggschiffe ab 12 GB; antwortet langsamer.",
-  "aiModelStrongDesc": "Googles Handy-Modell, auf 4 Bit hin trainiert: nahe an voller Qualität bei 2,6 GB. Deutlich bessere Schätzungen und Coaching; braucht 8 GB RAM.",
-  "aiNoAutoDownload": "Die App lädt ein Modell nur, wenn du den Button antippst — eine feste Version von Hugging Face, vor der Nutzung gegen ihre SHA-256 geprüft. Danach: kein Netzwerk.",
-  "aiNoNetworkBadge": "kein Netzwerkzugriff",
-  "aiNoRecommendation": "Dieses Gerät hat wenig Arbeitsspeicher für ein Sprachmodell. Die App funktioniert ohne eins vollständig — der Coach ist regelbasiert, Mahlzeiten kommen aus der Lebensmitteltabelle. Wenn du es trotzdem ausprobieren willst:",
-  "aiOneAtATime": "Es bleibt immer nur ein Modell auf dem Gerät: ein neues ersetzt das alte, sobald es fertig geladen ist.",
-  "aiOptionalModels": "Optional",
-  "aiRecommended": "empfohlen",
-  "aiRemove": "Entfernen",
-  "aiSmallerModels": "Kleiner und schneller",
-  "aiSmallerModelsSub": "Weniger Speicher und Akku, schnellere Antworten — dafür einfachere Sätze.",
-  "aiSource": "Quelle",
-  "aiSupportedModels": "Unterstützte Modelle",
-  "aiSwitchSmaller": "Zu einem kleineren wechseln",
-  "aiTitle": "KI auf dem Gerät",
-  "aiTooBig": "zu groß",
-  "aiTooBigModels": "Zu groß für dieses Gerät",
-  "aiTooBigModelsSub": "Braucht mehr Arbeitsspeicher, als das Gerät hat. Es kann laufen — oder das System beendet die App.",
-  "aiVerifying": "Datei wird geprüft …",
-  "aiWhatItSeesBody": "Streak, Tagesnummer, deine Gewohnheiten und ob deine Freunde heute aktiv waren — als Text, direkt an das Modell auf diesem Gerät. Kein Netzwerkaufruf, keine Telemetrie, kein Zwischenspeicher in einer Cloud.",
-  "aiWhatItSeesTitle": "Was das Modell sieht",
   "appTitle": "100 Tage",
   "boardMilestone": "Meilenstein Tag {day} in {days, plural, =1{1 Tag} other{{days} Tagen}}",
   "@boardMilestone": {
@@ -269,7 +221,7 @@
   "coachCelebrateMonth": "30 Tage. Ab jetzt musst du dich weniger überreden.",
   "coachCelebrateWeek": "Eine Woche. Die meisten hören genau hier auf.",
   "coachCelebrateYear": "Ein Jahr. Das ist keine Challenge mehr, das bist du.",
-  "coachEngineModel": "{model} (on-device)",
+  "coachEngineModel": "{model}",
   "@coachEngineModel": {
     "placeholders": {
       "model": {
@@ -277,7 +229,7 @@
       }
     }
   },
-  "coachEngineRuleBased": "Regelbasiert (on-device)",
+  "coachEngineRuleBased": "Regelbasiert",
   "coachHeadAtStake": "{streak, plural, =1{1 Tag steht auf dem Spiel} other{{streak} Tage stehen auf dem Spiel}}",
   "@coachHeadAtStake": {
     "placeholders": {
@@ -709,7 +661,7 @@
     }
   },
   "feedCheered": "Gefeiert",
-  "feedEmptyBody": "Sobald du oder deine Freunde etwas abhaken, steht es hier — signiert und nachprüfbar.",
+  "feedEmptyBody": "Sobald du oder deine Freunde etwas abhaken, steht es hier.",
   "feedEmptyTitle": "Noch nichts im Feed",
   "feedNudgeReceived": "{name} stupst dich an",
   "@feedNudgeReceived": {
@@ -762,7 +714,7 @@
   "foodAddTo": "Zu {meal} hinzufügen",
   "foodAdded": "{count, plural, =1{Im Tagebuch eingetragen} other{{count} Einträge eingetragen}}",
   "foodAiFailed": "Damit konnte das Modell nichts anfangen. Versuch es einfacher oder trag es manuell ein.",
-  "foodAiNotInstalled": "Erkennt Lebensmittel aus der Tabelle. Mit einem Modell auf dem Gerät (Einstellungen → KI auf dem Gerät) schätzt es auch Gerichte, die es nicht kennt.",
+  "foodAiNotInstalled": "Erkennt Lebensmittel aus der Tabelle. Mit der KI (Einstellungen → KI) schätzt es auch Gerichte, die es nicht kennt.",
   "foodAmountLabel": "Menge",
   "foodAmountPiece": "1 Stück ({grams} g)",
   "foodAmountPortion": "Portion ({grams} g)",
@@ -800,7 +752,7 @@
   "foodTabDescribe": "Beschreiben",
   "foodTabManual": "Manuell",
   "foodTabSearch": "Suchen",
-  "friendsConnected": "{name} verbunden.",
+  "friendsConnected": "Du und {name} seid jetzt befreundet.",
   "@friendsConnected": {
     "placeholders": {
       "name": {
@@ -816,27 +768,19 @@
       }
     }
   },
-  "friendsEmptyBody": "Die App funktioniert allein — aber sie wirkt erst, wenn jemand zuschaut. Zeig einem Freund deinen QR-Code.",
+  "friendsEmptyBody": "Die App funktioniert allein, aber sie wirkt erst, wenn jemand zuschaut. Schick einem Freund deine Einladung.",
   "friendsEmptyTitle": "Noch niemand verbunden",
   "friendsFallbackName": "Freund",
   "friendsInvite": "Einladen",
-  "friendsInviteInvalid": "Einladung ungültig: {message}",
-  "@friendsInviteInvalid": {
-    "placeholders": {
-      "message": {
-        "type": "String"
-      }
-    }
-  },
-  "friendsNetworkNote": "Verbindungen laufen direkt zwischen euren Geräten — im gleichen WLAN sofort, sonst beim nächsten Treffen. Jede Verbindung prüft, wer am anderen Ende ist, und nur Menschen, die du angenommen hast, bekommen etwas. Kein Server dazwischen, der eure Streaks kennt.",
+  "friendsNetworkNote": "Freunde sehen, was du teilst: deinen Streak, geteilte Gewohnheiten und auf Wunsch deine Trainings. Körperdaten, Ziele und das Ernährungstagebuch bleiben privat; der Server gibt sie nur dir.",
   "friendsNoActivity": "Noch keine Aktivität",
   "friendsNudgeSection": "Anstupsen",
   "friendsNudgeSubtitle": "Die hier waren heute noch nicht dran.",
   "friendsRequestAccept": "Annehmen",
   "friendsRequestDecline": "Ablehnen",
   "friendsRequestFrom": "{name}",
-  "friendsRequestsSub": "Hat deinen Code gescannt. Geteilt wird erst, wenn du annimmst.",
-  "friendsRequestsTitle": "Möchte sich verbinden",
+  "friendsRequestsSub": "Geteilt wird erst, wenn du annimmst.",
+  "friendsRequestsTitle": "Freundschaftsanfragen",
   "friendsScan": "Scannen",
   "friendsYourPeople": "Deine Leute",
   "goalBuildMuscle": "Muskeln aufbauen",
@@ -858,10 +802,10 @@
   "goalsAiFailed": "Kein brauchbarer Vorschlag. Formulier es anders — oder stell die Zahlen oben selbst ein.",
   "goalsAiHint": "z. B. „weniger Kohlenhydrate, ich trainiere abends“",
   "goalsAiProposal": "{kcal} kcal · {protein} % Eiweiß · {carbs} % KH · {fat} % Fett",
-  "goalsAiSub": "Beschreib, was du willst; das Modell auf dem Gerät schlägt neue Ziele vor. Nichts ändert sich, bis du es übernimmst.",
+  "goalsAiSub": "Beschreib, was du willst; die KI schlägt neue Ziele vor. Nichts ändert sich, bis du es übernimmst.",
   "goalsAiTitle": "Mit KI anpassen",
-  "goalsAiUnavailable": "Braucht ein Modell auf dem Gerät — einrichten unter Einstellungen → KI auf dem Gerät.",
-  "goalsBodySub": "Nur für den Zielvorschlag. Sie bleiben auf diesem Gerät und werden nie geteilt.",
+  "goalsAiUnavailable": "Braucht die KI, siehe Einstellungen → KI.",
+  "goalsBodySub": "Nur für den Zielvorschlag. Sie sind privat und werden nie geteilt.",
   "goalsBodyTitle": "Körperdaten",
   "goalsFatRest": "Fett: {percent} % (der Rest)",
   "goalsMacroTitle": "Makro-Verteilung",
@@ -1086,13 +1030,21 @@
       }
     }
   },
+  "inviteAlreadyFriends": "Du und {name} seid schon befreundet.",
+  "inviteCodeHint": "z. B. K7QM4 TX29P",
+  "inviteConfirmAction": "Befreunden",
+  "inviteConfirmBody": "Ihr seht gegenseitig Streak, geteilte Gewohnheiten und Trainings. Körperdaten und Ernährungstagebücher bleiben privat.",
+  "inviteConfirmTitle": "Mit {name} befreunden?",
+  "inviteEnterCode": "Code eingeben",
   "inviteErrorMalformed": "Diese Einladung ist ungültig.",
+  "inviteErrorOffline": "Keine Verbindung zum Server. Versuch es gleich noch einmal.",
   "inviteErrorSelf": "Das bist du selbst.",
   "inviteHowTitle": "Wie das funktioniert",
   "inviteLinkCopied": "Link kopiert.",
-  "inviteReachableAt": "Erreichbar unter",
+  "inviteRevoke": "Neuer Code (der alte gilt dann nicht mehr)",
+  "inviteRevoked": "Neuer Code ist da. Der alte funktioniert nicht mehr.",
   "inviteShareSubject": "100 Tage Challenge",
-  "inviteShareText": "Mach die 100 Tage mit mir: {link}",
+  "inviteShareText": "Mach die 100 Tage mit mir: {link} (oder gib in der App den Code {code} ein)",
   "@inviteShareText": {
     "placeholders": {
       "link": {
@@ -1100,9 +1052,9 @@
       }
     }
   },
-  "inviteStep1": "Dein Gegenüber scannt den Code oder öffnet den Link.",
-  "inviteStep2": "Ihr folgt einander direkt — kein Konto, keine Telefonnummer, keine Freigabe durch einen Anbieter.",
-  "inviteStep3": "Ab dann synchronisieren eure Geräte, sobald sie sich sehen: gleiches WLAN, gleiches Zuhause, gleiches Gym.",
+  "inviteStep1": "Dein Gegenüber scannt den Code, öffnet den Link oder tippt den Code ein.",
+  "inviteStep2": "Ihr seid sofort befreundet, denn das Teilen des Codes ist dein Ja. Er gilt 14 Tage.",
+  "inviteStep3": "Ab dann seht ihr euren Tag gegenseitig live, egal wo ihr seid.",
   "inviteTitle": "Freunde einladen",
   "leagueActiveToday": "Heute schon aktiv",
   "leagueBronze": "Bronze",
@@ -1162,6 +1114,19 @@
   "loggerSaved": "Training gespeichert — getrackt, mit Plan-Bonus.",
   "loggerSet": "Satz {number}",
   "loggerTarget": "Ziel: {reps} Wdh. · RIR {rir}",
+  "loginApple": "Mit Apple anmelden",
+  "loginFailed": "Die Anmeldung hat nicht geklappt. Prüf deine Verbindung und versuch es noch einmal.",
+  "loginGoogle": "Mit Google anmelden",
+  "loginNotConfigured": "Die Anmeldung ist für diesen Server noch nicht eingerichtet.",
+  "loginOwnServer": "Eigener Server",
+  "loginOwnServerActive": "Eigener Server: {host}",
+  "loginOwnServerBody": "Betreib 100 Days auf deiner eigenen Supabase-Instanz, gehostet oder selbst betrieben. Projekt-URL und Publishable Key reichen; die Einrichtung steht in docs/self-hosting.md.",
+  "loginOwnServerGoogle": "Google Web-Client-ID (optional)",
+  "loginOwnServerKey": "Publishable Key",
+  "loginOwnServerReset": "Standard-Server nutzen",
+  "loginOwnServerRestart": "Gespeichert. Schließ die App und öffne sie neu, um dich mit dem neuen Server zu verbinden.",
+  "loginPrivacy": "Dein Konto speichert nur, was die App braucht. Freunde sehen, was du teilst; Körperdaten, Ziele und das Ernährungstagebuch bleiben privat. Die App ist Open Source, und du kannst deinen eigenen Server betreiben.",
+  "loginSubtitle": "Anmelden, Ziel setzen, Plan bekommen. Deine Freunde sehen, ob du heute dran warst.",
   "macroPresetAuto": "Automatisch",
   "macroPresetAutoBlurb": "Eiweiß und Fett pro Kilo Körpergewicht, der Rest Kohlenhydrate. Der beste Standard für Trainingsziele.",
   "macroPresetBalanced": "Ausgewogen",
@@ -1435,10 +1400,6 @@
   "obActivityLight": "Leicht aktiv",
   "obActivityModerate": "Moderat",
   "obActivitySedentary": "Sitzend",
-  "obAiEyebrow": "Coach",
-  "obAiLater": "Optional. Ohne Modell funktioniert alles auch — der Coach ist dann regelbasiert. Du kannst es später unter Einstellungen → KI auf dem Gerät laden.",
-  "obAiSubtitle": "Coach und Mahlzeiten-Schätzung können ein kleines Sprachmodell nutzen — auf diesem Handy, offline, ohne dass ein Prompt es verlässt. Wir haben das passende für dein Gerät ausgesucht.",
-  "obAiTitle": "KI auf deinem Handy.",
   "obBodyActivity": "Alltag & Bewegung",
   "obBodyAge": "Alter",
   "obBodyAgeValue": "{years} Jahre",
@@ -1452,7 +1413,7 @@
   "obBodyEyebrow": "Ernährung",
   "obBodyHeight": "Größe",
   "obBodyPreviewTitle": "Dein Tagesziel",
-  "obBodySubtitle": "Nur für die Kalorien- und Proteinberechnung. Alles bleibt auf diesem Gerät.",
+  "obBodySubtitle": "Nur für die Kalorien- und Proteinberechnung. Alles bleibt privat.",
   "obBodyTitle": "Ein paar Zahlen.",
   "obBodyWeight": "Gewicht",
   "obCycleDays": "Tage",
@@ -1490,10 +1451,8 @@
   "obHabitsSubtitlePreselected": "Vorausgewählt ist, was zu deinem Ziel passt. Ändere es, wie du willst.",
   "obHabitsSubtitleTooMany": "Das sind viele. Erfahrungsgemäß hält man drei bis vier durch — lieber weniger und dafür wirklich.",
   "obHabitsTitle": "Was zählt jeden Tag?",
-  "obIdentityBoxBody": "Ein Ed25519-Schlüsselpaar auf diesem Gerät, als did:key. Jeder Check-in wird damit signiert — deshalb kann niemand deinen Streak fälschen, und du brauchst niemandem zu vertrauen. Den Wiederherstellungs-Key findest du in den Einstellungen. Sichere ihn.",
-  "obIdentityBoxTitle": "Deine Identität",
   "obIdentityNameHint": "Dein Name",
-  "obIdentitySubtitle": "Kein Konto, keine E-Mail, kein Passwort. Dein Schlüsselpaar liegt schon auf diesem Gerät.",
+  "obIdentitySubtitle": "So sehen dich deine Freunde: im Feed, in Anfragen und in der Liga.",
   "obIdentityTitle": "Wie sollen dich deine Leute sehen?",
   "obKcalEyebrow": "Ernährung",
   "obKcalSubtitle": "Aus deinen Zahlen berechnet — oder setz dein eigenes. Beides kannst du jederzeit ändern.",
@@ -1507,8 +1466,8 @@
   "obPointBeyondTitle": "Tag 100 ist nicht das Ende",
   "obPointGoalBody": "Ohne Ziel kein Plan. Du sagst, worum es geht — die App baut Training, Ernährung oder Streak drumherum.",
   "obPointGoalTitle": "Erst das Ziel",
-  "obPointPrivacyBody": "Kein Konto, kein Server, keine Cloud. Deine Daten liegen auf deinem Gerät und gehen direkt zu deinen Freunden.",
-  "obPointPrivacyTitle": "Niemand sonst",
+  "obPointPrivacyBody": "Freunde sehen, was du teilst, sonst niemand. Open Source, und wenn du willst, auf deinem eigenen Server.",
+  "obPointPrivacyTitle": "Deins",
   "obPointSocialBody": "Kein anonymer Zähler. Wenn Marcel heute im Gym war und du nicht, steht das da. Genau das ist der Punkt.",
   "obPointSocialTitle": "Deine Leute sehen alles",
   "obPrivacyEyebrow": "Privatsphäre",
@@ -1569,9 +1528,9 @@
   "obSummaryFriendsNote": "Danach: Freunde verbinden. Allein hält es kaum jemand 100 Tage durch — mit Publikum schon.",
   "obSummaryMissing": "Ein paar Angaben fehlen noch.",
   "obSummaryNutritionSection": "Ernährungsplan",
-  "obSummaryPrivacyAllShared": "Alle Gewohnheiten und dein Streak. Körperdaten und Ernährungstagebuch bleiben auf dem Handy.",
+  "obSummaryPrivacyAllShared": "Alle Gewohnheiten und dein Streak. Körperdaten und Ernährungstagebuch bleiben privat.",
   "obSummaryPrivacySection": "Mit Freunden geteilt",
-  "obSummaryPrivacySome": "Dein Streak und deine Gewohnheiten — außer {habits}, das bleibt privat. Körperdaten und Ernährungstagebuch bleiben auf dem Handy.",
+  "obSummaryPrivacySome": "Dein Streak und deine Gewohnheiten, außer {habits}, das bleibt privat. Körperdaten und Ernährungstagebuch bleiben auch privat.",
   "obSummaryTitle": "{days} Tage, ab heute.",
   "@obSummaryTitle": {
     "placeholders": {
@@ -1755,7 +1714,7 @@
       }
     }
   },
-  "privacyAlwaysPrivate": "Immer privat, ohne Schalter: Körperdaten, Kalorienziele und das Ernährungstagebuch. Sie liegen verschlüsselt in deinem eigenen Feed — Freunde speichern die Bytes als Backup, können sie aber nicht lesen.",
+  "privacyAlwaysPrivate": "Immer privat, ohne Schalter: Körperdaten, Kalorienziele und das Ernährungstagebuch. Der Server gibt sie nur dir.",
   "privacyFromNowOn": "Änderungen gelten ab jetzt. Was Freunde schon bekommen haben, bleibt bei ihnen — eine Gewohnheit, die du privat stellst, verschwindet für neue Einträge, nicht für alte.",
   "privacyHabitsSub": "Eine private Gewohnheit ist für Freunde unsichtbar — samt Check-ins und Rückfällen. Dein Streak zählt für sie nur die geteilten.",
   "privacyHabitsTitle": "Gewohnheiten",
@@ -1930,15 +1889,6 @@
   "promptUnitClean": "Tage clean",
   "promptUnitStreak": "Tage Streak",
   "promptYes": "ja",
-  "recoveryCopied": "Key kopiert.",
-  "recoveryLookAround": "Schau dich einmal um.",
-  "recoveryShow": "Key anzeigen",
-  "recoveryTip1": "Passwortmanager — der beste Ort dafür.",
-  "recoveryTip2": "Aufschreiben und in die Schublade legen, in der auch dein Ausweis liegt.",
-  "recoveryTip3": "Nicht in einen Chat, nicht in eine Notiz-App mit Cloud-Sync, nicht als Screenshot in der Galerie.",
-  "recoveryTitle": "Wiederherstellungs-Key",
-  "recoveryWarning": "Wer diesen Key hat, ist du. Er kann in deinem Namen Check-ins signieren, und du kannst ihn nicht sperren — es gibt keinen Anbieter, der das könnte.",
-  "recoveryWhereTitle": "Wohin damit",
   "relativeDays": "vor {count} Tagen",
   "@relativeDays": {
     "placeholders": {
@@ -1997,15 +1947,17 @@
   "scanPasteInstead": "Stattdessen Link einfügen",
   "scanPasteTitle": "Einladungslink",
   "scanTitle": "Code scannen",
-  "setAboutBody": "Kein Konto, kein Server, keine Werbung, kein Tracking. Deine Daten liegen auf diesem Gerät und gehen nur an die Freunde, die du selbst verbunden hast. Der Quellcode ist offen — prüf es nach, statt es zu glauben.",
+  "setAboutBody": "Keine Werbung, kein Tracking, kein Datenverkauf. Dein Konto enthält, was die App braucht, Freunde sehen, was du teilst. Der Quellcode ist offen: Prüf es nach, statt es zu glauben, oder betreib deinen eigenen Server.",
   "setAboutSection": "Über",
   "setAboutTitle": "100 Tage und weit darüber hinaus",
+  "setAccountSection": "Konto",
+  "setAi": "KI",
   "setCoachSection": "Coach",
-  "setDidCopied": "DID kopiert.",
-  "setIdentitySection": "Identität & Daten",
-  "setLan": "Lokales Netzwerk",
-  "setLanOff": "Nicht aktiv.",
-  "setLanOn": "Aktiv — findet Freunde im gleichen WLAN automatisch.",
+  "setDeleteAccount": "Konto löschen",
+  "setDeleteAccountBody": "Dein Streak, deine Pläne, dein Tagebuch und deine Freundschaften werden auf dem Server gelöscht, endgültig. Das lässt sich nicht rückgängig machen.",
+  "setDeleteAccountFailed": "Das Konto konnte nicht gelöscht werden. Prüf deine Verbindung und versuch es noch einmal.",
+  "setDeleteAccountSub": "Löscht dein Konto und alles darin.",
+  "setDeleteAccountTitle": "Konto wirklich löschen?",
   "setLanguage": "App-Sprache",
   "setLanguageEnglish": "English",
   "setLanguageGerman": "Deutsch",
@@ -2019,55 +1971,19 @@
       }
     }
   },
-  "setNetworkSection": "Netzwerk",
-  "setOnDeviceAi": "KI auf dem Gerät",
-  "setOnThisDevice": "Auf diesem Gerät",
-  "setOnThisDeviceSub": "{events} eigene Einträge · {friends} verbundene Feeds",
-  "@setOnThisDeviceSub": {
-    "placeholders": {
-      "events": {
-        "type": "int"
-      },
-      "friends": {
-        "type": "int"
-      }
-    }
-  },
   "setPrivacy": "Privatsphäre",
   "setPrivacySub": "Was deine Freunde sehen",
-  "setRecoveryKey": "Wiederherstellungs-Key",
-  "setRecoveryKeySub": "Der einzige Weg zurück zu deinem Account.",
-  "setSyncFailed": "Letzter Versuch fehlgeschlagen: {message}",
-  "@setSyncFailed": {
-    "placeholders": {
-      "message": {
-        "type": "String"
-      }
-    }
-  },
-  "setSyncLast": "Zuletzt mit {peer}: {received} empfangen, {sent} gesendet.",
-  "@setSyncLast": {
-    "placeholders": {
-      "peer": {
-        "type": "String"
-      },
-      "received": {
-        "type": "int"
-      },
-      "sent": {
-        "type": "int"
-      }
-    }
-  },
-  "setSyncNever": "Noch keine Runde gelaufen.",
+  "setServer": "Server",
+  "setServerCustom": "Eigener Server: {host}",
+  "setServerDefault": "Der 100-Days-Server",
+  "setSignOut": "Abmelden",
+  "setSignOutBody": "Alles ist in deinem Konto gespeichert und wieder da, sobald du dich neu anmeldest. Dieses Handy vergisst es bis dahin.",
+  "setSignOutSub": "Deine Daten bleiben in deinem Konto.",
+  "setSyncDone": "Aktuell · {sent} gesendet, {received} empfangen",
+  "setSyncNever": "Noch nicht synchronisiert.",
   "setSyncNow": "Jetzt synchronisieren",
-  "setSyncPeerFallback": "einem Peer",
-  "setSyncStarted": "Sync-Runde gestartet.",
+  "setSyncOffline": "Offline. Alles bleibt gespeichert und geht später raus.",
   "setViewSource": "Quellcode ansehen",
-  "setWipe": "Alles löschen",
-  "setWipeBody": "Ohne deinen Wiederherstellungs-Key ist danach nichts mehr zu retten — es gibt keinen Server, der eine Kopie hat. Das ist der Preis dafür, dass auch sonst niemand eine hat.",
-  "setWipeSub": "Identität, Challenge und alle Freunde entfernen.",
-  "setWipeTitle": "Wirklich alles löschen?",
   "skyStars": "{count, plural, =0{Noch kein Stern an deinem Himmel. Der erste kommt mit dem ersten geschafften Tag.} =1{1 Stern steht an deinem Himmel — einer für jeden geschafften Tag.} other{{count} Sterne stehen an deinem Himmel — einer für jeden geschafften Tag.}}",
   "@skyStars": {
     "placeholders": {

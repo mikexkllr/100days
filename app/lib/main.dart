@@ -3,30 +3,20 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:app_links/app_links.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import 'app.dart';
+import 'config/backend_config.dart';
 import 'data/app_repository.dart';
-import 'data/key_store.dart';
-import 'data/lan_transport.dart';
+import 'data/feed_sync.dart';
 import 'data/locale_store.dart';
 import 'data/notifications.dart';
-import 'data/sqlite_feed_store.dart';
-import 'data/sync_service.dart';
 import 'l10n/l10n.dart';
 import 'state/providers.dart';
-
-/// The name peers see during a handshake.
-///
-/// Held in a mutable box because the transports start before the profile is
-/// projected, and the user can rename themselves at any time afterwards.
-class _LocalName {
-  String value = 'Jemand';
-  String emoji = '🙂';
-}
-
-final _LocalName _localName = _LocalName();
+import 'ui/social/invite_flow.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,10 +27,10 @@ Future<void> main() async {
     );
   });
 
-  final SqliteFeedStore store = await SqliteFeedStore.open();
-  final AppRepository repository = await AppRepository.open(
-    keyStore: SecureKeyStore(),
-    store: store,
+  final BackendConfig backend = await BackendConfig.load();
+  await Supabase.initialize(
+    url: backend.supabaseUrl,
+    publishableKey: backend.supabaseKey,
   );
 
   final NotificationService notifications = NotificationService();
@@ -48,43 +38,19 @@ Future<void> main() async {
 
   final LocaleStore localeStore = await LocaleStore.open();
 
-  final SyncService sync = SyncService(
-    identity: repository.identity,
-    store: store,
-    replicator: repository.replicator,
-    localDisplayName: () => _localName.value,
-    localAvatarEmoji: () => _localName.emoji,
-    followedDids: () => repository.follows,
-  );
-
-  // Discovery and replication are best-effort: a locked-down network must
-  // degrade the app to "works alone", never to "does not start".
-  LanTransport? lan;
-  try {
-    lan = LanTransport(
-      localDid: repository.did,
-      localName: () => _localName.value,
-    );
-    await sync.addTransport(lan);
-  } on Object catch (error) {
-    debugPrint('LAN transport unavailable: $error');
-    lan = null;
-  }
-
   runApp(ProviderScope(
     overrides: <Override>[
-      repositoryProvider.overrideWithValue(repository),
+      backendConfigProvider.overrideWithValue(backend),
       notificationsProvider.overrideWithValue(notifications),
-      syncServiceProvider.overrideWithValue(sync),
-      lanTransportProvider.overrideWithValue(lan),
       localeStoreProvider.overrideWithValue(localeStore),
     ],
     child: const _Bootstrap(child: HundredDaysApp()),
   ));
 }
 
-/// Side effects that need the provider container: reminder scheduling and
-/// notifications for peer activity that arrives while the app is open.
+/// Side effects that need the provider container: reminder scheduling, the
+/// home screen widget, syncing on resume, and notifications for friends'
+/// activity that arrives while the app is open.
 class _Bootstrap extends ConsumerStatefulWidget {
   const _Bootstrap({required this.child});
 
@@ -97,7 +63,13 @@ class _Bootstrap extends ConsumerStatefulWidget {
 class _BootstrapState extends ConsumerState<_Bootstrap>
     with WidgetsBindingObserver {
   ProviderSubscription<AsyncValue<AppSnapshot>>? _subscription;
-  StreamSubscription<SyncEvent>? _syncSubscription;
+  ProviderSubscription<AsyncValue<SyncReport>>? _syncSubscription;
+  StreamSubscription<Uri>? _links;
+  Timer? _periodicSync;
+
+  /// An invite link that arrived before there was anyone to redeem it for:
+  /// signed out, or still in onboarding.
+  String? _pendingInvite;
   String? _lastScheduledFor;
 
   @override
@@ -110,9 +82,8 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
       (AsyncValue<AppSnapshot>? _, AsyncValue<AppSnapshot> next) {
         final AppSnapshot? snapshot = next.valueOrNull;
         if (snapshot == null) return;
-        _localName.value = snapshot.me.profile.displayName;
-        _localName.emoji = snapshot.me.profile.avatarEmoji;
         if (snapshot.hasChallenge) {
+          _redeemPendingInvite();
           unawaited(_scheduleReminders(snapshot));
           unawaited(_publishWidget(snapshot));
         }
@@ -120,16 +91,53 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
       fireImmediately: true,
     );
 
-    _syncSubscription =
-        ref.read(syncServiceProvider)?.events.listen(_onSyncEvent);
+    _syncSubscription = ref.listenManual<AsyncValue<SyncReport>>(
+      syncReportsProvider,
+      (AsyncValue<SyncReport>? _, AsyncValue<SyncReport> next) {
+        final SyncReport? report = next.valueOrNull;
+        if (report != null) unawaited(_onSyncReport(report));
+      },
+    );
+
+    final AppLinks links = AppLinks();
+    unawaited(links.getInitialLink().then(_onLink, onError: (Object _) {}));
+    _links = links.uriLinkStream.listen(_onLink, onError: (Object _) {});
+
+    // Realtime delivers while the app is open; this catches what a dropped
+    // connection missed.
+    _periodicSync = Timer.periodic(const Duration(minutes: 2), (_) => _sync());
+  }
+
+  void _onLink(Uri? uri) {
+    if (uri == null || uri.scheme != kInviteScheme || uri.host != 'invite') {
+      return;
+    }
+    _pendingInvite = uri.toString();
+    _redeemPendingInvite();
+  }
+
+  void _redeemPendingInvite() {
+    final String? invite = _pendingInvite;
+    final BuildContext? context = appNavigatorKey.currentContext;
+    final AppSnapshot? snapshot = ref.read(appStateProvider).valueOrNull;
+    if (invite == null || context == null || snapshot == null) return;
+    if (!snapshot.hasChallenge) return;
+    _pendingInvite = null;
+    unawaited(redeemInviteFlow(context, ref, invite));
+  }
+
+  void _sync() {
+    if (ref.read(sessionRepositoryProvider).valueOrNull == null) return;
+    unawaited(ref.read(appStateProvider.notifier).syncNow().then(
+        (SyncReport _) {}, onError: (Object _) {}));
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Coming back into the app is the cheapest moment to look for peers:
-      // the user is holding the phone, on a network, right now.
-      unawaited(ref.read(appStateProvider.notifier).syncNow());
+      // Coming back into the app: the user is holding the phone, probably
+      // online, and wants to see what friends did meanwhile.
+      _sync();
     }
   }
 
@@ -147,8 +155,8 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
         streakRiskTitle: l10n.notifStreakRiskTitle,
       );
 
-  Future<void> _onSyncEvent(SyncEvent event) async {
-    if (!event.broughtSomething) return;
+  Future<void> _onSyncReport(SyncReport report) async {
+    if (!report.broughtSomething) return;
     await ref.read(appStateProvider.notifier).refresh();
 
     final AppSnapshot? snapshot = ref.read(appStateProvider).valueOrNull;
@@ -222,7 +230,9 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _subscription?.close();
-    unawaited(_syncSubscription?.cancel());
+    _syncSubscription?.close();
+    unawaited(_links?.cancel());
+    _periodicSync?.cancel();
     super.dispose();
   }
 

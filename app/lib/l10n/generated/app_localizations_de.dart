@@ -27,6 +27,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get actionNext => 'Weiter';
 
   @override
+  String get actionOk => 'OK';
+
+  @override
   String get actionRemove => 'Entfernen';
 
   @override
@@ -78,162 +81,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String adviceRaiseTarget(String emoji, String habit, int days) {
     return '$emoji $habit läuft seit $days Tagen. Erhöh das Tagesziel um 20 %.';
   }
-
-  @override
-  String get aiBackendMissing =>
-      'Aktuell läuft der regelbasierte Coach. Er braucht kein Modell, funktioniert offline und antwortet sofort — die Sprache ist nur weniger variabel. Lade unten ein Modell, dann wechselt er von selbst.';
-
-  @override
-  String get aiBackendPresent =>
-      'Das Modell läuft mit llama.cpp auf diesem Handy. Es formuliert deine Tagesansage, schätzt Mahlzeiten und schlägt Ernährungsziele vor — und fällt auf den regelbasierten Coach zurück, wenn es zu langsam ist.';
-
-  @override
-  String aiCoachStaysRuleBased(String model) {
-    return '$model schätzt Mahlzeiten und schlägt Ernährungsziele vor — Antworten, die die App prüft, bevor du sie bestätigst. Die Tagesansage des Coachs bleibt damit regelbasiert: Im Test ist ein so kleines Modell zu oft vom Thema abgekommen.';
-  }
-
-  @override
-  String aiDeviceLine(String model, int ram) {
-    return '$model · $ram GB RAM';
-  }
-
-  @override
-  String get aiDeviceUnknown =>
-      'Gerät nicht erkannt — wir gehen von einem einfachen aus.';
-
-  @override
-  String get aiDeviceUnsupported =>
-      'Dieses Gerät kann kein Sprachmodell lokal ausführen. Der Coach bleibt regelbasiert — er funktioniert genauso, er formuliert nur weniger abwechslungsreich.';
-
-  @override
-  String get aiDownloadFailed =>
-      'Der Download wurde unterbrochen. Tippe, um dort weiterzumachen.';
-
-  @override
-  String get aiDownloadNote =>
-      'Am besten im WLAN. Läuft weiter, während du die Einrichtung abschließt; danach arbeitet das Modell offline und nichts, was du eingibst, verlässt das Gerät.';
-
-  @override
-  String aiDownloadNow(String size) {
-    return 'Jetzt laden ($size GB)';
-  }
-
-  @override
-  String get aiDownloadResume => 'Download fortsetzen';
-
-  @override
-  String aiDownloadThis(String size) {
-    return 'Laden · $size GB';
-  }
-
-  @override
-  String aiDownloading(String received, String total) {
-    return '$received von $total GB';
-  }
-
-  @override
-  String get aiFits => 'passt';
-
-  @override
-  String aiGigabytes(String size) {
-    return '$size GB';
-  }
-
-  @override
-  String get aiInstalled => 'installiert';
-
-  @override
-  String get aiLargerModels => 'Größer';
-
-  @override
-  String get aiLargerModelsSub =>
-      'Passt auf dieses Gerät, braucht aber mehr Speicher und antwortet langsamer.';
-
-  @override
-  String get aiLoading => 'Wird geladen …';
-
-  @override
-  String get aiModelBalancedDesc =>
-      'Klein und schnell, gutes Deutsch und Englisch. Schätzt Mahlzeiten und schlägt Ziele vor; der Coach bleibt damit regelbasiert.';
-
-  @override
-  String get aiModelE2bMobileDesc =>
-      'Googles Handy-Modell im kompakten Mobile-Zuschnitt mit eingemischten 2-Bit-Schichten: ein halbes Gigabyte kleiner als die volle Fassung, aber merklich gröber — im Test lagen die Mahlzeiten-Schätzungen oft daneben.';
-
-  @override
-  String get aiModelLightDesc =>
-      'Das kleinste, für Geräte, auf die sonst nichts passt. Es hilft wenig: Der Coach bleibt regelbasiert, und im Test fielen seine Mahlzeiten-Schätzungen meist durch die Plausibilitätsprüfung — du trägst dann oft selbst ein.';
-
-  @override
-  String get aiModelMaxDesc =>
-      'Das stärkste Modell, das auf einem Handy läuft, im Mobile-Zuschnitt. Für Flaggschiffe ab 12 GB; antwortet langsamer.';
-
-  @override
-  String get aiModelStrongDesc =>
-      'Googles Handy-Modell, auf 4 Bit hin trainiert: nahe an voller Qualität bei 2,6 GB. Deutlich bessere Schätzungen und Coaching; braucht 8 GB RAM.';
-
-  @override
-  String get aiNoAutoDownload =>
-      'Die App lädt ein Modell nur, wenn du den Button antippst — eine feste Version von Hugging Face, vor der Nutzung gegen ihre SHA-256 geprüft. Danach: kein Netzwerk.';
-
-  @override
-  String get aiNoNetworkBadge => 'kein Netzwerkzugriff';
-
-  @override
-  String get aiNoRecommendation =>
-      'Dieses Gerät hat wenig Arbeitsspeicher für ein Sprachmodell. Die App funktioniert ohne eins vollständig — der Coach ist regelbasiert, Mahlzeiten kommen aus der Lebensmitteltabelle. Wenn du es trotzdem ausprobieren willst:';
-
-  @override
-  String get aiOneAtATime =>
-      'Es bleibt immer nur ein Modell auf dem Gerät: ein neues ersetzt das alte, sobald es fertig geladen ist.';
-
-  @override
-  String get aiOptionalModels => 'Optional';
-
-  @override
-  String get aiRecommended => 'empfohlen';
-
-  @override
-  String get aiRemove => 'Entfernen';
-
-  @override
-  String get aiSmallerModels => 'Kleiner und schneller';
-
-  @override
-  String get aiSmallerModelsSub =>
-      'Weniger Speicher und Akku, schnellere Antworten — dafür einfachere Sätze.';
-
-  @override
-  String get aiSource => 'Quelle';
-
-  @override
-  String get aiSupportedModels => 'Unterstützte Modelle';
-
-  @override
-  String get aiSwitchSmaller => 'Zu einem kleineren wechseln';
-
-  @override
-  String get aiTitle => 'KI auf dem Gerät';
-
-  @override
-  String get aiTooBig => 'zu groß';
-
-  @override
-  String get aiTooBigModels => 'Zu groß für dieses Gerät';
-
-  @override
-  String get aiTooBigModelsSub =>
-      'Braucht mehr Arbeitsspeicher, als das Gerät hat. Es kann laufen — oder das System beendet die App.';
-
-  @override
-  String get aiVerifying => 'Datei wird geprüft …';
-
-  @override
-  String get aiWhatItSeesBody =>
-      'Streak, Tagesnummer, deine Gewohnheiten und ob deine Freunde heute aktiv waren — als Text, direkt an das Modell auf diesem Gerät. Kein Netzwerkaufruf, keine Telemetrie, kein Zwischenspeicher in einer Cloud.';
-
-  @override
-  String get aiWhatItSeesTitle => 'Was das Modell sieht';
 
   @override
   String get appTitle => '100 Tage';
@@ -412,11 +259,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String coachEngineModel(String model) {
-    return '$model (on-device)';
+    return '$model';
   }
 
   @override
-  String get coachEngineRuleBased => 'Regelbasiert (on-device)';
+  String get coachEngineRuleBased => 'Regelbasiert';
 
   @override
   String coachHeadAtStake(int streak) {
@@ -1091,7 +938,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get feedEmptyBody =>
-      'Sobald du oder deine Freunde etwas abhaken, steht es hier — signiert und nachprüfbar.';
+      'Sobald du oder deine Freunde etwas abhaken, steht es hier.';
 
   @override
   String get feedEmptyTitle => 'Noch nichts im Feed';
@@ -1176,7 +1023,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get foodAiNotInstalled =>
-      'Erkennt Lebensmittel aus der Tabelle. Mit einem Modell auf dem Gerät (Einstellungen → KI auf dem Gerät) schätzt es auch Gerichte, die es nicht kennt.';
+      'Erkennt Lebensmittel aus der Tabelle. Mit der KI (Einstellungen → KI) schätzt es auch Gerichte, die es nicht kennt.';
 
   @override
   String get foodAmountLabel => 'Menge';
@@ -1309,7 +1156,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String friendsConnected(String name) {
-    return '$name verbunden.';
+    return 'Du und $name seid jetzt befreundet.';
   }
 
   @override
@@ -1319,7 +1166,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get friendsEmptyBody =>
-      'Die App funktioniert allein — aber sie wirkt erst, wenn jemand zuschaut. Zeig einem Freund deinen QR-Code.';
+      'Die App funktioniert allein, aber sie wirkt erst, wenn jemand zuschaut. Schick einem Freund deine Einladung.';
 
   @override
   String get friendsEmptyTitle => 'Noch niemand verbunden';
@@ -1331,13 +1178,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get friendsInvite => 'Einladen';
 
   @override
-  String friendsInviteInvalid(String message) {
-    return 'Einladung ungültig: $message';
-  }
-
-  @override
   String get friendsNetworkNote =>
-      'Verbindungen laufen direkt zwischen euren Geräten — im gleichen WLAN sofort, sonst beim nächsten Treffen. Jede Verbindung prüft, wer am anderen Ende ist, und nur Menschen, die du angenommen hast, bekommen etwas. Kein Server dazwischen, der eure Streaks kennt.';
+      'Freunde sehen, was du teilst: deinen Streak, geteilte Gewohnheiten und auf Wunsch deine Trainings. Körperdaten, Ziele und das Ernährungstagebuch bleiben privat; der Server gibt sie nur dir.';
 
   @override
   String get friendsNoActivity => 'Noch keine Aktivität';
@@ -1360,11 +1202,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get friendsRequestsSub =>
-      'Hat deinen Code gescannt. Geteilt wird erst, wenn du annimmst.';
+  String get friendsRequestsSub => 'Geteilt wird erst, wenn du annimmst.';
 
   @override
-  String get friendsRequestsTitle => 'Möchte sich verbinden';
+  String get friendsRequestsTitle => 'Freundschaftsanfragen';
 
   @override
   String get friendsScan => 'Scannen';
@@ -1442,18 +1283,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get goalsAiSub =>
-      'Beschreib, was du willst; das Modell auf dem Gerät schlägt neue Ziele vor. Nichts ändert sich, bis du es übernimmst.';
+      'Beschreib, was du willst; die KI schlägt neue Ziele vor. Nichts ändert sich, bis du es übernimmst.';
 
   @override
   String get goalsAiTitle => 'Mit KI anpassen';
 
   @override
-  String get goalsAiUnavailable =>
-      'Braucht ein Modell auf dem Gerät — einrichten unter Einstellungen → KI auf dem Gerät.';
+  String get goalsAiUnavailable => 'Braucht die KI, siehe Einstellungen → KI.';
 
   @override
   String get goalsBodySub =>
-      'Nur für den Zielvorschlag. Sie bleiben auf diesem Gerät und werden nie geteilt.';
+      'Nur für den Zielvorschlag. Sie sind privat und werden nie geteilt.';
 
   @override
   String get goalsBodyTitle => 'Körperdaten';
@@ -1758,7 +1598,34 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String inviteAlreadyFriends(String name) {
+    return 'Du und $name seid schon befreundet.';
+  }
+
+  @override
+  String get inviteCodeHint => 'z. B. K7QM4 TX29P';
+
+  @override
+  String get inviteConfirmAction => 'Befreunden';
+
+  @override
+  String get inviteConfirmBody =>
+      'Ihr seht gegenseitig Streak, geteilte Gewohnheiten und Trainings. Körperdaten und Ernährungstagebücher bleiben privat.';
+
+  @override
+  String inviteConfirmTitle(String name) {
+    return 'Mit $name befreunden?';
+  }
+
+  @override
+  String get inviteEnterCode => 'Code eingeben';
+
+  @override
   String get inviteErrorMalformed => 'Diese Einladung ist ungültig.';
+
+  @override
+  String get inviteErrorOffline =>
+      'Keine Verbindung zum Server. Versuch es gleich noch einmal.';
 
   @override
   String get inviteErrorSelf => 'Das bist du selbst.';
@@ -1770,27 +1637,31 @@ class AppLocalizationsDe extends AppLocalizations {
   String get inviteLinkCopied => 'Link kopiert.';
 
   @override
-  String get inviteReachableAt => 'Erreichbar unter';
+  String get inviteRevoke => 'Neuer Code (der alte gilt dann nicht mehr)';
+
+  @override
+  String get inviteRevoked =>
+      'Neuer Code ist da. Der alte funktioniert nicht mehr.';
 
   @override
   String get inviteShareSubject => '100 Tage Challenge';
 
   @override
-  String inviteShareText(String link) {
-    return 'Mach die 100 Tage mit mir: $link';
+  String inviteShareText(String link, String code) {
+    return 'Mach die 100 Tage mit mir: $link (oder gib in der App den Code $code ein)';
   }
 
   @override
   String get inviteStep1 =>
-      'Dein Gegenüber scannt den Code oder öffnet den Link.';
+      'Dein Gegenüber scannt den Code, öffnet den Link oder tippt den Code ein.';
 
   @override
   String get inviteStep2 =>
-      'Ihr folgt einander direkt — kein Konto, keine Telefonnummer, keine Freigabe durch einen Anbieter.';
+      'Ihr seid sofort befreundet, denn das Teilen des Codes ist dein Ja. Er gilt 14 Tage.';
 
   @override
   String get inviteStep3 =>
-      'Ab dann synchronisieren eure Geräte, sobald sie sich sehen: gleiches WLAN, gleiches Zuhause, gleiches Gym.';
+      'Ab dann seht ihr euren Tag gegenseitig live, egal wo ihr seid.';
 
   @override
   String get inviteTitle => 'Freunde einladen';
@@ -1918,6 +1789,53 @@ class AppLocalizationsDe extends AppLocalizations {
   String loggerTarget(String reps, int rir) {
     return 'Ziel: $reps Wdh. · RIR $rir';
   }
+
+  @override
+  String get loginApple => 'Mit Apple anmelden';
+
+  @override
+  String get loginFailed =>
+      'Die Anmeldung hat nicht geklappt. Prüf deine Verbindung und versuch es noch einmal.';
+
+  @override
+  String get loginGoogle => 'Mit Google anmelden';
+
+  @override
+  String get loginNotConfigured =>
+      'Die Anmeldung ist für diesen Server noch nicht eingerichtet.';
+
+  @override
+  String get loginOwnServer => 'Eigener Server';
+
+  @override
+  String loginOwnServerActive(String host) {
+    return 'Eigener Server: $host';
+  }
+
+  @override
+  String get loginOwnServerBody =>
+      'Betreib 100 Days auf deiner eigenen Supabase-Instanz, gehostet oder selbst betrieben. Projekt-URL und Publishable Key reichen; die Einrichtung steht in docs/self-hosting.md.';
+
+  @override
+  String get loginOwnServerGoogle => 'Google Web-Client-ID (optional)';
+
+  @override
+  String get loginOwnServerKey => 'Publishable Key';
+
+  @override
+  String get loginOwnServerReset => 'Standard-Server nutzen';
+
+  @override
+  String get loginOwnServerRestart =>
+      'Gespeichert. Schließ die App und öffne sie neu, um dich mit dem neuen Server zu verbinden.';
+
+  @override
+  String get loginPrivacy =>
+      'Dein Konto speichert nur, was die App braucht. Freunde sehen, was du teilst; Körperdaten, Ziele und das Ernährungstagebuch bleiben privat. Die App ist Open Source, und du kannst deinen eigenen Server betreiben.';
+
+  @override
+  String get loginSubtitle =>
+      'Anmelden, Ziel setzen, Plan bekommen. Deine Freunde sehen, ob du heute dran warst.';
 
   @override
   String get macroPresetAuto => 'Automatisch';
@@ -2520,20 +2438,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get obActivitySedentary => 'Sitzend';
 
   @override
-  String get obAiEyebrow => 'Coach';
-
-  @override
-  String get obAiLater =>
-      'Optional. Ohne Modell funktioniert alles auch — der Coach ist dann regelbasiert. Du kannst es später unter Einstellungen → KI auf dem Gerät laden.';
-
-  @override
-  String get obAiSubtitle =>
-      'Coach und Mahlzeiten-Schätzung können ein kleines Sprachmodell nutzen — auf diesem Handy, offline, ohne dass ein Prompt es verlässt. Wir haben das passende für dein Gerät ausgesucht.';
-
-  @override
-  String get obAiTitle => 'KI auf deinem Handy.';
-
-  @override
   String get obBodyActivity => 'Alltag & Bewegung';
 
   @override
@@ -2555,7 +2459,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get obBodySubtitle =>
-      'Nur für die Kalorien- und Proteinberechnung. Alles bleibt auf diesem Gerät.';
+      'Nur für die Kalorien- und Proteinberechnung. Alles bleibt privat.';
 
   @override
   String get obBodyTitle => 'Ein paar Zahlen.';
@@ -2676,18 +2580,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get obHabitsTitle => 'Was zählt jeden Tag?';
 
   @override
-  String get obIdentityBoxBody =>
-      'Ein Ed25519-Schlüsselpaar auf diesem Gerät, als did:key. Jeder Check-in wird damit signiert — deshalb kann niemand deinen Streak fälschen, und du brauchst niemandem zu vertrauen. Den Wiederherstellungs-Key findest du in den Einstellungen. Sichere ihn.';
-
-  @override
-  String get obIdentityBoxTitle => 'Deine Identität';
-
-  @override
   String get obIdentityNameHint => 'Dein Name';
 
   @override
   String get obIdentitySubtitle =>
-      'Kein Konto, keine E-Mail, kein Passwort. Dein Schlüsselpaar liegt schon auf diesem Gerät.';
+      'So sehen dich deine Freunde: im Feed, in Anfragen und in der Liga.';
 
   @override
   String get obIdentityTitle => 'Wie sollen dich deine Leute sehen?';
@@ -2737,10 +2634,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get obPointPrivacyBody =>
-      'Kein Konto, kein Server, keine Cloud. Deine Daten liegen auf deinem Gerät und gehen direkt zu deinen Freunden.';
+      'Freunde sehen, was du teilst, sonst niemand. Open Source, und wenn du willst, auf deinem eigenen Server.';
 
   @override
-  String get obPointPrivacyTitle => 'Niemand sonst';
+  String get obPointPrivacyTitle => 'Deins';
 
   @override
   String get obPointSocialBody =>
@@ -2849,14 +2746,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get obSummaryPrivacyAllShared =>
-      'Alle Gewohnheiten und dein Streak. Körperdaten und Ernährungstagebuch bleiben auf dem Handy.';
+      'Alle Gewohnheiten und dein Streak. Körperdaten und Ernährungstagebuch bleiben privat.';
 
   @override
   String get obSummaryPrivacySection => 'Mit Freunden geteilt';
 
   @override
   String obSummaryPrivacySome(String habits) {
-    return 'Dein Streak und deine Gewohnheiten — außer $habits, das bleibt privat. Körperdaten und Ernährungstagebuch bleiben auf dem Handy.';
+    return 'Dein Streak und deine Gewohnheiten, außer $habits, das bleibt privat. Körperdaten und Ernährungstagebuch bleiben auch privat.';
   }
 
   @override
@@ -3089,7 +2986,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get privacyAlwaysPrivate =>
-      'Immer privat, ohne Schalter: Körperdaten, Kalorienziele und das Ernährungstagebuch. Sie liegen verschlüsselt in deinem eigenen Feed — Freunde speichern die Bytes als Backup, können sie aber nicht lesen.';
+      'Immer privat, ohne Schalter: Körperdaten, Kalorienziele und das Ernährungstagebuch. Der Server gibt sie nur dir.';
 
   @override
   String get privacyFromNowOn =>
@@ -3293,36 +3190,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get promptYes => 'ja';
 
   @override
-  String get recoveryCopied => 'Key kopiert.';
-
-  @override
-  String get recoveryLookAround => 'Schau dich einmal um.';
-
-  @override
-  String get recoveryShow => 'Key anzeigen';
-
-  @override
-  String get recoveryTip1 => 'Passwortmanager — der beste Ort dafür.';
-
-  @override
-  String get recoveryTip2 =>
-      'Aufschreiben und in die Schublade legen, in der auch dein Ausweis liegt.';
-
-  @override
-  String get recoveryTip3 =>
-      'Nicht in einen Chat, nicht in eine Notiz-App mit Cloud-Sync, nicht als Screenshot in der Galerie.';
-
-  @override
-  String get recoveryTitle => 'Wiederherstellungs-Key';
-
-  @override
-  String get recoveryWarning =>
-      'Wer diesen Key hat, ist du. Er kann in deinem Namen Check-ins signieren, und du kannst ihn nicht sperren — es gibt keinen Anbieter, der das könnte.';
-
-  @override
-  String get recoveryWhereTitle => 'Wohin damit';
-
-  @override
   String relativeDays(int count) {
     return 'vor $count Tagen';
   }
@@ -3381,7 +3248,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get setAboutBody =>
-      'Kein Konto, kein Server, keine Werbung, kein Tracking. Deine Daten liegen auf diesem Gerät und gehen nur an die Freunde, die du selbst verbunden hast. Der Quellcode ist offen — prüf es nach, statt es zu glauben.';
+      'Keine Werbung, kein Tracking, kein Datenverkauf. Dein Konto enthält, was die App braucht, Freunde sehen, was du teilst. Der Quellcode ist offen: Prüf es nach, statt es zu glauben, oder betreib deinen eigenen Server.';
 
   @override
   String get setAboutSection => 'Über';
@@ -3390,22 +3257,30 @@ class AppLocalizationsDe extends AppLocalizations {
   String get setAboutTitle => '100 Tage und weit darüber hinaus';
 
   @override
+  String get setAccountSection => 'Konto';
+
+  @override
+  String get setAi => 'KI';
+
+  @override
   String get setCoachSection => 'Coach';
 
   @override
-  String get setDidCopied => 'DID kopiert.';
+  String get setDeleteAccount => 'Konto löschen';
 
   @override
-  String get setIdentitySection => 'Identität & Daten';
+  String get setDeleteAccountBody =>
+      'Dein Streak, deine Pläne, dein Tagebuch und deine Freundschaften werden auf dem Server gelöscht, endgültig. Das lässt sich nicht rückgängig machen.';
 
   @override
-  String get setLan => 'Lokales Netzwerk';
+  String get setDeleteAccountFailed =>
+      'Das Konto konnte nicht gelöscht werden. Prüf deine Verbindung und versuch es noch einmal.';
 
   @override
-  String get setLanOff => 'Nicht aktiv.';
+  String get setDeleteAccountSub => 'Löscht dein Konto und alles darin.';
 
   @override
-  String get setLanOn => 'Aktiv — findet Freunde im gleichen WLAN automatisch.';
+  String get setDeleteAccountTitle => 'Konto wirklich löschen?';
 
   @override
   String get setLanguage => 'App-Sprache';
@@ -3428,68 +3303,49 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get setNetworkSection => 'Netzwerk';
-
-  @override
-  String get setOnDeviceAi => 'KI auf dem Gerät';
-
-  @override
-  String get setOnThisDevice => 'Auf diesem Gerät';
-
-  @override
-  String setOnThisDeviceSub(int events, int friends) {
-    return '$events eigene Einträge · $friends verbundene Feeds';
-  }
-
-  @override
   String get setPrivacy => 'Privatsphäre';
 
   @override
   String get setPrivacySub => 'Was deine Freunde sehen';
 
   @override
-  String get setRecoveryKey => 'Wiederherstellungs-Key';
+  String get setServer => 'Server';
 
   @override
-  String get setRecoveryKeySub => 'Der einzige Weg zurück zu deinem Account.';
-
-  @override
-  String setSyncFailed(String message) {
-    return 'Letzter Versuch fehlgeschlagen: $message';
+  String setServerCustom(String host) {
+    return 'Eigener Server: $host';
   }
 
   @override
-  String setSyncLast(String peer, int received, int sent) {
-    return 'Zuletzt mit $peer: $received empfangen, $sent gesendet.';
+  String get setServerDefault => 'Der 100-Days-Server';
+
+  @override
+  String get setSignOut => 'Abmelden';
+
+  @override
+  String get setSignOutBody =>
+      'Alles ist in deinem Konto gespeichert und wieder da, sobald du dich neu anmeldest. Dieses Handy vergisst es bis dahin.';
+
+  @override
+  String get setSignOutSub => 'Deine Daten bleiben in deinem Konto.';
+
+  @override
+  String setSyncDone(int sent, int received) {
+    return 'Aktuell · $sent gesendet, $received empfangen';
   }
 
   @override
-  String get setSyncNever => 'Noch keine Runde gelaufen.';
+  String get setSyncNever => 'Noch nicht synchronisiert.';
 
   @override
   String get setSyncNow => 'Jetzt synchronisieren';
 
   @override
-  String get setSyncPeerFallback => 'einem Peer';
-
-  @override
-  String get setSyncStarted => 'Sync-Runde gestartet.';
+  String get setSyncOffline =>
+      'Offline. Alles bleibt gespeichert und geht später raus.';
 
   @override
   String get setViewSource => 'Quellcode ansehen';
-
-  @override
-  String get setWipe => 'Alles löschen';
-
-  @override
-  String get setWipeBody =>
-      'Ohne deinen Wiederherstellungs-Key ist danach nichts mehr zu retten — es gibt keinen Server, der eine Kopie hat. Das ist der Preis dafür, dass auch sonst niemand eine hat.';
-
-  @override
-  String get setWipeSub => 'Identität, Challenge und alle Freunde entfernen.';
-
-  @override
-  String get setWipeTitle => 'Wirklich alles löschen?';
 
   @override
   String skyStars(int count) {

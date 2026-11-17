@@ -5,13 +5,12 @@ import '../../l10n/l10n.dart';
 import '../../state/onboarding_state.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
-import 'steps/ai_step.dart';
 import 'steps/body_step.dart';
 import 'steps/goal_step.dart';
 import 'steps/habits_step.dart';
-import 'steps/identity_step.dart';
 import 'steps/kcal_step.dart';
 import 'steps/privacy_step.dart';
+import 'steps/profile_step.dart';
 import 'steps/split_step.dart';
 import 'steps/statement_step.dart';
 import 'steps/summary_step.dart';
@@ -75,10 +74,9 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
           ),
         ],
         const _Step(id: 'privacy', child: PrivacyStep(), canAdvance: true),
-        const _Step(id: 'ai', child: AiStep(), canAdvance: true),
         _Step(
           id: 'identity',
-          child: const IdentityStep(),
+          child: const ProfileStep(),
           canAdvance: draft.displayName.trim().isNotEmpty,
         ),
         _Step(

@@ -20,7 +20,7 @@ class LeagueTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
     final LeagueStanding standing = snapshot.league;
-    final int myRank = standing.rankOf(snapshot.me.did);
+    final int myRank = standing.rankOf(snapshot.me.userId);
 
     return ListView(
       padding: EdgeInsets.fromLTRB(
@@ -96,7 +96,7 @@ class LeagueTab extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
           _Podium(
             entries: standing.entries.take(3).toList(),
-            meDid: snapshot.me.did,
+            meId: snapshot.me.userId,
           ),
         ],
         SectionHeader(l10n.leagueThisWeek),
@@ -106,9 +106,9 @@ class LeagueTab extends StatelessWidget {
             child: _LeagueRow(
               rank: i + 1,
               entry: standing.entries[i],
-              isMe: standing.entries[i].did == snapshot.me.did,
-              promoting: standing.isPromoting(standing.entries[i].did),
-              demoting: standing.isDemoting(standing.entries[i].did),
+              isMe: standing.entries[i].userId == snapshot.me.userId,
+              promoting: standing.isPromoting(standing.entries[i].userId),
+              demoting: standing.isDemoting(standing.entries[i].userId),
             ),
           ),
         const SizedBox(height: AppSpacing.md),
@@ -238,10 +238,10 @@ class _LeagueRow extends StatelessWidget {
 
 /// The top three on pedestals: gold-free, but unmistakably first.
 class _Podium extends StatelessWidget {
-  const _Podium({required this.entries, required this.meDid});
+  const _Podium({required this.entries, required this.meId});
 
   final List<LeagueEntry> entries;
-  final String meDid;
+  final String meId;
 
   @override
   Widget build(BuildContext context) {
@@ -257,7 +257,7 @@ class _Podium extends StatelessWidget {
             child: _Pedestal(
               rank: i + 1,
               entry: entries[i],
-              isMe: entries[i].did == meDid,
+              isMe: entries[i].userId == meId,
             ),
           ),
       ],

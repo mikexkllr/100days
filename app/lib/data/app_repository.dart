@@ -2,25 +2,16 @@ import 'dart:async';
 
 import 'package:hundred_core/hundred_core.dart';
 
-import 'key_store.dart';
-import 'sqlite_feed_store.dart';
+import 'feed_sync.dart';
+import 'social_backend.dart';
 
-/// Why an invite was refused.
-enum InviteProblem { malformed, self }
-
-class InviteRejection implements Exception {
-  const InviteRejection(this.problem);
-
-  final InviteProblem problem;
-
-  @override
-  String toString() => 'InviteRejection(${problem.name})';
-}
+export 'social_backend.dart'
+    show FriendLink, FriendStatus, InvitePreview, InviteProblem, InviteRejection;
 
 /// One consistent read of everything the UI needs.
 class AppSnapshot {
   const AppSnapshot({
-    required this.identity,
+    required this.userId,
     required this.me,
     required this.friends,
     required this.activity,
@@ -28,10 +19,13 @@ class AppSnapshot {
     required this.today,
     required this.nudgedToday,
     required this.cheeredEvents,
+    this.incomingRequests = const <FriendLink>[],
+    this.outgoingRequests = const <FriendLink>[],
     this.plan,
   });
 
-  final Identity identity;
+  /// The signed-in account.
+  final String userId;
   final UserProjection me;
   final List<UserProjection> friends;
   final List<ActivityItem> activity;
@@ -39,11 +33,17 @@ class AppSnapshot {
   final ChallengePlan? plan;
   final DayKey today;
 
-  /// Peers already nudged today, derived from the feed rather than held in
+  /// People who asked to be friends and wait for an answer.
+  final List<FriendLink> incomingRequests;
+
+  /// People the user asked, who have not answered yet.
+  final List<FriendLink> outgoingRequests;
+
+  /// Friends already nudged today, derived from the feed rather than held in
   /// widget state — a list that rebuilds must not forget what you sent.
   final Set<String> nudgedToday;
 
-  /// Hashes of the check-in events already cheered.
+  /// Ids of the check-in events already cheered.
   final Set<String> cheeredEvents;
 
   bool get hasChallenge => me.challenge != null;
@@ -54,8 +54,8 @@ class AppSnapshot {
       friends.map((UserProjection f) => f.toPeerState(today: today)).toList();
 
   Map<String, PeerProfile> get profiles => <String, PeerProfile>{
-        me.did: me.profile,
-        for (final UserProjection f in friends) f.did: f.profile,
+        me.userId: me.profile,
+        for (final UserProjection f in friends) f.userId: f.profile,
       };
 
   /// Friends who already logged something today and you have not. The single
@@ -79,85 +79,84 @@ class AppSnapshot {
 
 /// The single place the UI talks to.
 ///
-/// Everything a user does becomes a signed event on their own feed; nothing is
-/// stored "beside" the log. That constraint is what lets a friend's device
-/// reconstruct the exact same streak from the same bytes.
+/// Everything a user does becomes an event on their own feed; nothing is
+/// stored "beside" the log. Events land in the local store first, so the app
+/// works without a signal, and the sync sends them on. That constraint is
+/// what lets a friend's device reconstruct the exact same streak from the
+/// same events.
 class AppRepository {
   AppRepository({
-    required this.identity,
+    required this.userId,
     required this.store,
-    required this.keyStore,
-    required this.box,
-  })  : writer = FeedWriter(identity: identity, store: store),
-        replicator = FeedReplicator(store);
+    SocialBackend? social,
+    FeedSync? sync,
+  })  : social = social ?? MemorySocialBackend(userId: userId),
+        sync = sync ?? OfflineFeedSync() {
+    writer = FeedWriter(
+      author: userId,
+      store: store,
+      onWritten: (FeedEvent _) => this.sync.schedulePush(),
+    );
+  }
 
-  final Identity identity;
+  /// The signed-in account. Events are written under it.
+  final String userId;
   final FeedStore store;
-  final KeyStore keyStore;
-  final FeedWriter writer;
-  final FeedReplicator replicator;
+  final SocialBackend social;
+  final FeedSync sync;
+  late final FeedWriter writer;
 
-  /// Seals what friends must not read. See `PrivateBox`.
-  final PrivateBox box;
-
-  final Set<String> _follows = <String>{};
+  List<FriendLink> _links = const <FriendLink>[];
   ChallengePlan? _cachedPlan;
   String? _cachedPlanFor;
 
-  String get did => identity.did;
-
-  Set<String> get follows => Set<String>.unmodifiable(_follows);
+  /// Accepted friends: the feeds this device folds besides the user's own.
+  Set<String> get follows => <String>{
+        for (final FriendLink l in _links)
+          if (l.status == FriendStatus.friends) l.userId,
+      };
 
   Stream<FeedEvent> get changes => store.changes;
 
-  static Future<AppRepository> open({
-    required KeyStore keyStore,
-    FeedStore? store,
-  }) async {
-    final identity = await keyStore.readOrCreate();
-    final feedStore = store ?? await SqliteFeedStore.open();
-    final repository = AppRepository(
-      identity: identity,
-      store: feedStore,
-      keyStore: keyStore,
-      box: await PrivateBox.forIdentity(identity),
-    );
-    await repository.reloadFollows();
-    return repository;
+  /// Reads the friend list from the server and tells the sync whose feeds
+  /// belong on this device. Keeps the last known list when offline.
+  Future<void> refreshFriends() async {
+    try {
+      _links = await social.friendships();
+    } on Object {
+      return;
+    }
+    await sync.setAuthors(<String>{userId, ...follows});
   }
 
-  Future<void> reloadFollows() async {
-    _follows.clear();
-    final store = this.store;
-    if (store is SqliteFeedStore) {
-      for (final FollowRecord record in await store.follows()) {
-        _follows.add(record.did);
-      }
-    } else {
-      // Any store: infer follows from whose feeds we already replicate.
-      for (final FeedHead head in await store.heads()) {
-        if (head.did != did) _follows.add(head.did);
-      }
-    }
+  /// Friends first, then the feeds: a friend accepted a minute ago must be
+  /// in the set before their events are pulled.
+  Future<SyncReport> syncNow() async {
+    await refreshFriends();
+    return sync.syncNow();
   }
 
   Future<AppSnapshot> snapshot({DayKey? today}) async {
     final day = today ?? DayKey.today();
 
-    // Our own sealed events are opened before folding; a friend's stay
-    // sealed and are skipped by the projection.
-    final myEvents = await store.eventsOf(did);
-    final me = projectUser(did, await box.openAll(myEvents), today: day);
+    final myEvents = await store.eventsOf(userId);
+    final me = projectUser(userId, myEvents, today: day);
     // The league ranks everyone by what everyone can verify. Friends only
-    // see our public events, so our own row is computed the same way —
+    // receive our shared events, so our own row is computed the same way —
     // otherwise every device would rank us differently.
-    final meAsFriendsSeeMe = projectUser(did, myEvents, today: day);
+    final meAsFriendsSeeMe = projectUser(
+      userId,
+      myEvents
+          .where((FeedEvent e) => e.visibility == EventVisibility.friends)
+          .toList(),
+      today: day,
+    );
 
     final friends = <UserProjection>[];
-    for (final friendDid in _follows) {
+    for (final friendId in follows) {
       friends.add(projectUser(
-        friendDid,
-        await store.eventsOf(friendDid),
+        friendId,
+        await store.eventsOf(friendId),
         today: day,
       ));
     }
@@ -167,10 +166,10 @@ class AppRepository {
     final activity = buildActivityFeed(
       await store.recent(limit: 300),
       profiles: <String, PeerProfile>{
-        me.did: me.profile,
-        for (final UserProjection f in friends) f.did: f.profile,
+        me.userId: me.profile,
+        for (final UserProjection f in friends) f.userId: f.profile,
       },
-      selfDid: did,
+      selfId: userId,
     );
 
     final weekKey = day.isoWeekKey;
@@ -198,13 +197,13 @@ class AppRepository {
           nudgedToday.add(target);
         }
       } else {
-        final hash = event.payload['event'] as String?;
-        if (hash != null) cheeredEvents.add(hash);
+        final cheered = event.payload['event'] as String?;
+        if (cheered != null) cheeredEvents.add(cheered);
       }
     }
 
     return AppSnapshot(
-      identity: identity,
+      userId: userId,
       me: me,
       friends: friends,
       activity: activity,
@@ -212,6 +211,14 @@ class AppRepository {
       today: day,
       nudgedToday: nudgedToday,
       cheeredEvents: cheeredEvents,
+      incomingRequests: <FriendLink>[
+        for (final FriendLink l in _links)
+          if (l.status == FriendStatus.incoming) l,
+      ],
+      outgoingRequests: <FriendLink>[
+        for (final FriendLink l in _links)
+          if (l.status == FriendStatus.outgoing) l,
+      ],
       plan: me.challenge == null ? null : _planFor(me.challenge!),
     );
   }
@@ -229,11 +236,11 @@ class AppRepository {
     required String displayName,
     required String avatarEmoji,
     String? goalStatement,
-  }) =>
-      writer.append(
+  }) async {
+    await writer.append(
         FeedEventType.profile,
         PeerProfile(
-          did: did,
+          userId: userId,
           displayName: displayName,
           avatarEmoji: avatarEmoji,
           goalStatement: goalStatement == null || goalStatement.isEmpty
@@ -241,18 +248,30 @@ class AppRepository {
               : goalStatement,
         ).toPayload(),
       );
+    // The name people see in a friend request, before they are friends and
+    // can read the feed.
+    try {
+      await social.updateProfile(displayName: displayName, emoji: avatarEmoji);
+    } on Object {
+      // Offline: the profile event above carries it; the next save retries.
+    }
+  }
 
-  /// Appends [payload] as [type] — in the clear, or sealed when [private].
+  /// Appends [payload] as [type] — for friends, or only for the user when
+  /// [private].
   Future<FeedEvent> _append(
     String type,
     Map<String, dynamic> payload, {
     bool private = false,
-  }) async {
-    if (!private) return writer.append(type, payload);
-    return writer.append(FeedEventType.private, await box.seal(type, payload));
-  }
+  }) =>
+      writer.append(
+        type,
+        payload,
+        visibility:
+            private ? EventVisibility.private : EventVisibility.friends,
+      );
 
-  /// Two events: what friends may see, then the full challenge sealed. The
+  /// Two events: what friends may see, then the full challenge, private. The
   /// owner's projection folds both in order, so the full one wins at home
   /// while friends only ever get the public view.
   Future<void> _publishChallenge(String type, Challenge challenge) async {
@@ -330,7 +349,7 @@ class AppRepository {
         private: _isPrivate(habit, challenge ?? await _currentChallenge()),
       );
 
-  /// A finished session: the log (shared or sealed, as the user chose), then
+  /// A finished session: the log (shared or private, as the user chose), then
   /// the gym check-in it backs — marked tracked, which is what earns the
   /// plan bonus.
   Future<void> logWorkout({
@@ -355,7 +374,7 @@ class AppRepository {
     );
   }
 
-  /// The food diary is always sealed: what someone eats is nobody's
+  /// The food diary is always private: what someone eats is nobody's
   /// business but theirs.
   Future<void> logFood(FoodEntry entry) =>
       _append(FeedEventType.foodLogged, entry.toPayload(), private: true);
@@ -384,71 +403,77 @@ class AppRepository {
     );
   }
 
-  Future<void> nudge(String targetDid, String text) => writer.append(
+  Future<void> nudge(String targetId, String text) => writer.append(
         FeedEventType.nudge,
-        <String, dynamic>{'target': targetDid, 'text': text},
+        <String, dynamic>{'target': targetId, 'text': text},
       );
 
   Future<void> cheer(
-    String targetDid,
+    String targetId,
     String text, {
-    String? eventHash,
+    String? eventId,
   }) =>
       writer.append(
         FeedEventType.cheer,
         <String, dynamic>{
-          'target': targetDid,
+          'target': targetId,
           'text': text,
-          if (eventHash != null) 'event': eventHash,
+          if (eventId != null) 'event': eventId,
         },
       );
 
-  /// Throws [InviteRejection] so the caller can render the reason in the
-  /// user's language.
-  Future<void> addFriend(Invite invite) async {
-    if (!invite.isWellFormed) {
-      throw const InviteRejection(InviteProblem.malformed);
+  /// The code behind the user's QR code and invite link.
+  Future<String> myInviteCode() => social.myInviteCode();
+
+  Future<InvitePreview?> previewInvite(String code) =>
+      social.previewInvite(code);
+
+  /// Redeems someone's invite: both are friends straight away, because
+  /// whoever shared the code already said yes. Throws [InviteRejection].
+  Future<String> redeemInvite(String code) async {
+    final String owner;
+    try {
+      owner = await social.redeemInvite(code);
+    } on InviteRejection {
+      rethrow;
+    } on Object {
+      throw const InviteRejection(InviteProblem.offline);
     }
-    if (invite.did == did) {
-      throw const InviteRejection(InviteProblem.self);
-    }
-    final store = this.store;
-    if (store is SqliteFeedStore) {
-      await store.addFollow(
-        invite.did,
-        name: invite.displayName,
-        emoji: invite.avatarEmoji,
-      );
-    }
-    _follows.add(invite.did);
+    await syncNow();
+    return owner;
   }
 
-  Future<void> removeFriend(String friendDid) async {
-    final store = this.store;
-    if (store is SqliteFeedStore) await store.removeFollow(friendDid);
-    _follows.remove(friendDid);
+  Future<void> sendFriendRequest(String otherId) async {
+    await social.sendFriendRequest(otherId);
+    await refreshFriends();
   }
 
-  Invite inviteForMe({
-    required String displayName,
-    required String avatarEmoji,
-    List<String> addresses = const <String>[],
-  }) =>
-      Invite(
-        did: did,
-        displayName: displayName,
-        avatarEmoji: avatarEmoji,
-        addresses: addresses,
-      );
+  Future<void> respondToRequest(String requesterId, {required bool accept}) async {
+    await social.respondToRequest(requesterId, accept: accept);
+    await syncNow();
+  }
 
-  Future<String> recoveryKey() => identity.recoveryKey;
+  /// Ends the friendship on the server and drops their feed from this
+  /// device.
+  Future<void> removeFriend(String friendId) async {
+    await social.removeFriend(friendId);
+    _links = _links.where((FriendLink l) => l.userId != friendId).toList();
+    await store.removeAuthor(friendId);
+    await sync.setAuthors(<String>{userId, ...follows});
+  }
 
-  Future<void> wipeEverything() async {
-    final store = this.store;
-    if (store is SqliteFeedStore) await store.wipe();
-    await keyStore.clear();
-    _follows.clear();
+  /// Forgets everything on this device, e.g. on sign-out. The account and
+  /// its feed stay on the server.
+  Future<void> clearLocal() async {
+    await store.clear();
+    _links = const <FriendLink>[];
     _cachedPlan = null;
     _cachedPlanFor = null;
+  }
+
+  Future<void> close() async {
+    await sync.dispose();
+    await social.dispose();
+    await store.close();
   }
 }

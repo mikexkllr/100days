@@ -4,7 +4,6 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hundred_core/hundred_core.dart';
-import 'package:hundred_days/data/llm_runtime.dart';
 import 'package:hundred_days/l10n/food_names.dart';
 import 'package:hundred_days/l10n/l10n.dart';
 import 'package:hundred_days/ui/mascot/mascot_mood.dart';
@@ -285,16 +284,6 @@ void main() {
       }
     });
 
-    test('every downloadable model is described', () {
-      final Set<String> descriptions = <String>{};
-      for (final LocalModelSpec spec in kModelCatalog) {
-        bothLanguages(spec.id, (AppLocalizations l) =>
-            l.modelDescription(spec.id));
-        descriptions.add(en.modelDescription(spec.id));
-      }
-      expect(descriptions, hasLength(kModelCatalog.length));
-    });
-
     test('meals', () {
       for (final MealSlotKind kind in MealSlotKind.values) {
         bothLanguages(kind.name, (AppLocalizations l) => l.mealName(kind));
@@ -367,7 +356,7 @@ void main() {
           freeformBody: 'Body',
           peers: const <PeerMention>[
             PeerMention(
-              did: 'did:key:zA',
+              userId: 'user-a',
               displayName: 'Marcel',
               avatarEmoji: '🦍',
               streak: 30,
@@ -391,7 +380,7 @@ void main() {
     test('nudges and plan advice', () {
       for (final NudgeTemplate template in NudgeTemplate.values) {
         final NudgeSuggestion nudge = NudgeSuggestion(
-          targetDid: 'did:key:zA',
+          targetId: 'user-a',
           template: template,
           reason: NudgeReason.nothingToday,
           dayNumber: 12,

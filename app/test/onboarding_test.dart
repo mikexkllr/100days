@@ -220,7 +220,7 @@ void main() {
     expect(setup.split, SplitKind.pushPullLegs);
   });
 
-  testWidgets('completing the flow writes a signed challenge to the feed',
+  testWidgets('completing the flow writes the challenge to the feed',
       (WidgetTester tester) async {
     await pump(tester);
 
@@ -233,9 +233,7 @@ void main() {
     await next(tester); // statement -> habits
     await next(tester); // habits -> privacy
     expect(find.text('Wer sieht was.'), findsOneWidget);
-    await next(tester); // privacy -> on-device AI
-    expect(find.text('KI auf deinem Handy.'), findsOneWidget);
-    await next(tester); // AI -> identity
+    await next(tester); // privacy -> identity
     await tester.enterText(find.byKey(const Key('name-field')), 'Mike');
     await tester.pumpAndSettle();
     await next(tester); // identity -> summary
@@ -249,7 +247,7 @@ void main() {
     }
 
     final List<FeedEvent> events =
-        await repository.store.eventsOf(repository.did);
+        await repository.store.eventsOf(repository.userId);
     expect(
       events.map((FeedEvent e) => e.type),
       containsAll(<String>[
@@ -258,14 +256,13 @@ void main() {
       ]),
     );
 
-    // The feed the friends will replicate must verify end to end.
-    for (int i = 0; i < events.length; i++) {
-      final result = await validateEvent(
-        events[i],
-        previous: i == 0 ? null : events[i - 1],
-      );
-      expect(result.isValid, isTrue, reason: '${events[i].type} did not verify');
-    }
+    // Written to this device first, waiting for the sync to send them —
+    // so a challenge started without a signal is not lost.
+    expect(events.every((FeedEvent e) => e.isPending), isTrue);
+    expect(
+      await repository.store.pending(repository.userId),
+      hasLength(events.length),
+    );
 
     final snapshot = await repository.snapshot();
     expect(snapshot.hasChallenge, isTrue);

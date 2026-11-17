@@ -13,6 +13,7 @@ import 'theme/fire.dart';
 import 'theme/theme.dart';
 import 'ui/home/home_screen.dart';
 import 'ui/mascot/flame_mascot.dart';
+import 'ui/auth/login_screen.dart';
 import 'ui/home/today.dart';
 import 'ui/motion/sky.dart';
 import 'ui/onboarding/onboarding_flow.dart';
@@ -20,6 +21,10 @@ import 'ui/plan/plan_screen.dart';
 import 'ui/settings/settings_screen.dart';
 import 'ui/social/social_screen.dart';
 import 'ui/stats/stats_screen.dart';
+
+/// The root navigator, for what arrives from outside the widget tree — an
+/// invite link opened from a chat.
+final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
 class HundredDaysApp extends ConsumerWidget {
   const HundredDaysApp({super.key});
@@ -30,6 +35,7 @@ class HundredDaysApp extends ConsumerWidget {
     final Locale? locale = ref.watch(localeProvider);
 
     return MaterialApp(
+      navigatorKey: appNavigatorKey,
       onGenerateTitle: (BuildContext context) => context.l10n.appTitle,
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
@@ -39,7 +45,27 @@ class HundredDaysApp extends ConsumerWidget {
       // One sky behind every page.
       builder: (BuildContext context, Widget? child) =>
           _Sky(child: child ?? const SizedBox.shrink()),
-      home: const _Gate(),
+      home: const _AuthGate(),
+    );
+  }
+}
+
+/// Sign-in until there is an account; then the account's data.
+class _AuthGate extends ConsumerWidget {
+  const _AuthGate();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AsyncValue<AppRepository?> session =
+        ref.watch(sessionRepositoryProvider);
+    return session.when(
+      loading: () => const _Splash(),
+      error: (Object error, StackTrace stack) => _ErrorScreen(
+        error: error,
+        onRetry: () => ref.invalidate(sessionRepositoryProvider),
+      ),
+      data: (AppRepository? repository) =>
+          repository == null ? const LoginScreen() : const _Gate(),
     );
   }
 }
@@ -54,41 +80,56 @@ class _Gate extends ConsumerWidget {
 
     return async.when(
       loading: () => const _Splash(),
-      error: (Object error, StackTrace stack) => Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                const Text('💥', style: TextStyle(fontSize: 44)),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  context.l10n.homeStorageError,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  '$error',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: AppColors.textSecondary),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                FilledButton(
-                  onPressed: () => ref.invalidate(appStateProvider),
-                  child: Text(context.l10n.actionRetry),
-                ),
-              ],
-            ),
-          ),
-        ),
+      error: (Object error, StackTrace stack) => _ErrorScreen(
+        error: error,
+        onRetry: () => ref.invalidate(appStateProvider),
       ),
       data: (AppSnapshot snapshot) =>
           snapshot.hasChallenge ? const AppShell() : const OnboardingFlow(),
+    );
+  }
+}
+
+class _ErrorScreen extends StatelessWidget {
+  const _ErrorScreen({required this.error, required this.onRetry});
+
+  final Object error;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const Text('💥', style: TextStyle(fontSize: 44)),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                context.l10n.homeStorageError,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                '$error',
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              FilledButton(
+                onPressed: onRetry,
+                child: Text(context.l10n.actionRetry),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

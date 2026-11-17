@@ -1,0 +1,198 @@
+import 'dart:convert';
+import 'dart:io' show Platform;
+import 'dart:math';
+
+import 'package:crypto/crypto.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../config/backend_config.dart';
+
+/// Why a sign-in did not go through.
+enum SignInProblem {
+  /// The user closed the sheet. Not an error worth showing.
+  cancelled,
+
+  /// The provider is not set up for this backend (no client id).
+  notConfigured,
+
+  /// Anything else: network, the provider, the backend.
+  failed,
+}
+
+class SignInException implements Exception {
+  const SignInException(this.problem, [this.cause]);
+
+  final SignInProblem problem;
+  final Object? cause;
+
+  @override
+  String toString() => 'SignInException(${problem.name}: $cause)';
+}
+
+/// Sign-in with Google and Apple, through the platform's own sheets.
+///
+/// The native sheet hands back an ID token, which Supabase Auth verifies
+/// against the provider and turns into a session. A random nonce goes into
+/// the provider request in hashed form and to Supabase in the clear, which
+/// binds the token to this one sign-in — a token lifted from somewhere else
+/// cannot be replayed.
+///
+/// There is no anonymous mode: the AI allowance is per account, and
+/// anonymous accounts would let a script mint a fresh allowance per request.
+class AuthService {
+  AuthService(this._client, this._config);
+
+  final SupabaseClient _client;
+  final BackendConfig _config;
+  bool _googleReady = false;
+  String? _googleRawNonce;
+
+  Session? get session => _client.auth.currentSession;
+
+  Stream<AuthState> get changes => _client.auth.onAuthStateChange;
+
+  bool get canUseGoogle => _config.hasGoogleSignIn;
+
+  /// Apple's native sheet exists on iOS (and macOS). On Android it would be
+  /// a web flow that needs a services id and a rotating secret; Google
+  /// covers Android.
+  bool get canUseApple => Platform.isIOS || Platform.isMacOS;
+
+  Future<void> signInWithGoogle() async {
+    if (!canUseGoogle) throw const SignInException(SignInProblem.notConfigured);
+    try {
+      if (!_googleReady) {
+        _googleRawNonce = _randomNonce();
+        await GoogleSignIn.instance.initialize(
+          clientId: _config.googleIosClientId.isEmpty
+              ? null
+              : _config.googleIosClientId,
+          serverClientId: _config.googleWebClientId,
+          nonce: _sha256(_googleRawNonce!),
+        );
+        _googleReady = true;
+      }
+      final GoogleSignInAccount account =
+          await GoogleSignIn.instance.authenticate();
+      final String? idToken = account.authentication.idToken;
+      if (idToken == null) {
+        throw const SignInException(SignInProblem.failed, 'no id token');
+      }
+      await _client.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+        nonce: _googleRawNonce,
+      );
+    } on GoogleSignInException catch (error) {
+      if (error.code == GoogleSignInExceptionCode.canceled) {
+        throw SignInException(SignInProblem.cancelled, error);
+      }
+      throw SignInException(SignInProblem.failed, error);
+    } on SignInException {
+      rethrow;
+    } on Object catch (error) {
+      throw SignInException(SignInProblem.failed, error);
+    }
+  }
+
+  Future<void> signInWithApple() async {
+    if (!canUseApple) throw const SignInException(SignInProblem.notConfigured);
+    final String rawNonce = _randomNonce();
+    try {
+      final AuthorizationCredentialAppleID credential =
+          await SignInWithApple.getAppleIDCredential(
+        scopes: <AppleIDAuthorizationScopes>[
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: _sha256(rawNonce),
+      );
+      final String? idToken = credential.identityToken;
+      if (idToken == null) {
+        throw const SignInException(SignInProblem.failed, 'no identity token');
+      }
+      await _client.auth.signInWithIdToken(
+        provider: OAuthProvider.apple,
+        idToken: idToken,
+        nonce: rawNonce,
+      );
+      // Apple sends the name only on the very first sign-in, and never in
+      // the token: keep it, or the profile stays nameless.
+      final String? given = credential.givenName;
+      if (given != null && given.isNotEmpty) {
+        await _client.auth.updateUser(UserAttributes(
+          data: <String, dynamic>{'given_name': given},
+        ));
+        await _client
+            .from('profiles')
+            .update(<String, dynamic>{'display_name': given})
+            .eq('id', _client.auth.currentUser!.id)
+            .eq('display_name', '');
+      }
+    } on SignInWithAppleAuthorizationException catch (error) {
+      if (error.code == AuthorizationErrorCode.canceled) {
+        throw SignInException(SignInProblem.cancelled, error);
+      }
+      throw SignInException(SignInProblem.failed, error);
+    } on SignInException {
+      rethrow;
+    } on Object catch (error) {
+      throw SignInException(SignInProblem.failed, error);
+    }
+  }
+
+  Future<void> signOut() async {
+    try {
+      if (_googleReady) await GoogleSignIn.instance.signOut();
+    } on Object {
+      // Signing out of Supabase is what matters.
+    }
+    await _client.auth.signOut();
+  }
+
+  /// Deletes the account and everything in it on the server, through the
+  /// `delete-account` function (it needs the service role, which the app
+  /// never has). On iOS the user confirms with Apple once more, so the
+  /// function can revoke the app's access to their Apple ID as Apple
+  /// requires.
+  Future<void> deleteAccount() async {
+    String? appleCode;
+    final bool viaApple = _client.auth.currentUser?.appMetadata['provider'] ==
+        'apple';
+    if (viaApple && canUseApple) {
+      try {
+        final AuthorizationCredentialAppleID credential =
+            await SignInWithApple.getAppleIDCredential(
+          scopes: const <AppleIDAuthorizationScopes>[],
+        );
+        appleCode = credential.authorizationCode;
+      } on Object {
+        // Without the code the account is still deleted; only the
+        // revocation at Apple is skipped, and the function logs it.
+      }
+    }
+    final FunctionResponse response = await _client.functions.invoke(
+      'delete-account',
+      body: <String, dynamic>{
+        if (appleCode != null) 'appleAuthorizationCode': appleCode,
+      },
+    );
+    if (response.status != 200) {
+      throw StateError('delete-account failed: ${response.status}');
+    }
+    await signOut();
+  }
+
+  static String _randomNonce([int length = 32]) {
+    const String charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final Random random = Random.secure();
+    return List<String>.generate(
+        length, (_) => charset[random.nextInt(charset.length)]).join();
+  }
+
+  static String _sha256(String input) =>
+      sha256.convert(utf8.encode(input)).toString();
+}

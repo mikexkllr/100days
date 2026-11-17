@@ -11,9 +11,9 @@ import '../widgets/heatmap.dart';
 
 /// One friend, in detail — and the two buttons that make the app social.
 class FriendDetailScreen extends ConsumerWidget {
-  const FriendDetailScreen({super.key, required this.did});
+  const FriendDetailScreen({super.key, required this.userId});
 
-  final String did;
+  final String userId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,7 +29,7 @@ class FriendDetailScreen extends ConsumerWidget {
           final UserProjection? friend = <UserProjection>[
             snapshot.me,
             ...snapshot.friends,
-          ].where((UserProjection f) => f.did == did).firstOrNull;
+          ].where((UserProjection f) => f.userId == userId).firstOrNull;
 
           if (friend == null) {
             return EmptyState(
@@ -40,7 +40,7 @@ class FriendDetailScreen extends ConsumerWidget {
           }
 
           final PeerState peer = friend.toPeerState(today: snapshot.today);
-          final bool isMe = friend.did == snapshot.me.did;
+          final bool isMe = friend.userId == snapshot.me.userId;
 
           return ListView(
             padding: const EdgeInsets.fromLTRB(
@@ -249,17 +249,6 @@ class FriendDetailScreen extends ConsumerWidget {
                   icon: const Icon(Icons.person_remove_outlined, size: 18),
                   label: Text(l10n.profileDisconnect),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.sm),
-                  child: Text(
-                    Identity.shortDid(peer.did),
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.textTertiary,
-                          fontFamily: 'monospace',
-                        ),
-                  ),
-                ),
               ],
             ],
           );
@@ -276,9 +265,9 @@ class FriendDetailScreen extends ConsumerWidget {
   }) async {
     final controller = ref.read(appStateProvider.notifier);
     if (nudge) {
-      await controller.nudge(did, text);
+      await controller.nudge(userId, text);
     } else {
-      await controller.cheer(did, text);
+      await controller.cheer(userId, text);
     }
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -319,7 +308,7 @@ class FriendDetailScreen extends ConsumerWidget {
       ),
     );
     if (confirmed != true || !context.mounted) return;
-    await ref.read(appStateProvider.notifier).removeFriend(peer.did);
+    await ref.read(appStateProvider.notifier).removeFriend(peer.userId);
     if (context.mounted) Navigator.of(context).pop();
   }
 }

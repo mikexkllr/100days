@@ -134,6 +134,12 @@ abstract class AppLocalizations {
   /// **'Continue'**
   String get actionNext;
 
+  /// No description provided for @actionOk.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get actionOk;
+
   /// No description provided for @actionRemove.
   ///
   /// In en, this message translates to:
@@ -204,258 +210,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{emoji} {habit} has been running for {days} days. Raise the daily target by 20%.'**
   String adviceRaiseTarget(String emoji, String habit, int days);
-
-  /// No description provided for @aiBackendMissing.
-  ///
-  /// In en, this message translates to:
-  /// **'The rule-based coach is running. It needs no model, works offline and answers instantly — the language is just less varied. Download a model below and it switches over by itself.'**
-  String get aiBackendMissing;
-
-  /// No description provided for @aiBackendPresent.
-  ///
-  /// In en, this message translates to:
-  /// **'The model runs on this phone with llama.cpp. It writes your daily line, estimates meals and proposes nutrition targets — and falls back to the rule-based coach whenever it is too slow.'**
-  String get aiBackendPresent;
-
-  /// No description provided for @aiCoachStaysRuleBased.
-  ///
-  /// In en, this message translates to:
-  /// **'{model} estimates meals and proposes nutrition targets — answers the app checks before you confirm them. The coach\'s daily line stays rule-based with it: in tests a model this small wandered off topic too often.'**
-  String aiCoachStaysRuleBased(String model);
-
-  /// No description provided for @aiDeviceLine.
-  ///
-  /// In en, this message translates to:
-  /// **'{model} · {ram} GB RAM'**
-  String aiDeviceLine(String model, int ram);
-
-  /// No description provided for @aiDeviceUnknown.
-  ///
-  /// In en, this message translates to:
-  /// **'Phone not recognised — assuming a modest one.'**
-  String get aiDeviceUnknown;
-
-  /// No description provided for @aiDeviceUnsupported.
-  ///
-  /// In en, this message translates to:
-  /// **'This phone cannot run a language model locally. The coach stays rule-based — it works just as well, it only talks with less variety.'**
-  String get aiDeviceUnsupported;
-
-  /// No description provided for @aiDownloadFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'The download stopped. Tap to continue where it left off.'**
-  String get aiDownloadFailed;
-
-  /// No description provided for @aiDownloadNote.
-  ///
-  /// In en, this message translates to:
-  /// **'Best on Wi-Fi. Keeps running while you finish the setup; afterwards the model runs offline and nothing you type leaves the phone.'**
-  String get aiDownloadNote;
-
-  /// No description provided for @aiDownloadNow.
-  ///
-  /// In en, this message translates to:
-  /// **'Download now ({size} GB)'**
-  String aiDownloadNow(String size);
-
-  /// No description provided for @aiDownloadResume.
-  ///
-  /// In en, this message translates to:
-  /// **'Continue download'**
-  String get aiDownloadResume;
-
-  /// No description provided for @aiDownloadThis.
-  ///
-  /// In en, this message translates to:
-  /// **'Get · {size} GB'**
-  String aiDownloadThis(String size);
-
-  /// No description provided for @aiDownloading.
-  ///
-  /// In en, this message translates to:
-  /// **'{received} of {total} GB'**
-  String aiDownloading(String received, String total);
-
-  /// No description provided for @aiFits.
-  ///
-  /// In en, this message translates to:
-  /// **'fits'**
-  String get aiFits;
-
-  /// No description provided for @aiGigabytes.
-  ///
-  /// In en, this message translates to:
-  /// **'{size} GB'**
-  String aiGigabytes(String size);
-
-  /// No description provided for @aiInstalled.
-  ///
-  /// In en, this message translates to:
-  /// **'installed'**
-  String get aiInstalled;
-
-  /// No description provided for @aiLargerModels.
-  ///
-  /// In en, this message translates to:
-  /// **'Larger'**
-  String get aiLargerModels;
-
-  /// No description provided for @aiLargerModelsSub.
-  ///
-  /// In en, this message translates to:
-  /// **'Fits this phone, but takes more storage and is slower to answer.'**
-  String get aiLargerModelsSub;
-
-  /// No description provided for @aiLoading.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading …'**
-  String get aiLoading;
-
-  /// No description provided for @aiModelBalancedDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Small and quick, good German and English. Estimates meals and proposes targets; the coach stays rule-based with it.'**
-  String get aiModelBalancedDesc;
-
-  /// No description provided for @aiModelE2bMobileDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Google\'s phone model in its compact mobile cut, with 2-bit layers mixed in: half a gigabyte smaller than the full version, but noticeably rougher — in tests its meal estimates often missed.'**
-  String get aiModelE2bMobileDesc;
-
-  /// No description provided for @aiModelLightDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'The smallest, for phones nothing else fits. It helps little: the coach stays rule-based, and in tests its meal estimates mostly failed the plausibility check, so you will often enter meals yourself.'**
-  String get aiModelLightDesc;
-
-  /// No description provided for @aiModelMaxDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'The strongest model that runs on a phone, in its mobile cut. For flagships with 12 GB or more; takes longer to answer.'**
-  String get aiModelMaxDesc;
-
-  /// No description provided for @aiModelStrongDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Google\'s phone model, trained for 4-bit: close to full quality at 2.6 GB. Clearly better meal estimates and coaching; needs 8 GB of RAM.'**
-  String get aiModelStrongDesc;
-
-  /// No description provided for @aiNoAutoDownload.
-  ///
-  /// In en, this message translates to:
-  /// **'The app downloads a model only when you tap the button — from a fixed version on Hugging Face, checked against its SHA-256 before it is used. After that, no network.'**
-  String get aiNoAutoDownload;
-
-  /// No description provided for @aiNoNetworkBadge.
-  ///
-  /// In en, this message translates to:
-  /// **'no network access'**
-  String get aiNoNetworkBadge;
-
-  /// No description provided for @aiNoRecommendation.
-  ///
-  /// In en, this message translates to:
-  /// **'This phone has little memory for a language model. The app works fully without one — the coach is rule-based, meals come from the food table. If you want to try anyway:'**
-  String get aiNoRecommendation;
-
-  /// No description provided for @aiOneAtATime.
-  ///
-  /// In en, this message translates to:
-  /// **'Only one model stays on the phone: a new one replaces the old one once it has finished downloading.'**
-  String get aiOneAtATime;
-
-  /// No description provided for @aiOptionalModels.
-  ///
-  /// In en, this message translates to:
-  /// **'Optional'**
-  String get aiOptionalModels;
-
-  /// No description provided for @aiRecommended.
-  ///
-  /// In en, this message translates to:
-  /// **'recommended'**
-  String get aiRecommended;
-
-  /// No description provided for @aiRemove.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove'**
-  String get aiRemove;
-
-  /// No description provided for @aiSmallerModels.
-  ///
-  /// In en, this message translates to:
-  /// **'Smaller and quicker'**
-  String get aiSmallerModels;
-
-  /// No description provided for @aiSmallerModelsSub.
-  ///
-  /// In en, this message translates to:
-  /// **'Less storage and battery, quicker answers — the sentences get simpler.'**
-  String get aiSmallerModelsSub;
-
-  /// No description provided for @aiSource.
-  ///
-  /// In en, this message translates to:
-  /// **'Source'**
-  String get aiSource;
-
-  /// No description provided for @aiSupportedModels.
-  ///
-  /// In en, this message translates to:
-  /// **'Supported models'**
-  String get aiSupportedModels;
-
-  /// No description provided for @aiSwitchSmaller.
-  ///
-  /// In en, this message translates to:
-  /// **'Switch to a smaller one'**
-  String get aiSwitchSmaller;
-
-  /// No description provided for @aiTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'On-device AI'**
-  String get aiTitle;
-
-  /// No description provided for @aiTooBig.
-  ///
-  /// In en, this message translates to:
-  /// **'too big'**
-  String get aiTooBig;
-
-  /// No description provided for @aiTooBigModels.
-  ///
-  /// In en, this message translates to:
-  /// **'Too big for this phone'**
-  String get aiTooBigModels;
-
-  /// No description provided for @aiTooBigModelsSub.
-  ///
-  /// In en, this message translates to:
-  /// **'Needs more memory than this phone has. It may load, or the system may close the app.'**
-  String get aiTooBigModelsSub;
-
-  /// No description provided for @aiVerifying.
-  ///
-  /// In en, this message translates to:
-  /// **'Checking the file …'**
-  String get aiVerifying;
-
-  /// No description provided for @aiWhatItSeesBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Streak, day number, your habits and whether your friends were active today — as text, straight to the model on this device. No network call, no telemetry, no copy in anyone’s cloud.'**
-  String get aiWhatItSeesBody;
-
-  /// No description provided for @aiWhatItSeesTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'What the model sees'**
-  String get aiWhatItSeesTitle;
 
   /// No description provided for @appTitle.
   ///
@@ -682,13 +436,13 @@ abstract class AppLocalizations {
   /// No description provided for @coachEngineModel.
   ///
   /// In en, this message translates to:
-  /// **'{model} (on-device)'**
+  /// **'{model}'**
   String coachEngineModel(String model);
 
   /// No description provided for @coachEngineRuleBased.
   ///
   /// In en, this message translates to:
-  /// **'Rule-based (on-device)'**
+  /// **'Rule-based'**
   String get coachEngineRuleBased;
 
   /// No description provided for @coachHeadAtStake.
@@ -1767,7 +1521,7 @@ abstract class AppLocalizations {
   /// No description provided for @feedEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'As soon as you or your friends tick something off it shows up here — signed and checkable.'**
+  /// **'As soon as you or your friends tick something off it shows up here.'**
   String get feedEmptyBody;
 
   /// No description provided for @feedEmptyTitle.
@@ -1857,7 +1611,7 @@ abstract class AppLocalizations {
   /// No description provided for @foodAiNotInstalled.
   ///
   /// In en, this message translates to:
-  /// **'Recognises foods from the table. With an on-device model (Settings → On-device AI) it also estimates dishes it does not know.'**
+  /// **'Recognises foods from the table. With the AI (Settings → AI) it also estimates dishes it does not know.'**
   String get foodAiNotInstalled;
 
   /// No description provided for @foodAmountLabel.
@@ -2085,7 +1839,7 @@ abstract class AppLocalizations {
   /// No description provided for @friendsConnected.
   ///
   /// In en, this message translates to:
-  /// **'{name} connected.'**
+  /// **'You and {name} are friends now.'**
   String friendsConnected(String name);
 
   /// No description provided for @friendsDayNumber.
@@ -2097,7 +1851,7 @@ abstract class AppLocalizations {
   /// No description provided for @friendsEmptyBody.
   ///
   /// In en, this message translates to:
-  /// **'The app works alone — but it only bites once someone is watching. Show a friend your QR code.'**
+  /// **'The app works alone — but it only bites once someone is watching. Send a friend your invite.'**
   String get friendsEmptyBody;
 
   /// No description provided for @friendsEmptyTitle.
@@ -2118,16 +1872,10 @@ abstract class AppLocalizations {
   /// **'Invite'**
   String get friendsInvite;
 
-  /// No description provided for @friendsInviteInvalid.
-  ///
-  /// In en, this message translates to:
-  /// **'Invalid invite: {message}'**
-  String friendsInviteInvalid(String message);
-
   /// No description provided for @friendsNetworkNote.
   ///
   /// In en, this message translates to:
-  /// **'Connections run directly between your devices — instantly on the same Wi-Fi, otherwise the next time you meet. Every connection proves who is on the other end, and only people you accepted get anything. No server in between that knows your streaks.'**
+  /// **'Friends see what you share: your streak, shared habits and, if you want, your workouts. Body stats, targets and the food diary stay private — the server hands them to nobody but you.'**
   String get friendsNetworkNote;
 
   /// No description provided for @friendsNoActivity.
@@ -2169,13 +1917,13 @@ abstract class AppLocalizations {
   /// No description provided for @friendsRequestsSub.
   ///
   /// In en, this message translates to:
-  /// **'They scanned your code. Nothing is shared until you accept.'**
+  /// **'Nothing is shared until you accept.'**
   String get friendsRequestsSub;
 
   /// No description provided for @friendsRequestsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Wants to connect'**
+  /// **'Friend requests'**
   String get friendsRequestsTitle;
 
   /// No description provided for @friendsScan.
@@ -2307,7 +2055,7 @@ abstract class AppLocalizations {
   /// No description provided for @goalsAiSub.
   ///
   /// In en, this message translates to:
-  /// **'Describe what you want; the on-device model proposes new targets. Nothing changes until you apply it.'**
+  /// **'Describe what you want; the AI proposes new targets. Nothing changes until you apply it.'**
   String get goalsAiSub;
 
   /// No description provided for @goalsAiTitle.
@@ -2319,13 +2067,13 @@ abstract class AppLocalizations {
   /// No description provided for @goalsAiUnavailable.
   ///
   /// In en, this message translates to:
-  /// **'Needs an on-device model — set one up under Settings → On-device AI.'**
+  /// **'Needs the AI — see Settings → AI.'**
   String get goalsAiUnavailable;
 
   /// No description provided for @goalsBodySub.
   ///
   /// In en, this message translates to:
-  /// **'Only for the suggested target. They stay on this device and are never shared.'**
+  /// **'Only for the suggested target. They are private and never shared.'**
   String get goalsBodySub;
 
   /// No description provided for @goalsBodyTitle.
@@ -2808,11 +2556,53 @@ abstract class AppLocalizations {
   /// **'{xp} XP'**
   String homeXp(int xp);
 
+  /// No description provided for @inviteAlreadyFriends.
+  ///
+  /// In en, this message translates to:
+  /// **'You and {name} are already friends.'**
+  String inviteAlreadyFriends(String name);
+
+  /// No description provided for @inviteCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. K7QM4 TX29P'**
+  String get inviteCodeHint;
+
+  /// No description provided for @inviteConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Become friends'**
+  String get inviteConfirmAction;
+
+  /// No description provided for @inviteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You will see each other\'s streak, shared habits and workouts. Body stats and food diaries stay private.'**
+  String get inviteConfirmBody;
+
+  /// No description provided for @inviteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Become friends with {name}?'**
+  String inviteConfirmTitle(String name);
+
+  /// No description provided for @inviteEnterCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a code'**
+  String get inviteEnterCode;
+
   /// No description provided for @inviteErrorMalformed.
   ///
   /// In en, this message translates to:
   /// **'This invite is not valid.'**
   String get inviteErrorMalformed;
+
+  /// No description provided for @inviteErrorOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection to the server. Try again in a moment.'**
+  String get inviteErrorOffline;
 
   /// No description provided for @inviteErrorSelf.
   ///
@@ -2832,11 +2622,17 @@ abstract class AppLocalizations {
   /// **'Link copied.'**
   String get inviteLinkCopied;
 
-  /// No description provided for @inviteReachableAt.
+  /// No description provided for @inviteRevoke.
   ///
   /// In en, this message translates to:
-  /// **'Reachable at'**
-  String get inviteReachableAt;
+  /// **'New code (the old one stops working)'**
+  String get inviteRevoke;
+
+  /// No description provided for @inviteRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'New code ready. The old one no longer works.'**
+  String get inviteRevoked;
 
   /// No description provided for @inviteShareSubject.
   ///
@@ -2847,25 +2643,25 @@ abstract class AppLocalizations {
   /// No description provided for @inviteShareText.
   ///
   /// In en, this message translates to:
-  /// **'Do the 100 days with me: {link}'**
-  String inviteShareText(String link);
+  /// **'Do the 100 days with me: {link} (or enter the code {code} in the app)'**
+  String inviteShareText(String link, String code);
 
   /// No description provided for @inviteStep1.
   ///
   /// In en, this message translates to:
-  /// **'The other person scans the code or opens the link.'**
+  /// **'The other person scans the code, opens the link or types the code.'**
   String get inviteStep1;
 
   /// No description provided for @inviteStep2.
   ///
   /// In en, this message translates to:
-  /// **'You follow each other directly — no account, no phone number, no provider granting permission.'**
+  /// **'You are friends straight away — sharing the code is your yes. It stays valid for 14 days.'**
   String get inviteStep2;
 
   /// No description provided for @inviteStep3.
   ///
   /// In en, this message translates to:
-  /// **'From then on your devices sync whenever they see each other: same Wi-Fi, same home, same gym.'**
+  /// **'From then on you see each other\'s day live, wherever you are.'**
   String get inviteStep3;
 
   /// No description provided for @inviteTitle.
@@ -3077,6 +2873,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Target: {reps} reps · RIR {rir}'**
   String loggerTarget(String reps, int rir);
+
+  /// No description provided for @loginApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Apple'**
+  String get loginApple;
+
+  /// No description provided for @loginFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in did not work. Check your connection and try again.'**
+  String get loginFailed;
+
+  /// No description provided for @loginGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google'**
+  String get loginGoogle;
+
+  /// No description provided for @loginNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in is not set up for this server yet.'**
+  String get loginNotConfigured;
+
+  /// No description provided for @loginOwnServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Own server'**
+  String get loginOwnServer;
+
+  /// No description provided for @loginOwnServerActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Own server: {host}'**
+  String loginOwnServerActive(String host);
+
+  /// No description provided for @loginOwnServerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Run 100 Days on your own Supabase instance — hosted or self-hosted. The project URL and its publishable key are enough; the setup is described in docs/self-hosting.md.'**
+  String get loginOwnServerBody;
+
+  /// No description provided for @loginOwnServerGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Google web client id (optional)'**
+  String get loginOwnServerGoogle;
+
+  /// No description provided for @loginOwnServerKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Publishable key'**
+  String get loginOwnServerKey;
+
+  /// No description provided for @loginOwnServerReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the default server'**
+  String get loginOwnServerReset;
+
+  /// No description provided for @loginOwnServerRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved. Close the app and open it again to connect to the new server.'**
+  String get loginOwnServerRestart;
+
+  /// No description provided for @loginPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account only stores what the app needs. Friends see what you share; body stats, targets and the food diary stay private. The app is open source, and you can run your own server.'**
+  String get loginPrivacy;
+
+  /// No description provided for @loginSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in, set a goal, get a plan. Your friends see whether you showed up today.'**
+  String get loginSubtitle;
 
   /// No description provided for @macroPresetAuto.
   ///
@@ -4116,30 +3990,6 @@ abstract class AppLocalizations {
   /// **'Sedentary'**
   String get obActivitySedentary;
 
-  /// No description provided for @obAiEyebrow.
-  ///
-  /// In en, this message translates to:
-  /// **'Coach'**
-  String get obAiEyebrow;
-
-  /// No description provided for @obAiLater.
-  ///
-  /// In en, this message translates to:
-  /// **'Optional. Without a model everything works too — the coach is then rule-based. You can download it later under Settings → On-device AI.'**
-  String get obAiLater;
-
-  /// No description provided for @obAiSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'The coach and the meal estimates can run on a small language model — on this phone, offline, without any prompt leaving it. We picked the one that fits your phone.'**
-  String get obAiSubtitle;
-
-  /// No description provided for @obAiTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'AI on your phone.'**
-  String get obAiTitle;
-
   /// No description provided for @obBodyActivity.
   ///
   /// In en, this message translates to:
@@ -4179,7 +4029,7 @@ abstract class AppLocalizations {
   /// No description provided for @obBodySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Only for the calorie and protein calculation. All of it stays on this device.'**
+  /// **'Only for the calorie and protein calculation. All of it stays private.'**
   String get obBodySubtitle;
 
   /// No description provided for @obBodyTitle.
@@ -4404,18 +4254,6 @@ abstract class AppLocalizations {
   /// **'What counts every day?'**
   String get obHabitsTitle;
 
-  /// No description provided for @obIdentityBoxBody.
-  ///
-  /// In en, this message translates to:
-  /// **'An Ed25519 key pair on this device, as a did:key. Every check-in is signed with it — which is why nobody can fake your streak and you do not have to trust anyone. The recovery key is in settings. Back it up.'**
-  String get obIdentityBoxBody;
-
-  /// No description provided for @obIdentityBoxTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Your identity'**
-  String get obIdentityBoxTitle;
-
   /// No description provided for @obIdentityNameHint.
   ///
   /// In en, this message translates to:
@@ -4425,7 +4263,7 @@ abstract class AppLocalizations {
   /// No description provided for @obIdentitySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'No account, no email, no password. Your key pair is already on this device.'**
+  /// **'This is how friends see you — in the feed, in requests and in the league.'**
   String get obIdentitySubtitle;
 
   /// No description provided for @obIdentityTitle.
@@ -4509,13 +4347,13 @@ abstract class AppLocalizations {
   /// No description provided for @obPointPrivacyBody.
   ///
   /// In en, this message translates to:
-  /// **'No account, no server, no cloud. Your data stays on your device and goes straight to your friends.'**
+  /// **'Friends see what you share, nobody else. Open source — and if you like, on your own server.'**
   String get obPointPrivacyBody;
 
   /// No description provided for @obPointPrivacyTitle.
   ///
   /// In en, this message translates to:
-  /// **'Nobody else'**
+  /// **'Yours'**
   String get obPointPrivacyTitle;
 
   /// No description provided for @obPointSocialBody.
@@ -4701,7 +4539,7 @@ abstract class AppLocalizations {
   /// No description provided for @obSummaryPrivacyAllShared.
   ///
   /// In en, this message translates to:
-  /// **'All habits and your streak. Body stats and the food diary stay on this phone.'**
+  /// **'All habits and your streak. Body stats and the food diary stay private.'**
   String get obSummaryPrivacyAllShared;
 
   /// No description provided for @obSummaryPrivacySection.
@@ -4713,7 +4551,7 @@ abstract class AppLocalizations {
   /// No description provided for @obSummaryPrivacySome.
   ///
   /// In en, this message translates to:
-  /// **'Your streak and habits — except {habits}, which stays private. Body stats and the food diary stay on this phone.'**
+  /// **'Your streak and habits — except {habits}, which stays private. Body stats and the food diary stay private too.'**
   String obSummaryPrivacySome(String habits);
 
   /// No description provided for @obSummaryTitle.
@@ -5079,7 +4917,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyAlwaysPrivate.
   ///
   /// In en, this message translates to:
-  /// **'Always private, no switch needed: body stats, calorie targets and the food diary. They are sealed in your own feed — friends store the encrypted bytes as a backup but cannot read them.'**
+  /// **'Always private, no switch needed: body stats, calorie targets and the food diary. The server hands them to nobody but you.'**
   String get privacyAlwaysPrivate;
 
   /// No description provided for @privacyFromNowOn.
@@ -5391,60 +5229,6 @@ abstract class AppLocalizations {
   /// **'yes'**
   String get promptYes;
 
-  /// No description provided for @recoveryCopied.
-  ///
-  /// In en, this message translates to:
-  /// **'Key copied.'**
-  String get recoveryCopied;
-
-  /// No description provided for @recoveryLookAround.
-  ///
-  /// In en, this message translates to:
-  /// **'Have a look around you first.'**
-  String get recoveryLookAround;
-
-  /// No description provided for @recoveryShow.
-  ///
-  /// In en, this message translates to:
-  /// **'Show the key'**
-  String get recoveryShow;
-
-  /// No description provided for @recoveryTip1.
-  ///
-  /// In en, this message translates to:
-  /// **'A password manager — the best place for it.'**
-  String get recoveryTip1;
-
-  /// No description provided for @recoveryTip2.
-  ///
-  /// In en, this message translates to:
-  /// **'Write it down and put it in the drawer where your ID lives.'**
-  String get recoveryTip2;
-
-  /// No description provided for @recoveryTip3.
-  ///
-  /// In en, this message translates to:
-  /// **'Not into a chat, not into a cloud-synced notes app, not as a screenshot in your gallery.'**
-  String get recoveryTip3;
-
-  /// No description provided for @recoveryTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Recovery key'**
-  String get recoveryTitle;
-
-  /// No description provided for @recoveryWarning.
-  ///
-  /// In en, this message translates to:
-  /// **'Whoever has this key is you. They can sign check-ins in your name, and you cannot revoke it — there is no provider who could.'**
-  String get recoveryWarning;
-
-  /// No description provided for @recoveryWhereTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Where to keep it'**
-  String get recoveryWhereTitle;
-
   /// No description provided for @relativeDays.
   ///
   /// In en, this message translates to:
@@ -5526,7 +5310,7 @@ abstract class AppLocalizations {
   /// No description provided for @setAboutBody.
   ///
   /// In en, this message translates to:
-  /// **'No account, no server, no ads, no tracking. Your data lives on this device and only goes to the friends you connected yourself. The source is open — check it instead of believing it.'**
+  /// **'No ads, no tracking, no selling of data. Your account holds what the app needs, friends see what you share. The source is open — check it instead of believing it, or run your own server.'**
   String get setAboutBody;
 
   /// No description provided for @setAboutSection.
@@ -5541,41 +5325,53 @@ abstract class AppLocalizations {
   /// **'100 days and far beyond'**
   String get setAboutTitle;
 
+  /// No description provided for @setAccountSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get setAccountSection;
+
+  /// No description provided for @setAi.
+  ///
+  /// In en, this message translates to:
+  /// **'AI'**
+  String get setAi;
+
   /// No description provided for @setCoachSection.
   ///
   /// In en, this message translates to:
   /// **'Coach'**
   String get setCoachSection;
 
-  /// No description provided for @setDidCopied.
+  /// No description provided for @setDeleteAccount.
   ///
   /// In en, this message translates to:
-  /// **'DID copied.'**
-  String get setDidCopied;
+  /// **'Delete account'**
+  String get setDeleteAccount;
 
-  /// No description provided for @setIdentitySection.
+  /// No description provided for @setDeleteAccountBody.
   ///
   /// In en, this message translates to:
-  /// **'Identity & data'**
-  String get setIdentitySection;
+  /// **'Your streak, your plans, your diary and your friendships are deleted on the server, for good. This cannot be undone.'**
+  String get setDeleteAccountBody;
 
-  /// No description provided for @setLan.
+  /// No description provided for @setDeleteAccountFailed.
   ///
   /// In en, this message translates to:
-  /// **'Local network'**
-  String get setLan;
+  /// **'The account could not be deleted. Check your connection and try again.'**
+  String get setDeleteAccountFailed;
 
-  /// No description provided for @setLanOff.
+  /// No description provided for @setDeleteAccountSub.
   ///
   /// In en, this message translates to:
-  /// **'Not active.'**
-  String get setLanOff;
+  /// **'Deletes your account and everything in it.'**
+  String get setDeleteAccountSub;
 
-  /// No description provided for @setLanOn.
+  /// No description provided for @setDeleteAccountTitle.
   ///
   /// In en, this message translates to:
-  /// **'Active — finds friends on the same Wi-Fi automatically.'**
-  String get setLanOn;
+  /// **'Delete your account?'**
+  String get setDeleteAccountTitle;
 
   /// No description provided for @setLanguage.
   ///
@@ -5613,30 +5409,6 @@ abstract class AppLocalizations {
   /// **'Follows your phone. Currently: {language}'**
   String setLanguageSystemSub(String language);
 
-  /// No description provided for @setNetworkSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Network'**
-  String get setNetworkSection;
-
-  /// No description provided for @setOnDeviceAi.
-  ///
-  /// In en, this message translates to:
-  /// **'On-device AI'**
-  String get setOnDeviceAi;
-
-  /// No description provided for @setOnThisDevice.
-  ///
-  /// In en, this message translates to:
-  /// **'On this device'**
-  String get setOnThisDevice;
-
-  /// No description provided for @setOnThisDeviceSub.
-  ///
-  /// In en, this message translates to:
-  /// **'{events} own entries · {friends} connected feeds'**
-  String setOnThisDeviceSub(int events, int friends);
-
   /// No description provided for @setPrivacy.
   ///
   /// In en, this message translates to:
@@ -5649,34 +5421,52 @@ abstract class AppLocalizations {
   /// **'What your friends see'**
   String get setPrivacySub;
 
-  /// No description provided for @setRecoveryKey.
+  /// No description provided for @setServer.
   ///
   /// In en, this message translates to:
-  /// **'Recovery key'**
-  String get setRecoveryKey;
+  /// **'Server'**
+  String get setServer;
 
-  /// No description provided for @setRecoveryKeySub.
+  /// No description provided for @setServerCustom.
   ///
   /// In en, this message translates to:
-  /// **'The only way back into your account.'**
-  String get setRecoveryKeySub;
+  /// **'Own server: {host}'**
+  String setServerCustom(String host);
 
-  /// No description provided for @setSyncFailed.
+  /// No description provided for @setServerDefault.
   ///
   /// In en, this message translates to:
-  /// **'Last attempt failed: {message}'**
-  String setSyncFailed(String message);
+  /// **'The 100 Days server'**
+  String get setServerDefault;
 
-  /// No description provided for @setSyncLast.
+  /// No description provided for @setSignOut.
   ///
   /// In en, this message translates to:
-  /// **'Last with {peer}: {received} received, {sent} sent.'**
-  String setSyncLast(String peer, int received, int sent);
+  /// **'Sign out'**
+  String get setSignOut;
+
+  /// No description provided for @setSignOutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is saved in your account; it is back as soon as you sign in again. This phone forgets it until then.'**
+  String get setSignOutBody;
+
+  /// No description provided for @setSignOutSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data stays in your account.'**
+  String get setSignOutSub;
+
+  /// No description provided for @setSyncDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date · {sent} sent, {received} received'**
+  String setSyncDone(int sent, int received);
 
   /// No description provided for @setSyncNever.
   ///
   /// In en, this message translates to:
-  /// **'No round has run yet.'**
+  /// **'Not synced yet.'**
   String get setSyncNever;
 
   /// No description provided for @setSyncNow.
@@ -5685,47 +5475,17 @@ abstract class AppLocalizations {
   /// **'Sync now'**
   String get setSyncNow;
 
-  /// No description provided for @setSyncPeerFallback.
+  /// No description provided for @setSyncOffline.
   ///
   /// In en, this message translates to:
-  /// **'a peer'**
-  String get setSyncPeerFallback;
-
-  /// No description provided for @setSyncStarted.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync round started.'**
-  String get setSyncStarted;
+  /// **'Offline — everything is kept and sent later.'**
+  String get setSyncOffline;
 
   /// No description provided for @setViewSource.
   ///
   /// In en, this message translates to:
   /// **'View the source'**
   String get setViewSource;
-
-  /// No description provided for @setWipe.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete everything'**
-  String get setWipe;
-
-  /// No description provided for @setWipeBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Without your recovery key nothing can be restored afterwards — there is no server holding a copy. That is the price of nobody else holding one either.'**
-  String get setWipeBody;
-
-  /// No description provided for @setWipeSub.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove identity, challenge and all friends.'**
-  String get setWipeSub;
-
-  /// No description provided for @setWipeTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Really delete everything?'**
-  String get setWipeTitle;
 
   /// No description provided for @skyStars.
   ///
