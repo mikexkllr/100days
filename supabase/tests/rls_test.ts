@@ -152,6 +152,68 @@ Deno.test({
         await as(tx, alice);
         assertEquals((await tx`select public.my_ai_allowance() as a`)[0].a.tier, 'free');
 
+        // --- Households -------------------------------------------------------
+        const carol = await createUser(tx, 'Carol');
+        await as(tx, alice);
+        const [{ create_household: home }] = await tx`select public.create_household('Zuhause')`;
+        const [recipe] = await tx`
+          insert into public.recipes (household_id, title, servings)
+          values (${home}, 'Curry', 2) returning id`;
+        await tx`insert into public.meal_plan_entries (household_id, day, slot, recipe_id)
+                 values (${home}, current_date, 'dinner', ${recipe.id})`;
+        const [list] = await tx`
+          insert into public.shopping_lists (household_id, period_start, period_end)
+          values (${home}, current_date, current_date + 6) returning id`;
+        await tx`insert into public.shopping_items (list_id, household_id, name) values (${list.id}, ${home}, 'Reis')`;
+
+        // Someone outside sees nothing and cannot write into it.
+        await as(tx, carol);
+        assertEquals((await tx`select id from public.households where id = ${home}`).length, 0);
+        assertEquals((await tx`select id from public.shopping_items where household_id = ${home}`).length, 0);
+        await refused(tx, (sp) =>
+          sp`insert into public.shopping_items (list_id, household_id, name) values (${list.id}, ${home}, 'Bier')`);
+        await refused(tx, (sp) =>
+          sp`insert into public.household_members (household_id, user_id) values (${home}, ${carol})`);
+
+        // An invite makes Carol a member; her own empty household goes.
+        const [{ create_household: carolsOwn }] = await tx`select public.create_household('')`;
+        await as(tx, alice);
+        const [{ household_invite_code: homeCode }] = await tx`select public.household_invite_code(${home})`;
+        await as(tx, carol);
+        const [homePreview] = await tx`select * from public.household_invite_preview(${homeCode})`;
+        assertEquals(homePreview.name, 'Zuhause');
+        await tx`select public.join_household(${homeCode})`;
+        assertEquals((await tx`select id from public.households where id = ${carolsOwn}`).length, 0);
+        assertEquals((await tx`select name from public.shopping_items where household_id = ${home}`).length, 1);
+        await tx`update public.shopping_items set checked = true where household_id = ${home}`;
+
+        // Targets are only stored while shared.
+        await tx`update public.household_members set share_targets = true, kcal_target = 2100
+                 where household_id = ${home} and user_id = ${carol}`;
+        await as(tx, alice);
+        const [sharedTargets] = await tx`select kcal_target from public.household_members where user_id = ${carol}`;
+        assertEquals(sharedTargets.kcal_target, 2100);
+        await as(tx, carol);
+        await tx`update public.household_members set share_targets = false
+                 where household_id = ${home} and user_id = ${carol}`;
+        const [unshared] = await tx`select kcal_target from public.household_members where user_id = ${carol}`;
+        assertEquals(unshared.kcal_target, null);
+
+        // Nobody promotes themselves, and an item cannot be moved to another
+        // household's list.
+        await refused(tx, (sp) =>
+          sp`update public.household_members set role = 'owner' where user_id = ${carol} and household_id = ${home}`);
+        await as(tx, bob);
+        const [{ create_household: bobs }] = await tx`select public.create_household('')`;
+        await refused(tx, (sp) =>
+          sp`insert into public.shopping_items (list_id, household_id, name) values (${list.id}, ${bobs}, 'x')`);
+
+        // The owner may remove a member; then she sees nothing any more.
+        await as(tx, alice);
+        await tx`delete from public.household_members where household_id = ${home} and user_id = ${carol}`;
+        await as(tx, carol);
+        assertEquals((await tx`select id from public.recipes where household_id = ${home}`).length, 0);
+
         throw new Rollback();
       });
     } catch (e) {
