@@ -1608,6 +1608,10 @@
     }
   },
   "loginApple": "Sign in with Apple",
+  "loginEmail": "Sign in with email",
+  "loginEmailAddress": "Email",
+  "loginEmailHint": "For accounts set up by the operator, such as the demo account for the store review. Everyone else signs in with Apple or Google.",
+  "loginEmailSubmit": "Sign in",
   "loginFailed": "Sign-in did not work. Check your connection and try again.",
   "loginGoogle": "Sign in with Google",
   "loginNotConfigured": "Sign-in is not set up for this server yet.",
@@ -1625,6 +1629,7 @@
   "loginOwnServerKey": "Publishable key",
   "loginOwnServerReset": "Use the default server",
   "loginOwnServerRestart": "Saved. Close the app and open it again to connect to the new server.",
+  "loginPassword": "Password",
   "loginPrivacy": "Your account only stores what the app needs. Friends see what you share; body stats, targets and the food diary stay private. The app is open source, and you can run your own server.",
   "loginSubtitle": "Sign in, set a goal, get a plan. Your friends see whether you showed up today.",
   "macroPresetAuto": "Automatic",

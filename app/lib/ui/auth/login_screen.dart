@@ -115,6 +115,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton.icon(
+                key: const Key('login-email'),
+                onPressed: _busy ? null : _emailSignIn,
+                icon: const Icon(Icons.mail_outline, size: 18),
+                label: Text(l10n.loginEmail),
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
                 key: const Key('login-own-server'),
                 onPressed: _busy ? null : () => _ownServer(backend),
                 icon: const Icon(Icons.dns_outlined, size: 18),
@@ -129,6 +138,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _emailSignIn() async {
+    final (String, String)? credentials =
+        await showModalBottomSheet<(String, String)>(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) => const _EmailSheet(),
+    );
+    if (credentials == null || !mounted) return;
+    final (String email, String password) = credentials;
+    await _signIn((AuthService a) => a.signInWithEmail(email, password));
   }
 
   Future<void> _ownServer(BackendConfig current) async {
@@ -151,6 +172,82 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
       );
     }
+  }
+}
+
+/// E-mail and password, for accounts the operator set up — the demo account
+/// of the store review. Everyone else signs in with Apple or Google.
+class _EmailSheet extends StatefulWidget {
+  const _EmailSheet();
+
+  @override
+  State<_EmailSheet> createState() => _EmailSheetState();
+}
+
+class _EmailSheetState extends State<_EmailSheet> {
+  final TextEditingController _email = TextEditingController();
+  final TextEditingController _password = TextEditingController();
+
+  @override
+  void dispose() {
+    _email.dispose();
+    _password.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (_email.text.trim().isEmpty || _password.text.isEmpty) return;
+    Navigator.of(context).pop((_email.text.trim(), _password.text));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg,
+          AppSpacing.lg + MediaQuery.viewInsetsOf(context).bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Text(l10n.loginEmail, style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            l10n.loginEmailHint,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          TextField(
+            key: const Key('login-email-address'),
+            controller: _email,
+            keyboardType: TextInputType.emailAddress,
+            autocorrect: false,
+            autofillHints: const <String>[AutofillHints.email],
+            decoration: InputDecoration(labelText: l10n.loginEmailAddress),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          TextField(
+            key: const Key('login-email-password'),
+            controller: _password,
+            obscureText: true,
+            autocorrect: false,
+            enableSuggestions: false,
+            autofillHints: const <String>[AutofillHints.password],
+            decoration: InputDecoration(labelText: l10n.loginPassword),
+            onSubmitted: (_) => _submit(),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          FilledButton(
+            key: const Key('login-email-submit'),
+            onPressed: _submit,
+            child: Text(l10n.loginEmailSubmit),
+          ),
+        ],
+      ),
+    );
   }
 }
 

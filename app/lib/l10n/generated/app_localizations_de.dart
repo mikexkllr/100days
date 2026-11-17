@@ -2188,6 +2188,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get loginApple => 'Mit Apple anmelden';
 
   @override
+  String get loginEmail => 'Mit E-Mail anmelden';
+
+  @override
+  String get loginEmailAddress => 'E-Mail';
+
+  @override
+  String get loginEmailHint =>
+      'Für Konten, die der Betreiber angelegt hat, etwa das Demokonto für die Store-Prüfung. Alle anderen melden sich mit Apple oder Google an.';
+
+  @override
+  String get loginEmailSubmit => 'Anmelden';
+
+  @override
   String get loginFailed =>
       'Die Anmeldung hat nicht geklappt. Prüf deine Verbindung und versuch es noch einmal.';
 
@@ -2222,6 +2235,9 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get loginOwnServerRestart =>
       'Gespeichert. Schließ die App und öffne sie neu, um dich mit dem neuen Server zu verbinden.';
+
+  @override
+  String get loginPassword => 'Passwort';
 
   @override
   String get loginPrivacy =>

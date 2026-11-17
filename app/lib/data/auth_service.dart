@@ -143,6 +143,20 @@ class AuthService {
     }
   }
 
+  /// E-mail and password: only for accounts the operator created, such as
+  /// the demo account the stores' reviewers get. The backend refuses e-mail
+  /// sign-ups for any other address (`review_accounts` in the migrations).
+  Future<void> signInWithEmail(String email, String password) async {
+    try {
+      await _client.auth.signInWithPassword(
+        email: email.trim(),
+        password: password,
+      );
+    } on Object catch (error) {
+      throw SignInException(SignInProblem.failed, error);
+    }
+  }
+
   Future<void> signOut() async {
     try {
       if (_googleReady) await GoogleSignIn.instance.signOut();

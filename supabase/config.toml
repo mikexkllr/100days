@@ -212,9 +212,11 @@ web3 = 30
 # secret = ""
 
 [auth.email]
-# Sign-in is Google or Apple only: an e-mail sign-up would be a way to mint
-# unlimited accounts, each with a fresh AI allowance.
-enable_signup = false
+# Sign-in is Google or Apple. E-mail and password are on only for the demo
+# accounts the stores' reviewers get: the before_user_created hook below
+# refuses every e-mail sign-up whose address is not in public.review_accounts,
+# so e-mail cannot be used to mint accounts with fresh AI allowances.
+enable_signup = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
@@ -272,9 +274,9 @@ max_frequency = "5s"
 # inactivity_timeout = "8h"
 
 # This hook runs before a new user is created and allows developers to reject the request based on the incoming user object.
-# [auth.hook.before_user_created]
-# enabled = true
-# uri = "pg-functions://postgres/auth/before-user-created-hook"
+[auth.hook.before_user_created]
+enabled = true
+uri = "pg-functions://postgres/public/hook_before_user_created"
 
 # This hook runs before a token is issued and allows you to add additional claims based on the authentication method used.
 # [auth.hook.custom_access_token]

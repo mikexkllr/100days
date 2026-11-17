@@ -3534,6 +3534,30 @@ abstract class AppLocalizations {
   /// **'Sign in with Apple'**
   String get loginApple;
 
+  /// No description provided for @loginEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with email'**
+  String get loginEmail;
+
+  /// No description provided for @loginEmailAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get loginEmailAddress;
+
+  /// No description provided for @loginEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For accounts set up by the operator, such as the demo account for the store review. Everyone else signs in with Apple or Google.'**
+  String get loginEmailHint;
+
+  /// No description provided for @loginEmailSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get loginEmailSubmit;
+
   /// No description provided for @loginFailed.
   ///
   /// In en, this message translates to:
@@ -3593,6 +3617,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Saved. Close the app and open it again to connect to the new server.'**
   String get loginOwnServerRestart;
+
+  /// No description provided for @loginPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get loginPassword;
 
   /// No description provided for @loginPrivacy.
   ///

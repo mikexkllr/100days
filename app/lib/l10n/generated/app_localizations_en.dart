@@ -2180,6 +2180,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginApple => 'Sign in with Apple';
 
   @override
+  String get loginEmail => 'Sign in with email';
+
+  @override
+  String get loginEmailAddress => 'Email';
+
+  @override
+  String get loginEmailHint =>
+      'For accounts set up by the operator, such as the demo account for the store review. Everyone else signs in with Apple or Google.';
+
+  @override
+  String get loginEmailSubmit => 'Sign in';
+
+  @override
   String get loginFailed =>
       'Sign-in did not work. Check your connection and try again.';
 
@@ -2213,6 +2226,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get loginOwnServerRestart =>
       'Saved. Close the app and open it again to connect to the new server.';
+
+  @override
+  String get loginPassword => 'Password';
 
   @override
   String get loginPrivacy =>
