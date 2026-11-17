@@ -320,4 +320,22 @@ void main() {
       expect(items.single.message, 'Ich war heute schon.');
     });
   });
+
+  test('the timeline shows what friends see, not private twins', () async {
+    final store = MemoryFeedStore();
+    final writer = FeedWriter(author: 'me', store: store);
+    final challenge = _challenge();
+    await writer.append(FeedEventType.challengeStarted,
+        <String, dynamic>{'challenge': challenge.toJson()});
+    await writer.append(FeedEventType.challengeStarted,
+        <String, dynamic>{'challenge': challenge.toJson()},
+        visibility: EventVisibility.private);
+    final items = buildActivityFeed(
+      await store.recent(),
+      profiles: const <String, PeerProfile>{},
+      selfId: 'me',
+    );
+    expect(items, hasLength(1));
+    expect(items.single.kind, ActivityKind.start);
+  });
 }

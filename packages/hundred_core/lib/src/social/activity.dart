@@ -96,6 +96,8 @@ class ActivityItem {
 ///
 /// Nudges addressed to other people are filtered out: seeing that someone
 /// poked a third party is noise, and forwarding it would leak a private jab.
+/// Private events are left out too, the user's own included: the timeline is
+/// what friends see, and a challenge's private twin would show up twice.
 List<ActivityItem> buildActivityFeed(
   List<FeedEvent> events, {
   required Map<String, PeerProfile> profiles,
@@ -105,6 +107,7 @@ List<ActivityItem> buildActivityFeed(
   final items = <ActivityItem>[];
 
   for (final event in events) {
+    if (event.visibility == EventVisibility.private) continue;
     final profile = profiles[event.author];
     final name = profile?.displayName ?? '';
     final emoji = profile?.avatarEmoji ?? '🙂';
