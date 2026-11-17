@@ -66,6 +66,10 @@ class TargetProposal {
 abstract class NutritionPromptBuilder {
   String estimateFoods(String text);
 
+  /// The question that goes with a photo of a meal. [hint] is what the user
+  /// typed next to it ("only half of it", "with oat milk"), or null.
+  String estimateFoodsFromPhoto(String? hint);
+
   String mealIdeas({
     required MealSlotKind slot,
     required int kcal,
@@ -86,6 +90,19 @@ You are a nutrition assistant. Estimate what this person ate:
 
 For each food, estimate the total weight in grams (2 eggs are about 110 g,
 not 2) and the calories and macros of that whole amount.
+Answer with JSON only, in this form:
+$kFoodEstimateJson
+''';
+
+  @override
+  String estimateFoodsFromPhoto(String? hint) => '''
+You are a nutrition assistant. The photo shows what this person is about to
+eat.${hint == null || hint.trim().isEmpty ? '' : ' They add: "${hint.trim()}".'}
+
+List every food you can see. For each, estimate the weight in grams from the
+plate, the cutlery and the packaging around it, and the calories and macros
+of that whole amount. Leave out anything you cannot see. If the photo shows
+no food, answer {"foods":[]}.
 Answer with JSON only, in this form:
 $kFoodEstimateJson
 ''';
@@ -146,8 +163,44 @@ class NutritionAssistant {
     try {
       final raw = await llm
           .generate(prompts.estimateFoods(text.trim()),
-              maxTokens: 400, temperature: 0.2, json: true, timeout: timeout)
+              purpose: LlmPurpose.food,
+              maxTokens: 400,
+              temperature: 0.2,
+              json: true,
+              timeout: timeout)
           .timeout(timeout);
+      return _parseEstimates(raw);
+    } on Object {
+      return null;
+    }
+  }
+
+  /// What is on the plate in [photo] — the same checks as for a typed
+  /// description: implausible foods are dropped, and nothing reaches the
+  /// diary until the user confirms it.
+  Future<List<FoodEstimate>?> estimateFoodsFromPhoto(
+    LlmImage photo, {
+    String? hint,
+  }) async {
+    if (!llm.isReady || photo.bytes.isEmpty) return null;
+    try {
+      final raw = await llm
+          .generate(prompts.estimateFoodsFromPhoto(hint),
+              images: <LlmImage>[photo],
+              purpose: LlmPurpose.food,
+              maxTokens: 600,
+              temperature: 0.2,
+              json: true,
+              timeout: timeout)
+          .timeout(timeout);
+      return _parseEstimates(raw);
+    } on Object {
+      return null;
+    }
+  }
+
+  List<FoodEstimate>? _parseEstimates(String raw) {
+    try {
       final result = <FoodEstimate>[];
       for (final Object? item in _foodItems(raw)) {
         if (item is! Map) continue;
@@ -189,6 +242,7 @@ class NutritionAssistant {
           .generate(
             prompts.mealIdeas(
                 slot: slot, kcal: kcal, proteinG: proteinG, wish: wish),
+            purpose: LlmPurpose.food,
             maxTokens: 160,
             temperature: 0.7,
             timeout: timeout,
@@ -215,6 +269,7 @@ class NutritionAssistant {
     try {
       final raw = await llm
           .generate(prompts.adjustTargets(plan: plan, wish: wish.trim()),
+              purpose: LlmPurpose.food,
               maxTokens: 160, temperature: 0.3, json: true, timeout: timeout)
           .timeout(timeout);
       final decoded = _decode(raw, '{', '}');

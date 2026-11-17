@@ -83,6 +83,146 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get aiFreeExplainer =>
+      'A meal photo costs about 1–2k tokens, a week\'s meal plan about 10–20k. The allowance resets on the 1st.';
+
+  @override
+  String get aiOwnKeyActive =>
+      'Requests go straight from your phone to the provider. Your account\'s allowance does not apply; the provider bills you.';
+
+  @override
+  String get aiOwnKeyInvalid =>
+      'That key did not work with this provider and model.';
+
+  @override
+  String get aiOwnKeyKey => 'API key';
+
+  @override
+  String get aiOwnKeyModel => 'Model';
+
+  @override
+  String get aiOwnKeyModelDefault => 'Empty: the provider\'s default';
+
+  @override
+  String get aiOwnKeyProvider => 'Provider';
+
+  @override
+  String get aiOwnKeyRemove => 'Remove key';
+
+  @override
+  String get aiOwnKeySave => 'Check and save';
+
+  @override
+  String get aiOwnKeySaved =>
+      'Key works and is saved in this phone\'s keychain.';
+
+  @override
+  String get aiOwnKeySub =>
+      'Use your own account at Google, Anthropic or OpenAI instead of the app\'s allowance.';
+
+  @override
+  String get aiOwnKeyTitle => 'Own API key';
+
+  @override
+  String get aiPaywallAction => 'See options';
+
+  @override
+  String get aiPaywallBody =>
+      'Your free allowance starts again on the 1st. With Premium — or your own API key — you can go on right now. Everything else in the app works as before.';
+
+  @override
+  String get aiPaywallLater => 'Later';
+
+  @override
+  String get aiPaywallTitle => 'This month\'s AI is used up';
+
+  @override
+  String get aiPremiumActive => 'Premium is active. Thank you!';
+
+  @override
+  String aiPremiumBuy(String price) {
+    return 'Get Premium · $price';
+  }
+
+  @override
+  String get aiPremiumPoint1 => 'Meal photos and estimates without counting';
+
+  @override
+  String get aiPremiumPoint2 =>
+      'Weekly meal plans, shopping lists and the planning chat for your household';
+
+  @override
+  String get aiPremiumPoint3 => 'A coach who writes your daily line';
+
+  @override
+  String get aiPremiumRestore => 'Restore purchase';
+
+  @override
+  String get aiPremiumSub => 'For everyday use of the AI.';
+
+  @override
+  String get aiPremiumTitle => 'Premium';
+
+  @override
+  String get aiPremiumUnavailable =>
+      'Premium is not available in this store yet.';
+
+  @override
+  String aiPremiumUntil(String date) {
+    return 'Premium runs until $date.';
+  }
+
+  @override
+  String aiProviderName(String provider) {
+    String _temp0 = intl.Intl.selectLogic(provider, {
+      'google': 'Google Gemini',
+      'anthropic': 'Anthropic Claude',
+      'openai': 'OpenAI',
+      'other': '$provider',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get aiPurchaseDone => 'Premium is active.';
+
+  @override
+  String get aiPurchaseFailed => 'The purchase did not go through.';
+
+  @override
+  String get aiPurchaseNotVerified =>
+      'The store did not confirm the purchase. Nothing was charged twice — try restoring later.';
+
+  @override
+  String get aiStatusFree => 'Free';
+
+  @override
+  String aiStatusOwnKey(String provider) {
+    return 'Own key · $provider';
+  }
+
+  @override
+  String get aiStatusPremium => 'Premium';
+
+  @override
+  String get aiTitle => 'AI & subscription';
+
+  @override
+  String aiUsage(int used, int limit) {
+    return '${used}k of ${limit}k tokens this month';
+  }
+
+  @override
+  String get aiUsageUnknown => 'No AI used this month yet.';
+
+  @override
+  String get aiWhatItSeesBody =>
+      'Only what a feature needs, at the moment you use it: the meal you describe or photograph, your targets and preferences for a meal plan, your streak and your friends\' first names for a coach line. It goes through the app\'s gateway to Google\'s Gemini (or straight to your own provider) and is not used to train models. Nothing is stored beyond the month\'s token count.';
+
+  @override
+  String get aiWhatItSeesTitle => 'What the AI sees';
+
+  @override
   String get appTitle => '100 Days';
 
   @override
@@ -258,7 +398,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String coachEngineModel(String model) {
-    return '$model';
+    return 'AI coach · $model';
   }
 
   @override
@@ -1099,6 +1239,37 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get foodPhotoCamera => 'Camera';
+
+  @override
+  String get foodPhotoCheck =>
+      'Estimates from a photo — check the amounts before you add them.';
+
+  @override
+  String get foodPhotoFailed =>
+      'No food recognised in that photo. Try again with the whole plate in view, or describe it.';
+
+  @override
+  String get foodPhotoGallery => 'Gallery';
+
+  @override
+  String get foodPhotoHint => 'Anything to add? e.g. only half of it';
+
+  @override
+  String get foodPhotoIntro =>
+      'Take a photo of your meal. The AI estimates the foods and amounts; you check them before anything lands in the diary. The photo is made smaller, stripped of location and camera data, and not stored.';
+
+  @override
+  String get foodPhotoNeedsAi =>
+      'The AI estimates what is on it — sign in, or add your own key under Settings → AI.';
+
+  @override
+  String get foodPhotoTitle => 'A photo of your plate';
+
+  @override
+  String get foodPhotoWorking => 'Looking at your plate …';
+
+  @override
   String get foodRecent => 'Recently logged';
 
   @override
@@ -1140,6 +1311,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get foodSourceParsed => 'recognised';
 
   @override
+  String get foodSourcePhoto => 'photo estimate';
+
+  @override
+  String get foodSourcePlan => 'as planned';
+
+  @override
   String get foodTabBarcode => 'Barcode';
 
   @override
@@ -1147,6 +1324,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get foodTabManual => 'Manual';
+
+  @override
+  String get foodTabPhoto => 'Photo';
 
   @override
   String get foodTabSearch => 'Search';
@@ -2426,6 +2606,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get obActivitySedentary => 'Sedentary';
 
   @override
+  String get obAiEyebrow => 'AI';
+
+  @override
+  String get obAiFreeBody =>
+      'A monthly allowance — enough for photos now and then and a meal plan.';
+
+  @override
+  String get obAiFreeTitle => 'Free to start';
+
+  @override
+  String get obAiLater =>
+      'Nothing to decide now. The streak, plans and diary work without AI too.';
+
+  @override
+  String get obAiOwnKeyBody =>
+      'Have an API key from Google, Anthropic or OpenAI? Add it in settings and use that instead.';
+
+  @override
+  String get obAiOwnKeyTitle => 'Or your own key';
+
+  @override
+  String get obAiPremiumBody =>
+      'Photos without counting, weekly plans, the planning chat and a coach who writes.';
+
+  @override
+  String get obAiPremiumTitle => 'Premium for every day';
+
+  @override
+  String get obAiSubtitle =>
+      'Photograph a meal and get it estimated, have a week of meals and the shopping list planned — for you or your whole household.';
+
+  @override
+  String get obAiTitle => 'AI that thinks along.';
+
+  @override
   String get obBodyActivity => 'Daily life & movement';
 
   @override
@@ -3119,6 +3334,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String promptFoodPhoto(String hint, String format) {
+    return 'You are a nutrition assistant. The photo shows what this person is about to eat. Their note: \"$hint\"\n\nList every food you can see. For each, estimate the weight in grams from the plate, the cutlery and the packaging around it, and the calories and macros of that whole amount. Leave out anything you cannot see. If the photo shows no food, answer with an empty foods list.\nAnswer with JSON only, in this form, names in English:\n$format';
+  }
+
+  @override
   String promptHabitLine(String emoji, String habit, int streak, String unit) {
     return '- $emoji $habit: $streak $unit';
   }
@@ -3249,6 +3469,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setAi => 'AI';
+
+  @override
+  String get setAiSubFree =>
+      'Photos, estimates, meal plans — free with a monthly allowance';
 
   @override
   String get setCoachSection => 'Coach';

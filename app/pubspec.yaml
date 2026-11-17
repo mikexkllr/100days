@@ -33,6 +33,15 @@ dependencies:
   # Native sign-in sheets; the ID token goes to Supabase Auth.
   google_sign_in: ^7.2.0
   sign_in_with_apple: ^8.2.0
+  # Every language model call: through the project's gateway, or straight
+  # to a provider with the user's own key.
+  dartantic_ai: 3.4.2
+  http: ^1.2.2
+  # Meal photos: camera or gallery, then downscaled and stripped of metadata.
+  image_picker: ^1.2.0
+  image: ^4.5.4
+  # Premium, through the stores' own billing.
+  in_app_purchase: ^3.3.0
   # Invite links (hundreddays://invite/CODE) that open the app.
   app_links: ^7.2.2
   # The nonce that binds a sign-in to this request.

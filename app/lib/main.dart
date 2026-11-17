@@ -16,6 +16,8 @@ import 'data/locale_store.dart';
 import 'data/notifications.dart';
 import 'l10n/l10n.dart';
 import 'state/providers.dart';
+import 'ai/dartantic_llm_client.dart';
+import 'ui/settings/ai_screen.dart';
 import 'ui/social/invite_flow.dart';
 
 Future<void> main() async {
@@ -64,6 +66,7 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
     with WidgetsBindingObserver {
   ProviderSubscription<AsyncValue<AppSnapshot>>? _subscription;
   ProviderSubscription<AsyncValue<SyncReport>>? _syncSubscription;
+  ProviderSubscription<AiFailure?>? _aiFailures;
   StreamSubscription<Uri>? _links;
   Timer? _periodicSync;
 
@@ -96,6 +99,18 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
       (AsyncValue<SyncReport>? _, AsyncValue<SyncReport> next) {
         final SyncReport? report = next.valueOrNull;
         if (report != null) unawaited(_onSyncReport(report));
+      },
+    );
+
+    // The month's allowance ran out mid-task: say so, once, with the way
+    // out, rather than letting the feature quietly fall back.
+    _aiFailures = ref.listenManual<AiFailure?>(
+      aiFailureProvider,
+      (AiFailure? _, AiFailure? failure) {
+        if (failure != AiFailure.quotaExceeded) return;
+        ref.read(aiFailureProvider.notifier).state = null;
+        final BuildContext? context = appNavigatorKey.currentContext;
+        if (context != null) unawaited(showPaywall(context));
       },
     );
 
@@ -231,6 +246,7 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
     WidgetsBinding.instance.removeObserver(this);
     _subscription?.close();
     _syncSubscription?.close();
+    _aiFailures?.close();
     unawaited(_links?.cancel());
     _periodicSync?.cancel();
     super.dispose();

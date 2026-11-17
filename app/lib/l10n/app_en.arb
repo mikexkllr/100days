@@ -64,6 +64,82 @@
       }
     }
   },
+  "aiFreeExplainer": "A meal photo costs about 1–2k tokens, a week's meal plan about 10–20k. The allowance resets on the 1st.",
+  "aiOwnKeyActive": "Requests go straight from your phone to the provider. Your account's allowance does not apply; the provider bills you.",
+  "aiOwnKeyInvalid": "That key did not work with this provider and model.",
+  "aiOwnKeyKey": "API key",
+  "aiOwnKeyModel": "Model",
+  "aiOwnKeyModelDefault": "Empty: the provider's default",
+  "aiOwnKeyProvider": "Provider",
+  "aiOwnKeyRemove": "Remove key",
+  "aiOwnKeySave": "Check and save",
+  "aiOwnKeySaved": "Key works and is saved in this phone's keychain.",
+  "aiOwnKeySub": "Use your own account at Google, Anthropic or OpenAI instead of the app's allowance.",
+  "aiOwnKeyTitle": "Own API key",
+  "aiPaywallAction": "See options",
+  "aiPaywallBody": "Your free allowance starts again on the 1st. With Premium — or your own API key — you can go on right now. Everything else in the app works as before.",
+  "aiPaywallLater": "Later",
+  "aiPaywallTitle": "This month's AI is used up",
+  "aiPremiumActive": "Premium is active. Thank you!",
+  "aiPremiumBuy": "Get Premium · {price}",
+  "@aiPremiumBuy": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "aiPremiumPoint1": "Meal photos and estimates without counting",
+  "aiPremiumPoint2": "Weekly meal plans, shopping lists and the planning chat for your household",
+  "aiPremiumPoint3": "A coach who writes your daily line",
+  "aiPremiumRestore": "Restore purchase",
+  "aiPremiumSub": "For everyday use of the AI.",
+  "aiPremiumTitle": "Premium",
+  "aiPremiumUnavailable": "Premium is not available in this store yet.",
+  "aiPremiumUntil": "Premium runs until {date}.",
+  "@aiPremiumUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "aiProviderName": "{provider, select, google{Google Gemini} anthropic{Anthropic Claude} openai{OpenAI} other{{provider}}}",
+  "@aiProviderName": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "aiPurchaseDone": "Premium is active.",
+  "aiPurchaseFailed": "The purchase did not go through.",
+  "aiPurchaseNotVerified": "The store did not confirm the purchase. Nothing was charged twice — try restoring later.",
+  "aiStatusFree": "Free",
+  "aiStatusOwnKey": "Own key · {provider}",
+  "@aiStatusOwnKey": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "aiStatusPremium": "Premium",
+  "aiTitle": "AI & subscription",
+  "aiUsage": "{used}k of {limit}k tokens this month",
+  "@aiUsage": {
+    "placeholders": {
+      "used": {
+        "type": "int"
+      },
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "aiUsageUnknown": "No AI used this month yet.",
+  "aiWhatItSeesBody": "Only what a feature needs, at the moment you use it: the meal you describe or photograph, your targets and preferences for a meal plan, your streak and your friends' first names for a coach line. It goes through the app's gateway to Google's Gemini (or straight to your own provider) and is not used to train models. Nothing is stored beyond the month's token count.",
+  "aiWhatItSeesTitle": "What the AI sees",
   "appTitle": "100 Days",
   "boardMilestone": "Milestone day {day} in {days, plural, =1{1 day} other{{days} days}}",
   "@boardMilestone": {
@@ -221,7 +297,7 @@
   "coachCelebrateMonth": "30 days. From now on you have to talk yourself into it less.",
   "coachCelebrateWeek": "One week. Most people stop exactly here.",
   "coachCelebrateYear": "A year. This is not a challenge any more, this is you.",
-  "coachEngineModel": "{model}",
+  "coachEngineModel": "AI coach · {model}",
   "@coachEngineModel": {
     "placeholders": {
       "model": {
@@ -879,6 +955,15 @@
       }
     }
   },
+  "foodPhotoCamera": "Camera",
+  "foodPhotoCheck": "Estimates from a photo — check the amounts before you add them.",
+  "foodPhotoFailed": "No food recognised in that photo. Try again with the whole plate in view, or describe it.",
+  "foodPhotoGallery": "Gallery",
+  "foodPhotoHint": "Anything to add? e.g. only half of it",
+  "foodPhotoIntro": "Take a photo of your meal. The AI estimates the foods and amounts; you check them before anything lands in the diary. The photo is made smaller, stripped of location and camera data, and not stored.",
+  "foodPhotoNeedsAi": "The AI estimates what is on it — sign in, or add your own key under Settings → AI.",
+  "foodPhotoTitle": "A photo of your plate",
+  "foodPhotoWorking": "Looking at your plate …",
   "foodRecent": "Recently logged",
   "foodRecognise": "Recognise",
   "foodScanButton": "Scan barcode",
@@ -892,9 +977,12 @@
   "foodSourceDatabase": "food table",
   "foodSourceManual": "entered",
   "foodSourceParsed": "recognised",
+  "foodSourcePhoto": "photo estimate",
+  "foodSourcePlan": "as planned",
   "foodTabBarcode": "Barcode",
   "foodTabDescribe": "Describe",
   "foodTabManual": "Manual",
+  "foodTabPhoto": "Photo",
   "foodTabSearch": "Search",
   "friendsConnected": "You and {name} are friends now.",
   "@friendsConnected": {
@@ -1657,6 +1745,16 @@
   "obActivityLight": "Lightly active",
   "obActivityModerate": "Moderate",
   "obActivitySedentary": "Sedentary",
+  "obAiEyebrow": "AI",
+  "obAiFreeBody": "A monthly allowance — enough for photos now and then and a meal plan.",
+  "obAiFreeTitle": "Free to start",
+  "obAiLater": "Nothing to decide now. The streak, plans and diary work without AI too.",
+  "obAiOwnKeyBody": "Have an API key from Google, Anthropic or OpenAI? Add it in settings and use that instead.",
+  "obAiOwnKeyTitle": "Or your own key",
+  "obAiPremiumBody": "Photos without counting, weekly plans, the planning chat and a coach who writes.",
+  "obAiPremiumTitle": "Premium for every day",
+  "obAiSubtitle": "Photograph a meal and get it estimated, have a week of meals and the shopping list planned — for you or your whole household.",
+  "obAiTitle": "AI that thinks along.",
   "obBodyActivity": "Daily life & movement",
   "obBodyAge": "Age",
   "obBodyAgeValue": "{years} years",
@@ -2178,6 +2276,17 @@
       }
     }
   },
+  "promptFoodPhoto": "You are a nutrition assistant. The photo shows what this person is about to eat. Their note: \"{hint}\"\n\nList every food you can see. For each, estimate the weight in grams from the plate, the cutlery and the packaging around it, and the calories and macros of that whole amount. Leave out anything you cannot see. If the photo shows no food, answer with an empty foods list.\nAnswer with JSON only, in this form, names in English:\n{format}",
+  "@promptFoodPhoto": {
+    "placeholders": {
+      "hint": {
+        "type": "String"
+      },
+      "format": {
+        "type": "String"
+      }
+    }
+  },
   "promptHabitLine": "- {emoji} {habit}: {streak} {unit}",
   "@promptHabitLine": {
     "placeholders": {
@@ -2315,6 +2424,7 @@
   "setAboutTitle": "100 days and far beyond",
   "setAccountSection": "Account",
   "setAi": "AI",
+  "setAiSubFree": "Photos, estimates, meal plans — free with a monthly allowance",
   "setCoachSection": "Coach",
   "setDeleteAccount": "Delete account",
   "setDeleteAccountBody": "Your streak, your plans, your diary and your friendships are deleted on the server, for good. This cannot be undone.",

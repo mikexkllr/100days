@@ -233,7 +233,9 @@ void main() {
     await next(tester); // statement -> habits
     await next(tester); // habits -> privacy
     expect(find.text('Wer sieht was.'), findsOneWidget);
-    await next(tester); // privacy -> identity
+    await next(tester); // privacy -> AI
+    expect(find.text('KI, die mitdenkt.'), findsOneWidget);
+    await next(tester); // AI -> identity
     await tester.enterText(find.byKey(const Key('name-field')), 'Mike');
     await tester.pumpAndSettle();
     await next(tester); // identity -> summary

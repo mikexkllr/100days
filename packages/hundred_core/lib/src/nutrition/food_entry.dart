@@ -21,6 +21,12 @@ enum FoodSource {
 
   /// Looked up by barcode — the numbers on the packaging.
   barcode,
+
+  /// Estimated by the language model from a photo of the meal.
+  photo,
+
+  /// Eaten as planned: the portion of a meal from the meal plan.
+  plan,
 }
 
 /// One line of the food diary.

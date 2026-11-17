@@ -11,6 +11,7 @@ import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
+import 'ai_screen.dart';
 import 'privacy_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -119,13 +120,18 @@ class SettingsScreen extends ConsumerWidget {
           SectionHeader(l10n.setCoachSection),
           _Row(
             icon: Icons.auto_awesome,
-            iconColor: AppColors.primary,
+            iconColor: AppColors.reward,
             title: l10n.setAi,
             subtitle: coach.maybeWhen(
               data: (CoachEngine engine) => engine.modelName == null
-                  ? l10n.coachEngineRuleBased
+                  ? l10n.setAiSubFree
                   : l10n.coachEngineModel(engine.modelName!),
-              orElse: () => l10n.coachEngineRuleBased,
+              orElse: () => l10n.setAiSubFree,
+            ),
+            onTap: () => Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => const AiScreen(),
+              ),
             ),
           ),
           SectionHeader(l10n.setAboutSection),

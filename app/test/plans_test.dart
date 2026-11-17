@@ -132,6 +132,20 @@ void main() {
         isTrue);
   });
 
+  testWidgets('without the AI the photo tab says how to get it',
+      (WidgetTester tester) async {
+    await repository.startChallenge(_fitChallenge());
+    await pump(tester, const DiaryScreen());
+
+    await tester.tap(find.byKey(const Key('add-food-lunch')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Foto'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ein Foto von deinem Teller'), findsOneWidget);
+    expect(find.byKey(const Key('food-photo-camera')), findsNothing);
+  });
+
   testWidgets('a logged workout is tracked and worth more than a tick',
       (WidgetTester tester) async {
     final Challenge challenge = _fitChallenge();

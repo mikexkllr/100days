@@ -97,6 +97,10 @@ extension NutritionL10n on AppLocalizations {
         return foodSourceAi;
       case FoodSource.barcode:
         return foodSourceBarcode;
+      case FoodSource.photo:
+        return foodSourcePhoto;
+      case FoodSource.plan:
+        return foodSourcePlan;
     }
   }
 
@@ -128,6 +132,12 @@ class LocalizedNutritionPrompts implements NutritionPromptBuilder {
   @override
   String estimateFoods(String text) =>
       l10n.promptFoodEstimate(text, kFoodEstimateFormat);
+
+  @override
+  String estimateFoodsFromPhoto(String? hint) => l10n.promptFoodPhoto(
+        hint == null || hint.trim().isEmpty ? '-' : hint.trim(),
+        kFoodEstimateFormat,
+      );
 
   @override
   String mealIdeas({

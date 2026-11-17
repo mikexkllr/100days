@@ -83,6 +83,146 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get aiFreeExplainer =>
+      'Ein Foto kostet etwa 1–2k Tokens, ein Wochenplan etwa 10–20k. Das Kontingent beginnt am 1. neu.';
+
+  @override
+  String get aiOwnKeyActive =>
+      'Anfragen gehen direkt von deinem Handy zum Anbieter. Das Kontingent deines Kontos gilt dann nicht; der Anbieter rechnet mit dir ab.';
+
+  @override
+  String get aiOwnKeyInvalid =>
+      'Mit diesem Anbieter und Modell hat der Key nicht funktioniert.';
+
+  @override
+  String get aiOwnKeyKey => 'API-Key';
+
+  @override
+  String get aiOwnKeyModel => 'Modell';
+
+  @override
+  String get aiOwnKeyModelDefault => 'Leer: Standard des Anbieters';
+
+  @override
+  String get aiOwnKeyProvider => 'Anbieter';
+
+  @override
+  String get aiOwnKeyRemove => 'Key entfernen';
+
+  @override
+  String get aiOwnKeySave => 'Prüfen und speichern';
+
+  @override
+  String get aiOwnKeySaved =>
+      'Der Key funktioniert und liegt im Schlüsselbund dieses Handys.';
+
+  @override
+  String get aiOwnKeySub =>
+      'Nutz dein eigenes Konto bei Google, Anthropic oder OpenAI statt des Kontingents der App.';
+
+  @override
+  String get aiOwnKeyTitle => 'Eigener API-Key';
+
+  @override
+  String get aiPaywallAction => 'Optionen ansehen';
+
+  @override
+  String get aiPaywallBody =>
+      'Dein kostenloses Kontingent beginnt am 1. neu. Mit Premium oder deinem eigenen API-Key geht es sofort weiter. Alles andere in der App funktioniert wie gewohnt.';
+
+  @override
+  String get aiPaywallLater => 'Später';
+
+  @override
+  String get aiPaywallTitle => 'Die KI für diesen Monat ist aufgebraucht';
+
+  @override
+  String get aiPremiumActive => 'Premium ist aktiv. Danke!';
+
+  @override
+  String aiPremiumBuy(String price) {
+    return 'Premium holen · $price';
+  }
+
+  @override
+  String get aiPremiumPoint1 => 'Fotos und Schätzungen, ohne zu zählen';
+
+  @override
+  String get aiPremiumPoint2 =>
+      'Wochenpläne, Einkaufslisten und der Planungs-Chat für deinen Haushalt';
+
+  @override
+  String get aiPremiumPoint3 => 'Ein Coach, der deine Tageszeile schreibt';
+
+  @override
+  String get aiPremiumRestore => 'Kauf wiederherstellen';
+
+  @override
+  String get aiPremiumSub => 'Für die KI im Alltag.';
+
+  @override
+  String get aiPremiumTitle => 'Premium';
+
+  @override
+  String get aiPremiumUnavailable =>
+      'Premium ist in diesem Store noch nicht verfügbar.';
+
+  @override
+  String aiPremiumUntil(String date) {
+    return 'Premium läuft bis $date.';
+  }
+
+  @override
+  String aiProviderName(String provider) {
+    String _temp0 = intl.Intl.selectLogic(provider, {
+      'google': 'Google Gemini',
+      'anthropic': 'Anthropic Claude',
+      'openai': 'OpenAI',
+      'other': '$provider',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get aiPurchaseDone => 'Premium ist aktiv.';
+
+  @override
+  String get aiPurchaseFailed => 'Der Kauf hat nicht geklappt.';
+
+  @override
+  String get aiPurchaseNotVerified =>
+      'Der Store hat den Kauf nicht bestätigt. Es wurde nichts doppelt berechnet; versuch später „Kauf wiederherstellen“.';
+
+  @override
+  String get aiStatusFree => 'Free';
+
+  @override
+  String aiStatusOwnKey(String provider) {
+    return 'Eigener Key · $provider';
+  }
+
+  @override
+  String get aiStatusPremium => 'Premium';
+
+  @override
+  String get aiTitle => 'KI & Abo';
+
+  @override
+  String aiUsage(int used, int limit) {
+    return '${used}k von ${limit}k Tokens diesen Monat';
+  }
+
+  @override
+  String get aiUsageUnknown => 'Diesen Monat noch keine KI genutzt.';
+
+  @override
+  String get aiWhatItSeesBody =>
+      'Nur, was eine Funktion braucht, in dem Moment, in dem du sie nutzt: die Mahlzeit, die du beschreibst oder fotografierst, deine Ziele und Vorlieben für einen Ernährungsplan, dein Streak und die Vornamen deiner Freunde für eine Coach-Zeile. Es geht über das Gateway der App zu Googles Gemini (oder direkt zu deinem eigenen Anbieter) und wird nicht zum Trainieren von Modellen genutzt. Gespeichert wird nur die Zahl der Tokens im Monat.';
+
+  @override
+  String get aiWhatItSeesTitle => 'Was die KI sieht';
+
+  @override
   String get appTitle => '100 Tage';
 
   @override
@@ -259,7 +399,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String coachEngineModel(String model) {
-    return '$model';
+    return 'KI-Coach · $model';
   }
 
   @override
@@ -1101,6 +1241,37 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get foodPhotoCamera => 'Kamera';
+
+  @override
+  String get foodPhotoCheck =>
+      'Schätzung vom Foto. Prüf die Mengen, bevor du sie einträgst.';
+
+  @override
+  String get foodPhotoFailed =>
+      'Auf dem Foto wurde nichts erkannt. Versuch es mit dem ganzen Teller im Bild oder beschreib es.';
+
+  @override
+  String get foodPhotoGallery => 'Galerie';
+
+  @override
+  String get foodPhotoHint => 'Noch etwas dazu? z. B. nur die Hälfte';
+
+  @override
+  String get foodPhotoIntro =>
+      'Fotografier deine Mahlzeit. Die KI schätzt Lebensmittel und Mengen; du prüfst sie, bevor etwas im Tagebuch landet. Das Foto wird verkleinert, ohne Standort- und Kameradaten verschickt und nicht gespeichert.';
+
+  @override
+  String get foodPhotoNeedsAi =>
+      'Die KI schätzt, was drauf ist. Dafür anmelden oder unter Einstellungen → KI einen eigenen Key hinterlegen.';
+
+  @override
+  String get foodPhotoTitle => 'Ein Foto von deinem Teller';
+
+  @override
+  String get foodPhotoWorking => 'Schaue mir deinen Teller an …';
+
+  @override
   String get foodRecent => 'Zuletzt eingetragen';
 
   @override
@@ -1143,6 +1314,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get foodSourceParsed => 'erkannt';
 
   @override
+  String get foodSourcePhoto => 'Foto-Schätzung';
+
+  @override
+  String get foodSourcePlan => 'wie geplant';
+
+  @override
   String get foodTabBarcode => 'Barcode';
 
   @override
@@ -1150,6 +1327,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get foodTabManual => 'Manuell';
+
+  @override
+  String get foodTabPhoto => 'Foto';
 
   @override
   String get foodTabSearch => 'Suchen';
@@ -2438,6 +2618,41 @@ class AppLocalizationsDe extends AppLocalizations {
   String get obActivitySedentary => 'Sitzend';
 
   @override
+  String get obAiEyebrow => 'KI';
+
+  @override
+  String get obAiFreeBody =>
+      'Ein Monatskontingent, genug für ab und zu ein Foto und einen Ernährungsplan.';
+
+  @override
+  String get obAiFreeTitle => 'Kostenlos zum Start';
+
+  @override
+  String get obAiLater =>
+      'Jetzt musst du nichts entscheiden. Streak, Pläne und Tagebuch funktionieren auch ohne KI.';
+
+  @override
+  String get obAiOwnKeyBody =>
+      'Du hast einen API-Key von Google, Anthropic oder OpenAI? Hinterleg ihn in den Einstellungen und nutz den.';
+
+  @override
+  String get obAiOwnKeyTitle => 'Oder dein eigener Key';
+
+  @override
+  String get obAiPremiumBody =>
+      'Fotos ohne zu zählen, Wochenpläne, der Planungs-Chat und ein Coach, der schreibt.';
+
+  @override
+  String get obAiPremiumTitle => 'Premium für jeden Tag';
+
+  @override
+  String get obAiSubtitle =>
+      'Mahlzeit fotografieren und schätzen lassen, eine Woche Essen und die Einkaufsliste planen lassen, für dich oder deinen ganzen Haushalt.';
+
+  @override
+  String get obAiTitle => 'KI, die mitdenkt.';
+
+  @override
   String get obBodyActivity => 'Alltag & Bewegung';
 
   @override
@@ -3132,6 +3347,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String promptFoodPhoto(String hint, String format) {
+    return 'Du bist Ernährungsassistent. Das Foto zeigt, was diese Person gleich isst. Ihre Notiz: \"$hint\"\n\nNenne jedes Lebensmittel, das du siehst. Schätze für jedes das Gewicht in Gramm anhand von Teller, Besteck und Verpackung daneben, und die Kalorien und Makros dieser ganzen Menge. Lass weg, was du nicht siehst. Zeigt das Foto kein Essen, antworte mit einer leeren foods-Liste.\nAntworte nur mit JSON, in dieser Form, Namen auf Deutsch:\n$format';
+  }
+
+  @override
   String promptHabitLine(String emoji, String habit, int streak, String unit) {
     return '- $emoji $habit: $streak $unit';
   }
@@ -3261,6 +3481,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get setAi => 'KI';
+
+  @override
+  String get setAiSubFree =>
+      'Fotos, Schätzungen, Ernährungspläne – kostenlos mit Monatskontingent';
 
   @override
   String get setCoachSection => 'Coach';

@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../../ai/meal_photo.dart';
 
 import '../../data/app_repository.dart';
 import '../../data/barcode_lookup.dart';
@@ -25,9 +28,9 @@ String newFoodEntryId() {
       .join();
 }
 
-/// Four ways to log a meal: search the food table, describe it in a
-/// sentence (the on-device model estimates what the table does not know),
-/// scan or type a barcode, or enter the numbers yourself.
+/// Five ways to log a meal: search the food table, take a photo (the
+/// language model estimates what is on the plate), describe it in a
+/// sentence, scan or type a barcode, or enter the numbers yourself.
 class AddFoodScreen extends ConsumerStatefulWidget {
   const AddFoodScreen({
     super.key,
@@ -84,16 +87,17 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
     return DefaultTabController(
-      length: 4,
-      initialIndex: widget.prefillText == null ? 0 : 1,
+      length: 5,
+      initialIndex: widget.prefillText == null ? 0 : 2,
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.foodAddTo(l10n.mealName(widget.meal))),
           bottom: GlassTabBar(
-            // Four short labels fit a phone; scrolling would hide the last.
-            labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+            // Five short labels fit a phone; scrolling would hide the last.
+            labelPadding: const EdgeInsets.symmetric(horizontal: 2),
             tabs: <Widget>[
               Tab(text: l10n.foodTabSearch),
+              Tab(text: l10n.foodTabPhoto),
               Tab(text: l10n.foodTabDescribe),
               Tab(text: l10n.foodTabBarcode),
               Tab(text: l10n.foodTabManual),
@@ -103,6 +107,7 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
         body: TabBarView(
           children: <Widget>[
             _SearchTab(onPick: _log, makeEntry: _entry),
+            _PhotoTab(onPick: _log, makeEntry: _entry),
             _DescribeTab(
               initialText: widget.prefillText,
               onPick: _log,
@@ -465,6 +470,214 @@ class _DescribeTabState extends ConsumerState<_DescribeTab> {
                   nutrients: d.nutrients,
                   source: d.source,
                   foodId: d.foodId,
+                ),
+            ]),
+            child: Text(l10n.foodAddAll(included.length, total.round())),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// A photo of the plate, estimated by the language model. The photo is
+/// downscaled and stripped of metadata on the phone, sent once, and never
+/// stored; what lands in the diary is only the entries the user confirms.
+class _PhotoTab extends ConsumerStatefulWidget {
+  const _PhotoTab({required this.onPick, required this.makeEntry});
+
+  final _OnPick onPick;
+  final _EntryFactory makeEntry;
+
+  @override
+  ConsumerState<_PhotoTab> createState() => _PhotoTabState();
+}
+
+class _PhotoTabState extends ConsumerState<_PhotoTab> {
+  final TextEditingController _hint = TextEditingController();
+  Uint8List? _preview;
+  List<_Draft> _drafts = <_Draft>[];
+  bool _working = false;
+  bool _failed = false;
+
+  @override
+  void dispose() {
+    _hint.dispose();
+    super.dispose();
+  }
+
+  Future<void> _take(ImageSource source, NutritionAssistant assistant) async {
+    final XFile? file;
+    try {
+      file = await ImagePicker().pickImage(source: source);
+    } on Object {
+      if (mounted) setState(() => _failed = true);
+      return;
+    }
+    if (file == null || !mounted) return;
+    setState(() {
+      _working = true;
+      _failed = false;
+      _drafts = <_Draft>[];
+    });
+    final LlmImage? photo = await prepareMealPhoto(await file.readAsBytes());
+    if (!mounted) return;
+    if (photo == null) {
+      setState(() {
+        _working = false;
+        _failed = true;
+      });
+      return;
+    }
+    setState(() => _preview = photo.bytes);
+    final List<FoodEstimate>? estimates = await assistant
+        .estimateFoodsFromPhoto(photo, hint: _hint.text);
+    if (!mounted) return;
+    setState(() {
+      _working = false;
+      _failed = estimates == null;
+      _drafts = <_Draft>[
+        for (final FoodEstimate e in estimates ?? const <FoodEstimate>[])
+          _Draft(
+            name: e.name,
+            grams: e.grams,
+            nutrients: e.nutrients,
+            source: FoodSource.photo,
+          ),
+      ];
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    final NutritionAssistant? assistant =
+        ref.watch(nutritionAssistantProvider).valueOrNull;
+    final List<_Draft> included =
+        _drafts.where((_Draft d) => d.include).toList();
+    final double total = included.fold(
+        0.0, (double sum, _Draft d) => sum + d.nutrients.kcal);
+
+    if (assistant == null) {
+      return ListView(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        children: <Widget>[
+          EmptyState(
+            emoji: '📷',
+            title: l10n.foodPhotoTitle,
+            body: l10n.foodPhotoNeedsAi,
+          ),
+        ],
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      children: <Widget>[
+        if (_preview != null)
+          ClipRRect(
+            borderRadius: AppRadius.cardAll,
+            child: AspectRatio(
+              aspectRatio: 4 / 3,
+              child: Image.memory(_preview!, fit: BoxFit.cover),
+            ),
+          )
+        else
+          AppCard(
+            color: AppColors.surfaceHigh,
+            child: Text(
+              l10n.foodPhotoIntro,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: AppColors.textSecondary),
+            ),
+          ),
+        const SizedBox(height: AppSpacing.sm),
+        TextField(
+          key: const Key('food-photo-hint'),
+          controller: _hint,
+          decoration: InputDecoration(hintText: l10n.foodPhotoHint),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: FilledButton.icon(
+                key: const Key('food-photo-camera'),
+                onPressed: _working
+                    ? null
+                    : () => _take(ImageSource.camera, assistant),
+                icon: const Icon(Icons.photo_camera_outlined, size: 18),
+                label: Text(l10n.foodPhotoCamera),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _working
+                    ? null
+                    : () => _take(ImageSource.gallery, assistant),
+                icon: const Icon(Icons.photo_library_outlined, size: 18),
+                label: Text(l10n.foodPhotoGallery),
+              ),
+            ),
+          ],
+        ),
+        if (_working) ...<Widget>[
+          const SizedBox(height: AppSpacing.lg),
+          const Center(child: CircularProgressIndicator()),
+          const SizedBox(height: AppSpacing.sm),
+          Center(
+            child: Text(l10n.foodPhotoWorking,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: AppColors.textSecondary)),
+          ),
+        ],
+        if (_failed)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
+            child: Text(
+              l10n.foodPhotoFailed,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: AppColors.danger, fontSize: 12.5),
+            ),
+          ),
+        for (final _Draft draft in _drafts)
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            value: draft.include,
+            onChanged: (bool? v) => setState(() => draft.include = v ?? false),
+            title: Text(draft.name),
+            subtitle: Text(
+              '${draft.grams.round()} g · '
+              '${l10n.diaryEntryKcal(draft.nutrients.kcal.round())} · '
+              '${l10n.foodSourceLabel(draft.source)}',
+            ),
+          ),
+        if (included.isNotEmpty) ...<Widget>[
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            l10n.foodPhotoCheck,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textTertiary,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          FilledButton(
+            key: const Key('food-add-photo'),
+            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+            onPressed: () => widget.onPick(<FoodEntry>[
+              for (final _Draft d in included)
+                widget.makeEntry(
+                  name: d.name,
+                  grams: d.grams,
+                  nutrients: d.nutrients,
+                  source: d.source,
                 ),
             ]),
             child: Text(l10n.foodAddAll(included.length, total.round())),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:hundred_core/hundred_core.dart';
 import 'package:test/test.dart';
@@ -340,6 +341,42 @@ void main() {
             '[{"name":"Apple","grams":100,"kcal":5000,"protein":0}]'),
       );
       expect(await assistant.estimateFoods('apple'), isNull);
+    });
+
+    test('a meal photo goes to the model with the photo attached', () async {
+      final runtime = _FakeRuntime('{"foods":[{"name":"Spaghetti Bolognese",'
+          '"grams":420,"kcal":610,"protein":28,"carbs":78,"fat":19}]}');
+      final photo = LlmImage(bytes: Uint8List.fromList(<int>[0xff, 0xd8, 1]));
+      final result = await NutritionAssistant(llm: runtime)
+          .estimateFoodsFromPhoto(photo, hint: 'nur die Hälfte');
+      expect(result!.single.name, 'Spaghetti Bolognese');
+      expect(result.single.grams, 420);
+      expect(runtime.lastImages.single.mimeType, 'image/jpeg');
+    });
+
+    test('a photo estimate gets the same physics check', () async {
+      final result = await NutritionAssistant(
+        llm: _FakeRuntime('{"foods":[{"name":"Salat","grams":50,"kcal":2000},'
+            '{"name":"Brot","grams":60,"kcal":150}]}'),
+      ).estimateFoodsFromPhoto(
+          LlmImage(bytes: Uint8List.fromList(<int>[1, 2, 3])));
+      expect(result!.map((FoodEstimate e) => e.name), <String>['Brot']);
+    });
+
+    test('a photo without food or without bytes yields nothing', () async {
+      final empty = await NutritionAssistant(llm: _FakeRuntime('{"foods":[]}'))
+          .estimateFoodsFromPhoto(LlmImage(bytes: Uint8List.fromList(<int>[1])));
+      expect(empty, isNull);
+      final noBytes = await NutritionAssistant(llm: _FakeRuntime('{}'))
+          .estimateFoodsFromPhoto(LlmImage(bytes: Uint8List(0)));
+      expect(noBytes, isNull);
+    });
+
+    test('the photo prompt carries the hint and the JSON shape', () {
+      const prompts = EnglishNutritionPrompts();
+      expect(prompts.estimateFoodsFromPhoto('with oat milk'),
+          contains('with oat milk'));
+      expect(prompts.estimateFoodsFromPhoto(null), contains(kFoodEstimateJson));
     });
 
     test('a proposal below the guard rail is refused', () async {

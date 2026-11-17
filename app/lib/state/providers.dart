@@ -5,6 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../ai/allowance.dart';
+import '../ai/dartantic_llm_client.dart';
+import '../ai/gateway.dart';
+import '../ai/own_key.dart';
+import '../ai/subscription_service.dart';
 import '../config/backend_config.dart';
 import '../data/app_repository.dart';
 import '../data/auth_service.dart';
@@ -154,10 +159,124 @@ final Provider<Locale> effectiveLocaleProvider = Provider<Locale>((Ref ref) {
   return kSupportedLocales.first;
 });
 
+final Provider<OwnKeyStore> ownKeyStoreProvider =
+    Provider<OwnKeyStore>((Ref ref) => OwnKeyStore());
+
+/// The user's own API key, if they set one up.
+class OwnKeyController extends AsyncNotifier<OwnKey?> {
+  @override
+  Future<OwnKey?> build() async {
+    try {
+      return await ref.watch(ownKeyStoreProvider).read();
+    } on Object {
+      // No keychain (tests, desktop): no own key.
+      return null;
+    }
+  }
+
+  Future<void> save(OwnKey key) async {
+    await ref.read(ownKeyStoreProvider).write(key);
+    state = AsyncValue<OwnKey?>.data(key);
+  }
+
+  Future<void> clear() async {
+    await ref.read(ownKeyStoreProvider).clear();
+    state = const AsyncValue<OwnKey?>.data(null);
+  }
+}
+
+final AsyncNotifierProvider<OwnKeyController, OwnKey?> ownKeyProvider =
+    AsyncNotifierProvider<OwnKeyController, OwnKey?>(OwnKeyController.new);
+
+/// The last thing that stopped the model from answering — the screens show
+/// the paywall when it is [AiFailure.quotaExceeded].
+final StateProvider<AiFailure?> aiFailureProvider =
+    StateProvider<AiFailure?>((Ref ref) => null);
+
+/// This month's AI allowance as the server enforces it. Refreshed after a
+/// purchase and when an AI screen opens.
+final FutureProvider<AiAllowance> aiAllowanceProvider =
+    FutureProvider<AiAllowance>((Ref ref) async {
+  if (await ref.watch(signedInUserProvider.future) == null) {
+    return AiAllowance.unknown;
+  }
+  try {
+    return await AiAllowance.fetch(ref.watch(supabaseClientProvider));
+  } on Object {
+    return AiAllowance.unknown;
+  }
+});
+
 /// The language model behind the coach, the diary's estimates and the meal
-/// planner. Unavailable until the AI gateway is wired in.
-final Provider<LlmClient> llmClientProvider =
-    Provider<LlmClient>((Ref ref) => const UnavailableLlmClient());
+/// planner: the user's own key if they set one, otherwise the project's
+/// gateway with the signed-in account's allowance.
+final Provider<LlmClient> llmClientProvider = Provider<LlmClient>((Ref ref) {
+  void report(AiFailure failure) {
+    ref.read(aiFailureProvider.notifier).state = failure;
+    if (failure == AiFailure.quotaExceeded) ref.invalidate(aiAllowanceProvider);
+  }
+
+  final OwnKey? own = ref.watch(ownKeyProvider).valueOrNull;
+  if (own != null) {
+    return DartanticLlmClient(
+      provider: (LlmPurpose _) => own.toProvider(),
+      modelName: own.model.isEmpty ? own.provider.name : own.model,
+      chatModelName: own.model.isEmpty ? null : own.model,
+      isGoogle: own.provider == OwnKeyProvider.google,
+      onFailure: report,
+    );
+  }
+
+  final String? userId = ref.watch(signedInUserProvider).valueOrNull;
+  if (userId == null) return const UnavailableLlmClient();
+  final SupabaseClient client = ref.watch(supabaseClientProvider);
+  final BackendConfig backend = ref.watch(backendConfigProvider);
+  return DartanticLlmClient(
+    provider: (LlmPurpose purpose) => GatewayProvider(
+      baseUrl: GatewayProvider.baseUrlFor(backend.supabaseUrl),
+      client: GatewayHttpClient(
+        accessToken: () async {
+          Session? session = client.auth.currentSession;
+          if (session == null) return null;
+          if (session.isExpired) {
+            session = (await client.auth.refreshSession()).session;
+          }
+          return session?.accessToken;
+        },
+        publishableKey: backend.supabaseKey,
+        purpose: purpose,
+      ),
+    ),
+    modelName: kAiModel,
+    chatModelName: kAiModel,
+    onFailure: report,
+  );
+});
+
+/// Premium purchases. Listens from the first read for the rest of the
+/// session, so a purchase finishing in the background is not lost.
+final Provider<SubscriptionService> subscriptionServiceProvider =
+    Provider<SubscriptionService>((Ref ref) {
+  final SubscriptionService service =
+      SubscriptionService(ref.watch(supabaseClientProvider))..start();
+  final StreamSubscription<PurchaseOutcome> refresh =
+      service.outcomes.listen((PurchaseOutcome outcome) {
+    if (outcome == PurchaseOutcome.premium) ref.invalidate(aiAllowanceProvider);
+  });
+  ref.onDispose(() {
+    unawaited(refresh.cancel());
+    unawaited(service.dispose());
+  });
+  return service;
+});
+
+/// Whether the coach may use the model: with an own key, or with premium —
+/// on a free account the allowance goes to what the user asks for.
+final FutureProvider<bool> modelCoachAllowedProvider =
+    FutureProvider<bool>((Ref ref) async {
+  if (ref.watch(ownKeyProvider).valueOrNull != null) return true;
+  return (await ref.watch(aiAllowanceProvider.future)).premium;
+});
 
 /// The coach the app is currently using.
 ///
@@ -167,6 +286,9 @@ final FutureProvider<CoachEngine> coachEngineProvider =
     FutureProvider<CoachEngine>((Ref ref) async {
   final LlmClient llm = ref.watch(llmClientProvider);
   if (!llm.isReady) return const HeuristicCoach();
+  if (!await ref.watch(modelCoachAllowedProvider.future)) {
+    return const HeuristicCoach();
+  }
   // The prompt is written in the user's language, so the coach has to be
   // rebuilt when that changes.
   final locale = ref.watch(effectiveLocaleProvider);

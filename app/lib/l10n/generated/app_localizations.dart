@@ -211,6 +211,234 @@ abstract class AppLocalizations {
   /// **'{emoji} {habit} has been running for {days} days. Raise the daily target by 20%.'**
   String adviceRaiseTarget(String emoji, String habit, int days);
 
+  /// No description provided for @aiFreeExplainer.
+  ///
+  /// In en, this message translates to:
+  /// **'A meal photo costs about 1–2k tokens, a week\'s meal plan about 10–20k. The allowance resets on the 1st.'**
+  String get aiFreeExplainer;
+
+  /// No description provided for @aiOwnKeyActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Requests go straight from your phone to the provider. Your account\'s allowance does not apply; the provider bills you.'**
+  String get aiOwnKeyActive;
+
+  /// No description provided for @aiOwnKeyInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That key did not work with this provider and model.'**
+  String get aiOwnKeyInvalid;
+
+  /// No description provided for @aiOwnKeyKey.
+  ///
+  /// In en, this message translates to:
+  /// **'API key'**
+  String get aiOwnKeyKey;
+
+  /// No description provided for @aiOwnKeyModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get aiOwnKeyModel;
+
+  /// No description provided for @aiOwnKeyModelDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty: the provider\'s default'**
+  String get aiOwnKeyModelDefault;
+
+  /// No description provided for @aiOwnKeyProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Provider'**
+  String get aiOwnKeyProvider;
+
+  /// No description provided for @aiOwnKeyRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove key'**
+  String get aiOwnKeyRemove;
+
+  /// No description provided for @aiOwnKeySave.
+  ///
+  /// In en, this message translates to:
+  /// **'Check and save'**
+  String get aiOwnKeySave;
+
+  /// No description provided for @aiOwnKeySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Key works and is saved in this phone\'s keychain.'**
+  String get aiOwnKeySaved;
+
+  /// No description provided for @aiOwnKeySub.
+  ///
+  /// In en, this message translates to:
+  /// **'Use your own account at Google, Anthropic or OpenAI instead of the app\'s allowance.'**
+  String get aiOwnKeySub;
+
+  /// No description provided for @aiOwnKeyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Own API key'**
+  String get aiOwnKeyTitle;
+
+  /// No description provided for @aiPaywallAction.
+  ///
+  /// In en, this message translates to:
+  /// **'See options'**
+  String get aiPaywallAction;
+
+  /// No description provided for @aiPaywallBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your free allowance starts again on the 1st. With Premium — or your own API key — you can go on right now. Everything else in the app works as before.'**
+  String get aiPaywallBody;
+
+  /// No description provided for @aiPaywallLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get aiPaywallLater;
+
+  /// No description provided for @aiPaywallTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This month\'s AI is used up'**
+  String get aiPaywallTitle;
+
+  /// No description provided for @aiPremiumActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium is active. Thank you!'**
+  String get aiPremiumActive;
+
+  /// No description provided for @aiPremiumBuy.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Premium · {price}'**
+  String aiPremiumBuy(String price);
+
+  /// No description provided for @aiPremiumPoint1.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal photos and estimates without counting'**
+  String get aiPremiumPoint1;
+
+  /// No description provided for @aiPremiumPoint2.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly meal plans, shopping lists and the planning chat for your household'**
+  String get aiPremiumPoint2;
+
+  /// No description provided for @aiPremiumPoint3.
+  ///
+  /// In en, this message translates to:
+  /// **'A coach who writes your daily line'**
+  String get aiPremiumPoint3;
+
+  /// No description provided for @aiPremiumRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchase'**
+  String get aiPremiumRestore;
+
+  /// No description provided for @aiPremiumSub.
+  ///
+  /// In en, this message translates to:
+  /// **'For everyday use of the AI.'**
+  String get aiPremiumSub;
+
+  /// No description provided for @aiPremiumTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium'**
+  String get aiPremiumTitle;
+
+  /// No description provided for @aiPremiumUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium is not available in this store yet.'**
+  String get aiPremiumUnavailable;
+
+  /// No description provided for @aiPremiumUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium runs until {date}.'**
+  String aiPremiumUntil(String date);
+
+  /// No description provided for @aiProviderName.
+  ///
+  /// In en, this message translates to:
+  /// **'{provider, select, google{Google Gemini} anthropic{Anthropic Claude} openai{OpenAI} other{{provider}}}'**
+  String aiProviderName(String provider);
+
+  /// No description provided for @aiPurchaseDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium is active.'**
+  String get aiPurchaseDone;
+
+  /// No description provided for @aiPurchaseFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The purchase did not go through.'**
+  String get aiPurchaseFailed;
+
+  /// No description provided for @aiPurchaseNotVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'The store did not confirm the purchase. Nothing was charged twice — try restoring later.'**
+  String get aiPurchaseNotVerified;
+
+  /// No description provided for @aiStatusFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get aiStatusFree;
+
+  /// No description provided for @aiStatusOwnKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Own key · {provider}'**
+  String aiStatusOwnKey(String provider);
+
+  /// No description provided for @aiStatusPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium'**
+  String get aiStatusPremium;
+
+  /// No description provided for @aiTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI & subscription'**
+  String get aiTitle;
+
+  /// No description provided for @aiUsage.
+  ///
+  /// In en, this message translates to:
+  /// **'{used}k of {limit}k tokens this month'**
+  String aiUsage(int used, int limit);
+
+  /// No description provided for @aiUsageUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'No AI used this month yet.'**
+  String get aiUsageUnknown;
+
+  /// No description provided for @aiWhatItSeesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only what a feature needs, at the moment you use it: the meal you describe or photograph, your targets and preferences for a meal plan, your streak and your friends\' first names for a coach line. It goes through the app\'s gateway to Google\'s Gemini (or straight to your own provider) and is not used to train models. Nothing is stored beyond the month\'s token count.'**
+  String get aiWhatItSeesBody;
+
+  /// No description provided for @aiWhatItSeesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What the AI sees'**
+  String get aiWhatItSeesTitle;
+
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
@@ -436,7 +664,7 @@ abstract class AppLocalizations {
   /// No description provided for @coachEngineModel.
   ///
   /// In en, this message translates to:
-  /// **'{model}'**
+  /// **'AI coach · {model}'**
   String coachEngineModel(String model);
 
   /// No description provided for @coachEngineRuleBased.
@@ -1734,6 +1962,60 @@ abstract class AppLocalizations {
   /// **'{kcal} kcal · {protein} g P · {carbs} g C · {fat} g F per 100 g'**
   String foodPer100(int kcal, int protein, int carbs, int fat);
 
+  /// No description provided for @foodPhotoCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get foodPhotoCamera;
+
+  /// No description provided for @foodPhotoCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimates from a photo — check the amounts before you add them.'**
+  String get foodPhotoCheck;
+
+  /// No description provided for @foodPhotoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'No food recognised in that photo. Try again with the whole plate in view, or describe it.'**
+  String get foodPhotoFailed;
+
+  /// No description provided for @foodPhotoGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get foodPhotoGallery;
+
+  /// No description provided for @foodPhotoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything to add? e.g. only half of it'**
+  String get foodPhotoHint;
+
+  /// No description provided for @foodPhotoIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo of your meal. The AI estimates the foods and amounts; you check them before anything lands in the diary. The photo is made smaller, stripped of location and camera data, and not stored.'**
+  String get foodPhotoIntro;
+
+  /// No description provided for @foodPhotoNeedsAi.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI estimates what is on it — sign in, or add your own key under Settings → AI.'**
+  String get foodPhotoNeedsAi;
+
+  /// No description provided for @foodPhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A photo of your plate'**
+  String get foodPhotoTitle;
+
+  /// No description provided for @foodPhotoWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking at your plate …'**
+  String get foodPhotoWorking;
+
   /// No description provided for @foodRecent.
   ///
   /// In en, this message translates to:
@@ -1812,6 +2094,18 @@ abstract class AppLocalizations {
   /// **'recognised'**
   String get foodSourceParsed;
 
+  /// No description provided for @foodSourcePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'photo estimate'**
+  String get foodSourcePhoto;
+
+  /// No description provided for @foodSourcePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'as planned'**
+  String get foodSourcePlan;
+
   /// No description provided for @foodTabBarcode.
   ///
   /// In en, this message translates to:
@@ -1829,6 +2123,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Manual'**
   String get foodTabManual;
+
+  /// No description provided for @foodTabPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get foodTabPhoto;
 
   /// No description provided for @foodTabSearch.
   ///
@@ -3990,6 +4290,66 @@ abstract class AppLocalizations {
   /// **'Sedentary'**
   String get obActivitySedentary;
 
+  /// No description provided for @obAiEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'AI'**
+  String get obAiEyebrow;
+
+  /// No description provided for @obAiFreeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A monthly allowance — enough for photos now and then and a meal plan.'**
+  String get obAiFreeBody;
+
+  /// No description provided for @obAiFreeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Free to start'**
+  String get obAiFreeTitle;
+
+  /// No description provided for @obAiLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to decide now. The streak, plans and diary work without AI too.'**
+  String get obAiLater;
+
+  /// No description provided for @obAiOwnKeyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Have an API key from Google, Anthropic or OpenAI? Add it in settings and use that instead.'**
+  String get obAiOwnKeyBody;
+
+  /// No description provided for @obAiOwnKeyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Or your own key'**
+  String get obAiOwnKeyTitle;
+
+  /// No description provided for @obAiPremiumBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos without counting, weekly plans, the planning chat and a coach who writes.'**
+  String get obAiPremiumBody;
+
+  /// No description provided for @obAiPremiumTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium for every day'**
+  String get obAiPremiumTitle;
+
+  /// No description provided for @obAiSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph a meal and get it estimated, have a week of meals and the shopping list planned — for you or your whole household.'**
+  String get obAiSubtitle;
+
+  /// No description provided for @obAiTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI that thinks along.'**
+  String get obAiTitle;
+
   /// No description provided for @obBodyActivity.
   ///
   /// In en, this message translates to:
@@ -5133,6 +5493,12 @@ abstract class AppLocalizations {
   /// **'You are a nutrition assistant. Estimate what this person ate:\n\"{text}\"\n\nFor each food, estimate the total weight in grams (2 eggs are about 110 g, not 2) and the calories and macros of that whole amount.\nAnswer with JSON only, in this form, names in English:\n{format}'**
   String promptFoodEstimate(String text, String format);
 
+  /// No description provided for @promptFoodPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'You are a nutrition assistant. The photo shows what this person is about to eat. Their note: \"{hint}\"\n\nList every food you can see. For each, estimate the weight in grams from the plate, the cutlery and the packaging around it, and the calories and macros of that whole amount. Leave out anything you cannot see. If the photo shows no food, answer with an empty foods list.\nAnswer with JSON only, in this form, names in English:\n{format}'**
+  String promptFoodPhoto(String hint, String format);
+
   /// No description provided for @promptHabitLine.
   ///
   /// In en, this message translates to:
@@ -5336,6 +5702,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'AI'**
   String get setAi;
+
+  /// No description provided for @setAiSubFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos, estimates, meal plans — free with a monthly allowance'**
+  String get setAiSubFree;
 
   /// No description provided for @setCoachSection.
   ///
