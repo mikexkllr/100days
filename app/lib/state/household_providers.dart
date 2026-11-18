@@ -133,6 +133,20 @@ class HouseholdActions {
 
   Future<void> removeEntry(String entryId) => _backend.removeEntry(entryId);
 
+  /// Puts the user's own portion of a planned meal into their diary — the
+  /// one place where the plan turns into what was eaten.
+  Future<void> eatAsPlanned(PlanEntry entry, Recipe recipe) =>
+      _ref.read(appStateProvider.notifier).logFood(FoodEntry(
+            id: newEventId(),
+            day: entry.day,
+            meal: entry.slot,
+            name: recipe.title,
+            grams: 0,
+            nutrients:
+                nutrientsFor(entry, recipe, _ref.read(repositoryProvider).userId),
+            source: FoodSource.plan,
+          ));
+
   /// A list for the next trip, filled from the plan for its days. Returns
   /// the list.
   Future<ShoppingListInfo> listFromPlan({DayKey? from}) async {

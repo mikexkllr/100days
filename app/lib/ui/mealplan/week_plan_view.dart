@@ -15,7 +15,11 @@ import 'recipe_sheet.dart';
 /// The household's week of meals: day by day, slot by slot. Everyone in the
 /// household sees and changes the same plan, live.
 class WeekPlanView extends ConsumerStatefulWidget {
-  const WeekPlanView({super.key});
+  const WeekPlanView({super.key, this.leading});
+
+  /// Shown above the household: the user's own nutrition target, or the
+  /// offer to set one.
+  final Widget? leading;
 
   @override
   ConsumerState<WeekPlanView> createState() => _WeekPlanViewState();
@@ -48,6 +52,10 @@ class _WeekPlanViewState extends ConsumerState<WeekPlanView> {
         padding: EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md,
             AppSpacing.xxl + MediaQuery.paddingOf(context).bottom),
         children: <Widget>[
+          if (widget.leading != null) ...<Widget>[
+            widget.leading!,
+            const SizedBox(height: AppSpacing.sm),
+          ],
           if (household != null) _HouseholdBar(household: household),
           const SizedBox(height: AppSpacing.sm),
           Row(

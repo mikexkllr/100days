@@ -13,6 +13,7 @@
   "actionSend": "Send",
   "actionSent": "Sent",
   "actionShare": "Share link",
+  "addMealIdeas": "IDEAS",
   "addMealKcal": "kcal per portion (optional)",
   "addMealTitle": "What is it?",
   "adviceCutScope": "You only hit {percent}% of your days. Take a habit out instead of carrying on failing — three certain days beat five planned ones.",
@@ -597,6 +598,7 @@
   "diaryCloseOnTarget": "Close the day — on target",
   "diaryClosedPlain": "Day ticked off.",
   "diaryClosedTracked": "Day closed on target — tracked, with the plan bonus.",
+  "diaryEatPlanned": "Eaten",
   "diaryEatenOfTarget": "{eaten} of {target} kcal eaten",
   "@diaryEatenOfTarget": {
     "placeholders": {
@@ -639,7 +641,14 @@
   },
   "diaryOffTargetConfirm": "Tick off anyway",
   "diaryOffTargetTitle": "Not quite on target",
-  "diarySuggestions": "IDEAS THAT FIT",
+  "diaryPlanned": "Planned · {kcal} kcal",
+  "@diaryPlanned": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
   "diaryTitle": "Food diary",
   "diaryToday": "Today",
   "dietOmnivore": "Everything",
@@ -2004,7 +2013,7 @@
     }
   },
   "obPlanNutrition": "With nutrition plan",
-  "obPlanNutritionBody": "A calorie target and a food diary with meal ideas. Optional — without it you just tick off the day.",
+  "obPlanNutritionBody": "A calorie target and a food diary. Optional — without it you just tick off the day.",
   "obPlanTraining": "With training plan",
   "obPlanTrainingBody": "Your own split and exercises, every set logged with progression tips. Optional — without it you just tick off the workout.",
   "obPointBeyondBody": "After that it carries on — next tier, harder targets, same streak.",
@@ -2169,7 +2178,7 @@
   "planEditTraining": "Edit split and exercises",
   "planEmptySlot": "Nothing planned",
   "planEnableNutrition": "Turn on the nutrition plan",
-  "planEnableNutritionBody": "Set a calorie target and keep a food diary — every day closed on target earns +{percent} % XP.",
+  "planEnableNutritionBody": "Set a calorie target and keep a food diary on Today — every day closed on target earns +{percent} % XP.",
   "@planEnableNutritionBody": {
     "placeholders": {
       "percent": {
@@ -2259,6 +2268,24 @@
       }
     }
   },
+  "planNutritionTarget": "Your daily target",
+  "planNutritionTargetLine": "{kcal} kcal · {protein} g protein · {carbs} g carbs · {fat} g fat",
+  "@planNutritionTargetLine": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "carbs": {
+        "type": "int"
+      },
+      "fat": {
+        "type": "int"
+      }
+    }
+  },
   "planPerWeek": "{value} kg/week",
   "@planPerWeek": {
     "placeholders": {
@@ -2269,8 +2296,7 @@
   },
   "planProtein": "Protein",
   "planTabAbstinence": "Staying clean",
-  "planTabMeals": "Meals",
-  "planTabNutrition": "Nutrition",
+  "planTabMeals": "Meal plan",
   "planTabShopping": "Shopping",
   "planTabTraining": "Training",
   "planTdee": "Total expenditure (TDEE)",
@@ -2781,6 +2807,7 @@
     }
   },
   "recipeEatenAsPlanned": "Eaten as planned",
+  "recipeInDiary": "In your diary",
   "recipeIngredients": "Ingredients for {servings}",
   "@recipeIngredients": {
     "placeholders": {

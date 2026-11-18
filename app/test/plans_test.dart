@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hundred_core/hundred_core.dart';
 import 'package:hundred_days/data/app_repository.dart';
+import 'package:hundred_days/data/household_backend.dart';
 import 'package:hundred_days/ui/nutrition/diary_view.dart';
 import 'package:hundred_days/ui/plan/plan_screen.dart';
 import 'package:hundred_days/ui/plan/workout_logger.dart';
@@ -43,7 +44,7 @@ void main() {
   });
 
   Future<void> pump(WidgetTester tester, Widget child,
-      ) async {
+      {HouseholdBackend? household}) async {
     tester.view.physicalSize = const Size(1080, 4200);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.resetPhysicalSize);
@@ -51,19 +52,31 @@ void main() {
     await tester.pumpWidget(wrapForTest(
       repository: repository,
       child: child,
+      household: household,
     ));
     await tester.pumpAndSettle();
   }
 
-  testWidgets('the plan has no advice tab, only things to act on',
+  testWidgets('the plan is what lies ahead; the diary is not one of its tabs',
       (WidgetTester tester) async {
     await repository.startChallenge(_fitChallenge());
     await pump(tester, const PlanScreen());
 
     expect(find.text('Anpassungen'), findsNothing);
-    expect(find.text('Training'), findsOneWidget);
-    expect(find.text('Ernährung'), findsOneWidget);
+    expect(find.widgetWithText(Tab, 'Training'), findsOneWidget);
+    expect(find.widgetWithText(Tab, 'Essensplan'), findsOneWidget);
+    expect(find.widgetWithText(Tab, 'Einkauf'), findsOneWidget);
+    expect(find.widgetWithText(Tab, 'Ernährung'), findsNothing);
     expect(find.byKey(const Key('edit-training-plan')), findsOneWidget);
+    expect(find.byKey(const Key('add-food-lunch')), findsNothing);
+
+    // The nutrition target sits on top of the meals it portions.
+    await tester.tap(find.widgetWithText(Tab, 'Essensplan'));
+    await tester.pumpAndSettle();
+    final NutritionPlan plan = buildNutritionPlan(_fitChallenge().goal);
+    expect(find.byKey(const Key('nutrition-target')), findsOneWidget);
+    expect(find.textContaining('${plan.kcal} kcal'), findsOneWidget);
+    expect(find.byKey(const Key('plan-week')), findsOneWidget);
   });
 
   testWidgets('switched-off plans offer themselves, with the bonus',
@@ -73,6 +86,66 @@ void main() {
 
     expect(find.text('Trainingsplan einschalten'), findsWidgets);
     expect(find.textContaining('+50 % XP'), findsOneWidget);
+
+    // The nutrition plan is offered above the meals, and says where the
+    // diary will be.
+    await tester.tap(find.widgetWithText(Tab, 'Essensplan'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('enable-nutrition')), findsOneWidget);
+    expect(find.text('Ernährungsplan einschalten'), findsOneWidget);
+    expect(find.textContaining('unter Heute'), findsOneWidget);
+    expect(find.byKey(const Key('nutrition-target')), findsNothing);
+  });
+
+  testWidgets('what the household planned waits in the diary, one tap away',
+      (WidgetTester tester) async {
+    await repository.startChallenge(_fitChallenge());
+    final MemoryHouseholdBackend household = MemoryHouseholdBackend(
+        userId: repository.userId, displayName: 'Mia');
+    final String id = await household.ensureHousehold();
+    final Recipe dal = await household.saveRecipe(
+      id,
+      Recipe(
+        id: newEventId(),
+        title: 'Linsen-Dal',
+        servings: 2,
+        ingredients: const <Ingredient>[],
+        perServing:
+            const Nutrients(kcal: 500, proteinG: 24, carbsG: 70, fatG: 14),
+      ),
+    );
+    await household.saveEntry(
+      id,
+      PlanEntry(
+        id: newEventId(),
+        day: DayKey.today(),
+        slot: MealSlotKind.dinner,
+        recipeId: dal.id,
+        portions: <String, double>{repository.userId: 1.5},
+      ),
+    );
+    await pump(tester, const DiaryScreen(), household: household);
+
+    expect(find.text('Linsen-Dal'), findsOneWidget);
+    expect(find.text('Geplant · 750 kcal'), findsOneWidget);
+    expect(find.byKey(const Key('eat-planned-lunch')), findsNothing);
+    final String before =
+        tester.widget<Text>(find.byKey(const Key('kcal-left'))).data!;
+
+    await tester.tap(find.byKey(const Key('eat-planned-dinner')));
+    await tester.pumpAndSettle();
+
+    // In the diary now, with my portion — and no longer offered.
+    final List<FoodEntry> eaten =
+        (await repository.snapshot()).me.intakeOn(DayKey.today()).entries;
+    expect(eaten.single.name, 'Linsen-Dal');
+    expect(eaten.single.nutrients.kcal, 750);
+    expect(eaten.single.source, FoodSource.plan);
+    expect(find.byKey(const Key('eat-planned-dinner')), findsNothing);
+    expect(find.text('Linsen-Dal'), findsOneWidget);
+    final String after =
+        tester.widget<Text>(find.byKey(const Key('kcal-left'))).data!;
+    expect(int.parse(before) - int.parse(after), 750);
   });
 
   testWidgets('logging a meal by hand updates the day and stays private',

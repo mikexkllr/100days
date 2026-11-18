@@ -6,13 +6,16 @@ import 'package:hundred_core/hundred_core.dart';
 
 import '../../data/app_repository.dart';
 import '../../l10n/l10n.dart';
+import '../../state/household_providers.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
 import 'add_food_screen.dart';
 import 'nutrition_goals_screen.dart';
 
-/// The food diary as its own screen, for when it is opened from Today.
+/// The food diary. It is opened from Today, because it is part of checking
+/// the day in: what was eaten, and closing the day on it. What to eat and
+/// what to buy are planned under Plan.
 class DiaryScreen extends ConsumerWidget {
   const DiaryScreen({super.key});
 
@@ -32,12 +35,12 @@ class DiaryScreen extends ConsumerWidget {
   }
 }
 
-/// What was eaten against what was planned, one day at a time.
+/// What was eaten against the target, one day at a time.
 ///
 /// Built on the pattern every calorie counter uses: one number that matters
-/// — what is left today — then the meals, each with its own add button. The
-/// suggestions are only suggestions; nothing lands in the diary unless the
-/// user puts it there.
+/// — what is left today — then the meals, each with its own add button.
+/// What the household planned for a meal waits next to it, one tap from
+/// the diary — but nothing lands in it unless the user puts it there.
 class NutritionDiaryView extends ConsumerStatefulWidget {
   const NutritionDiaryView({super.key, required this.snapshot});
 
@@ -58,6 +61,23 @@ class _NutritionDiaryViewState extends ConsumerState<NutritionDiaryView> {
     final DayIntake intake = snapshot.me.intakeOn(_day);
     final Nutrients eaten = intake.total;
     final bool isToday = _day == snapshot.today;
+    final String me = ref.watch(repositoryProvider).userId;
+    // The household's plan for the day, if it can be had: the diary works
+    // without it, offline included.
+    final List<PlanEntry> week =
+        ref.watch(weekPlanProvider(_day.weekStart)).valueOrNull ??
+            const <PlanEntry>[];
+    final Map<String, Recipe> recipes =
+        ref.watch(recipesProvider).valueOrNull ?? const <String, Recipe>{};
+    List<(PlanEntry, Recipe)> plannedFor(MealSlotKind slot) =>
+        <(PlanEntry, Recipe)>[
+          for (final PlanEntry entry in week)
+            if (entry.day == _day &&
+                entry.slot == slot &&
+                entry.portionFor(me) > 0)
+              if (recipes[entry.recipeId] case final Recipe recipe)
+                if (!eatenAsPlanned(intake, entry, recipe)) (entry, recipe),
+        ];
 
     return ListView(
       padding: EdgeInsets.fromLTRB(
@@ -106,7 +126,8 @@ class _NutritionDiaryViewState extends ConsumerState<NutritionDiaryView> {
             slot: slot,
             day: _day,
             intake: intake,
-            plan: plan,
+            planned: plannedFor(slot.kind),
+            me: me,
           ),
         const SizedBox(height: AppSpacing.md),
         _CloseDay(snapshot: snapshot, day: _day, intake: intake, plan: plan),
@@ -274,21 +295,23 @@ class _MealCard extends ConsumerWidget {
     required this.slot,
     required this.day,
     required this.intake,
-    required this.plan,
+    required this.planned,
+    required this.me,
   });
 
   final MealSlot slot;
   final DayKey day;
   final DayIntake intake;
-  final NutritionPlan plan;
 
-  Future<void> _add(BuildContext context, {String? prefill}) =>
-      Navigator.of(context).push<void>(
+  /// What the household planned for this meal and the user has not logged.
+  final List<(PlanEntry, Recipe)> planned;
+  final String me;
+
+  Future<void> _add(BuildContext context) => Navigator.of(context).push<void>(
         MaterialPageRoute<void>(
           builder: (BuildContext context) => AddFoodScreen(
             meal: slot.kind,
             day: day,
-            prefillText: prefill,
           ),
         ),
       );
@@ -298,15 +321,6 @@ class _MealCard extends ConsumerWidget {
     final AppLocalizations l10n = context.l10n;
     final List<FoodEntry> entries = intake.entriesFor(slot.kind);
     final Nutrients mealTotal = intake.totalFor(slot.kind);
-    final double dayLeft = plan.kcal - intake.total.kcal;
-    final double slotLeft = math.min(slot.kcal - mealTotal.kcal, dayLeft);
-    final List<MealIdea> ideas = entries.isEmpty
-        ? suggestMeals(
-            slot: slot.kind,
-            targetKcal: slotLeft,
-            targetProteinG: slot.proteinG.toDouble(),
-          )
-        : const <MealIdea>[];
 
     return Padding(
       padding: const EdgeInsets.only(top: AppSpacing.sm + 2),
@@ -363,33 +377,77 @@ class _MealCard extends ConsumerWidget {
                   trailing: Text(l10n.diaryEntryKcal(entry.nutrients.kcal.round())),
                 ),
               ),
-            if (ideas.isNotEmpty) ...<Widget>[
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                l10n.diarySuggestions,
-                style: Theme.of(context)
-                    .textTheme
-                    .labelSmall
-                    ?.copyWith(color: AppColors.textTertiary),
+            for (final (PlanEntry entry, Recipe recipe) in planned)
+              _PlannedMeal(
+                entry: entry,
+                recipe: recipe,
+                kcal: nutrientsFor(entry, recipe, me).kcal.round(),
               ),
-              const SizedBox(height: AppSpacing.xs),
-              Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.xs,
-                children: <Widget>[
-                  for (final MealIdea idea in ideas)
-                    ActionChip(
-                      avatar: const Icon(Icons.lightbulb_outline, size: 16),
-                      label: Text(
-                        '${l10n.mealIdeaName(idea)} · ~${idea.kcal} kcal',
-                      ),
-                      onPressed: () =>
-                          _add(context, prefill: l10n.mealIdeaName(idea)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A meal from the household's plan, not yet in the diary: the user's own
+/// portion of it, one tap away.
+class _PlannedMeal extends ConsumerWidget {
+  const _PlannedMeal({
+    required this.entry,
+    required this.recipe,
+    required this.kcal,
+  });
+
+  final PlanEntry entry;
+  final Recipe recipe;
+  final int kcal;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations l10n = context.l10n;
+    final TextTheme text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.cardAll,
+          border: Border.all(color: AppColors.social.withValues(alpha: 0.35)),
+          color: AppColors.social.withValues(alpha: 0.06),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.sm + 4, AppSpacing.xs, AppSpacing.xs, AppSpacing.xs),
+          child: Row(
+            children: <Widget>[
+              const Icon(Icons.event_note_outlined,
+                  size: 18, color: AppColors.social),
+              const SizedBox(width: AppSpacing.sm + 2),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(recipe.title, style: text.bodyMedium),
+                    Text(
+                      l10n.diaryPlanned(kcal),
+                      style: text.bodySmall
+                          ?.copyWith(color: AppColors.textTertiary),
                     ),
-                ],
+                  ],
+                ),
+              ),
+              TextButton.icon(
+                key: Key('eat-planned-${entry.slot.name}'),
+                onPressed: () => ref
+                    .read(householdActionsProvider)
+                    .eatAsPlanned(entry, recipe),
+                style:
+                    TextButton.styleFrom(foregroundColor: AppColors.social),
+                icon: const Icon(Icons.check, size: 18),
+                label: Text(l10n.diaryEatPlanned),
               ),
             ],
-          ],
+          ),
         ),
       ),
     );

@@ -176,6 +176,12 @@ abstract class AppLocalizations {
   /// **'Share link'**
   String get actionShare;
 
+  /// No description provided for @addMealIdeas.
+  ///
+  /// In en, this message translates to:
+  /// **'IDEAS'**
+  String get addMealIdeas;
+
   /// No description provided for @addMealKcal.
   ///
   /// In en, this message translates to:
@@ -1050,6 +1056,12 @@ abstract class AppLocalizations {
   /// **'Day closed on target — tracked, with the plan bonus.'**
   String get diaryClosedTracked;
 
+  /// No description provided for @diaryEatPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Eaten'**
+  String get diaryEatPlanned;
+
   /// No description provided for @diaryEatenOfTarget.
   ///
   /// In en, this message translates to:
@@ -1098,11 +1110,11 @@ abstract class AppLocalizations {
   /// **'Not quite on target'**
   String get diaryOffTargetTitle;
 
-  /// No description provided for @diarySuggestions.
+  /// No description provided for @diaryPlanned.
   ///
   /// In en, this message translates to:
-  /// **'IDEAS THAT FIT'**
-  String get diarySuggestions;
+  /// **'Planned · {kcal} kcal'**
+  String diaryPlanned(int kcal);
 
   /// No description provided for @diaryTitle.
   ///
@@ -5103,7 +5115,7 @@ abstract class AppLocalizations {
   /// No description provided for @obPlanNutritionBody.
   ///
   /// In en, this message translates to:
-  /// **'A calorie target and a food diary with meal ideas. Optional — without it you just tick off the day.'**
+  /// **'A calorie target and a food diary. Optional — without it you just tick off the day.'**
   String get obPlanNutritionBody;
 
   /// No description provided for @obPlanTraining.
@@ -5559,7 +5571,7 @@ abstract class AppLocalizations {
   /// No description provided for @planEnableNutritionBody.
   ///
   /// In en, this message translates to:
-  /// **'Set a calorie target and keep a food diary — every day closed on target earns +{percent} % XP.'**
+  /// **'Set a calorie target and keep a food diary on Today — every day closed on target earns +{percent} % XP.'**
   String planEnableNutritionBody(int percent);
 
   /// No description provided for @planEnableTraining.
@@ -5664,6 +5676,18 @@ abstract class AppLocalizations {
   /// **'A {percent}% surplus over your {tdee} kcal expenditure. Lean bulk: enough to build, little enough that it is not just fat.'**
   String planNutritionSurplus(int percent, int tdee);
 
+  /// No description provided for @planNutritionTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Your daily target'**
+  String get planNutritionTarget;
+
+  /// No description provided for @planNutritionTargetLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{kcal} kcal · {protein} g protein · {carbs} g carbs · {fat} g fat'**
+  String planNutritionTargetLine(int kcal, int protein, int carbs, int fat);
+
   /// No description provided for @planPerWeek.
   ///
   /// In en, this message translates to:
@@ -5685,14 +5709,8 @@ abstract class AppLocalizations {
   /// No description provided for @planTabMeals.
   ///
   /// In en, this message translates to:
-  /// **'Meals'**
+  /// **'Meal plan'**
   String get planTabMeals;
-
-  /// No description provided for @planTabNutrition.
-  ///
-  /// In en, this message translates to:
-  /// **'Nutrition'**
-  String get planTabNutrition;
 
   /// No description provided for @planTabShopping.
   ///
@@ -6342,6 +6360,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Eaten as planned'**
   String get recipeEatenAsPlanned;
+
+  /// No description provided for @recipeInDiary.
+  ///
+  /// In en, this message translates to:
+  /// **'In your diary'**
+  String get recipeInDiary;
 
   /// No description provided for @recipeIngredients.
   ///

@@ -48,6 +48,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionShare => 'Share link';
 
   @override
+  String get addMealIdeas => 'IDEAS';
+
+  @override
   String get addMealKcal => 'kcal per portion (optional)';
 
   @override
@@ -704,6 +707,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Day closed on target — tracked, with the plan bonus.';
 
   @override
+  String get diaryEatPlanned => 'Eaten';
+
+  @override
   String diaryEatenOfTarget(int eaten, int target) {
     return '$eaten of $target kcal eaten';
   }
@@ -736,7 +742,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryOffTargetTitle => 'Not quite on target';
 
   @override
-  String get diarySuggestions => 'IDEAS THAT FIT';
+  String diaryPlanned(int kcal) {
+    return 'Planned · $kcal kcal';
+  }
 
   @override
   String get diaryTitle => 'Food diary';
@@ -3075,7 +3083,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get obPlanNutritionBody =>
-      'A calorie target and a food diary with meal ideas. Optional — without it you just tick off the day.';
+      'A calorie target and a food diary. Optional — without it you just tick off the day.';
 
   @override
   String get obPlanTraining => 'With training plan';
@@ -3346,7 +3354,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String planEnableNutritionBody(int percent) {
-    return 'Set a calorie target and keep a food diary — every day closed on target earns +$percent % XP.';
+    return 'Set a calorie target and keep a food diary on Today — every day closed on target earns +$percent % XP.';
   }
 
   @override
@@ -3418,6 +3426,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get planNutritionTarget => 'Your daily target';
+
+  @override
+  String planNutritionTargetLine(int kcal, int protein, int carbs, int fat) {
+    return '$kcal kcal · $protein g protein · $carbs g carbs · $fat g fat';
+  }
+
+  @override
   String planPerWeek(String value) {
     return '$value kg/week';
   }
@@ -3429,10 +3445,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planTabAbstinence => 'Staying clean';
 
   @override
-  String get planTabMeals => 'Meals';
-
-  @override
-  String get planTabNutrition => 'Nutrition';
+  String get planTabMeals => 'Meal plan';
 
   @override
   String get planTabShopping => 'Shopping';
@@ -3878,6 +3891,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recipeEatenAsPlanned => 'Eaten as planned';
+
+  @override
+  String get recipeInDiary => 'In your diary';
 
   @override
   String recipeIngredients(int servings) {

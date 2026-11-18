@@ -3,7 +3,8 @@ import 'package:meta/meta.dart';
 import '../plan/nutrition.dart';
 import 'foods.dart';
 
-/// A meal the app can suggest. Only suggestions: the diary is what the user
+/// A meal the app can suggest when a meal is planned by hand. Only
+/// suggestions: picked, one goes into the plan; the diary is what the user
 /// actually ate, and nothing here is ever logged on their behalf.
 ///
 /// The name lives in the app's localizations under [id]; the numbers are
@@ -57,7 +58,7 @@ const List<MealIdea> kMealIdeas = <MealIdea>[
   MealIdea('dinner6', MealSlotKind.dinner, 520, 40),
 ];
 
-/// The ideas for [slot] that best fit what is left of the day.
+/// The ideas for [slot] that best fit a meal of [targetKcal].
 ///
 /// Ranked by how close they land to [targetKcal], with a penalty for falling
 /// short of [targetProteinG] — on a training goal, protein is the macro

@@ -191,8 +191,9 @@ void main() {
     expect((await household.items(open.single.id)).single.name, 'Kaffee');
   });
 
-  testWidgets('eaten as planned puts my portion into the diary',
+  testWidgets('eaten as planned puts my portion into the diary, once',
       (WidgetTester tester) async {
+    await repository.startChallenge(_dietChallenge());
     final String id = await household.ensureHousehold();
     final Recipe curry = await household.saveRecipe(id, _curry());
     final PlanEntry entry = PlanEntry(
@@ -221,5 +222,87 @@ void main() {
     expect(logged.name, 'Hähnchen-Curry');
     expect(logged.nutrients.kcal, 960);
     expect(logged.source, FoodSource.plan);
+
+    // Opened again, it says so instead of offering a second helping.
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('eaten-as-planned')), findsNothing);
+    expect(find.text('IM TAGEBUCH'), findsOneWidget);
+  });
+
+  testWidgets('without a diary, or for a day to come, nothing is logged',
+      (WidgetTester tester) async {
+    final String id = await household.ensureHousehold();
+    final Recipe curry = await household.saveRecipe(id, _curry());
+    PlanEntry on(DayKey day) => PlanEntry(
+          id: newEventId(),
+          day: day,
+          slot: MealSlotKind.dinner,
+          recipeId: curry.id,
+        );
+    PlanEntry entry = on(DayKey.today());
+    await pump(tester, Consumer(
+        builder: (BuildContext context, WidgetRef ref, _) => TextButton(
+              onPressed: () => showRecipeSheet(context, ref, entry, curry),
+              child: const Text('open'),
+            )));
+
+    // No nutrition plan: there is no diary to put it in.
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.text('Zutaten für 2'), findsOneWidget);
+    expect(find.byKey(const Key('eaten-as-planned')), findsNothing);
+    Navigator.of(tester.element(find.text('Zutaten für 2'))).pop();
+    await tester.pumpAndSettle();
+
+    // With one, tomorrow's dinner is not eaten yet.
+    await repository.startChallenge(_dietChallenge());
+    entry = on(DayKey.today().addDays(1));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('eaten-as-planned')), findsNothing);
+  });
+
+  testWidgets('a meal idea goes into the plan in one tap',
+      (WidgetTester tester) async {
+    await pump(tester, const WeekPlanView());
+
+    await tester.tap(find.text('Noch nichts geplant').first);
+    await tester.pumpAndSettle();
+    expect(find.text('IDEEN'), findsOneWidget);
+    final MealIdea idea =
+        kMealIdeas.firstWhere((MealIdea i) => i.slot == MealSlotKind.dinner);
+    await tester.tap(find.byKey(Key('meal-idea-${idea.id}')));
+    await tester.pumpAndSettle();
+
+    final String id = await household.ensureHousehold();
+    final DayKey monday = DayKey.today().weekStart;
+    final PlanEntry planned =
+        (await household.plan(id, monday, monday.addDays(6))).single;
+    final Recipe recipe = (await household.recipes(id))[planned.recipeId]!;
+    expect(planned.slot, MealSlotKind.dinner);
+    expect(recipe.perServing.kcal, idea.kcal);
+    expect(recipe.perServing.proteinG, idea.proteinG);
+    expect(find.text(recipe.title), findsOneWidget);
   });
 }
+
+/// A challenge with the nutrition plan on, so there is a diary.
+Challenge _dietChallenge() => Challenge(
+      id: 'diet',
+      goal: const Goal(
+        archetype: GoalArchetype.loseFat,
+        statement: 'Leichter werden',
+        body: BodyProfile(
+          sex: BiologicalSex.male,
+          ageYears: 34,
+          heightCm: 182,
+          weightKg: 88,
+          activityLevel: ActivityLevel.moderate,
+        ),
+        nutritionPlanEnabled: true,
+      ),
+      habits: <Habit>[Habit.fromCategory(HabitCategory.nutrition)],
+      startDay: DayKey.today(),
+    );

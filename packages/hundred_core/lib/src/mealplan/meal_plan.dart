@@ -1,5 +1,6 @@
 import 'package:meta/meta.dart';
 
+import '../nutrition/food_entry.dart';
 import '../nutrition/foods.dart';
 import '../plan/nutrition.dart';
 import '../util/dates.dart';
@@ -91,3 +92,11 @@ double portionsFor({
 /// diary.
 Nutrients nutrientsFor(PlanEntry entry, Recipe recipe, String memberId) =>
     recipe.perServing.scaled(entry.portionFor(memberId));
+
+/// Whether [intake] — the diary of [entry]'s day — already holds [entry]:
+/// a line from the plan with the recipe's name, in its slot. Keeps "eaten as
+/// planned" to one tap per meal.
+bool eatenAsPlanned(DayIntake intake, PlanEntry entry, Recipe recipe) =>
+    intake.day == entry.day &&
+    intake.entriesFor(entry.slot).any((FoodEntry e) =>
+        e.source == FoodSource.plan && e.name == recipe.title);

@@ -14,11 +14,12 @@ An honest list. Anything under "Open" is not built yet.
   with progression recommendations (mesocycles with deloads, RIR, equipment
   fallback)
 - Optional nutrition plan: computed or own calorie target, macro presets, food
-  diary with food table, photo, free-text parsing, barcode lookup and meal
-  ideas
+  diary under Today with food table, photo, free-text parsing and barcode
+  lookup
 - Households: shared week of meals and shopping list, live; AI week planning
-  with portions sized to shared targets; the planning chat with undo; lists
-  from the plan by shopping rhythm; eaten as planned
+  with portions sized to shared targets; meal ideas by hand; the planning
+  chat with undo; lists from the plan by shopping rhythm; the planned meal
+  waiting in the diary, eaten in one tap
 - AI through the project's gateway with a monthly allowance, premium through
   the stores (verified server side), or one's own key
 - Tracked check-ins (logged workout, diary day on target) worth +50 % XP

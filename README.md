@@ -97,18 +97,28 @@ one **week of meals** and one **shopping list**, live on every phone.
   it with the household; everything else stays private.
 - **The planning chat** changes plan and list as you talk to it ("we still
   have rice") — every change shows up with an undo.
+- **By hand**: "pizza on Friday", or one of the app's meal ideas in a tap —
+  ranked against your own target for that meal if you have one.
 - **A list from the plan** for the days until your next trip, added up and
   sorted by aisle. Shop weekly on your day, every few days, or whenever; add
   an extra list between trips; what you did not get moves to the next one.
-- **Eaten as planned**: one tap puts your own portion into your diary.
+- **Eaten as planned**: the planned meal waits in your diary; one tap puts
+  your own portion in.
+
+Planning and checking in are kept apart: **Plan** holds what lies ahead —
+the training plan, the week of meals under your daily target, the shopping
+list. **Today** holds what happened — the habits, today's workout and the
+food diary.
 
 Invite your partner or flatmates with a QR code, a link or a code.
 
 ## The food diary
 
-One number up top — what is left today — then breakfast, lunch, dinner and
-snacks, each with its own add button and meal ideas that fit what is left.
-The ideas are only ideas; nothing lands in the diary unless you put it there.
+It lives under Today, because it is how a nutrition day is checked in: one
+number up top — what is left today — then breakfast, lunch, dinner and
+snacks, each with its own add button, and next to each whatever the
+household planned for it. Nothing lands in the diary unless you put it
+there; closing the day on target makes it a tracked check-in.
 Five ways in:
 
 - **Search** a built-in table of ~125 common foods (German and English names,

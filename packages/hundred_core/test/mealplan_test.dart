@@ -162,6 +162,21 @@ void main() {
       expect(nutrientsFor(entry, _curry(), 'lena').kcal, 0);
       expect(nutrientsFor(_entry('b', _sat, 'curry'), _curry(), 'lena').kcal, 640);
     });
+
+    test('a planned meal counts as eaten once, in its slot on its day', () {
+      final entry = _entry('a', _sat, 'curry');
+      FoodEntry line({MealSlotKind meal = MealSlotKind.dinner, FoodSource source = FoodSource.plan, String name = 'Hähnchen-Curry'}) =>
+          FoodEntry(id: 'f', day: _sat, meal: meal, name: name, grams: 0, nutrients: Nutrients.zero, source: source);
+      DayIntake day(List<FoodEntry> entries, {DayKey? on}) => DayIntake(day: on ?? _sat, entries: entries);
+
+      expect(eatenAsPlanned(day(const <FoodEntry>[]), entry, _curry()), isFalse);
+      expect(eatenAsPlanned(day(<FoodEntry>[line()]), entry, _curry()), isTrue);
+      // Typed in by hand, in another slot, something else, another day: not this one.
+      expect(eatenAsPlanned(day(<FoodEntry>[line(source: FoodSource.manual)]), entry, _curry()), isFalse);
+      expect(eatenAsPlanned(day(<FoodEntry>[line(meal: MealSlotKind.lunch)]), entry, _curry()), isFalse);
+      expect(eatenAsPlanned(day(<FoodEntry>[line(name: 'Dal')]), entry, _curry()), isFalse);
+      expect(eatenAsPlanned(day(<FoodEntry>[line()], on: _sat.addDays(1)), entry, _curry()), isFalse);
+    });
   });
 
   group('meal planner', () {

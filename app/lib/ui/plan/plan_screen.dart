@@ -8,16 +8,17 @@ import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../mealplan/shopping_view.dart';
 import '../mealplan/week_plan_view.dart';
-import '../nutrition/diary_view.dart';
 import '../nutrition/nutrition_goals_screen.dart';
 import '../widgets/app_card.dart';
 import 'training_editor.dart';
 import 'workout_detail.dart';
 
-/// Training, nutrition and abstinence milestones — whatever the goal produced.
+/// What lies ahead: the training plan, the week of meals with the nutrition
+/// target it is portioned for, the shopping list, the abstinence milestones.
 ///
-/// Every tab is something the user acts on: edit the plan, log a session,
-/// log a meal. There is no tab of advice to read and nothing to do with.
+/// Every tab is something the user acts on — there is no tab of advice to
+/// read and nothing to do with. What was done is checked in under Today:
+/// the habits, today's workout and the food diary.
 class PlanScreen extends ConsumerWidget {
   const PlanScreen({super.key});
 
@@ -32,48 +33,56 @@ class PlanScreen extends ConsumerWidget {
         final AppLocalizations l10n = context.l10n;
         final List<Habit> habits = snapshot.challenge!.habits;
         bool has(HabitCategory c) => habits.any((Habit h) => h.category == c);
+        final Challenge challenge = snapshot.challenge!;
+        void openGoals() => Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) =>
+                    NutritionGoalsScreen(challenge: challenge),
+              ),
+            );
+        final NutritionPlan? nutrition = snapshot.plan?.nutrition;
         final List<_Tab> tabs = <_Tab>[
           if (has(HabitCategory.gym) || has(HabitCategory.cardio))
             _Tab(
               l10n.planTabTraining,
               snapshot.plan?.training != null
                   ? _TrainingTab(snapshot: snapshot)
-                  : _EnablePlanCard(
-                      emoji: '🏋️',
-                      title: l10n.planEnableTraining,
-                      body: l10n.planEnableTrainingBody(
-                          ((kTrackedMultiplier - 1) * 100).round()),
-                      onTap: () => Navigator.of(context).push<void>(
-                        MaterialPageRoute<void>(
-                          builder: (BuildContext context) =>
-                              TrainingEditorScreen(
-                                  challenge: snapshot.challenge!),
-                        ),
-                      ),
-                    ),
-            ),
-          if (has(HabitCategory.nutrition))
-            _Tab(
-              l10n.planTabNutrition,
-              snapshot.plan?.nutrition != null
-                  ? NutritionDiaryView(snapshot: snapshot)
-                  : _EnablePlanCard(
-                      emoji: '🥗',
-                      title: l10n.planEnableNutrition,
-                      body: l10n.planEnableNutritionBody(
-                          ((kTrackedMultiplier - 1) * 100).round()),
-                      onTap: () => Navigator.of(context).push<void>(
-                        MaterialPageRoute<void>(
-                          builder: (BuildContext context) =>
-                              NutritionGoalsScreen(
-                                  challenge: snapshot.challenge!),
+                  : _CardList(
+                      child: _EnablePlanCard(
+                        emoji: '🏋️',
+                        title: l10n.planEnableTraining,
+                        body: l10n.planEnableTrainingBody(
+                            ((kTrackedMultiplier - 1) * 100).round()),
+                        onTap: () => Navigator.of(context).push<void>(
+                          MaterialPageRoute<void>(
+                            builder: (BuildContext context) =>
+                                TrainingEditorScreen(challenge: challenge),
+                          ),
                         ),
                       ),
                     ),
             ),
           // The household's meals and shopping: for everyone, whatever the
-          // habits — a week of dinners helps a reading streak too.
-          _Tab(l10n.planTabMeals, const WeekPlanView()),
+          // habits — a week of dinners helps a reading streak too. The
+          // nutrition target sits on top of the meals it portions.
+          _Tab(
+            l10n.planTabMeals,
+            WeekPlanView(
+              leading: nutrition != null
+                  ? _NutritionTargetCard(plan: nutrition, onTap: openGoals)
+                  : has(HabitCategory.nutrition)
+                      ? _EnablePlanCard(
+                          key: const Key('enable-nutrition'),
+                          emoji: '🥗',
+                          title: l10n.planEnableNutrition,
+                          body: l10n.planEnableNutritionBody(
+                              ((kTrackedMultiplier - 1) * 100).round()),
+                          onTap: openGoals,
+                          compact: true,
+                        )
+                      : null,
+            ),
+          ),
           _Tab(l10n.planTabShopping, const ShoppingView()),
           if (habits.any((Habit h) => h.kind == HabitKind.abstain))
             _Tab(l10n.planTabAbstinence, _AbstinenceTab(snapshot: snapshot)),
@@ -350,20 +359,11 @@ class _MilestoneTrack extends StatelessWidget {
   }
 }
 
-/// Offered where an optional plan is switched off: what it adds, and what
-/// it is worth.
-class _EnablePlanCard extends StatelessWidget {
-  const _EnablePlanCard({
-    required this.emoji,
-    required this.title,
-    required this.body,
-    required this.onTap,
-  });
+/// A tab that is only one card.
+class _CardList extends StatelessWidget {
+  const _CardList({required this.child});
 
-  final String emoji;
-  final String title;
-  final String body;
-  final VoidCallback onTap;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -374,37 +374,147 @@ class _EnablePlanCard extends StatelessWidget {
         AppSpacing.md,
         AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
       ),
-      children: <Widget>[
-        AppCard(
-          border: AppColors.success.withValues(alpha: 0.5),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(emoji, style: const TextStyle(fontSize: 34)),
-              const SizedBox(height: AppSpacing.sm),
-              Text(title, style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                body,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.success,
-                  foregroundColor: AppColors.ink,
-                  minimumSize: const Size.fromHeight(48),
+      children: <Widget>[child],
+    );
+  }
+}
+
+/// The nutrition plan's daily target, above the meals it portions. Changing
+/// it is one tap; eating against it happens in the diary under Today.
+class _NutritionTargetCard extends StatelessWidget {
+  const _NutritionTargetCard({required this.plan, required this.onTap});
+
+  final NutritionPlan plan;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    final TextTheme text = Theme.of(context).textTheme;
+    return AppCard(
+      key: const Key('nutrition-target'),
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm + 4,
+      ),
+      child: Row(
+        children: <Widget>[
+          const Text('🥗', style: TextStyle(fontSize: 24)),
+          const SizedBox(width: AppSpacing.sm + 2),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(l10n.planNutritionTarget, style: text.titleMedium),
+                Text(
+                  l10n.planNutritionTargetLine(
+                      plan.kcal, plan.proteinG, plan.carbsG, plan.fatG),
+                  style: text.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 12.5,
+                  ),
                 ),
-                onPressed: onTap,
-                child: Text(title),
-              ),
-            ],
+              ],
+            ),
           ),
+          Tooltip(
+            message: l10n.goalsTitle,
+            child: const Icon(Icons.tune, color: AppColors.textTertiary),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Offered where an optional plan is switched off: what it adds, and what
+/// it is worth. [compact] where it sits above something else that is the
+/// point of the tab.
+class _EnablePlanCard extends StatelessWidget {
+  const _EnablePlanCard({
+    super.key,
+    required this.emoji,
+    required this.title,
+    required this.body,
+    required this.onTap,
+    this.compact = false,
+  });
+
+  final String emoji;
+  final String title;
+  final String body;
+  final VoidCallback onTap;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    if (compact) {
+      return AppCard(
+        border: AppColors.success.withValues(alpha: 0.5),
+        onTap: onTap,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm + 4,
         ),
-      ],
+        child: Row(
+          children: <Widget>[
+            Text(emoji, style: const TextStyle(fontSize: 24)),
+            const SizedBox(width: AppSpacing.sm + 2),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    title,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(color: AppColors.success),
+                  ),
+                  Text(
+                    body,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                          fontSize: 12.5,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: AppColors.success),
+          ],
+        ),
+      );
+    }
+    return AppCard(
+      border: AppColors.success.withValues(alpha: 0.5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(emoji, style: const TextStyle(fontSize: 34)),
+          const SizedBox(height: AppSpacing.sm),
+          Text(title, style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            body,
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.success,
+              foregroundColor: AppColors.ink,
+              minimumSize: const Size.fromHeight(48),
+            ),
+            onPressed: onTap,
+            child: Text(title),
+          ),
+        ],
+      ),
     );
   }
 }

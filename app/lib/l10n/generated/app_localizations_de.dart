@@ -48,6 +48,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get actionShare => 'Link teilen';
 
   @override
+  String get addMealIdeas => 'IDEEN';
+
+  @override
   String get addMealKcal => 'kcal pro Portion (optional)';
 
   @override
@@ -705,6 +708,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Tag im Ziel abgeschlossen — getrackt, mit Plan-Bonus.';
 
   @override
+  String get diaryEatPlanned => 'Gegessen';
+
+  @override
   String diaryEatenOfTarget(int eaten, int target) {
     return '$eaten von $target kcal gegessen';
   }
@@ -737,7 +743,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diaryOffTargetTitle => 'Nicht ganz im Ziel';
 
   @override
-  String get diarySuggestions => 'IDEEN, DIE PASSEN';
+  String diaryPlanned(int kcal) {
+    return 'Geplant · $kcal kcal';
+  }
 
   @override
   String get diaryTitle => 'Ernährungstagebuch';
@@ -3088,7 +3096,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get obPlanNutritionBody =>
-      'Kalorienziel und Ernährungstagebuch mit Essensideen. Optional — ohne hakst du den Tag nur ab.';
+      'Kalorienziel und Ernährungstagebuch. Optional — ohne hakst du den Tag nur ab.';
 
   @override
   String get obPlanTraining => 'Mit Trainingsplan';
@@ -3360,7 +3368,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String planEnableNutritionBody(int percent) {
-    return 'Setz ein Kalorienziel und führ ein Ernährungstagebuch — jeder Tag im Ziel bringt +$percent % XP.';
+    return 'Setz ein Kalorienziel und führ unter Heute ein Ernährungstagebuch — jeder Tag im Ziel bringt +$percent % XP.';
   }
 
   @override
@@ -3433,6 +3441,14 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get planNutritionTarget => 'Dein Tagesziel';
+
+  @override
+  String planNutritionTargetLine(int kcal, int protein, int carbs, int fat) {
+    return '$kcal kcal · $protein g Eiweiß · $carbs g KH · $fat g Fett';
+  }
+
+  @override
   String planPerWeek(String value) {
     return '$value kg/Woche';
   }
@@ -3444,10 +3460,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get planTabAbstinence => 'Clean bleiben';
 
   @override
-  String get planTabMeals => 'Essen';
-
-  @override
-  String get planTabNutrition => 'Ernährung';
+  String get planTabMeals => 'Essensplan';
 
   @override
   String get planTabShopping => 'Einkauf';
@@ -3893,6 +3906,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get recipeEatenAsPlanned => 'Gegessen wie geplant';
+
+  @override
+  String get recipeInDiary => 'Im Tagebuch';
 
   @override
   String recipeIngredients(int servings) {
