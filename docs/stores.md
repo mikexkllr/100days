@@ -68,8 +68,10 @@ hosted instance's ids are the defaults in `lib/config/backend_config.dart`.
   repository secret `APP_DEFINES_JSON`, which both release workflows pass to
   `--dart-define-from-file`. The `push` function needs
   `FCM_SERVICE_ACCOUNT_JSON` (a key of the `firebase-adminsdk` service
-  account) and iOS needs an APNs key uploaded under Project settings → Cloud
-  Messaging. Without them the app runs with local reminders only.
+  account, set on the hosted instance), and iOS delivery goes through a
+  team-scoped APNs key (sandbox and production) uploaded under Project
+  settings → Cloud Messaging. A self-hosted build without them runs with
+  local reminders only.
 
 ## The listing
 
