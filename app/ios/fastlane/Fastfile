@@ -88,6 +88,7 @@ platform :ios do
       run_precheck_before_submit: false,
       submit_for_review: ENV["IOS_AUTO_SUBMIT"] == "true",
       submission_information: { add_id_info_uses_idfa: false },
+      app_rating_config_path: File.expand_path("age_rating.json", __dir__),
     )
   end
 
@@ -100,6 +101,7 @@ platform :ios do
       overwrite_screenshots: true,
       force: true,
       run_precheck_before_submit: false,
+      app_rating_config_path: File.expand_path("age_rating.json", __dir__),
     )
   end
 end
