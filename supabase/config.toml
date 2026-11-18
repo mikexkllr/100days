@@ -232,15 +232,19 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Use a production-ready SMTP server
+# Our own mail server, the one Memoria sends from as well. The hosted project
+# has exactly this in the dashboard (Authentication → Emails → SMTP Settings),
+# with the password of noreply@my-diary.app. It stays commented here so a
+# local `supabase start` keeps catching mails in Mailpit; a self-hosted copy
+# puts its own server here.
 # [auth.email.smtp]
 # enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+# host = "mail.my-diary.app"
+# port = 465
+# user = "noreply@my-diary.app"
+# pass = "env(SUPABASE_AUTH_SMTP_PASSWORD)"
+# admin_email = "noreply@my-diary.app"
+# sender_name = "100 Days & Beyond"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]

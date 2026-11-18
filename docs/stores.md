@@ -53,6 +53,17 @@ is the `serverClientId` and in Supabase's Google provider), an iOS client
 client per signing certificate (debug, upload key, Play app signing). The
 hosted instance's ids are the defaults in `lib/config/backend_config.dart`.
 
+E-mail sign-up confirms the address with a mail, sent through our own mail
+server — the one Memoria uses (docker-mailserver on the VPS, see Memoria's
+`CLAUDE.md`). In the Supabase dashboard, Authentication → Emails → SMTP
+Settings: host `mail.my-diary.app`, port 465, user and sender
+`noreply@my-diary.app`, sender name "100 Days & Beyond", and that account's
+password; a password change on the mail server has to be repeated here and
+in Memoria. With its own SMTP server Supabase sends up to 30 auth mails an
+hour (Authentication → Rate Limits). The link in the mail leads to
+`hundreddays://login-callback`, which has to be the Site URL or one of the
+Redirect URLs (Authentication → URL Configuration).
+
 ## Before the first review
 
 - App Review information in App Store Connect: the demo account and a note
