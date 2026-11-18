@@ -64,6 +64,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # iOS plugins come from CocoaPods (ios/Podfile.lock). With Swift Package
+  # Manager, firebase_messaging and google_sign_in_ios pin conflicting
+  # Google SDK versions and the archive fails to resolve.
+  config:
+    enable-swift-package-manager: false
   generate: true
   assets:
     - assets/fonts/OFL.txt
