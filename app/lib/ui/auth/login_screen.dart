@@ -11,8 +11,9 @@ import '../mascot/flame_mascot.dart';
 import '../mascot/speech_bubble.dart';
 import '../widgets/juicy_button.dart';
 
-/// The front door: sign in with Apple or Google. Nothing else is asked for —
-/// name and face come next, in onboarding.
+/// The front door: sign in with Apple or Google, or with e-mail and a
+/// password. Nothing else is asked for — name and face come next, in
+/// onboarding.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -30,10 +31,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await method(ref.read(authServiceProvider));
     } on SignInException catch (error) {
       if (!mounted || error.problem == SignInProblem.cancelled) return;
+      final AppLocalizations l10n = context.l10n;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(error.problem == SignInProblem.notConfigured
-            ? context.l10n.loginNotConfigured
-            : context.l10n.loginFailed),
+        content: Text(switch (error.problem) {
+          SignInProblem.notConfigured => l10n.loginNotConfigured,
+          SignInProblem.wrongCredentials => l10n.loginWrongCredentials,
+          SignInProblem.emailNotConfirmed => l10n.loginEmailNotConfirmed,
+          SignInProblem.emailTaken => l10n.loginEmailTaken,
+          SignInProblem.weakPassword => l10n.loginWeakPassword,
+          SignInProblem.cancelled || SignInProblem.failed => l10n.loginFailed,
+        }),
       ));
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -141,15 +148,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _emailSignIn() async {
-    final (String, String)? credentials =
-        await showModalBottomSheet<(String, String)>(
+    final _EmailRequest? request = await showModalBottomSheet<_EmailRequest>(
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) => const _EmailSheet(),
     );
-    if (credentials == null || !mounted) return;
-    final (String email, String password) = credentials;
-    await _signIn((AuthService a) => a.signInWithEmail(email, password));
+    if (request == null || !mounted) return;
+    if (!request.register) {
+      await _signIn(
+          (AuthService a) => a.signInWithEmail(request.email, request.password));
+      return;
+    }
+    bool? signedIn;
+    await _signIn((AuthService a) async {
+      signedIn = await a.signUpWithEmail(request.email, request.password);
+    });
+    // Signed in: the app moves on to onboarding by itself. Otherwise the
+    // address needs confirming first.
+    if (signedIn != false || !mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        key: const Key('login-email-confirm'),
+        title: Text(context.l10n.loginEmailConfirmTitle),
+        content: Text(context.l10n.loginEmailConfirmBody(request.email)),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(context.l10n.actionOk),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _ownServer(BackendConfig current) async {
@@ -175,10 +205,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 }
 
-/// E-mail and password, for accounts the operator set up — the demo account
-/// of the store review. Everyone else signs in with Apple or Google.
+/// What the e-mail sheet hands back: sign in, or make a new account.
+typedef _EmailRequest = ({String email, String password, bool register});
+
+/// E-mail and password: sign in, or register a new account with them.
 class _EmailSheet extends StatefulWidget {
   const _EmailSheet();
+
+  /// New accounts need at least this many characters. The backend may ask
+  /// for more; it says so, and the login screen passes that on.
+  static const int minPasswordLength = 8;
 
   @override
   State<_EmailSheet> createState() => _EmailSheetState();
@@ -187,6 +223,7 @@ class _EmailSheet extends StatefulWidget {
 class _EmailSheetState extends State<_EmailSheet> {
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
+  bool _passwordTooShort = false;
 
   @override
   void dispose() {
@@ -195,9 +232,15 @@ class _EmailSheetState extends State<_EmailSheet> {
     super.dispose();
   }
 
-  void _submit() {
-    if (_email.text.trim().isEmpty || _password.text.isEmpty) return;
-    Navigator.of(context).pop((_email.text.trim(), _password.text));
+  void _submit({required bool register}) {
+    final String email = _email.text.trim();
+    if (email.isEmpty || _password.text.isEmpty) return;
+    if (register && _password.text.length < _EmailSheet.minPasswordLength) {
+      setState(() => _passwordTooShort = true);
+      return;
+    }
+    Navigator.of(context)
+        .pop((email: email, password: _password.text, register: register));
   }
 
   @override
@@ -236,14 +279,28 @@ class _EmailSheetState extends State<_EmailSheet> {
             autocorrect: false,
             enableSuggestions: false,
             autofillHints: const <String>[AutofillHints.password],
-            decoration: InputDecoration(labelText: l10n.loginPassword),
-            onSubmitted: (_) => _submit(),
+            onChanged: (_) {
+              if (_passwordTooShort) setState(() => _passwordTooShort = false);
+            },
+            decoration: InputDecoration(
+              labelText: l10n.loginPassword,
+              errorText: _passwordTooShort
+                  ? l10n.loginPasswordTooShort(_EmailSheet.minPasswordLength)
+                  : null,
+            ),
+            onSubmitted: (_) => _submit(register: false),
           ),
           const SizedBox(height: AppSpacing.md),
           FilledButton(
             key: const Key('login-email-submit'),
-            onPressed: _submit,
+            onPressed: () => _submit(register: false),
             child: Text(l10n.loginEmailSubmit),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          OutlinedButton(
+            key: const Key('login-email-register'),
+            onPressed: () => _submit(register: true),
+            child: Text(l10n.loginEmailRegister),
           ),
         ],
       ),

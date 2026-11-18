@@ -111,10 +111,10 @@ listing language is en-GB, so `en-GB` is a copy of `en-US`.
 
 ## Review accounts
 
-Sign-in is Google or Apple only, and Google Play's reviewers do not use
-personal accounts. The backend therefore accepts e-mail and password for
-addresses listed in `public.review_accounts` and nobody else (the
-`before_user_created` hook). Two accounts exist on the hosted instance:
+Google Play's reviewers do not use personal accounts, and both stores want
+an account they can be handed. Anyone can register with e-mail and password
+in the app; for the stores, two such accounts are set up in advance on the
+hosted instance (`public.review_accounts` lists them, as a note):
 
 - `app-review@my-diary.app` for App Review — free tier, so the reviewers see
   and can test the subscription purchase;
@@ -123,6 +123,6 @@ addresses listed in `public.review_accounts` and nobody else (the
 
 Their passwords are not in the repository; the operator keeps them and
 enters them in App Store Connect (App Review Information) and the Play
-Console (App content → Sign-in details). In the app they use **Sign in with
+Console (App content → Sign-in details). In the app they use **Continue with
 email** on the first screen. If a reviewer deletes the account, create it
 again with the Auth admin API.

@@ -1608,10 +1608,22 @@
     }
   },
   "loginApple": "Sign in with Apple",
-  "loginEmail": "Sign in with email",
+  "loginEmail": "Continue with email",
   "loginEmailAddress": "Email",
-  "loginEmailHint": "For accounts set up by the operator, such as the demo account for the store review. Everyone else signs in with Apple or Google.",
+  "loginEmailConfirmBody": "We sent a mail to {email}. Open the link in it to confirm your address, then sign in here.",
+  "@loginEmailConfirmBody": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "loginEmailConfirmTitle": "Check your inbox",
+  "loginEmailHint": "Sign in with your email and password, or create a new account with them.",
+  "loginEmailNotConfirmed": "Confirm your email address first: open the link in the mail we sent you.",
+  "loginEmailRegister": "Register with email",
   "loginEmailSubmit": "Sign in",
+  "loginEmailTaken": "There is already an account with this email. Sign in with it.",
   "loginFailed": "Sign-in did not work. Check your connection and try again.",
   "loginGoogle": "Sign in with Google",
   "loginNotConfigured": "Sign-in is not set up for this server yet.",
@@ -1630,8 +1642,18 @@
   "loginOwnServerReset": "Use the default server",
   "loginOwnServerRestart": "Saved. Close the app and open it again to connect to the new server.",
   "loginPassword": "Password",
+  "loginPasswordTooShort": "At least {count} characters.",
+  "@loginPasswordTooShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "loginPrivacy": "Your account only stores what the app needs. Friends see what you share; body stats, targets and the food diary stay private. The app is open source, and you can run your own server.",
   "loginSubtitle": "Sign in, set a goal, get a plan. Your friends see whether you showed up today.",
+  "loginWeakPassword": "That password is too weak. Choose a longer one, with letters and digits.",
+  "loginWrongCredentials": "Email or password is wrong.",
   "macroPresetAuto": "Automatic",
   "macroPresetAutoBlurb": "Protein and fat per kilo of body weight, the rest carbs. The best default for training goals.",
   "macroPresetBalanced": "Balanced",

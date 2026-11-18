@@ -2180,17 +2180,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginApple => 'Sign in with Apple';
 
   @override
-  String get loginEmail => 'Sign in with email';
+  String get loginEmail => 'Continue with email';
 
   @override
   String get loginEmailAddress => 'Email';
 
   @override
+  String loginEmailConfirmBody(String email) {
+    return 'We sent a mail to $email. Open the link in it to confirm your address, then sign in here.';
+  }
+
+  @override
+  String get loginEmailConfirmTitle => 'Check your inbox';
+
+  @override
   String get loginEmailHint =>
-      'For accounts set up by the operator, such as the demo account for the store review. Everyone else signs in with Apple or Google.';
+      'Sign in with your email and password, or create a new account with them.';
+
+  @override
+  String get loginEmailNotConfirmed =>
+      'Confirm your email address first: open the link in the mail we sent you.';
+
+  @override
+  String get loginEmailRegister => 'Register with email';
 
   @override
   String get loginEmailSubmit => 'Sign in';
+
+  @override
+  String get loginEmailTaken =>
+      'There is already an account with this email. Sign in with it.';
 
   @override
   String get loginFailed =>
@@ -2231,12 +2250,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginPassword => 'Password';
 
   @override
+  String loginPasswordTooShort(int count) {
+    return 'At least $count characters.';
+  }
+
+  @override
   String get loginPrivacy =>
       'Your account only stores what the app needs. Friends see what you share; body stats, targets and the food diary stay private. The app is open source, and you can run your own server.';
 
   @override
   String get loginSubtitle =>
       'Sign in, set a goal, get a plan. Your friends see whether you showed up today.';
+
+  @override
+  String get loginWeakPassword =>
+      'That password is too weak. Choose a longer one, with letters and digits.';
+
+  @override
+  String get loginWrongCredentials => 'Email or password is wrong.';
 
   @override
   String get macroPresetAuto => 'Automatic';

@@ -212,16 +212,17 @@ web3 = 30
 # secret = ""
 
 [auth.email]
-# Sign-in is Google or Apple. E-mail and password are on only for the demo
-# accounts the stores' reviewers get: the before_user_created hook below
-# refuses every e-mail sign-up whose address is not in public.review_accounts,
-# so e-mail cannot be used to mint accounts with fresh AI allowances.
+# Sign-in is Google, Apple, or e-mail and password; anyone can register with
+# e-mail. The confirmation mail is what stops a script from minting accounts
+# with fresh AI allowances from made-up addresses. On a hosted project it
+# needs your own SMTP server ([auth.email.smtp] below, or the dashboard):
+# Supabase's built-in mailer only delivers to the project's team members.
 enable_signup = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
-enable_confirmations = false
+enable_confirmations = true
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.

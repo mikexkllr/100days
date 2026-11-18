@@ -3537,7 +3537,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginEmail.
   ///
   /// In en, this message translates to:
-  /// **'Sign in with email'**
+  /// **'Continue with email'**
   String get loginEmail;
 
   /// No description provided for @loginEmailAddress.
@@ -3546,17 +3546,47 @@ abstract class AppLocalizations {
   /// **'Email'**
   String get loginEmailAddress;
 
+  /// No description provided for @loginEmailConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a mail to {email}. Open the link in it to confirm your address, then sign in here.'**
+  String loginEmailConfirmBody(String email);
+
+  /// No description provided for @loginEmailConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your inbox'**
+  String get loginEmailConfirmTitle;
+
   /// No description provided for @loginEmailHint.
   ///
   /// In en, this message translates to:
-  /// **'For accounts set up by the operator, such as the demo account for the store review. Everyone else signs in with Apple or Google.'**
+  /// **'Sign in with your email and password, or create a new account with them.'**
   String get loginEmailHint;
+
+  /// No description provided for @loginEmailNotConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your email address first: open the link in the mail we sent you.'**
+  String get loginEmailNotConfirmed;
+
+  /// No description provided for @loginEmailRegister.
+  ///
+  /// In en, this message translates to:
+  /// **'Register with email'**
+  String get loginEmailRegister;
 
   /// No description provided for @loginEmailSubmit.
   ///
   /// In en, this message translates to:
   /// **'Sign in'**
   String get loginEmailSubmit;
+
+  /// No description provided for @loginEmailTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'There is already an account with this email. Sign in with it.'**
+  String get loginEmailTaken;
 
   /// No description provided for @loginFailed.
   ///
@@ -3624,6 +3654,12 @@ abstract class AppLocalizations {
   /// **'Password'**
   String get loginPassword;
 
+  /// No description provided for @loginPasswordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'At least {count} characters.'**
+  String loginPasswordTooShort(int count);
+
   /// No description provided for @loginPrivacy.
   ///
   /// In en, this message translates to:
@@ -3635,6 +3671,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in, set a goal, get a plan. Your friends see whether you showed up today.'**
   String get loginSubtitle;
+
+  /// No description provided for @loginWeakPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'That password is too weak. Choose a longer one, with letters and digits.'**
+  String get loginWeakPassword;
+
+  /// No description provided for @loginWrongCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Email or password is wrong.'**
+  String get loginWrongCredentials;
 
   /// No description provided for @macroPresetAuto.
   ///

@@ -2188,17 +2188,36 @@ class AppLocalizationsDe extends AppLocalizations {
   String get loginApple => 'Mit Apple anmelden';
 
   @override
-  String get loginEmail => 'Mit E-Mail anmelden';
+  String get loginEmail => 'Mit E-Mail fortfahren';
 
   @override
   String get loginEmailAddress => 'E-Mail';
 
   @override
+  String loginEmailConfirmBody(String email) {
+    return 'Wir haben dir eine Mail an $email geschickt. Öffne den Link darin, um deine Adresse zu bestätigen, und melde dich dann hier an.';
+  }
+
+  @override
+  String get loginEmailConfirmTitle => 'Schau in dein Postfach';
+
+  @override
   String get loginEmailHint =>
-      'Für Konten, die der Betreiber angelegt hat, etwa das Demokonto für die Store-Prüfung. Alle anderen melden sich mit Apple oder Google an.';
+      'Melde dich mit E-Mail und Passwort an, oder leg damit ein neues Konto an.';
+
+  @override
+  String get loginEmailNotConfirmed =>
+      'Bestätige zuerst deine E-Mail-Adresse: Öffne den Link in der Mail, die wir dir geschickt haben.';
+
+  @override
+  String get loginEmailRegister => 'Mit E-Mail registrieren';
 
   @override
   String get loginEmailSubmit => 'Anmelden';
+
+  @override
+  String get loginEmailTaken =>
+      'Mit dieser E-Mail gibt es schon ein Konto. Melde dich damit an.';
 
   @override
   String get loginFailed =>
@@ -2240,12 +2259,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get loginPassword => 'Passwort';
 
   @override
+  String loginPasswordTooShort(int count) {
+    return 'Mindestens $count Zeichen.';
+  }
+
+  @override
   String get loginPrivacy =>
       'Dein Konto speichert nur, was die App braucht. Freunde sehen, was du teilst; Körperdaten, Ziele und das Ernährungstagebuch bleiben privat. Die App ist Open Source, und du kannst deinen eigenen Server betreiben.';
 
   @override
   String get loginSubtitle =>
       'Anmelden, Ziel setzen, Plan bekommen. Deine Freunde sehen, ob du heute dran warst.';
+
+  @override
+  String get loginWeakPassword =>
+      'Das Passwort ist zu schwach. Nimm ein längeres, mit Buchstaben und Ziffern.';
+
+  @override
+  String get loginWrongCredentials => 'E-Mail oder Passwort stimmen nicht.';
 
   @override
   String get macroPresetAuto => 'Automatisch';

@@ -223,7 +223,7 @@ Deno.test({
         assertEquals((await tx`select id from public.households where id = ${home}`).length, 1);
 
         // --- Sign-up hook ------------------------------------------------------
-        // Google and Apple pass; e-mail only for the listed review accounts.
+        // Google, Apple and e-mail all pass; only Auth itself may call it.
         await as(tx, null);
         const hook = async (provider: string, email: string) =>
           (await tx`select public.hook_before_user_created(${
@@ -231,9 +231,7 @@ Deno.test({
           }::jsonb) as r`)[0].r;
         assertEquals(await hook('google', 'someone@example.com'), {});
         assertEquals(await hook('apple', 'relay@privaterelay.appleid.com'), {});
-        assertEquals((await hook('email', 'minter@example.com')).error.http_code, 403);
-        await tx`insert into public.review_accounts (email) values ('Review@Example.com')`;
-        assertEquals(await hook('email', 'review@example.com'), {});
+        assertEquals(await hook('email', 'new@example.com'), {});
         await as(tx, alice);
         await refused(tx, (sp) => sp`select * from public.review_accounts`);
         await refused(tx, (sp) => sp`select public.hook_before_user_created('{}'::jsonb)`);

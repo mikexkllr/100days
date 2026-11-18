@@ -78,6 +78,13 @@ Developer portal (the entitlement is in `ios/Runner/Runner.entitlements`).
 Native sign-in needs no secret; for the revocation on account deletion,
 create a *Sign in with Apple* key and set the `APPLE_*` secrets.
 
+**E-mail.** Anyone can register with e-mail and a password; they confirm
+the address through a link (`enable_confirmations` in `config.toml`), which
+leads back into the app at `hundreddays://login-callback`. A hosted project
+needs your own SMTP server for those mails — Supabase's built-in mailer
+only delivers to the project's team members. Set it under
+`[auth.email.smtp]` or in the dashboard (Authentication → Emails → SMTP).
+
 ## 5. The app
 
 Build-time configuration, as a JSON file you keep out of git:

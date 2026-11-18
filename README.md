@@ -140,11 +140,11 @@ hands. What is sent, and when: [`docs/ai.md`](docs/ai.md).
 
 ## How it works
 
-Sign in with Apple or Google; nothing else is asked for. Everything you do is
-an event in your own feed — written to the phone first, then to the server
-(Supabase: Postgres, Auth, Realtime, a few edge functions). Row Level
-Security decides who reads what: your friends your shared events, your
-household its plan, nobody your private ones. Details:
+Sign in with Apple, Google, or e-mail and a password; nothing else is asked
+for. Everything you do is an event in your own feed — written to the phone
+first, then to the server (Supabase: Postgres, Auth, Realtime, a few edge
+functions). Row Level Security decides who reads what: your friends your
+shared events, your household its plan, nobody your private ones. Details:
 [`docs/backend.md`](docs/backend.md), [`docs/architecture.md`](docs/architecture.md).
 
 ## Getting started

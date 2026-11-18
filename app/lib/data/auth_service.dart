@@ -17,6 +17,18 @@ enum SignInProblem {
   /// The provider is not set up for this backend (no client id).
   notConfigured,
 
+  /// E-mail sign-in: no account with this address and password.
+  wrongCredentials,
+
+  /// E-mail sign-in before the link in the confirmation mail was opened.
+  emailNotConfirmed,
+
+  /// E-mail sign-up for an address that already has an account.
+  emailTaken,
+
+  /// E-mail sign-up with a password the backend refuses as too weak.
+  weakPassword,
+
   /// Anything else: network, the provider, the backend.
   failed,
 }
@@ -31,7 +43,8 @@ class SignInException implements Exception {
   String toString() => 'SignInException(${problem.name}: $cause)';
 }
 
-/// Sign-in with Google and Apple, through the platform's own sheets.
+/// Sign-in with Google and Apple, through the platform's own sheets, or with
+/// e-mail and password.
 ///
 /// The native sheet hands back an ID token, which Supabase Auth verifies
 /// against the provider and turns into a session. A random nonce goes into
@@ -43,6 +56,11 @@ class SignInException implements Exception {
 /// anonymous accounts would let a script mint a fresh allowance per request.
 class AuthService {
   AuthService(this._client, this._config);
+
+  /// Where the link in the sign-up confirmation mail leads: back into the
+  /// app, which turns it into a session. Opened anywhere else, the link
+  /// still confirms the address, and the user signs in by hand.
+  static const String emailRedirect = 'hundreddays://login-callback';
 
   final SupabaseClient _client;
   final BackendConfig _config;
@@ -143,18 +161,57 @@ class AuthService {
     }
   }
 
-  /// E-mail and password: only for accounts the operator created, such as
-  /// the demo account the stores' reviewers get. The backend refuses e-mail
-  /// sign-ups for any other address (`review_accounts` in the migrations).
+  /// E-mail and password, for accounts made with [signUpWithEmail] and the
+  /// demo accounts the stores' reviewers get.
   Future<void> signInWithEmail(String email, String password) async {
     try {
       await _client.auth.signInWithPassword(
         email: email.trim(),
         password: password,
       );
+    } on AuthException catch (error) {
+      throw SignInException(_emailProblem(error), error);
     } on Object catch (error) {
       throw SignInException(SignInProblem.failed, error);
     }
+  }
+
+  /// Creates an account with e-mail and password. Returns true when the
+  /// account is signed in right away, false when the backend wants the
+  /// address confirmed first: it sent a mail with a link, and the user signs
+  /// in once they opened it.
+  Future<bool> signUpWithEmail(String email, String password) async {
+    final AuthResponse response;
+    try {
+      response = await _client.auth.signUp(
+        email: email.trim(),
+        password: password,
+        emailRedirectTo: emailRedirect,
+      );
+    } on AuthException catch (error) {
+      throw SignInException(_emailProblem(error), error);
+    } on Object catch (error) {
+      throw SignInException(SignInProblem.failed, error);
+    }
+    if (response.session != null) return true;
+    // With confirmations on, an address that already has an account comes
+    // back as a user without identities instead of an error, and no mail is
+    // sent. Waiting for that mail would be waiting forever.
+    if (response.user?.identities?.isEmpty ?? false) {
+      throw const SignInException(SignInProblem.emailTaken);
+    }
+    return false;
+  }
+
+  static SignInProblem _emailProblem(AuthException error) {
+    if (error is AuthWeakPasswordException) return SignInProblem.weakPassword;
+    return switch (error.code) {
+      'invalid_credentials' => SignInProblem.wrongCredentials,
+      'email_not_confirmed' => SignInProblem.emailNotConfirmed,
+      'user_already_exists' || 'email_exists' => SignInProblem.emailTaken,
+      'weak_password' => SignInProblem.weakPassword,
+      _ => SignInProblem.failed,
+    };
   }
 
   Future<void> signOut() async {
