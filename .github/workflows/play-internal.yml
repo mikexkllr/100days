@@ -154,7 +154,10 @@ jobs:
           packageName: com.hundreddays.hundred_days
           releaseFiles: app/build/app/outputs/bundle/release/app-release.aab
           track: ${{ github.event_name == 'workflow_dispatch' && inputs.track || (github.ref == 'refs/heads/main' && 'alpha' || 'internal') }}
-          status: completed
+          # A draft app (never reviewed) only takes draft releases outside
+          # internal testing; the closed-test draft is then sent for review in
+          # the Play Console. Set PLAY_ALPHA_STATUS=completed once the app is live.
+          status: ${{ (github.event_name == 'workflow_dispatch' && inputs.track || (github.ref == 'refs/heads/main' && 'alpha' || 'internal')) == 'internal' && 'completed' || (vars.PLAY_ALPHA_STATUS || 'draft') }}
           whatsNewDirectory: app/android/fastlane/whatsnew
 
       - name: Say what to do with a bundle that was not uploaded
