@@ -93,7 +93,7 @@ jobs:
         working-directory: app
         run: |
           flutter pub get
-          flutter build ios --config-only --release \
+          flutter build ios --config-only --release --no-codesign \
             --build-name "${{ steps.version.outputs.name }}" \
             --build-number "${{ steps.version.outputs.build }}"
           cd ios && pod install

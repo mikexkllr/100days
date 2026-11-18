@@ -33,7 +33,7 @@ platform :ios do
       configuration: "Release",
       export_method: "app-store",
       clean: false,
-      xcargs: "-allowProvisioningUpdates " \
+      xcargs: "DEVELOPMENT_TEAM=9G5PKNZCQF CODE_SIGN_STYLE=Automatic -allowProvisioningUpdates " \
               "-authenticationKeyPath #{key_path} " \
               "-authenticationKeyID #{ENV['APP_STORE_CONNECT_KEY_ID']} " \
               "-authenticationKeyIssuerID #{ENV['APP_STORE_CONNECT_ISSUER_ID']}",
