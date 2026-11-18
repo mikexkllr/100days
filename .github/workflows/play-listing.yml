@@ -2,11 +2,11 @@ name: Play Store listing
 
 # Uploads the store listing from app/android/fastlane/metadata — texts, icon,
 # feature graphic and screenshots in German and English — through the Play
-# Developer API. Manual, and on main when the listing changes.
+# Developer API. Manual, and on dev or main when the listing changes.
 on:
   push:
-    branches: [main]
-    paths: ["app/android/fastlane/metadata/**"]
+    branches: [dev, main]
+    paths: ["app/android/fastlane/metadata/**", ".github/workflows/play-listing.yml"]
   workflow_dispatch:
 
 permissions:
