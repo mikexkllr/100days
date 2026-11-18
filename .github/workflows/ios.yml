@@ -89,13 +89,25 @@ jobs:
           echo "name=$(sed -n 's/^version: *//p' pubspec.yaml | cut -d+ -f1)" >> "$GITHUB_OUTPUT"
           echo "build=$((1000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_OUTPUT"
 
+      # Build-time ids of this deployment (Firebase app, OAuth clients) as a
+      # JSON secret, as in the Play workflow. --config-only writes them into
+      # Generated.xcconfig, which the archive then compiles with.
       - name: Prepare the Xcode project
         working-directory: app
+        env:
+          APP_DEFINES_JSON: ${{ secrets.APP_DEFINES_JSON }}
         run: |
+          mkdir -p config
+          if [ -n "$APP_DEFINES_JSON" ]; then
+            printf '%s' "$APP_DEFINES_JSON" > config/release.json
+          else
+            echo '{}' > config/release.json
+          fi
           flutter pub get
           flutter build ios --config-only --release --no-codesign \
             --build-name "${{ steps.version.outputs.name }}" \
-            --build-number "${{ steps.version.outputs.build }}"
+            --build-number "${{ steps.version.outputs.build }}" \
+            --dart-define-from-file=config/release.json
           cd ios && pod install
 
       - name: fastlane

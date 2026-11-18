@@ -59,12 +59,17 @@ hosted instance's ids are the defaults in `lib/config/backend_config.dart`.
   ("Sign in with email" on the first screen).
 - A review screenshot per App Store subscription, taken from a TestFlight
   build with a sandbox account (the purchase sheet must be visible).
-- Closed testing on Google Play: a tester list (at least 12 people for
-  14 days) before production access can be requested.
-- Push notifications need a Firebase project (Android and iOS apps, the APNs
-  key uploaded), `FCM_SERVICE_ACCOUNT_JSON` as a function secret and the
-  `FIREBASE_*` build defines (`APP_DEFINES_JSON`). Without them the app runs
-  with local reminders only.
+- Closed testing on Google Play: the track (`alpha`) uses the email list
+  "Tester", all countries, feedback to info@my-diary.app. Production access
+  can be requested after 14 days with at least 12 opted-in testers.
+- Push notifications: Firebase is enabled on the Google Cloud project
+  `daysandbeyond` (Analytics off) with an Android and an iOS app. Their ids
+  and the Firebase API key are the `FIREBASE_*` build defines in the
+  repository secret `APP_DEFINES_JSON`, which both release workflows pass to
+  `--dart-define-from-file`. The `push` function needs
+  `FCM_SERVICE_ACCOUNT_JSON` (a key of the `firebase-adminsdk` service
+  account) and iOS needs an APNs key uploaded under Project settings → Cloud
+  Messaging. Without them the app runs with local reminders only.
 
 ## The listing
 
