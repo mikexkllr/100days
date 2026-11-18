@@ -1,0 +1,108 @@
+name: App Store release
+
+# Two pipes, chosen by the branch:
+#   dev  -> TestFlight, internal testers
+#   main -> App Store Connect: the build is attached to the App Store version
+#           together with the listing (app/ios/fastlane/metadata, screenshots).
+#           Submitting for review stays a click in App Store Connect unless
+#           the repository variable IOS_AUTO_SUBMIT is "true".
+#
+# Secrets, in the "app-store" environment:
+#   APP_STORE_CONNECT_KEY_ID, APP_STORE_CONNECT_ISSUER_ID,
+#   APP_STORE_CONNECT_KEY_BASE64 (the .p8 file, base64; role App Manager)
+# Without them the run says so and stops before the macOS build.
+on:
+  push:
+    branches: [dev, main]
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: fastlane lane
+        type: choice
+        options: [beta, release, listing]
+        default: beta
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-store-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+
+  secrets:
+    name: App Store Connect key present?
+    runs-on: ubuntu-latest
+    environment: app-store
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - id: check
+        env:
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID != '' }}
+          ISSUER: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID != '' }}
+          KEY: ${{ secrets.APP_STORE_CONNECT_KEY_BASE64 != '' }}
+        run: |
+          if [ "$KEY_ID$ISSUER$KEY" = "truetruetrue" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::App Store Connect API key not set in the app-store environment; skipping the iOS build."
+          fi
+
+  deploy:
+    name: Build and upload
+    needs: [checks, secrets]
+    if: needs.secrets.outputs.ready == 'true'
+    runs-on: macos-26
+    timeout-minutes: 60
+    environment: app-store
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
+        with:
+          xcode-version: latest-stable
+
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          cache: true
+
+      - uses: ruby/setup-ruby@20eb24b0d509e2b9ed9b6d42ddfeb992915e0564 # v1.341.0
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: app/ios
+
+      - name: Version and build number
+        id: version
+        working-directory: app
+        run: |
+          echo "name=$(sed -n 's/^version: *//p' pubspec.yaml | cut -d+ -f1)" >> "$GITHUB_OUTPUT"
+          echo "build=$((1000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare the Xcode project
+        working-directory: app
+        run: |
+          flutter pub get
+          flutter build ios --config-only --release \
+            --build-name "${{ steps.version.outputs.name }}" \
+            --build-number "${{ steps.version.outputs.build }}"
+          cd ios && pod install
+
+      - name: fastlane
+        working-directory: app/ios
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_KEY_BASE64 }}
+          APP_VERSION: ${{ steps.version.outputs.name }}
+          BUILD_NUMBER: ${{ steps.version.outputs.build }}
+          IOS_AUTO_SUBMIT: ${{ vars.IOS_AUTO_SUBMIT }}
+          LANE: ${{ github.event_name == 'workflow_dispatch' && inputs.lane || (github.ref == 'refs/heads/main' && 'release' || 'beta') }}
+        run: bundle exec fastlane "$LANE"

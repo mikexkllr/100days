@@ -1,0 +1,35 @@
+default_platform(:android)
+
+# Environment (set by .github/workflows/play-internal.yml):
+#   PLAY_STORE_JSON_KEY  service account JSON with access to the app
+#   PLAY_TRACK           internal | alpha (closed testing)
+#   AAB_PATH             the signed bundle to upload
+
+platform :android do
+  desc "Upload the bundle to PLAY_TRACK, with the release notes in metadata/"
+  lane :upload do
+    upload_to_play_store(
+      track: ENV.fetch("PLAY_TRACK", "internal"),
+      aab: ENV.fetch("AAB_PATH"),
+      json_key_data: ENV["PLAY_STORE_JSON_KEY"],
+      release_status: "completed",
+      metadata_path: "fastlane/metadata/android",
+      skip_upload_metadata: true,
+      skip_upload_changelogs: false,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+  end
+
+  desc "Upload the store listing: texts, icon, feature graphic, screenshots"
+  lane :listing do
+    upload_to_play_store(
+      json_key_data: ENV["PLAY_STORE_JSON_KEY"],
+      metadata_path: "fastlane/metadata/android",
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_changelogs: true,
+      sync_image_upload: true,
+    )
+  end
+end

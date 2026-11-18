@@ -1,0 +1,32 @@
+name: Play Store listing
+
+# Uploads the store listing from app/android/fastlane/metadata — texts, icon,
+# feature graphic and screenshots in German and English — through the Play
+# Developer API. Manual, and on main when the listing changes.
+on:
+  push:
+    branches: [main]
+    paths: ["app/android/fastlane/metadata/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  listing:
+    runs-on: ubuntu-latest
+    environment: play-internal
+    defaults:
+      run:
+        working-directory: app/android
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@20eb24b0d509e2b9ed9b6d42ddfeb992915e0564 # v1.341.0
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: app/android
+      - name: Upload the listing
+        env:
+          PLAY_STORE_JSON_KEY: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: bundle exec fastlane listing

@@ -1,0 +1,31 @@
+Such dir aus, was du ändern willst. Zieh es 100 Tage lang jeden Tag durch. Mit Freunden.
+
+100 Tage & mehr macht aus einem großen Ziel einen kleinen Check-in pro Tag: kein Zucker, lesen, Training, kalt duschen — worum auch immer es in deinen 100 Tagen geht. Deine Serie wächst zu Funki, einer Flamme mit Gesicht, die sich verwandelt, je länger du dranbleibst. Und die App sorgt dafür, dass sich gute Tage auch gut anfühlen.
+
+TÄGLICHE CHECK-INS
+• Deine Gewohnheiten für heute auf einem Bildschirm, abgehakt mit Gedrückthalten
+• Streak, XP und Level, Meilensteine an Tag 1, 3, 7, 14, 30 …
+• Pausentage und Freezes, damit ein schlechter Tag nicht alles beendet
+• Ein Widget mit deinem Streak für den Homescreen
+
+MIT FREUNDEN
+• Finde Freunde über deine Kontakte, per Benutzername, Link oder QR-Code
+• Sieh ihre Check-ins, feiere sie, stups sie an, wenn sie spät dran sind
+• Freundes-Streaks und Wochen-Quests, die ihr gemeinsam schafft
+• Wöchentliche Ligen mit Divisionen: steig von Bronze bis ganz nach oben
+
+ESSEN NACH PLAN
+• Erfasse eine Mahlzeit per Foto, Barcode oder in ein paar Worten — die KI schätzt Kalorien und Protein, du bestätigst
+• Lass die KI deine Woche planen, für alle in deinem Haushalt, mit Portionen nach den Zielen jeder Person
+• Eine gemeinsame Einkaufsliste aus dem Plan, live abgehakt im Laden
+• Wöchentlich oder in deinem eigenen Einkaufsrhythmus
+
+KOSTENLOS UND PREMIUM
+Die App ist kostenlos, mit einem monatlichen KI-Kontingent. Premium gibt dir ein viel größeres Kontingent und den KI-Coach. Stattdessen kannst du auch deinen eigenen API-Schlüssel von Google, Anthropic oder OpenAI nutzen.
+
+OPEN SOURCE
+Jede Zeile der App und des Servers liegt auf GitHub. Du kannst deinen eigenen Server betreiben, und die App verbindet sich damit.
+
+Datenschutz: keine Werbung, kein Tracking, keine Analyse-Tools. Fotos von Mahlzeiten werden nicht gespeichert. Details: https://mikexkllr.github.io/100days/datenschutz.html
+
+Kalorienwerte und KI-Schätzungen dienen der Orientierung und sind keine medizinische Beratung.

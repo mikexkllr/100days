@@ -1,21 +1,30 @@
-name: Play Store — internal release
+name: Play Store release
 
-# Merging to main is the deliberate act: every push to main runs the full
-# CI, builds a release AAB signed with the upload key and uploads it to the
-# internal track in the Play Console — the track that needs no review and
-# reaches testers within minutes. A manual run works from any branch; untick
-# the upload input to build and sign without touching the store.
+# Two pipes, chosen by the branch:
+#   dev  -> internal testing (no review, testers have it within minutes)
+#   main -> closed testing (track "alpha", reviewed by Google; the step
+#           before production, which new accounts may only request after
+#           14 days of closed testing with 12 testers)
+# Every run first passes the full CI, then builds a release AAB signed with
+# the upload key. A manual run works from any branch and picks the track
+# itself; untick the upload input to build and sign without touching the
+# store.
 on:
   push:
-    branches: [main]
+    branches: [dev, main]
   workflow_dispatch:
     inputs:
       upload:
         description: >-
-          Upload to the internal track. Untick to build and sign only, for
-          example to try the pipeline on a branch (docs/play-release.md).
+          Upload to the store. Untick to build and sign only, for example to
+          try the pipeline on a branch (docs/play-release.md).
         type: boolean
         default: true
+      track:
+        description: Play track for a manual run
+        type: choice
+        options: [internal, alpha]
+        default: internal
 
 permissions:
   contents: read
@@ -23,7 +32,7 @@ permissions:
 # A merge and a manual press of the button queue up rather than racing into
 # the same edit.
 concurrency:
-  group: play-internal
+  group: play-release
   cancel-in-progress: false
 
 jobs:
@@ -31,8 +40,8 @@ jobs:
     name: CI
     uses: ./.github/workflows/ci.yml
 
-  internal:
-    name: Android AAB → internal track
+  release:
+    name: Android AAB → Play
     needs: checks
     runs-on: ubuntu-latest
     # The secrets live in this environment, not at repository level, so no
@@ -130,10 +139,10 @@ jobs:
           path: app/build/app/outputs/bundle/release/app-release.aab
           if-no-files-found: error
 
-      - name: Upload to the internal track
-        # Every push to main is a release; a manual run decides with the
-        # input. The input does not exist on a push, and a missing input
-        # would read as false — so the push case is named first.
+      - name: Upload to the track
+        # Every push is a release; a manual run decides with the input. The
+        # input does not exist on a push, and a missing input would read as
+        # false — so the push case is named first.
         if: github.event_name == 'push' || inputs.upload
         # Pinned to a commit: this step holds the Play credentials.
         # changesNotSentForReview stays at its default on purpose — if Play
@@ -144,8 +153,9 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.hundreddays.hundred_days
           releaseFiles: app/build/app/outputs/bundle/release/app-release.aab
-          track: internal
+          track: ${{ github.event_name == 'workflow_dispatch' && inputs.track || (github.ref == 'refs/heads/main' && 'alpha' || 'internal') }}
           status: completed
+          whatsNewDirectory: app/android/fastlane/whatsnew
 
       - name: Say what to do with a bundle that was not uploaded
         if: github.event_name == 'workflow_dispatch' && !inputs.upload

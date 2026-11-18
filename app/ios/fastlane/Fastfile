@@ -1,0 +1,105 @@
+default_platform(:ios)
+
+# Environment (set by .github/workflows/ios.yml):
+#   APP_STORE_CONNECT_KEY_ID / _ISSUER_ID / _KEY_BASE64  App Store Connect API key (role: App Manager)
+#   APP_VERSION      marketing version from pubspec.yaml
+#   BUILD_NUMBER     unique, increasing build number
+#   IOS_AUTO_SUBMIT  "true" to also submit the App Store version for review
+
+platform :ios do
+  def asc_key_path
+    path = File.join(Dir.tmpdir, "AuthKey_#{ENV['APP_STORE_CONNECT_KEY_ID']}.p8")
+    File.write(path, Base64.decode64(ENV["APP_STORE_CONNECT_KEY_BASE64"]))
+    path
+  end
+
+  def connect_api
+    app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_content: ENV["APP_STORE_CONNECT_KEY_BASE64"],
+      is_key_content_base64: true,
+      in_house: false,
+    )
+  end
+
+  # Cloud signing: xcodebuild fetches the distribution certificate and the
+  # profile with the API key; nothing to keep in the repository.
+  def build_ipa
+    key_path = asc_key_path
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      configuration: "Release",
+      export_method: "app-store",
+      clean: false,
+      xcargs: "-allowProvisioningUpdates " \
+              "-authenticationKeyPath #{key_path} " \
+              "-authenticationKeyID #{ENV['APP_STORE_CONNECT_KEY_ID']} " \
+              "-authenticationKeyIssuerID #{ENV['APP_STORE_CONNECT_ISSUER_ID']}",
+      export_xcargs: "-allowProvisioningUpdates",
+      export_options: {
+        method: "app-store",
+        teamID: "9G5PKNZCQF",
+        signingStyle: "automatic",
+        uploadSymbols: true,
+      },
+      output_directory: "../build/ios/ipa",
+      output_name: "hundred_days.ipa",
+    )
+  end
+
+  # Without the Sign in with Apple entitlement the system sheet fails with
+  # error 1000 on every phone; catch that before the store does.
+  def verify_entitlements
+    ipa = lane_context[SharedValues::IPA_OUTPUT_PATH]
+    Dir.mktmpdir do |dir|
+      system("unzip", "-q", "-o", ipa, "-d", dir) || UI.user_error!("Cannot unzip #{ipa}")
+      app = Dir[File.join(dir, "Payload", "*.app")].first
+      entitlements = `codesign -d --entitlements :- "#{app}" 2>&1`
+      unless entitlements.include?("com.apple.developer.applesignin")
+        UI.user_error!("The exported app lacks com.apple.developer.applesignin")
+      end
+    end
+  end
+
+  desc "dev: build and upload to TestFlight (internal testers)"
+  lane :beta do
+    connect_api
+    build_ipa
+    verify_entitlements
+    upload_to_testflight(skip_waiting_for_build_processing: true)
+  end
+
+  desc "main: upload, then attach the build and the listing to the App Store version"
+  lane :release do
+    connect_api
+    build_ipa
+    verify_entitlements
+    upload_to_testflight(skip_waiting_for_build_processing: false)
+    deliver(
+      app_version: ENV["APP_VERSION"],
+      build_number: ENV["BUILD_NUMBER"],
+      skip_binary_upload: true,
+      skip_screenshots: false,
+      overwrite_screenshots: true,
+      force: true,
+      automatic_release: false,
+      run_precheck_before_submit: false,
+      submit_for_review: ENV["IOS_AUTO_SUBMIT"] == "true",
+      submission_information: { add_id_info_uses_idfa: false },
+    )
+  end
+
+  desc "Upload only the listing (texts and screenshots)"
+  lane :listing do
+    connect_api
+    deliver(
+      app_version: ENV["APP_VERSION"],
+      skip_binary_upload: true,
+      overwrite_screenshots: true,
+      force: true,
+      run_precheck_before_submit: false,
+    )
+  end
+end
