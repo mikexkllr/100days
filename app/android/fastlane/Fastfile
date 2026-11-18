@@ -23,7 +23,15 @@ platform :android do
 
   desc "Upload the store listing: texts, icon, feature graphic, screenshots"
   lane :listing do
+    # supply looks for a release to hang the listing on even when it only
+    # uploads metadata; point it at the newest internal build.
+    latest = google_play_track_version_codes(
+      track: "internal",
+      json_key_data: ENV["PLAY_STORE_JSON_KEY"],
+    ).max
     upload_to_play_store(
+      track: "internal",
+      version_code: latest,
       json_key_data: ENV["PLAY_STORE_JSON_KEY"],
       metadata_path: "fastlane/metadata/android",
       skip_upload_apk: true,
