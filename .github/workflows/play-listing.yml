@@ -6,7 +6,7 @@ name: Play Store listing
 on:
   push:
     branches: [dev, main]
-    paths: ["app/android/fastlane/metadata/**", ".github/workflows/play-listing.yml"]
+    paths: ["app/android/fastlane/metadata/**", "app/android/fastlane/Fastfile", ".github/workflows/play-listing.yml"]
   workflow_dispatch:
 
 permissions:
