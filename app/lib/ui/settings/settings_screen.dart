@@ -128,6 +128,10 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: l10n.setDeleteAccountSub,
             onTap: () => _confirmDeleteAccount(context, ref),
           ),
+          if (snapshot.challenge != null) ...<Widget>[
+            SectionHeader(l10n.setStreakModeSection),
+            _StreakModeRow(challenge: snapshot.challenge!),
+          ],
           SectionHeader(l10n.setLanguageSection),
           const _LanguageRow(),
           SectionHeader(l10n.setCoachSection),
@@ -250,6 +254,75 @@ class SettingsScreen extends ConsumerWidget {
 String _describeSync(AppLocalizations l10n, SyncReport report) {
   if (!report.ok) return l10n.setSyncOffline;
   return l10n.setSyncDone(report.sent, report.received);
+}
+
+/// Gentle, balanced or strict — how hard the challenge-wide streak is on a
+/// day that is not fully done. A relapse resets only its own habit in every
+/// mode; the choice applies from today on and never re-scores the past.
+class _StreakModeRow extends ConsumerWidget {
+  const _StreakModeRow({required this.challenge});
+
+  final Challenge challenge;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations l10n = context.l10n;
+    final StreakMode selected = challenge.streakMode;
+    final TextStyle? note = Theme.of(context)
+        .textTheme
+        .bodyMedium
+        ?.copyWith(color: AppColors.textSecondary, fontSize: 12.5);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: AppCard(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm + 4,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                const Icon(Icons.tune,
+                    size: 20, color: AppColors.textSecondary),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Text(l10n.setStreakMode,
+                      style: Theme.of(context).textTheme.titleMedium),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm + 2),
+            Wrap(
+              spacing: AppSpacing.sm,
+              children: <Widget>[
+                for (final StreakMode mode in StreakMode.values)
+                  ChoiceChip(
+                    label: Text(l10n.streakModeName(mode)),
+                    selected: selected == mode,
+                    selectedColor: AppColors.primary.withValues(alpha: 0.2),
+                    onSelected: (_) {
+                      if (mode == selected) return;
+                      ref.read(appStateProvider.notifier).updateChallenge(
+                            challenge.withStreakMode(mode,
+                                from: DayKey.today()),
+                          );
+                    },
+                  ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(l10n.streakModeDescription(selected),
+                style: note?.copyWith(color: AppColors.textPrimary)),
+            const SizedBox(height: AppSpacing.xs),
+            Text(l10n.setStreakModeNote, style: note),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 /// System language by default, with an explicit override for the many people

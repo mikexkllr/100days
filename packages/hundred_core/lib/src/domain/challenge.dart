@@ -35,6 +35,57 @@ ChallengeTier tierForCycle(int cycle) => ChallengeTier(
       emoji: cycle < _tierEmoji.length ? _tierEmoji[cycle] : '👑',
     );
 
+/// How hard the challenge-wide streak is on a day that is not fully done.
+///
+/// Whatever the mode, a relapse resets the streak of the habit it was logged
+/// on and of no other habit — failing at sugar does not undo a month in the
+/// gym. The modes only decide what such a day does to the streak that spans
+/// the whole challenge, and what a forgotten habit does to it.
+enum StreakMode {
+  /// A day counts once at least one habit is done; anything missed or
+  /// relapsed only holds the streak. It breaks on a scheduled day with
+  /// nothing done at all.
+  gentle,
+
+  /// Every scheduled habit is required, and a miss breaks the streak. A
+  /// relapse costs only the habit it was logged on: done everything else,
+  /// and the day counts.
+  balanced,
+
+  /// Every scheduled habit is required, and a miss breaks the streak. A
+  /// relapse — with everything else done — holds the streak for the day
+  /// but does not add to it.
+  strict,
+}
+
+/// A past streak mode: [mode] applied to every day before [until]. Kept so
+/// that switching to a gentler mode cannot bring a broken streak back.
+@immutable
+class StreakModeChange {
+  const StreakModeChange({required this.until, required this.mode});
+
+  factory StreakModeChange.fromJson(Map<String, dynamic> json) =>
+      StreakModeChange(
+        until: DayKey.parse(json['until'] as String),
+        mode: _modeFromName(json['mode'] as String?),
+      );
+
+  final DayKey until;
+  final StreakMode mode;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'until': until.toString(),
+        'mode': mode.name,
+      };
+}
+
+StreakMode _modeFromName(String? name) {
+  for (final mode in StreakMode.values) {
+    if (mode.name == name) return mode;
+  }
+  return StreakMode.balanced;
+}
+
 /// Day counts worth interrupting the user for.
 const List<int> kMilestoneDays = <int>[
   1, 3, 7, 14, 21, 30, 50, 66, 75, 90, 100,
@@ -52,6 +103,8 @@ class Challenge {
     this.cycle = 0,
     this.streakFreezesRemaining = 3,
     this.sharing = const SharingPrefs(),
+    this.streakMode = StreakMode.balanced,
+    this.streakModeHistory = const <StreakModeChange>[],
   });
 
   factory Challenge.fromJson(Map<String, dynamic> json) => Challenge(
@@ -70,6 +123,12 @@ class Challenge {
             ? const SharingPrefs()
             : SharingPrefs.fromJson(
                 Map<String, dynamic>.from(json['sharing'] as Map)),
+        streakMode: _modeFromName(json['streakMode'] as String?),
+        streakModeHistory: ((json['streakModeHistory'] as List<dynamic>?) ??
+                const <dynamic>[])
+            .map((dynamic e) => StreakModeChange.fromJson(
+                Map<String, dynamic>.from(e as Map)))
+            .toList(growable: false),
       );
 
   final String id;
@@ -89,6 +148,43 @@ class Challenge {
   /// What friends get to see. Only ever present on the user's own, private
   /// copy of the challenge — the public copy carries the defaults.
   final SharingPrefs sharing;
+
+  /// How strict the challenge-wide streak is from now on.
+  final StreakMode streakMode;
+
+  /// Earlier streak modes, oldest first.
+  final List<StreakModeChange> streakModeHistory;
+
+  /// The streak mode that applied on [day].
+  StreakMode streakModeOn(DayKey day) {
+    for (final change in streakModeHistory) {
+      if (day.isBefore(change.until)) return change.mode;
+    }
+    return streakMode;
+  }
+
+  /// This challenge in [mode] from [from] on, with the old mode kept for
+  /// every day before — history is not re-scored.
+  Challenge withStreakMode(StreakMode mode, {required DayKey from}) {
+    if (mode == streakMode) return this;
+    return Challenge(
+      id: id,
+      goal: goal,
+      habits: habits,
+      startDay: startDay,
+      lengthDays: lengthDays,
+      cycle: cycle,
+      streakFreezesRemaining: streakFreezesRemaining,
+      sharing: sharing,
+      streakMode: mode,
+      streakModeHistory: <StreakModeChange>[
+        ...streakModeHistory
+            .where((StreakModeChange c) => c.until.isBefore(from)),
+        if (from.isAfter(startDay))
+          StreakModeChange(until: from, mode: streakModeOn(from.addDays(-1))),
+      ],
+    );
+  }
 
   ChallengeTier get tier => tierForCycle(cycle);
 
@@ -147,6 +243,8 @@ class Challenge {
         streakFreezesRemaining:
             streakFreezesRemaining ?? this.streakFreezesRemaining,
         sharing: sharing ?? this.sharing,
+        streakMode: streakMode,
+        streakModeHistory: streakModeHistory,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -158,6 +256,11 @@ class Challenge {
         'cycle': cycle,
         'streakFreezesRemaining': streakFreezesRemaining,
         if (!_isDefaultSharing) 'sharing': sharing.toJson(),
+        if (streakMode != StreakMode.balanced) 'streakMode': streakMode.name,
+        if (streakModeHistory.isNotEmpty)
+          'streakModeHistory': streakModeHistory
+              .map((StreakModeChange c) => c.toJson())
+              .toList(),
       };
 
   bool get _isDefaultSharing =>

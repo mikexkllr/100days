@@ -990,6 +990,12 @@ abstract class AppLocalizations {
   /// **'Frozen'**
   String get dayFrozen;
 
+  /// No description provided for @dayHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'Held'**
+  String get dayHeld;
+
   /// No description provided for @dayMissed.
   ///
   /// In en, this message translates to:
@@ -2955,7 +2961,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeRelapseBody.
   ///
   /// In en, this message translates to:
-  /// **'This resets the streak and is visible to your friends. Being honest is the whole point — but only if it is true.'**
+  /// **'This resets the streak of this habit — your other habits keep theirs. Friends see it. Being honest is the whole point — but only if it is true.'**
   String get homeRelapseBody;
 
   /// No description provided for @homeRelapseConfirm.
@@ -6607,6 +6613,24 @@ abstract class AppLocalizations {
   /// **'Your data stays in your account.'**
   String get setSignOutSub;
 
+  /// No description provided for @setStreakMode.
+  ///
+  /// In en, this message translates to:
+  /// **'How strict is your streak?'**
+  String get setStreakMode;
+
+  /// No description provided for @setStreakModeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies from today. Days behind you stay counted the way they were. Your friends count your streak by the same mode.'**
+  String get setStreakModeNote;
+
+  /// No description provided for @setStreakModeSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak'**
+  String get setStreakModeSection;
+
   /// No description provided for @setSyncDone.
   ///
   /// In en, this message translates to:
@@ -7086,6 +7110,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{remaining} XP to level {level} ({current} / {total})'**
   String statsXpToNextLevel(int remaining, int level, int current, int total);
+
+  /// No description provided for @streakModeBalanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Balanced'**
+  String get streakModeBalanced;
+
+  /// No description provided for @streakModeBalancedSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Every habit is due, and a miss breaks the streak. A relapse only resets that one habit — do the rest and the day still counts.'**
+  String get streakModeBalancedSub;
+
+  /// No description provided for @streakModeGentle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gentle'**
+  String get streakModeGentle;
+
+  /// No description provided for @streakModeGentleSub.
+  ///
+  /// In en, this message translates to:
+  /// **'A day counts once every habit is done. A day with at least one habit done holds the streak — it only breaks on a day with nothing done.'**
+  String get streakModeGentleSub;
+
+  /// No description provided for @streakModeStrict.
+  ///
+  /// In en, this message translates to:
+  /// **'Strict'**
+  String get streakModeStrict;
+
+  /// No description provided for @streakModeStrictSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Every habit is due, and a miss breaks the streak. After a relapse the day does not count — but the streak holds, and your other habits keep theirs.'**
+  String get streakModeStrictSub;
 
   /// No description provided for @targetClean.
   ///

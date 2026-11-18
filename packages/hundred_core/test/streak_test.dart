@@ -145,7 +145,7 @@ void main() {
       expect(stats.completionRate, 1.0);
     });
 
-    test('a relapse invalidates the whole day', () {
+    test('a relapse on the only habit breaks the streak', () {
       final challenge = _challenge(<Habit>[noSugar]);
       final logs = _logsForDays(<int>[0, 1], <Habit>[noSugar])
         ..[_start.addDays(2).toString()] =

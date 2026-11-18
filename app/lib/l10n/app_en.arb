@@ -587,6 +587,7 @@
   "ctaShare": "Share",
   "dayDone": "Day done",
   "dayFrozen": "Frozen",
+  "dayHeld": "Held",
   "dayMissed": "Missed",
   "dayNotLogged": "Not logged",
   "dayOpen": "Still open",
@@ -1335,7 +1336,7 @@
   "homeOptional": "Optional",
   "homeOptionalSubtitle": "Not scheduled today — still counts as XP.",
   "homeQuestsTitle": "Today's quests",
-  "homeRelapseBody": "This resets the streak and is visible to your friends. Being honest is the whole point — but only if it is true.",
+  "homeRelapseBody": "This resets the streak of this habit — your other habits keep theirs. Friends see it. Being honest is the whole point — but only if it is true.",
   "homeRelapseConfirm": "Log it",
   "homeRelapseTitle": "Relapse on {habit}?",
   "@homeRelapseTitle": {
@@ -2920,6 +2921,9 @@
   "setSignOut": "Sign out",
   "setSignOutBody": "Everything is saved in your account; it is back as soon as you sign in again. This phone forgets it until then.",
   "setSignOutSub": "Your data stays in your account.",
+  "setStreakMode": "How strict is your streak?",
+  "setStreakModeNote": "Applies from today. Days behind you stay counted the way they were. Your friends count your streak by the same mode.",
+  "setStreakModeSection": "Streak",
   "setSyncDone": "Up to date · {sent} sent, {received} received",
   "@setSyncDone": {
     "placeholders": {
@@ -3122,6 +3126,12 @@
       }
     }
   },
+  "streakModeBalanced": "Balanced",
+  "streakModeBalancedSub": "Every habit is due, and a miss breaks the streak. A relapse only resets that one habit — do the rest and the day still counts.",
+  "streakModeGentle": "Gentle",
+  "streakModeGentleSub": "A day counts once every habit is done. A day with at least one habit done holds the streak — it only breaks on a day with nothing done.",
+  "streakModeStrict": "Strict",
+  "streakModeStrictSub": "Every habit is due, and a miss breaks the streak. After a relapse the day does not count — but the streak holds, and your other habits keep theirs.",
   "targetClean": "clean",
   "targetCount": "{count}x",
   "@targetCount": {

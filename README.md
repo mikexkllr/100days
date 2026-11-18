@@ -66,7 +66,9 @@ without the app having to run. [`docs/home-screen-widget.md`](docs/home-screen-w
 
 Habits are either **build** (do something) or **abstain** (avoid something),
 and that changes how they are counted: a forgotten tap does not kill an
-abstinence streak, but an admitted relapse does.
+abstinence streak, but an admitted relapse does — that habit's, and no
+other. How strict the overall streak is, is yours to pick: **gentle**,
+**balanced** or **strict**.
 
 ## What the app generates
 

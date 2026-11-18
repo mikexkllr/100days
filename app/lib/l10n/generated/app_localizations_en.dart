@@ -673,6 +673,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dayFrozen => 'Frozen';
 
   @override
+  String get dayHeld => 'Held';
+
+  @override
   String get dayMissed => 'Missed';
 
   @override
@@ -1825,7 +1828,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeRelapseBody =>
-      'This resets the streak and is visible to your friends. Being honest is the whole point — but only if it is true.';
+      'This resets the streak of this habit — your other habits keep theirs. Friends see it. Being honest is the whole point — but only if it is true.';
 
   @override
   String get homeRelapseConfirm => 'Log it';
@@ -4046,6 +4049,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setSignOutSub => 'Your data stays in your account.';
 
   @override
+  String get setStreakMode => 'How strict is your streak?';
+
+  @override
+  String get setStreakModeNote =>
+      'Applies from today. Days behind you stay counted the way they were. Your friends count your streak by the same mode.';
+
+  @override
+  String get setStreakModeSection => 'Streak';
+
+  @override
   String setSyncDone(int sent, int received) {
     return 'Up to date · $sent sent, $received received';
   }
@@ -4348,6 +4361,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String statsXpToNextLevel(int remaining, int level, int current, int total) {
     return '$remaining XP to level $level ($current / $total)';
   }
+
+  @override
+  String get streakModeBalanced => 'Balanced';
+
+  @override
+  String get streakModeBalancedSub =>
+      'Every habit is due, and a miss breaks the streak. A relapse only resets that one habit — do the rest and the day still counts.';
+
+  @override
+  String get streakModeGentle => 'Gentle';
+
+  @override
+  String get streakModeGentleSub =>
+      'A day counts once every habit is done. A day with at least one habit done holds the streak — it only breaks on a day with nothing done.';
+
+  @override
+  String get streakModeStrict => 'Strict';
+
+  @override
+  String get streakModeStrictSub =>
+      'Every habit is due, and a miss breaks the streak. After a relapse the day does not count — but the streak holds, and your other habits keep theirs.';
 
   @override
   String get targetClean => 'clean';

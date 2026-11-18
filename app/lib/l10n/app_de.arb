@@ -521,6 +521,7 @@
   "ctaShare": "Teilen",
   "dayDone": "Tag geschafft",
   "dayFrozen": "Eingefroren",
+  "dayHeld": "Gehalten",
   "dayMissed": "Verpasst",
   "dayNotLogged": "Nicht eingetragen",
   "dayOpen": "Noch offen",
@@ -1068,7 +1069,7 @@
   "homeOptional": "Freiwillig",
   "homeOptionalSubtitle": "Heute nicht eingeplant — zählt trotzdem als XP.",
   "homeQuestsTitle": "Quests für heute",
-  "homeRelapseBody": "Das setzt den Streak zurück und ist für deine Freunde sichtbar. Ehrlich bleiben ist der ganze Sinn — aber nur, wenn es stimmt.",
+  "homeRelapseBody": "Das setzt den Streak dieser Gewohnheit zurück — deine anderen behalten ihren. Deine Freunde sehen es. Ehrlich bleiben ist der ganze Sinn — aber nur, wenn es stimmt.",
   "homeRelapseConfirm": "Eintragen",
   "homeRelapseTitle": "Rückfall bei {habit}?",
   "@homeRelapseTitle": {
@@ -2169,6 +2170,9 @@
   "setSignOut": "Abmelden",
   "setSignOutBody": "Alles ist in deinem Konto gespeichert und wieder da, sobald du dich neu anmeldest. Dieses Handy vergisst es bis dahin.",
   "setSignOutSub": "Deine Daten bleiben in deinem Konto.",
+  "setStreakMode": "Wie streng ist dein Streak?",
+  "setStreakModeNote": "Gilt ab heute. Vergangene Tage bleiben so gezählt, wie sie gezählt wurden. Deine Freunde zählen deinen Streak nach demselben Modus.",
+  "setStreakModeSection": "Streak",
   "setSyncDone": "Aktuell · {sent} gesendet, {received} empfangen",
   "setSyncNever": "Noch nicht synchronisiert.",
   "setSyncNow": "Jetzt synchronisieren",
@@ -2330,6 +2334,12 @@
       }
     }
   },
+  "streakModeBalanced": "Ausgewogen",
+  "streakModeBalancedSub": "Jede Gewohnheit ist fällig, und wer eine auslässt, verliert den Streak. Ein Rückfall setzt nur diese eine Gewohnheit zurück — erledigst du den Rest, zählt der Tag.",
+  "streakModeGentle": "Sanft",
+  "streakModeGentleSub": "Ein Tag zählt, wenn alles erledigt ist. Ein Tag mit mindestens einer erledigten Gewohnheit hält den Streak — er reißt erst an einem Tag ganz ohne.",
+  "streakModeStrict": "Streng",
+  "streakModeStrictSub": "Jede Gewohnheit ist fällig, und wer eine auslässt, verliert den Streak. Nach einem Rückfall zählt der Tag nicht — der Streak hält aber, und deine anderen Gewohnheiten behalten ihren.",
   "targetClean": "clean",
   "targetCount": "{count}x",
   "@targetCount": {

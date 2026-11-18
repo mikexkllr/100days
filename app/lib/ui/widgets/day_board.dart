@@ -148,6 +148,12 @@ class _BoardPainter extends CustomPainter {
           }
         case DayMark.frozen:
           canvas.drawCircle(c, r, ice);
+        case DayMark.held:
+          canvas.drawCircle(
+            c,
+            r - 0.7,
+            ring..color = fire.main.withValues(alpha: 0.7),
+          );
         case DayMark.missed:
           canvas.drawCircle(
             c,

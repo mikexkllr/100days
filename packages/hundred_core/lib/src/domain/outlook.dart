@@ -16,6 +16,10 @@ enum DayMark {
   /// A streak freeze held the day.
   frozen,
 
+  /// Not fully done, but the streak mode let it pass: the streak held
+  /// without growing — a relapse in strict mode, a partial day in gentle.
+  held,
+
   /// Scheduled, over, not done: the streak broke here.
   missed,
 
@@ -40,10 +44,10 @@ DayMark dayMarkFor({
   if (day.isBefore(challenge.startDay)) return DayMark.none;
   if (isRestDay(challenge, day)) return DayMark.rest;
   if (day.isAfter(today)) return DayMark.upcoming;
-  if (isDayComplete(challenge, day, logsByDay[day.toString()])) {
-    return DayMark.done;
-  }
+  final outcome = dayOutcome(challenge, day, logsByDay[day.toString()]);
+  if (outcome == DayOutcome.complete) return DayMark.done;
   if (frozenDays.contains(day.toString())) return DayMark.frozen;
+  if (outcome == DayOutcome.held) return DayMark.held;
   return day == today ? DayMark.open : DayMark.missed;
 }
 
@@ -155,7 +159,9 @@ List<StreakOutlook> projectOutlook({
     OutlookState state;
     if (day.isBefore(challenge.startDay)) {
       state = OutlookState.cold;
-    } else if (i == 0 && streak.doneToday) {
+    } else if (i == 0 && (streak.doneToday || streak.heldToday)) {
+      // A held day is as safe as a done one; the widget only needs to know
+      // that nothing more has to happen before midnight.
       state = OutlookState.done;
     } else if (frozenDays.contains(day.toString())) {
       state = OutlookState.frozen;

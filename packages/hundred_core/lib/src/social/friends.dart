@@ -8,9 +8,10 @@ import 'projection.dart';
 /// Days in a row on which two friends both showed up — the streak they keep
 /// together, and lose together.
 ///
-/// A day counts when each of them either completed it or had nothing
-/// scheduled (a rest day), and at least one of them completed it. Today
-/// counts once both are done; until then it is open and breaks nothing.
+/// A day counts when neither broke their own streak on it — each completed
+/// it, had it held by their streak mode, or had nothing scheduled — and at
+/// least one of them completed it. Today counts once that holds; until then
+/// it is open and breaks nothing.
 int friendStreak({
   required UserProjection a,
   required UserProjection b,
@@ -24,11 +25,16 @@ int friendStreak({
   int status(DayKey day) {
     final requiredA = requiredHabitsOn(challengeA, day).isNotEmpty;
     final requiredB = requiredHabitsOn(challengeB, day).isNotEmpty;
-    final doneA = isDayComplete(challengeA, day, a.logsByDay[day.toString()]);
-    final doneB = isDayComplete(challengeB, day, b.logsByDay[day.toString()]);
     if (!requiredA && !requiredB) return 2;
-    if ((requiredA && !doneA) || (requiredB && !doneB)) return 0;
-    return 1;
+    final outA = requiredA
+        ? dayOutcome(challengeA, day, a.logsByDay[day.toString()])
+        : null;
+    final outB = requiredB
+        ? dayOutcome(challengeB, day, b.logsByDay[day.toString()])
+        : null;
+    if (outA == DayOutcome.broken || outB == DayOutcome.broken) return 0;
+    if (outA == DayOutcome.complete || outB == DayOutcome.complete) return 1;
+    return 2;
   }
 
   final start = challengeA.startDay.isAfter(challengeB.startDay)

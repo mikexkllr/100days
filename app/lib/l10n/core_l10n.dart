@@ -89,6 +89,8 @@ extension CoreL10n on AppLocalizations {
         return dayDone;
       case DayMark.frozen:
         return dayFrozen;
+      case DayMark.held:
+        return dayHeld;
       case DayMark.missed:
         return dayMissed;
       case DayMark.rest:
@@ -100,6 +102,18 @@ extension CoreL10n on AppLocalizations {
         return dayUpcoming;
     }
   }
+
+  String streakModeName(StreakMode mode) => switch (mode) {
+        StreakMode.gentle => streakModeGentle,
+        StreakMode.balanced => streakModeBalanced,
+        StreakMode.strict => streakModeStrict,
+      };
+
+  String streakModeDescription(StreakMode mode) => switch (mode) {
+        StreakMode.gentle => streakModeGentleSub,
+        StreakMode.balanced => streakModeBalancedSub,
+        StreakMode.strict => streakModeStrictSub,
+      };
 
   String goalTitle(GoalArchetype archetype) {
     switch (archetype) {

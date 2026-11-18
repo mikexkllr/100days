@@ -118,6 +118,9 @@ Challenge publicViewOf(Challenge challenge) {
     lengthDays: challenge.lengthDays,
     cycle: challenge.cycle,
     streakFreezesRemaining: challenge.streakFreezesRemaining,
+    // Friends' phones compute the streak too, by the same rules.
+    streakMode: challenge.streakMode,
+    streakModeHistory: challenge.streakModeHistory,
   );
 }
 

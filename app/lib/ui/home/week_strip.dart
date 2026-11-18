@@ -34,7 +34,7 @@ class WeekStrip extends StatelessWidget {
   final ValueChanged<DayKey>? onTapDay;
 
   static bool _chains(DayMark mark) =>
-      mark == DayMark.done || mark == DayMark.frozen;
+      mark == DayMark.done || mark == DayMark.frozen || mark == DayMark.held;
 
   @override
   Widget build(BuildContext context) {
@@ -170,6 +170,13 @@ class DayLamp extends StatelessWidget {
       case DayMark.frozen:
         return _filled(
             AppGradients.cool, AppColors.cool, Icons.ac_unit, AppColors.ink);
+      case DayMark.held:
+        // Held, not lit: the chain goes on, the lamp stays half-dark.
+        return _hollow(
+          fire.main.withValues(alpha: 0.7),
+          Icon(Icons.shield_outlined,
+              size: size * 0.48, color: fire.main.withValues(alpha: 0.9)),
+        );
       case DayMark.missed:
         return _hollow(
           AppColors.danger.withValues(alpha: 0.5),

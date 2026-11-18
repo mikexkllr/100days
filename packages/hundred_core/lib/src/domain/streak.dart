@@ -13,6 +13,7 @@ class StreakStats {
     required this.doneToday,
     required this.atRisk,
     required this.freezesUsed,
+    this.heldToday = false,
     this.previousBest = 0,
   });
 
@@ -35,6 +36,10 @@ class StreakStats {
   /// Today is scheduled, is not done, and the streak dies at midnight.
   final bool atRisk;
 
+  /// Today is not done but the streak mode lets it pass: the streak is safe
+  /// until tomorrow without growing today.
+  final bool heldToday;
+
   final int freezesUsed;
 
   /// The longest run that ended before the current one — the record the
@@ -51,26 +56,69 @@ class StreakStats {
       scheduledDays == 0 ? 0 : completedDays / scheduledDays;
 }
 
-/// Was this day fully done?
+/// What a scheduled day does to the challenge-wide streak.
+enum DayOutcome {
+  /// Counts: the streak grows by one.
+  complete,
+
+  /// Holds: the streak survives the day but does not grow.
+  held,
+
+  /// Breaks the streak — or, today, would break it at midnight.
+  broken,
+}
+
+/// How [day] counts for the challenge-wide streak, by the challenge's streak
+/// mode on that day. Rest days and freezes are not this function's business.
 ///
-/// A day counts when every habit scheduled for it is logged at or above target
-/// and no relapse was confessed. Half a day is not a day.
-bool isDayComplete(
+/// A relapse only ever costs the habit it was logged on: in no mode does it
+/// turn the other habits' work into a missed day. What does break the
+/// streak is a scheduled habit left undone (in [StreakMode.gentle], only a
+/// day with nothing done at all).
+DayOutcome dayOutcome(
   Challenge challenge,
   DayKey day,
   DayLog? log,
 ) {
   final required = requiredHabitsOn(challenge, day);
-  if (required.isEmpty) return false;
-  if (log == null) return false;
-  if (log.hasRelapse) return false;
+  if (required.isEmpty || log == null) return DayOutcome.broken;
+  var done = 0;
+  var relapsed = 0;
+  var missing = 0;
   for (final habit in required) {
     final entry = log.entryFor(habit.id);
-    if (entry == null || entry.relapse) return false;
-    if (entry.value < habit.target) return false;
+    if (entry != null && entry.relapse) {
+      relapsed++;
+    } else if (entry != null && entry.value >= habit.target) {
+      done++;
+    } else {
+      missing++;
+    }
   }
-  return true;
+  // Nothing done is nothing done, whatever the reason.
+  if (done == 0) return DayOutcome.broken;
+  switch (challenge.streakModeOn(day)) {
+    case StreakMode.gentle:
+      return missing + relapsed == 0 ? DayOutcome.complete : DayOutcome.held;
+    case StreakMode.balanced:
+      return missing > 0 ? DayOutcome.broken : DayOutcome.complete;
+    case StreakMode.strict:
+      if (missing > 0) return DayOutcome.broken;
+      return relapsed > 0 ? DayOutcome.held : DayOutcome.complete;
+  }
 }
+
+/// Did this day count for the challenge-wide streak?
+///
+/// See [dayOutcome]: in the default mode a day counts when every habit
+/// scheduled for it is logged at or above target, a relapsed habit aside.
+/// Half a day is not a day.
+bool isDayComplete(
+  Challenge challenge,
+  DayKey day,
+  DayLog? log,
+) =>
+    dayOutcome(challenge, day, log) == DayOutcome.complete;
 
 /// Challenge-wide streak, counted in scheduled days.
 ///
@@ -97,14 +145,15 @@ StreakStats computeStreak({
     final day = challenge.startDay.addDays(i);
     if (isRestDay(challenge, day)) continue;
     scheduled++;
-    final complete = isDayComplete(challenge, day, logsByDay[day.toString()]);
+    final outcome = dayOutcome(challenge, day, logsByDay[day.toString()]);
     final frozen = frozenDays.contains(day.toString());
-    if (complete) {
+    if (outcome == DayOutcome.complete) {
       completed++;
       running++;
       if (running > longest) longest = running;
-    } else if (frozen) {
-      // A freeze holds the streak but does not count as a completed day.
+    } else if (frozen || outcome == DayOutcome.held) {
+      // A freeze — or a day the streak mode lets pass — holds the streak but
+      // does not count as a completed day.
       if (running > longest) longest = running;
     } else if (day == now) {
       // Today is still open — the streak is not broken until midnight.
@@ -115,8 +164,10 @@ StreakStats computeStreak({
     }
   }
 
-  final doneToday = !isRestDay(challenge, now) &&
-      isDayComplete(challenge, now, logsByDay[now.toString()]);
+  final restToday = isRestDay(challenge, now);
+  final todayOutcome = dayOutcome(challenge, now, logsByDay[now.toString()]);
+  final doneToday = !restToday && todayOutcome == DayOutcome.complete;
+  final heldToday = !restToday && todayOutcome == DayOutcome.held;
 
   return StreakStats(
     current: running,
@@ -124,7 +175,8 @@ StreakStats computeStreak({
     completedDays: completed,
     scheduledDays: scheduled,
     doneToday: doneToday,
-    atRisk: !isRestDay(challenge, now) && !doneToday,
+    heldToday: heldToday,
+    atRisk: !restToday && todayOutcome == DayOutcome.broken,
     freezesUsed: frozenDays.length,
     previousBest: previousBest,
   );

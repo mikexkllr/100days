@@ -113,8 +113,23 @@ writing (`timestamp`). When they differ it was a backfill, and the feed says so.
 
 ## Streak rules
 
-- A day counts when **every habit scheduled for that day** hits its target and
-  no relapse is logged. Half a day is not a day.
+- **A relapse costs only its own habit.** It resets that habit's streak and no
+  other: failing at sugar does not undo a month in the gym.
+- **Three streak modes** decide what a day that is not fully done does to the
+  challenge-wide streak (`StreakMode`). A day either *counts* (+1), *holds*
+  (survives, +0) or *breaks* the streak:
+
+  | | All done | A relapse, rest done | A habit left undone | Nothing done |
+  | --- | --- | --- | --- | --- |
+  | Gentle | counts | holds | holds | breaks |
+  | Balanced (default) | counts | counts | breaks | breaks |
+  | Strict | counts | holds | breaks | breaks |
+
+  A day on which every habit was relapsed counts as nothing done. A mode
+  change applies from the day it is made; earlier days keep the mode they
+  were counted in (`Challenge.streakModeHistory`), so going gentle cannot
+  bring a broken streak back. The public view of the challenge carries the
+  mode, so friends' phones count by the same rules.
 - **Rest days break nothing.** Someone training four days a week is not
   punished for Wednesdays. `kWeekdaySpread` fixes which weekdays are occupied
   for N days per week — deterministically, so every device computes the same

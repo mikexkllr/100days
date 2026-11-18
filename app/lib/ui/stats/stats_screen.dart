@@ -290,6 +290,7 @@ class _BoardCard extends StatelessWidget {
               for (final DayMark mark in const <DayMark>[
                 DayMark.done,
                 DayMark.frozen,
+                DayMark.held,
                 DayMark.missed,
                 DayMark.rest,
               ])

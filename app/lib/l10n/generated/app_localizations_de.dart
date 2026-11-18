@@ -674,6 +674,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dayFrozen => 'Eingefroren';
 
   @override
+  String get dayHeld => 'Gehalten';
+
+  @override
   String get dayMissed => 'Verpasst';
 
   @override
@@ -1830,7 +1833,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get homeRelapseBody =>
-      'Das setzt den Streak zurück und ist für deine Freunde sichtbar. Ehrlich bleiben ist der ganze Sinn — aber nur, wenn es stimmt.';
+      'Das setzt den Streak dieser Gewohnheit zurück — deine anderen behalten ihren. Deine Freunde sehen es. Ehrlich bleiben ist der ganze Sinn — aber nur, wenn es stimmt.';
 
   @override
   String get homeRelapseConfirm => 'Eintragen';
@@ -4060,6 +4063,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get setSignOutSub => 'Deine Daten bleiben in deinem Konto.';
 
   @override
+  String get setStreakMode => 'Wie streng ist dein Streak?';
+
+  @override
+  String get setStreakModeNote =>
+      'Gilt ab heute. Vergangene Tage bleiben so gezählt, wie sie gezählt wurden. Deine Freunde zählen deinen Streak nach demselben Modus.';
+
+  @override
+  String get setStreakModeSection => 'Streak';
+
+  @override
   String setSyncDone(int sent, int received) {
     return 'Aktuell · $sent gesendet, $received empfangen';
   }
@@ -4364,6 +4377,27 @@ class AppLocalizationsDe extends AppLocalizations {
   String statsXpToNextLevel(int remaining, int level, int current, int total) {
     return 'Noch $remaining XP bis Level $level ($current / $total)';
   }
+
+  @override
+  String get streakModeBalanced => 'Ausgewogen';
+
+  @override
+  String get streakModeBalancedSub =>
+      'Jede Gewohnheit ist fällig, und wer eine auslässt, verliert den Streak. Ein Rückfall setzt nur diese eine Gewohnheit zurück — erledigst du den Rest, zählt der Tag.';
+
+  @override
+  String get streakModeGentle => 'Sanft';
+
+  @override
+  String get streakModeGentleSub =>
+      'Ein Tag zählt, wenn alles erledigt ist. Ein Tag mit mindestens einer erledigten Gewohnheit hält den Streak — er reißt erst an einem Tag ganz ohne.';
+
+  @override
+  String get streakModeStrict => 'Streng';
+
+  @override
+  String get streakModeStrictSub =>
+      'Jede Gewohnheit ist fällig, und wer eine auslässt, verliert den Streak. Nach einem Rückfall zählt der Tag nicht — der Streak hält aber, und deine anderen Gewohnheiten behalten ihren.';
 
   @override
   String get targetClean => 'clean';
