@@ -19,6 +19,9 @@ jobs:
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
+          # Pinned: a new stable can deprecate APIs (fatal with --fatal-infos)
+          # or raise the minimum Android Gradle Plugin. Move it on purpose.
+          flutter-version: 3.47.9
           cache: true
       - run: dart pub get
       - run: dart analyze --fatal-infos
@@ -46,6 +49,9 @@ jobs:
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
+          # Pinned: a new stable can deprecate APIs (fatal with --fatal-infos)
+          # or raise the minimum Android Gradle Plugin. Move it on purpose.
+          flutter-version: 3.47.9
           cache: true
       - run: flutter pub get
       # Regenerate and fail if the committed output is stale.
