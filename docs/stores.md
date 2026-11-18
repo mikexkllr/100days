@@ -19,8 +19,52 @@ Secrets:
   (see [`play-release.md`](play-release.md)).
 - `app-store` environment: `APP_STORE_CONNECT_KEY_ID`,
   `APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_KEY_BASE64` (an App Store
-  Connect API key with the App Manager role, the `.p8` file base64-encoded).
-  Without them the iOS job says so and stops.
+  Connect API key with the **Admin** role, the `.p8` file base64-encoded).
+  Admin, because the export uses Apple's cloud signing ("cloud-managed
+  distribution certificate"), which App Manager keys may not use. Without
+  them the iOS job says so and stops.
+- Repository secrets `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`,
+  `SUPABASE_PROJECT_REF` for `supabase.yml` (migrations and functions on
+  `main`); without them that job skips.
+
+## What the stores are set up with
+
+| | App Store | Google Play |
+| --- | --- | --- |
+| Name | 100 Days & Beyond (DE: 100 Tage & mehr) | same |
+| Bundle / package | `com.hundreddays.hundredDays` | `com.hundreddays.hundred_days` |
+| Category | Health & Fitness, Lifestyle | Health & fitness |
+| Premium | group "Premium": `hundred_days_premium_yearly` €19.99, `hundred_days_premium_monthly` €2.99 | subscriptions with the same ids, base plans `yearly` / `monthly`, DE €19.99 / €2.99 |
+| Privacy | label: name, e-mail, health, fitness, photos, other content, user id, device id, purchases — app functionality, linked to the user, no tracking | data safety form, same data, deletion URL |
+| Age | 16+ in the terms; age rating from `app/ios/fastlane/age_rating.json` | IARC questionnaire, target audience 16–17 and 18+ |
+| Policies | | ads: no; advertising ID: no; health: activity & nutrition; finance: none; government: no |
+
+Purchases are checked by the `verify-purchase` function: the App Store
+Server API with an **In-App Purchase key** (`APPSTORE_ISSUER_ID`,
+`APPSTORE_KEY_ID`, `APPSTORE_PRIVATE_KEY`, `APP_BUNDLE_ID`) and the Google
+Play Developer API with a service account (`GOOGLE_SERVICE_ACCOUNT_JSON`,
+`ANDROID_PACKAGE_NAME`) that has "View financial data" in the Play Console.
+See [`self-hosting.md`](self-hosting.md) for setting function secrets.
+
+Google sign-in uses the Google Cloud project's OAuth consent screen
+("100 Days & Beyond", in production) and OAuth clients: a web client (its id
+is the `serverClientId` and in Supabase's Google provider), an iOS client
+(its reversed id is a URL scheme in `ios/Runner/Info.plist`) and one Android
+client per signing certificate (debug, upload key, Play app signing). The
+hosted instance's ids are the defaults in `lib/config/backend_config.dart`.
+
+## Before the first review
+
+- App Review information in App Store Connect: the demo account and a note
+  ("Sign in with email" on the first screen).
+- A review screenshot per App Store subscription, taken from a TestFlight
+  build with a sandbox account (the purchase sheet must be visible).
+- Closed testing on Google Play: a tester list (at least 12 people for
+  14 days) before production access can be requested.
+- Push notifications need a Firebase project (Android and iOS apps, the APNs
+  key uploaded), `FCM_SERVICE_ACCOUNT_JSON` as a function secret and the
+  `FIREBASE_*` build defines (`APP_DEFINES_JSON`). Without them the app runs
+  with local reminders only.
 
 ## The listing
 

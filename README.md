@@ -198,11 +198,14 @@ manual entry, households with a shared meal plan and shopping list, the AI
 planner and planning chat, free and premium AI or one's own key, friends by
 invite, search and address book, friend streaks and quests, a public league
 with divisions and one among friends, nudges and cheers, sync through the
-backend with an offline outbox, English and German, and a manual pipeline
-that ships a signed AAB to the Google Play internal track.
+backend with an offline outbox, English and German, and release pipelines:
+`dev` goes to Google Play internal testing and TestFlight, `main` to Play
+closed testing and the App Store version, with the store listings, the
+website (`site/`) and the demo build for screenshots in the repository —
+[`docs/stores.md`](docs/stores.md).
 
-Needs setting up outside the code before it works for real — OAuth clients,
-the AI key, store products, Firebase: [`docs/self-hosting.md`](docs/self-hosting.md).
+For your own backend — OAuth clients, the AI key, store products, Firebase:
+[`docs/self-hosting.md`](docs/self-hosting.md).
 What is still missing: [`docs/roadmap.md`](docs/roadmap.md).
 
 ## Licence
