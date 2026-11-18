@@ -1,0 +1,31 @@
+Pick what you want to change. Show up every day for 100 days. Do it with friends.
+
+100 Days & Beyond turns a big goal into one small check-in a day: no sugar, reading, training, cold showers — whatever your 100 days are about. Your streak grows into Funki, a flame with a face that changes form as you keep going, and the app makes the good days feel good.
+
+DAILY CHECK-INS
+• Your habits for today on one screen, checked off with a press and hold
+• A streak, XP and levels, milestones on days 1, 3, 7, 14, 30 …
+• Rest days and freezes, so one bad day does not end everything
+• A home screen widget with your streak
+
+WITH FRIENDS
+• Find friends from your contacts, by username, by link or QR code
+• See their check-ins, cheer them on, nudge them when they are late
+• Friend streaks and weekly quests you do together
+• Weekly leagues with divisions: climb from Bronze to the top
+
+EAT TO PLAN
+• Log a meal from a photo, a barcode or a few words — the AI estimates calories and protein, you confirm
+• Let the AI plan your week, for everyone in your household, sized to each person's targets
+• One shared shopping list, built from the plan, ticked off live in the shop
+• Weekly or your own shopping rhythm
+
+FREE AND PREMIUM
+The app is free with a monthly AI allowance. Premium gives you a much larger allowance and the AI coach. You can also use your own API key from Google, Anthropic or OpenAI instead.
+
+OPEN SOURCE
+Every line of the app and the server is on GitHub. You can run your own server, and the app connects to it.
+
+Privacy: no ads, no tracking, no analytics. Meal photos are not stored. Details: https://mikexkllr.github.io/100days/privacy.html
+
+Calorie values and AI estimates are for orientation, not medical advice.

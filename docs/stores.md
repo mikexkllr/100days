@@ -55,7 +55,8 @@ flutter run -t lib/main_demo.dart --dart-define=DEMO_LOCALE=en
 The store screenshots are taken from it on an iPhone 17 Pro Max simulator
 (1320×2868) with the status bar set to 9:41
 (`xcrun simctl status_bar <device> override --time 9:41 …`); the Play ones
-are the same images padded to 2:1 and scaled to 1080×2160.
+are the same images padded to 9:16 and scaled to 1080×1920. Play's default
+listing language is en-GB, so `en-GB` is a copy of `en-US`.
 
 ## Review accounts
 
