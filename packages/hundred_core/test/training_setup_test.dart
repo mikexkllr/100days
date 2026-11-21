@@ -62,6 +62,162 @@ void main() {
       expect(plan.weeks[1].workouts.first.sessionIndex, 1);
     });
   });
+  group('rotation', () {
+    // A Monday; adding 0..6 days gives every start weekday.
+    final monday = DayKey(2026, 3, 2);
+
+    /// The workouts of the first [days] calendar days, in the order they
+    /// come up.
+    List<Workout> walk(TrainingPlan plan, DayKey start, {int days = 140}) =>
+        <Workout>[
+          for (var d = 0; d < days; d++)
+            if (plan.workoutFor(start, start.addDays(d)) case final Workout w)
+              w,
+        ];
+
+    test('the review\'s cases: no session twice in a row', () {
+      final wednesday = monday.addDays(2);
+      final upperLower = buildTrainingPlan(
+        _goal(
+          days: 3,
+          training:
+              suggestTrainingSetup(_goal(days: 3), split: SplitKind.upperLower),
+        ),
+        startWeekday: DateTime.wednesday,
+      );
+      expect(
+        walk(upperLower, wednesday, days: 14 + 2).map((Workout w) => w.kind),
+        <WorkoutKind>[
+          WorkoutKind.upper, WorkoutKind.lower, WorkoutKind.upper, // wk 1
+          WorkoutKind.lower, WorkoutKind.upper, WorkoutKind.lower, // wk 2
+          WorkoutKind.upper, // the next Wednesday
+        ],
+      );
+
+      final ppl = buildTrainingPlan(
+        _goal(
+          days: 4,
+          training: suggestTrainingSetup(_goal(days: 4),
+              split: SplitKind.pushPullLegs),
+        ),
+        startWeekday: DateTime.wednesday,
+      );
+      expect(
+        walk(ppl, wednesday, days: 7).map((Workout w) => w.kind),
+        <WorkoutKind>[
+          WorkoutKind.push,
+          WorkoutKind.pull,
+          WorkoutKind.legs,
+          WorkoutKind.push,
+        ],
+      );
+    });
+
+    test('every split, day count and start weekday rotates in order', () {
+      for (final SplitKind split in SplitKind.values) {
+        for (var days = 2; days <= 6; days++) {
+          final setup = suggestTrainingSetup(_goal(days: days), split: split);
+          final goal = _goal(days: days, training: setup);
+          for (var offset = 0; offset < 7; offset++) {
+            final start = monday.addDays(offset);
+            final plan = buildTrainingPlan(
+              goal,
+              startWeekday: start.toDateTime().weekday,
+            );
+            final what = '${split.name}, $days days, start +$offset';
+            final workouts = walk(plan, start);
+
+            // 20 weeks of [days] sessions each, in rotation order.
+            expect(workouts, hasLength(20 * days), reason: what);
+            for (var k = 0; k < workouts.length; k++) {
+              final expected = k % setup.sessions.length;
+              expect(workouts[k].sessionIndex, expected, reason: '$what #$k');
+              expect(workouts[k].kind, setup.sessions[expected].kind,
+                  reason: '$what #$k');
+            }
+
+            // Each plan week lists its days in calendar order from the start.
+            final week = plan.week(3);
+            final order = week.workouts
+                .map(
+                    (Workout w) => (w.weekday - start.toDateTime().weekday) % 7)
+                .toList();
+            expect(order, List<int>.of(order)..sort(), reason: what);
+            expect(week.workouts.map((Workout w) => w.weekday).toSet(),
+                kWeekdaySpread[days]!.toSet(),
+                reason: what);
+          }
+        }
+      }
+    });
+
+    test('a plan built for Monday still rotates right for another start', () {
+      final goal = _goal(days: 3);
+      final start = monday.addDays(4); // Friday
+      final forMonday = buildTrainingPlan(goal);
+      final forFriday = buildTrainingPlan(goal, startWeekday: DateTime.friday);
+      expect(
+        walk(forMonday, start).map((Workout w) => w.sessionIndex),
+        walk(forFriday, start).map((Workout w) => w.sessionIndex),
+      );
+    });
+
+    test('buildPlan lays the weeks out from the challenge start', () {
+      final start = monday.addDays(2); // Wednesday
+      final plan = buildPlan(Challenge(
+        id: 'c',
+        goal: _goal(days: 3),
+        habits: <Habit>[Habit.fromCategory(HabitCategory.gym)],
+        startDay: start,
+      )).training!;
+      expect(plan.weeks.first.workouts.map((Workout w) => w.weekday),
+          <int>[DateTime.wednesday, DateTime.friday, DateTime.monday]);
+      expect(plan.workoutFor(start, start)!.sessionIndex, 0);
+      expect(plan.workoutFor(start, start.addDays(-1)), isNull);
+    });
+
+    test('an empty session is left out of the rotation', () {
+      final suggested =
+          suggestTrainingSetup(_goal(days: 3), split: SplitKind.pushPullLegs);
+      final setup = suggested.withSession(
+          1, suggested.sessions[1].copyWith(exercises: const <ExerciseSlot>[]));
+      expect(setup.isTrainable, isFalse);
+      expect(suggested.isTrainable, isTrue);
+
+      final plan = buildTrainingPlan(_goal(days: 3, training: setup));
+      final kinds = <WorkoutKind>[
+        for (final TrainingWeek w in plan.weeks.take(2))
+          for (final Workout workout in w.workouts) workout.kind,
+      ];
+      expect(kinds, <WorkoutKind>[
+        WorkoutKind.push,
+        WorkoutKind.legs,
+        WorkoutKind.push,
+        WorkoutKind.legs,
+        WorkoutKind.push,
+        WorkoutKind.legs,
+      ]);
+      expect(
+        plan.weeks.every((TrainingWeek w) =>
+            w.workouts.every((Workout x) => x.blocks.isNotEmpty)),
+        isTrue,
+      );
+    });
+
+    test('setups compare by value, so the editor can tell an edit', () {
+      final a = suggestTrainingSetup(_goal(days: 4));
+      final b = suggestTrainingSetup(_goal(days: 4));
+      expect(a, b);
+      expect(a.hashCode, b.hashCode);
+      final edited = a.withSession(
+          0,
+          a.sessions[0].copyWith(exercises: <ExerciseSlot>[
+            a.sessions[0].exercises.first.copyWith(sets: 9),
+            ...a.sessions[0].exercises.skip(1),
+          ]));
+      expect(edited, isNot(a));
+    });
+  });
 
   group('suggested exercises', () {
     test('a push day trains triceps and a pull day biceps', () {

@@ -51,7 +51,12 @@ ChallengePlan buildPlan(Challenge challenge) {
 
   return ChallengePlan(
     generatedAt: DateTime.now(),
-    training: wantsTraining ? buildTrainingPlan(goal) : null,
+    training: wantsTraining
+        ? buildTrainingPlan(
+            goal,
+            startWeekday: challenge.startDay.toDateTime().weekday,
+          )
+        : null,
     nutrition: wantsNutrition ? buildNutritionPlan(goal) : null,
   );
 }
