@@ -71,6 +71,35 @@ class PersonResult {
   final String? username;
 }
 
+/// Why the server did not send a friend request.
+enum FriendRequestProblem {
+  /// The day's requests are used up.
+  tooMany,
+
+  /// They said no not long ago; they can still ask.
+  declinedRecently,
+
+  /// Gone, or not reachable for the user (a block, either way round).
+  unavailable,
+}
+
+class FriendRequestRejection implements Exception {
+  const FriendRequestRejection(this.problem);
+  final FriendRequestProblem problem;
+
+  @override
+  String toString() => 'FriendRequestRejection(${problem.name})';
+}
+
+/// What a report is about. The names are what the server stores.
+enum ReportReason { spam, harassment, inappropriate, cheating, other }
+
+/// Phone numbers in the address book are not matched: the backend has no
+/// SMS verification switched on, so nobody's number is registered and every
+/// one uploaded would be hashed for nothing. Turn this on together with
+/// phone verification in Auth.
+const bool kMatchPhoneNumbers = false;
+
 /// Why a username was not taken.
 enum UsernameProblem { invalid, taken }
 
@@ -99,12 +128,13 @@ class SocialSettings {
   final Map<String, bool> notify;
 
   SocialSettings copyWith({
+    bool? findable,
     bool? leagueOptIn,
     String? language,
     Map<String, bool>? notify,
   }) =>
       SocialSettings(
-        findable: findable,
+        findable: findable ?? this.findable,
         leagueOptIn: leagueOptIn ?? this.leagueOptIn,
         language: language ?? this.language,
         notify: notify ?? this.notify,
@@ -129,11 +159,19 @@ class GlobalLeagueRow {
 }
 
 class GlobalLeague {
-  const GlobalLeague({required this.division, required this.rows});
+  const GlobalLeague({
+    required this.division,
+    required this.rows,
+    int? groupSize,
+  }) : groupSize = groupSize ?? rows.length;
 
   /// Index into hundred_core's League enum.
   final int division;
   final List<GlobalLeagueRow> rows;
+
+  /// Everyone in the group, also those left out of [rows] because of a
+  /// block: promotion and demotion count them all.
+  final int groupSize;
 }
 
 /// The username rule the server enforces: 3–20 of a–z, 0–9 and _.
@@ -147,7 +185,8 @@ abstract class SocialBackend {
   /// Accepted friends and open requests in both directions.
   Future<List<FriendLink>> friendships();
 
-  /// Fires when a friendship of the user changes on the server.
+  /// Fires when a friendship of the user, or a request to or from them,
+  /// changes on the server.
   Stream<void> get changes;
 
   Future<String> myInviteCode();
@@ -163,11 +202,29 @@ abstract class SocialBackend {
   Future<String> redeemInvite(String code);
 
   /// True when this made them friends straight away (they had asked too).
+  /// Throws [FriendRequestRejection] when the server will not send it.
   Future<bool> sendFriendRequest(String userId);
 
   Future<void> respondToRequest(String requesterId, {required bool accept});
 
+  /// Ends a friendship, or withdraws or turns down a request.
   Future<void> removeFriend(String userId);
+
+  /// Shuts [userId] out: ends whatever there was between the two, and
+  /// neither can ask, invite or find the other until it is lifted.
+  Future<void> blockUser(String userId);
+
+  Future<void> unblockUser(String userId);
+
+  /// The people the user blocked, newest first.
+  Future<List<PersonResult>> blockedPeople();
+
+  /// Tells the operator about [userId]. Nobody else sees it.
+  Future<void> reportUser(
+    String userId, {
+    required ReportReason reason,
+    String details = '',
+  });
 
   /// The name and emoji everyone else sees, e.g. in a friend request.
   Future<void> updateProfile({
@@ -197,8 +254,10 @@ abstract class SocialBackend {
   Future<SocialSettings> settings();
   Future<void> saveSettings(SocialSettings settings);
 
-  /// The user's XP this week for the public league.
-  Future<void> reportWeekXp(String week, int xp);
+  /// The user's XP this week for the public league. False when the server
+  /// did not count it: a week no time zone is in, a closed week, or the
+  /// user left the public league.
+  Future<bool> reportWeekXp(String week, int xp);
 
   /// The user's league group this week, or null before the first report.
   Future<GlobalLeague?> league(String week);
@@ -221,14 +280,23 @@ class SupabaseSocialBackend implements SocialBackend {
   final StreamController<void> _changes = StreamController<void>.broadcast();
   RealtimeChannel? _channel;
 
+  /// Listens to the user's own row in `social_pings`, which the server
+  /// touches whenever a friendship of theirs changes. Not to `friendships`
+  /// itself: Realtime hands out deleted rows' keys without asking the
+  /// policies, and those keys are pairs of people.
   @override
   Stream<void> get changes {
     _channel ??= _client
-        .channel('friendships:$userId')
+        .channel('social-pings:$userId')
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
-          table: 'friendships',
+          table: 'social_pings',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: userId,
+          ),
           callback: (PostgresChangePayload _) => _changes.add(null),
         )
         .subscribe();
@@ -313,10 +381,24 @@ class SupabaseSocialBackend implements SocialBackend {
   }
 
   @override
-  Future<bool> sendFriendRequest(String otherId) async =>
-      await _client.rpc('send_friend_request',
-          params: <String, dynamic>{'p_target': otherId}) ==
-      'accepted';
+  Future<bool> sendFriendRequest(String otherId) async {
+    try {
+      return await _client.rpc('send_friend_request',
+              params: <String, dynamic>{'p_target': otherId}) ==
+          'accepted';
+    } on PostgrestException catch (error) {
+      // The codes send_friend_request() raises; anything else is the
+      // network or the server, and stays what it is.
+      final FriendRequestProblem? problem = switch (error.code) {
+        'PT429' => FriendRequestProblem.tooMany,
+        'PT409' => FriendRequestProblem.declinedRecently,
+        'P0002' => FriendRequestProblem.unavailable,
+        _ => null,
+      };
+      if (problem != null) throw FriendRequestRejection(problem);
+      rethrow;
+    }
+  }
 
   @override
   Future<void> respondToRequest(String requesterId, {required bool accept}) =>
@@ -328,6 +410,41 @@ class SupabaseSocialBackend implements SocialBackend {
   @override
   Future<void> removeFriend(String otherId) => _client
       .rpc('remove_friend', params: <String, dynamic>{'p_other': otherId});
+
+  @override
+  Future<void> blockUser(String otherId) =>
+      _client.rpc('block_user', params: <String, dynamic>{'p_target': otherId});
+
+  @override
+  Future<void> unblockUser(String otherId) => _client
+      .rpc('unblock_user', params: <String, dynamic>{'p_target': otherId});
+
+  @override
+  Future<List<PersonResult>> blockedPeople() async {
+    final Object? rows = await _client.rpc('my_blocks');
+    return <PersonResult>[
+      for (final Object? r in rows is List ? rows : const <Object?>[])
+        if (r is Map)
+          PersonResult(
+            userId: r['user_id'] as String,
+            displayName: r['display_name'] as String? ?? '',
+            emoji: r['emoji'] as String? ?? '🙂',
+            username: r['username'] as String?,
+          ),
+    ];
+  }
+
+  @override
+  Future<void> reportUser(
+    String otherId, {
+    required ReportReason reason,
+    String details = '',
+  }) =>
+      _client.rpc('report_user', params: <String, dynamic>{
+        'p_target': otherId,
+        'p_reason': reason.name,
+        'p_details': details.trim(),
+      });
 
   @override
   Future<void> updateProfile({
@@ -396,7 +513,7 @@ class SupabaseSocialBackend implements SocialBackend {
       body: <String, dynamic>{
         'action': 'match',
         'emails': emails,
-        'phones': phones,
+        'phones': kMatchPhoneNumbers ? phones : const <String>[],
       },
     );
     final Object? matches = (response.data as Map?)?['matches'];
@@ -453,10 +570,12 @@ class SupabaseSocialBackend implements SocialBackend {
       });
 
   @override
-  Future<void> reportWeekXp(String week, int xp) => _client.rpc(
+  Future<bool> reportWeekXp(String week, int xp) async =>
+      await _client.rpc(
         'report_week_xp',
         params: <String, dynamic>{'p_week': week, 'p_xp': xp},
-      );
+      ) ==
+      true;
 
   @override
   Future<GlobalLeague?> league(String week) async {
@@ -465,6 +584,7 @@ class SupabaseSocialBackend implements SocialBackend {
     if (rows is! List || rows.isEmpty) return null;
     return GlobalLeague(
       division: ((rows.first as Map)['division'] as num?)?.toInt() ?? 1,
+      groupSize: ((rows.first as Map)['group_size'] as num?)?.toInt(),
       rows: <GlobalLeagueRow>[
         for (final Object? r in rows)
           if (r is Map)
@@ -559,17 +679,40 @@ class MemorySocialBackend implements SocialBackend {
     return preview.userId;
   }
 
+  /// Test hook: every call that would reach the server fails, as without a
+  /// signal.
+  bool offline = false;
+
+  /// Test hook: the server turns friend requests down for this reason.
+  FriendRequestProblem? refuseRequests;
+
+  /// Test hooks: who the user blocked, and what they reported.
+  final Map<String, PersonResult> blocked = <String, PersonResult>{};
+  final List<(String, ReportReason, String)> reports =
+      <(String, ReportReason, String)>[];
+
+  void _reachServer() {
+    if (offline) throw Exception('offline');
+  }
+
   @override
   Future<bool> sendFriendRequest(String otherId) async {
+    _reachServer();
+    if (refuseRequests != null) throw FriendRequestRejection(refuseRequests!);
+    if (blocked.containsKey(otherId)) {
+      throw const FriendRequestRejection(FriendRequestProblem.unavailable);
+    }
     final FriendLink? existing = _links[otherId];
     if (existing?.status == FriendStatus.incoming) {
       link(_withStatus(existing!, FriendStatus.friends));
       return true;
     }
+    final PersonResult? known =
+        people.where((PersonResult p) => p.userId == otherId).firstOrNull;
     link(FriendLink(
       userId: otherId,
-      displayName: existing?.displayName ?? '',
-      emoji: existing?.emoji ?? '🙂',
+      displayName: existing?.displayName ?? known?.displayName ?? '',
+      emoji: existing?.emoji ?? known?.emoji ?? '🙂',
       status: existing?.status ?? FriendStatus.outgoing,
     ));
     return existing?.status == FriendStatus.friends;
@@ -577,6 +720,7 @@ class MemorySocialBackend implements SocialBackend {
 
   @override
   Future<void> respondToRequest(String requesterId, {required bool accept}) async {
+    _reachServer();
     final FriendLink? existing = _links[requesterId];
     if (existing == null || existing.status != FriendStatus.incoming) return;
     if (accept) {
@@ -589,8 +733,46 @@ class MemorySocialBackend implements SocialBackend {
 
   @override
   Future<void> removeFriend(String otherId) async {
+    _reachServer();
     _links.remove(otherId);
     _changes.add(null);
+  }
+
+  @override
+  Future<void> blockUser(String otherId) async {
+    _reachServer();
+    final FriendLink? link = _links.remove(otherId);
+    final PersonResult? known =
+        people.where((PersonResult p) => p.userId == otherId).firstOrNull;
+    blocked[otherId] = PersonResult(
+      userId: otherId,
+      displayName: link?.displayName ?? known?.displayName ?? '',
+      emoji: link?.emoji ?? known?.emoji ?? '🙂',
+      username: known?.username,
+    );
+    _changes.add(null);
+  }
+
+  @override
+  Future<void> unblockUser(String otherId) async {
+    _reachServer();
+    blocked.remove(otherId);
+  }
+
+  @override
+  Future<List<PersonResult>> blockedPeople() async {
+    _reachServer();
+    return blocked.values.toList().reversed.toList();
+  }
+
+  @override
+  Future<void> reportUser(
+    String otherId, {
+    required ReportReason reason,
+    String details = '',
+  }) async {
+    _reachServer();
+    reports.add((otherId, reason, details));
   }
 
   @override
@@ -631,20 +813,30 @@ class MemorySocialBackend implements SocialBackend {
     if (q.length < 2) return const <PersonResult>[];
     return people
         .where((PersonResult p) =>
-            (p.username?.startsWith(q) ?? false) ||
-            p.displayName.toLowerCase().startsWith(q))
+            !blocked.containsKey(p.userId) &&
+            ((p.username?.startsWith(q) ?? false) ||
+                p.displayName.toLowerCase().startsWith(q)))
         .toList();
   }
+
+  /// Test hook: the phone numbers the last match sent.
+  List<String>? matchedPhones;
 
   @override
   Future<List<PersonResult>> matchContacts({
     required List<String> emails,
     required List<String> phones,
-  }) async =>
-      people;
+  }) async {
+    _reachServer();
+    matchedPhones = kMatchPhoneNumbers ? phones : const <String>[];
+    return people
+        .where((PersonResult p) => !blocked.containsKey(p.userId))
+        .toList();
+  }
 
   @override
   Future<void> setFindable(bool findable) async {
+    _reachServer();
     _settings = SocialSettings(
       findable: findable,
       leagueOptIn: _settings.leagueOptIn,
@@ -653,29 +845,60 @@ class MemorySocialBackend implements SocialBackend {
     );
   }
 
-  @override
-  Future<SocialSettings> settings() async => _settings;
+  /// Test hook: how many times the settings were read.
+  int settingsReads = 0;
 
   @override
-  Future<void> saveSettings(SocialSettings settings) async =>
-      _settings = settings;
+  Future<SocialSettings> settings() async {
+    settingsReads++;
+    _reachServer();
+    return _settings;
+  }
+
+  /// Test hook: every save, in order.
+  final List<SocialSettings> savedSettings = <SocialSettings>[];
 
   @override
-  Future<void> reportWeekXp(String week, int xp) async =>
-      reportedXp[week] = xp;
+  Future<void> saveSettings(SocialSettings settings) async {
+    _reachServer();
+    savedSettings.add(settings);
+    _settings = settings;
+  }
+
+  /// Test hook: weeks the server will not count, as for a closed week.
+  final Set<String> refusedWeeks = <String>{};
 
   @override
-  Future<GlobalLeague?> league(String week) async => reportedXp[week] == null
-      ? null
-      : GlobalLeague(division: 1, rows: <GlobalLeagueRow>[
-          GlobalLeagueRow(
-            userId: userId,
-            displayName: displayName,
-            emoji: emoji,
-            xp: reportedXp[week]!,
-            rank: 1,
-          ),
-        ]);
+  Future<bool> reportWeekXp(String week, int xp) async {
+    _reachServer();
+    if (refusedWeeks.contains(week)) return false;
+    reportedXp[week] = xp;
+    return true;
+  }
+
+  /// Test hook: how many times the public league was fetched.
+  int leagueFetches = 0;
+
+  @override
+  Future<GlobalLeague?> league(String week) async {
+    leagueFetches++;
+    _reachServer();
+    final int? xp = reportedXp[week];
+    if (xp == null) return null;
+    return GlobalLeague(division: 1, rows: <GlobalLeagueRow>[
+      GlobalLeagueRow(
+        userId: userId,
+        displayName: displayName,
+        emoji: emoji,
+        xp: xp,
+        rank: 1,
+      ),
+      ...leagueOthers,
+    ]);
+  }
+
+  /// Test hook: strangers in the user's league group.
+  final List<GlobalLeagueRow> leagueOthers = <GlobalLeagueRow>[];
 
   @override
   Future<void> registerPushToken(String token, {required String platform}) async {}

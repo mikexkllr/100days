@@ -13,6 +13,7 @@ class AppSnapshot {
   const AppSnapshot({
     required this.userId,
     required this.me,
+    required this.meAsFriendsSeeMe,
     required this.friends,
     required this.activity,
     required this.league,
@@ -27,6 +28,11 @@ class AppSnapshot {
   /// The signed-in account.
   final String userId;
   final UserProjection me;
+
+  /// The user folded from their shared events only — what a friend's phone
+  /// computes. Whatever two phones show as one shared number (a friend
+  /// streak, a quest) is computed from this, not from [me].
+  final UserProjection meAsFriendsSeeMe;
   final List<UserProjection> friends;
   final List<ActivityItem> activity;
   final LeagueStanding league;
@@ -205,6 +211,7 @@ class AppRepository {
     return AppSnapshot(
       userId: userId,
       me: me,
+      meAsFriendsSeeMe: meAsFriendsSeeMe,
       friends: friends,
       activity: activity,
       league: league,
@@ -475,7 +482,9 @@ class AppRepository {
         0;
     if (week == _reportedWeek && xp == _reportedXp) return;
     try {
-      await social.reportWeekXp(week, xp);
+      // Only a report the server counted is done; a refused one is tried
+      // again with the next snapshot.
+      if (!await social.reportWeekXp(week, xp)) return;
       _reportedWeek = week;
       _reportedXp = xp;
     } on Object {
