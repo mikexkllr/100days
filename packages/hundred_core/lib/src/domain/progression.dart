@@ -34,7 +34,13 @@ int xpForCheckIn({
   required int streakBefore,
 }) {
   if (checkIn.relapse) return 0;
-  final base = habit.definition.difficulty * 10;
+  // Part of the target earns part of the XP: one page of a twenty-page
+  // goal is a start, not the whole day's worth.
+  final share = habit.target <= 0
+      ? 1.0
+      : (checkIn.value / habit.target).clamp(0.0, 1.0).toDouble();
+  if (share == 0) return 0;
+  final base = habit.definition.difficulty * 10 * share;
   final streakMultiplier = 1 + math.min(streakBefore, 50) / 50.0;
   final trackedMultiplier =
       checkIn.tracked && hasTrackedMode(habit.category)
@@ -180,7 +186,7 @@ class LeagueStanding {
 
   /// Top three go up, bottom three go down — but only once the pool is big
   /// enough that a rank means anything.
-  int get promotionCutoff => entries.length >= 6 ? 3 : 1;
+  int get promotionCutoff => entries.length >= 6 ? 3 : 0;
 
   int get demotionCutoff =>
       entries.length >= 6 ? entries.length - 2 : entries.length + 1;

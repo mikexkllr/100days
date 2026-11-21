@@ -27,6 +27,14 @@ class DayKey implements Comparable<DayKey> {
 
   static DayKey today() => DayKey.fromDateTime(DateTime.now());
 
+  /// Today on a clock [offsetMinutes] away from UTC — a friend's today, which
+  /// is not ours when they live in another time zone.
+  static DayKey todayAtOffset(int offsetMinutes, {DateTime? now}) {
+    final shifted =
+        (now ?? DateTime.now()).toUtc().add(Duration(minutes: offsetMinutes));
+    return DayKey(shifted.year, shifted.month, shifted.day);
+  }
+
   DateTime toDateTime() => DateTime(year, month, day);
 
   DayKey addDays(int days) =>

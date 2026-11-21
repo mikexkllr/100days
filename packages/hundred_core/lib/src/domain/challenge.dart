@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:meta/meta.dart';
 
 import '../privacy/sharing.dart';
@@ -208,6 +210,40 @@ class Challenge {
       (dayInCycle(day) / lengthDays).clamp(0.0, 1.0);
 
   bool isCycleComplete(DayKey day) => dayNumber(day) > lengthDays * (cycle + 1);
+
+  /// Whether the user can ascend on [day]: the current cycle's last day is
+  /// done ([lastDayDone]) or already behind them. A missed day 100, a rest
+  /// day 100 or a card nobody tapped must not hide the way up for another
+  /// hundred days.
+  bool canAscend(DayKey day, {required bool lastDayDone}) {
+    final last = lengthDays * (cycle + 1);
+    final n = dayNumber(day);
+    return n > last || (n == last && lastDayDone);
+  }
+
+  /// The cycle an ascent on [day] leads to: the next one, or — for someone
+  /// who kept going for a while without ascending — the one they are in.
+  int ascentTarget(DayKey day) =>
+      math.max(cycle + 1, (dayNumber(day) - 1) ~/ lengthDays);
+
+  /// The days of the cycle [day] falls in, first and last.
+  (DayKey, DayKey) cycleBounds(DayKey day) {
+    final index = math.max(0, cycleOf(day));
+    final first = startDay.addDays(index * lengthDays);
+    return (first, first.addDays(lengthDays - 1));
+  }
+
+  /// Streak freezes left in the cycle [day] falls in. Every cycle comes with
+  /// [streakFreezesRemaining] of its own; freezes from earlier cycles do not
+  /// count against it.
+  int freezesLeftOn(DayKey day, Set<String> frozenDays) {
+    final (first, last) = cycleBounds(day);
+    final used = frozenDays.where((String d) {
+      final key = DayKey.parse(d);
+      return !key.isBefore(first) && !key.isAfter(last);
+    }).length;
+    return math.max(0, streakFreezesRemaining - used);
+  }
 
   Habit? habitById(String id) {
     for (final habit in habits) {

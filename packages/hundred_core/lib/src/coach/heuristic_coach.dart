@@ -1,7 +1,9 @@
 import 'dart:math' as math;
 
+import '../domain/check_in.dart';
 import '../domain/habit.dart';
 import '../domain/peer.dart';
+import '../domain/schedule.dart';
 import '../plan/abstinence.dart';
 import 'coach.dart';
 
@@ -69,7 +71,9 @@ class HeuristicCoach implements CoachEngine {
             _pick(random, <CoachTemplate>[
               CoachTemplate.pressureFriendsWereActive,
               CoachTemplate.pressureTheySeeYourFeed,
-              CoachTemplate.pressureTwoHoursLeft,
+              // "Two hours left" only when it is true; later in the evening
+              // the tone is urgent anyway.
+              if (24 - c.now.hour <= 2) CoachTemplate.pressureTwoHoursLeft,
             ]),
             peers: active,
           );
@@ -106,7 +110,15 @@ class HeuristicCoach implements CoachEngine {
       case CoachTone.recover:
         final relapsed = _relapsedHabit(c);
         if (relapsed == null) {
-          return _base(c, tone, CoachTemplate.recoverStreakLost);
+          // "The streak is gone" only when it is.
+          if (c.streak.current == 0) {
+            return _base(c, tone, CoachTemplate.recoverStreakLost);
+          }
+          return _base(
+            c,
+            CoachTone.steady,
+            CoachTemplate.steadyConsistencyBeatsIntensity,
+          );
         }
         return _base(
           c,
@@ -134,6 +146,12 @@ class HeuristicCoach implements CoachEngine {
     final suggestions = <NudgeSuggestion>[];
     for (final peer in c.peers) {
       if (peer.activeToday) continue;
+      // Nothing scheduled for them today: there is nothing to have missed.
+      final peerChallenge = peer.challenge;
+      if (peerChallenge != null &&
+          requiredHabitsOn(peerChallenge, c.today).isEmpty) {
+        continue;
+      }
       // Never taunt someone who is ahead of you and merely has not gone yet.
       if (!peer.isSlipping && c.streak.current <= peer.currentStreak) continue;
       final random = math.Random(peer.userId.hashCode ^ c.today.hashCode);
@@ -142,7 +160,8 @@ class HeuristicCoach implements CoachEngine {
         template: _pick(random, <NudgeTemplate>[
           NudgeTemplate.iWentDidYou,
           NudgeTemplate.yourStreakIsWatching,
-          NudgeTemplate.youWereInForDays,
+          // "You were in for 0 days" is not a jab, it is a typo.
+          if (peer.currentStreak > 0) NudgeTemplate.youWereInForDays,
           NudgeTemplate.noPressureButISeeYourFeed,
         ]),
         reason: peer.isSlipping
@@ -251,10 +270,11 @@ class HeuristicCoach implements CoachEngine {
   }
 
   Habit? _relapsedHabit(CoachContext c) {
-    final log = c.todayLog;
-    if (log == null) return null;
-    for (final entry in log.entries) {
-      if (entry.relapse) return c.challenge.habitById(entry.habitId);
+    for (final log in <DayLog?>[c.todayLog, c.lastRelapseLog]) {
+      if (log == null) continue;
+      for (final entry in log.entries) {
+        if (entry.relapse) return c.challenge.habitById(entry.habitId);
+      }
     }
     return null;
   }

@@ -176,7 +176,9 @@ StreakStats computeStreak({
     scheduledDays: scheduled,
     doneToday: doneToday,
     heldToday: heldToday,
-    atRisk: !restToday && todayOutcome == DayOutcome.broken,
+    atRisk: !restToday &&
+        todayOutcome == DayOutcome.broken &&
+        !frozenDays.contains(now.toString()),
     freezesUsed: frozenDays.length,
     previousBest: previousBest,
   );

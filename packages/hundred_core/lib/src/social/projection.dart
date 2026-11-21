@@ -32,6 +32,7 @@ class UserProjection {
     required this.lastRelapseDay,
     this.workoutLogs = const <WorkoutLog>[],
     this.foodByDay = const <String, List<FoodEntry>>{},
+    this.projectedFor,
   });
 
   final String userId;
@@ -54,6 +55,10 @@ class UserProjection {
   /// The food diary, keyed by day. Only ever filled for the user's own feed:
   /// diary events are private, so a friend's device never receives them.
   final Map<String, List<FoodEntry>> foodByDay;
+
+  /// The day this projection was folded for — the author's today, which for
+  /// a friend in another time zone is not necessarily ours.
+  final DayKey? projectedFor;
 
   DayIntake intakeOn(DayKey day) => DayIntake(
         day: day,
@@ -87,14 +92,15 @@ class UserProjection {
     var count = 0;
     logsByDay.forEach((String day, DayLog log) {
       if (DayKey.parse(day).isoWeekKey == weekKey) {
-        count += log.entries.where((CheckIn e) => !e.relapse).length;
+        count +=
+            log.entries.where((CheckIn e) => !e.relapse && e.value > 0).length;
       }
     });
     return count;
   }
 
   PeerState toPeerState({DayKey? today}) {
-    final now = today ?? DayKey.today();
+    final now = today ?? projectedFor ?? DayKey.today();
     return PeerState(
       profile: profile,
       currentStreak: streak.current,
@@ -103,10 +109,11 @@ class UserProjection {
       weeklyXp: xpInWeek(now.isoWeekKey),
       dayNumber: challenge?.dayNumber(now) ?? 0,
       tier: challenge?.tier ?? tierForCycle(0),
-      activeToday: (logsByDay[now.toString()]?.entries
-                  .where((CheckIn e) => !e.relapse)
-                  .isNotEmpty ??
-              false),
+      activeToday: (logsByDay[now.toString()]
+              ?.entries
+              .where((CheckIn e) => !e.relapse && e.value > 0)
+              .isNotEmpty ??
+          false),
       lastActivityAt: lastActivityAt,
       lastActivity: lastActivity,
       eventCount: eventCount,
@@ -140,90 +147,112 @@ UserProjection projectUser(
   final food = <String, FoodEntry>{};
 
   for (final event in ordered) {
-    switch (event.type) {
-      case FeedEventType.profile:
-        profile = PeerProfile.fromPayload(userId, event.payload);
+    try {
+      switch (event.type) {
+        case FeedEventType.profile:
+          profile = PeerProfile.fromPayload(userId, event.payload);
 
-      case FeedEventType.challengeStarted:
-        challenge = Challenge.fromJson(
-          Map<String, dynamic>.from(event.payload['challenge'] as Map),
-        );
-        lastActivityAt = event.timestamp;
-        lastActivity = const PeerActivity(
-          kind: PeerActivityKind.challengeStarted,
-        );
+        case FeedEventType.challengeStarted:
+          final started = Challenge.fromJson(
+            Map<String, dynamic>.from(event.payload['challenge'] as Map),
+          );
+          // Only an explicit restart begins again from day one. A second start
+          // without it — an onboarding finished before the first sync brought
+          // the real challenge down — must not wipe a running streak.
+          challenge = challenge == null || event.payload['restart'] == true
+              ? started
+              : started.copyWith(
+                  startDay: challenge.startDay,
+                  cycle: challenge.cycle,
+                );
+          lastActivityAt = event.timestamp;
+          lastActivity = const PeerActivity(
+            kind: PeerActivityKind.challengeStarted,
+          );
 
-      case FeedEventType.challengeAscended:
-        final cycle = (event.payload['cycle'] as num?)?.toInt();
-        if (challenge != null && cycle != null) {
-          challenge = challenge.copyWith(cycle: cycle);
-        }
-        lastActivityAt = event.timestamp;
-        lastActivity = const PeerActivity(kind: PeerActivityKind.ascended);
+        case FeedEventType.challengeAscended:
+          final cycle = (event.payload['cycle'] as num?)?.toInt();
+          if (challenge != null && cycle != null) {
+            challenge = challenge.copyWith(cycle: cycle);
+          }
+          lastActivityAt = event.timestamp;
+          lastActivity = const PeerActivity(kind: PeerActivityKind.ascended);
 
-      case FeedEventType.checkIn:
-        final checkIn = CheckIn.fromPayload(
-          event.payload,
-          loggedAt: event.loggedAt,
-          eventId: event.id,
-        );
-        logs.putIfAbsent(checkIn.day.toString(), () => <CheckIn>[])
-          ..removeWhere((CheckIn e) => e.habitId == checkIn.habitId)
-          ..add(checkIn);
-        lastActivityAt = event.timestamp;
-        lastActivity = PeerActivity(
-          kind: checkIn.relapse
-              ? PeerActivityKind.relapse
-              : PeerActivityKind.checkIn,
-          category: checkIn.category,
-        );
-        if (checkIn.relapse) lastRelapse = checkIn.day;
+        case FeedEventType.checkIn:
+          final checkIn = CheckIn.fromPayload(
+            event.payload,
+            loggedAt: event.loggedAt,
+            eventId: event.id,
+          );
+          final entries =
+              logs.putIfAbsent(checkIn.day.toString(), () => <CheckIn>[])
+                ..removeWhere((CheckIn e) => e.habitId == checkIn.habitId);
+          // An undo takes the entry back out: a correction is a new event, and
+          // the day reads as if the tick had never happened.
+          if (event.payload['undo'] == true) {
+            if (entries.isEmpty) logs.remove(checkIn.day.toString());
+            break;
+          }
+          entries.add(checkIn);
+          lastActivityAt = event.timestamp;
+          lastActivity = PeerActivity(
+            kind: checkIn.relapse
+                ? PeerActivityKind.relapse
+                : PeerActivityKind.checkIn,
+            category: checkIn.category,
+          );
+          if (checkIn.relapse) lastRelapse = checkIn.day;
 
-      case FeedEventType.streakFreeze:
-        final day = event.payload['day'] as String?;
-        if (day != null) frozen.add(day);
-        lastActivityAt = event.timestamp;
-        lastActivity = const PeerActivity(
-          kind: PeerActivityKind.streakFreeze,
-        );
+        case FeedEventType.streakFreeze:
+          final day = event.payload['day'] as String?;
+          if (day != null) frozen.add(day);
+          lastActivityAt = event.timestamp;
+          lastActivity = const PeerActivity(
+            kind: PeerActivityKind.streakFreeze,
+          );
 
-      case FeedEventType.missed:
-        lastActivityAt = event.timestamp;
-        lastActivity = const PeerActivity(kind: PeerActivityKind.missed);
+        case FeedEventType.missed:
+          lastActivityAt = event.timestamp;
+          lastActivity = const PeerActivity(kind: PeerActivityKind.missed);
 
-      case FeedEventType.challengeUpdated:
-        final updated = Challenge.fromJson(
-          Map<String, dynamic>.from(event.payload['challenge'] as Map),
-        );
-        // An edit changes what the challenge asks for, never where it is:
-        // the start day and the cycle reached stay as they were.
-        challenge = challenge == null
-            ? updated
-            : updated.copyWith(
-                startDay: challenge.startDay,
-                cycle: challenge.cycle,
-              );
+        case FeedEventType.challengeUpdated:
+          final updated = Challenge.fromJson(
+            Map<String, dynamic>.from(event.payload['challenge'] as Map),
+          );
+          // An edit changes what the challenge asks for, never where it is:
+          // the start day and the cycle reached stay as they were.
+          challenge = challenge == null
+              ? updated
+              : updated.copyWith(
+                  startDay: challenge.startDay,
+                  cycle: challenge.cycle,
+                );
 
-      case FeedEventType.workoutLogged:
-        workoutLogs.add(WorkoutLog.fromPayload(
-          event.payload,
-          loggedAt: event.loggedAt,
-        ));
+        case FeedEventType.workoutLogged:
+          workoutLogs.add(WorkoutLog.fromPayload(
+            event.payload,
+            loggedAt: event.loggedAt,
+          ));
 
-      case FeedEventType.foodLogged:
-        final entry = FoodEntry.fromPayload(event.payload);
-        food[entry.id] = entry;
+        case FeedEventType.foodLogged:
+          final entry = FoodEntry.fromPayload(event.payload);
+          food[entry.id] = entry;
 
-      case FeedEventType.foodRemoved:
-        food.remove(event.payload['id'] as String?);
+        case FeedEventType.foodRemoved:
+          food.remove(event.payload['id'] as String?);
 
-      case FeedEventType.nudge:
-      case FeedEventType.cheer:
-        lastActivityAt ??= event.timestamp;
+        case FeedEventType.nudge:
+        case FeedEventType.cheer:
+          lastActivityAt ??= event.timestamp;
 
-      // Types written by a newer app version: skipped, not fatal.
-      default:
-        break;
+        // Types written by a newer app version: skipped, not fatal.
+        default:
+          break;
+      }
+    } on Object {
+      // A payload this version cannot read — written by a newer app, or
+      // malformed. One bad event must not take the whole feed down with it.
+      continue;
     }
   }
 
@@ -278,7 +307,31 @@ UserProjection projectUser(
     lastRelapseDay: lastRelapse,
     workoutLogs: workoutLogs,
     foodByDay: foodByDay,
+    projectedFor: now,
   );
+}
+
+/// The author's today, by the clock their latest check-in was written on.
+///
+/// A friend's streak has to be folded with *their* today: folded with ours,
+/// a friend eight hours behind would look as if they had missed a day they
+/// still have the evening of. Falls back to our today for feeds written
+/// before the offset was recorded.
+DayKey authorTodayOf(List<FeedEvent> events, {DateTime? now}) {
+  DateTime? latestAt;
+  int? offset;
+  for (final event in events) {
+    if (event.type != FeedEventType.checkIn) continue;
+    final tz = event.payload['tz'];
+    if (tz is! num) continue;
+    if (latestAt == null || event.timestamp.isAfter(latestAt)) {
+      latestAt = event.timestamp;
+      offset = tz.toInt();
+    }
+  }
+  return offset == null
+      ? DayKey.fromDateTime(now ?? DateTime.now())
+      : DayKey.todayAtOffset(offset, now: now);
 }
 
 /// Replays the challenge day by day so each check-in is scored with the

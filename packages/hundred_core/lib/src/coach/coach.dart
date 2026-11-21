@@ -182,6 +182,7 @@ class CoachContext {
     required this.now,
     required this.habitStreaks,
     this.lastRelapseDay,
+    this.lastRelapseLog,
   });
 
   final Challenge challenge;
@@ -192,6 +193,10 @@ class CoachContext {
   final DateTime now;
   final Map<String, int> habitStreaks;
   final DayKey? lastRelapseDay;
+
+  /// The log of [lastRelapseDay], so the day after a relapse still knows
+  /// which habit it was.
+  final DayLog? lastRelapseLog;
 
   int get dayNumber => challenge.dayNumber(today);
 
