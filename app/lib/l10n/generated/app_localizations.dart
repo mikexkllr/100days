@@ -2379,7 +2379,7 @@ abstract class AppLocalizations {
   /// No description provided for @globalLeagueEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Your league group starts with your first check-in this week: up to 30 people of your division, the best move up on Monday.'**
+  /// **'No group yet this week. Once your phone has reported your XP, you join up to 30 people of your division. The week closes on Monday: the best move up, and in groups of five or more the last move down.'**
   String get globalLeagueEmpty;
 
   /// No description provided for @globalLeagueHonesty.
@@ -2397,7 +2397,7 @@ abstract class AppLocalizations {
   /// No description provided for @globalLeagueSub.
   ///
   /// In en, this message translates to:
-  /// **'{size} people · top {up} up, bottom {down} down'**
+  /// **'{size} people · on Monday the top {up} move up, the bottom {down} down'**
   String globalLeagueSub(int size, int up, int down);
 
   /// No description provided for @globalLeagueXp.
@@ -3333,7 +3333,7 @@ abstract class AppLocalizations {
   /// No description provided for @leagueFooter.
   ///
   /// In en, this message translates to:
-  /// **'Only friends you connected yourself compete here — no strangers. XP comes per check-in, scaled by difficulty and streak, and tracked workouts and diary days count extra. On Sunday the top places move up and the bottom ones move down.'**
+  /// **'Only friends you connected yourself compete here — no strangers. XP comes per check-in, scaled by difficulty and streak; tracked workouts and diary days count extra. The ranking starts over every Monday. Nobody moves up or down among friends: the colours only mark the top and the bottom of the week, and your league comes from all the XP you have ever earned.'**
   String get leagueFooter;
 
   /// No description provided for @leagueGold.
@@ -7668,6 +7668,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Working sets'**
   String get workoutWorkingSets;
+
+  /// No description provided for @moderationReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get moderationReport;
+
+  /// No description provided for @moderationBlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get moderationBlock;
+
+  /// No description provided for @moderationBlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Block {name}?'**
+  String moderationBlockTitle(String name);
+
+  /// No description provided for @moderationBlockBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You stop being friends and open requests go. Neither of you can find, add or invite the other, and you no longer see {name} in the league. {name} is not told.'**
+  String moderationBlockBody(String name);
+
+  /// No description provided for @moderationBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is blocked.'**
+  String moderationBlocked(String name);
+
+  /// No description provided for @moderationReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report {name}'**
+  String moderationReportTitle(String name);
+
+  /// No description provided for @moderationReportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the team behind 100 Days reads reports. {name} is not told.'**
+  String moderationReportBody(String name);
+
+  /// No description provided for @moderationReasonSpam.
+  ///
+  /// In en, this message translates to:
+  /// **'Spam or a fake account'**
+  String get moderationReasonSpam;
+
+  /// No description provided for @moderationReasonHarassment.
+  ///
+  /// In en, this message translates to:
+  /// **'Harassment or bullying'**
+  String get moderationReasonHarassment;
+
+  /// No description provided for @moderationReasonInappropriate.
+  ///
+  /// In en, this message translates to:
+  /// **'Offensive name or emoji'**
+  String get moderationReasonInappropriate;
+
+  /// No description provided for @moderationReasonCheating.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheating in the league'**
+  String get moderationReasonCheating;
+
+  /// No description provided for @moderationReasonOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get moderationReasonOther;
+
+  /// No description provided for @moderationReportDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened? (optional)'**
+  String get moderationReportDetails;
+
+  /// No description provided for @moderationAlsoBlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Block them as well'**
+  String get moderationAlsoBlock;
+
+  /// No description provided for @moderationReportSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send report'**
+  String get moderationReportSend;
+
+  /// No description provided for @moderationReported.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks. Your report is in.'**
+  String get moderationReported;
+
+  /// No description provided for @blockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked'**
+  String get blockedTitle;
+
+  /// No description provided for @blockedSub.
+  ///
+  /// In en, this message translates to:
+  /// **'They can\'t find, add or invite you, and you don\'t see them in the league.'**
+  String get blockedSub;
+
+  /// No description provided for @blockedNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody blocked.'**
+  String get blockedNone;
+
+  /// No description provided for @blockedUnblock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get blockedUnblock;
+
+  /// No description provided for @blockedUnblocked.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is unblocked. A friendship does not come back by itself.'**
+  String blockedUnblocked(String name);
+
+  /// No description provided for @friendsSentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent requests'**
+  String get friendsSentTitle;
+
+  /// No description provided for @friendsSentSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is shared until they accept.'**
+  String get friendsSentSub;
+
+  /// No description provided for @friendsSentWithdraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw'**
+  String get friendsSentWithdraw;
+
+  /// No description provided for @friendsSentWithdrawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Request to {name} withdrawn.'**
+  String friendsSentWithdrawn(String name);
+
+  /// No description provided for @findRequestTooMany.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s enough requests for today. Try again tomorrow.'**
+  String get findRequestTooMany;
+
+  /// No description provided for @findRequestDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'They said no not long ago. You can ask again in a few weeks, or they can ask you.'**
+  String get findRequestDeclined;
+
+  /// No description provided for @findRequestUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t add this person.'**
+  String get findRequestUnavailable;
+
+  /// No description provided for @profileNudgedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Nudged today'**
+  String get profileNudgedToday;
+
+  /// No description provided for @scanPasteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. {link}'**
+  String scanPasteHint(String link);
+
+  /// No description provided for @scanNotAnInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'That QR code isn\'t a 100 Days invite.'**
+  String get scanNotAnInvite;
+
+  /// No description provided for @feedCheckIns.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {count, plural, =1{1 check-in} other{{count} check-ins}}'**
+  String feedCheckIns(String name, int count);
+
+  /// No description provided for @campfireTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Around the fire'**
+  String get campfireTitle;
+
+  /// No description provided for @friendFlameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {streak, plural, =1{1-day streak} other{{streak}-day streak}}'**
+  String friendFlameLabel(String name, int streak);
 }
 
 class _AppLocalizationsDelegate

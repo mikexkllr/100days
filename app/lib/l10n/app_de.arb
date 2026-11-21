@@ -856,10 +856,10 @@
   "friendsRequestsTitle": "Freundschaftsanfragen",
   "friendsScan": "Scannen",
   "friendsYourPeople": "Deine Leute",
-  "globalLeagueEmpty": "Deine Liga-Gruppe beginnt mit deinem ersten Check-in diese Woche: bis zu 30 Leute deiner Division, die Besten steigen am Montag auf.",
+  "globalLeagueEmpty": "Diese Woche noch keine Gruppe. Sobald dein Handy deine XP gemeldet hat, kommst du zu bis zu 30 Leuten deiner Division. Am Montag schließt die Woche: Die Besten steigen auf, ab fünf Leuten steigen die Letzten ab.",
   "globalLeagueHonesty": "Die XP von Fremden meldet deren Handy, pro Tag gedeckelt. Unter Freunden rechnet jedes Handy die XP aus den geteilten Check-ins nach.",
   "globalLeagueSection": "Liga dieser Woche",
-  "globalLeagueSub": "{size} Leute · Top {up} steigen auf, letzte {down} ab",
+  "globalLeagueSub": "{size} Leute · am Montag steigen die Top {up} auf, die letzten {down} ab",
   "globalLeagueXp": "{xp} XP",
   "goalBuildMuscle": "Muskeln aufbauen",
   "goalBuildMusclePitch": "Schwerer werden, stärker werden. Plan, Protein, Progression.",
@@ -1166,7 +1166,7 @@
   "leagueActiveToday": "Heute schon aktiv",
   "leagueBronze": "Bronze",
   "leagueDiamond": "Diamant",
-  "leagueFooter": "Hier treten nur Freunde an, die du selbst verbunden hast — keine Fremden. XP gibt es pro Check-in, skaliert mit Schwierigkeit und Streak; getrackte Trainings und Tagebuch-Tage zählen extra. Am Sonntag steigen die oberen Plätze auf, die unteren ab.",
+  "leagueFooter": "Hier treten nur Freunde an, die du selbst verbunden hast — keine Fremden. XP gibt es pro Check-in, skaliert mit Schwierigkeit und Streak; getrackte Trainings und Tagebuch-Tage zählen extra. Jeden Montag beginnt die Wertung von vorn. Unter Freunden steigt niemand auf oder ab: Die Farben markieren nur Spitze und Ende der Woche, deine Liga ergibt sich aus allen XP, die du je gesammelt hast.",
   "leagueGold": "Gold",
   "leagueNothingToday": "Heute noch nichts",
   "leagueObsidian": "Obsidian",
@@ -2523,5 +2523,115 @@
   "workoutStart": "Training starten",
   "workoutUpper": "Oberkörper",
   "workoutUpperFocus": "Druck und Zug",
-  "workoutWorkingSets": "Arbeitssätze"
+  "workoutWorkingSets": "Arbeitssätze",
+  "moderationReport": "Melden",
+  "moderationBlock": "Blockieren",
+  "moderationBlockTitle": "{name} blockieren?",
+  "@moderationBlockTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationBlockBody": "Ihr seid dann keine Freunde mehr, offene Anfragen verfallen. Keiner von euch kann den anderen finden, hinzufügen oder einladen, und du siehst {name} nicht mehr in der Liga. {name} erfährt nichts davon.",
+  "@moderationBlockBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationBlocked": "{name} ist blockiert.",
+  "@moderationBlocked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationReportTitle": "{name} melden",
+  "@moderationReportTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationReportBody": "Meldungen liest nur das Team hinter 100 Days. {name} erfährt nichts davon.",
+  "@moderationReportBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationReasonSpam": "Spam oder Fake-Konto",
+  "moderationReasonHarassment": "Belästigung oder Mobbing",
+  "moderationReasonInappropriate": "Anstößiger Name oder Emoji",
+  "moderationReasonCheating": "Schummeln in der Liga",
+  "moderationReasonOther": "Etwas anderes",
+  "moderationReportDetails": "Was ist passiert? (optional)",
+  "moderationAlsoBlock": "Auch blockieren",
+  "moderationReportSend": "Meldung senden",
+  "moderationReported": "Danke. Deine Meldung ist angekommen.",
+  "blockedTitle": "Blockiert",
+  "blockedSub": "Sie können dich nicht finden, hinzufügen oder einladen, und du siehst sie nicht in der Liga.",
+  "blockedNone": "Niemand blockiert.",
+  "blockedUnblock": "Freigeben",
+  "blockedUnblocked": "{name} ist freigegeben. Eine Freundschaft kommt nicht von selbst zurück.",
+  "@blockedUnblocked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsSentTitle": "Gesendete Anfragen",
+  "friendsSentSub": "Geteilt wird erst, wenn die andere Seite annimmt.",
+  "friendsSentWithdraw": "Zurückziehen",
+  "friendsSentWithdrawn": "Anfrage an {name} zurückgezogen.",
+  "@friendsSentWithdrawn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "findRequestTooMany": "Für heute reicht's mit Anfragen. Morgen geht's weiter.",
+  "findRequestDeclined": "Die Person hat vor Kurzem abgelehnt. In ein paar Wochen kannst du wieder fragen, oder sie fragt dich.",
+  "findRequestUnavailable": "Diese Person kannst du nicht hinzufügen.",
+  "profileNudgedToday": "Heute angestupst",
+  "scanPasteHint": "z. B. {link}",
+  "@scanPasteHint": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "scanNotAnInvite": "Dieser QR-Code ist keine Einladung für 100 Days.",
+  "feedCheckIns": "{name}: {count, plural, =1{1 Check-in} other{{count} Check-ins}}",
+  "@feedCheckIns": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "campfireTitle": "Am Lagerfeuer",
+  "friendFlameLabel": "{name}: {streak, plural, =1{1 Tag Streak} other{{streak} Tage Streak}}",
+  "@friendFlameLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "streak": {
+        "type": "int"
+      }
+    }
+  }
 }

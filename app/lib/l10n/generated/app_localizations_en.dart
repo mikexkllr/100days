@@ -1475,7 +1475,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get globalLeagueEmpty =>
-      'Your league group starts with your first check-in this week: up to 30 people of your division, the best move up on Monday.';
+      'No group yet this week. Once your phone has reported your XP, you join up to 30 people of your division. The week closes on Monday: the best move up, and in groups of five or more the last move down.';
 
   @override
   String get globalLeagueHonesty =>
@@ -1486,7 +1486,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String globalLeagueSub(int size, int up, int down) {
-    return '$size people · top $up up, bottom $down down';
+    return '$size people · on Monday the top $up move up, the bottom $down down';
   }
 
   @override
@@ -2058,7 +2058,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leagueFooter =>
-      'Only friends you connected yourself compete here — no strangers. XP comes per check-in, scaled by difficulty and streak, and tracked workouts and diary days count extra. On Sunday the top places move up and the bottom ones move down.';
+      'Only friends you connected yourself compete here — no strangers. XP comes per check-in, scaled by difficulty and streak; tracked workouts and diary days count extra. The ranking starts over every Monday. Nobody moves up or down among friends: the colours only mark the top and the bottom of the week, and your league comes from all the XP you have ever earned.';
 
   @override
   String get leagueGold => 'Gold';
@@ -4681,4 +4681,141 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get workoutWorkingSets => 'Working sets';
+
+  @override
+  String get moderationReport => 'Report';
+
+  @override
+  String get moderationBlock => 'Block';
+
+  @override
+  String moderationBlockTitle(String name) {
+    return 'Block $name?';
+  }
+
+  @override
+  String moderationBlockBody(String name) {
+    return 'You stop being friends and open requests go. Neither of you can find, add or invite the other, and you no longer see $name in the league. $name is not told.';
+  }
+
+  @override
+  String moderationBlocked(String name) {
+    return '$name is blocked.';
+  }
+
+  @override
+  String moderationReportTitle(String name) {
+    return 'Report $name';
+  }
+
+  @override
+  String moderationReportBody(String name) {
+    return 'Only the team behind 100 Days reads reports. $name is not told.';
+  }
+
+  @override
+  String get moderationReasonSpam => 'Spam or a fake account';
+
+  @override
+  String get moderationReasonHarassment => 'Harassment or bullying';
+
+  @override
+  String get moderationReasonInappropriate => 'Offensive name or emoji';
+
+  @override
+  String get moderationReasonCheating => 'Cheating in the league';
+
+  @override
+  String get moderationReasonOther => 'Something else';
+
+  @override
+  String get moderationReportDetails => 'What happened? (optional)';
+
+  @override
+  String get moderationAlsoBlock => 'Block them as well';
+
+  @override
+  String get moderationReportSend => 'Send report';
+
+  @override
+  String get moderationReported => 'Thanks. Your report is in.';
+
+  @override
+  String get blockedTitle => 'Blocked';
+
+  @override
+  String get blockedSub =>
+      'They can\'t find, add or invite you, and you don\'t see them in the league.';
+
+  @override
+  String get blockedNone => 'Nobody blocked.';
+
+  @override
+  String get blockedUnblock => 'Unblock';
+
+  @override
+  String blockedUnblocked(String name) {
+    return '$name is unblocked. A friendship does not come back by itself.';
+  }
+
+  @override
+  String get friendsSentTitle => 'Sent requests';
+
+  @override
+  String get friendsSentSub => 'Nothing is shared until they accept.';
+
+  @override
+  String get friendsSentWithdraw => 'Withdraw';
+
+  @override
+  String friendsSentWithdrawn(String name) {
+    return 'Request to $name withdrawn.';
+  }
+
+  @override
+  String get findRequestTooMany =>
+      'That\'s enough requests for today. Try again tomorrow.';
+
+  @override
+  String get findRequestDeclined =>
+      'They said no not long ago. You can ask again in a few weeks, or they can ask you.';
+
+  @override
+  String get findRequestUnavailable => 'You can\'t add this person.';
+
+  @override
+  String get profileNudgedToday => 'Nudged today';
+
+  @override
+  String scanPasteHint(String link) {
+    return 'e.g. $link';
+  }
+
+  @override
+  String get scanNotAnInvite => 'That QR code isn\'t a 100 Days invite.';
+
+  @override
+  String feedCheckIns(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count check-ins',
+      one: '1 check-in',
+    );
+    return '$name: $_temp0';
+  }
+
+  @override
+  String get campfireTitle => 'Around the fire';
+
+  @override
+  String friendFlameLabel(String name, int streak) {
+    String _temp0 = intl.Intl.pluralLogic(
+      streak,
+      locale: localeName,
+      other: '$streak-day streak',
+      one: '1-day streak',
+    );
+    return '$name: $_temp0';
+  }
 }
