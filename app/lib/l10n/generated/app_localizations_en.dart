@@ -4736,4 +4736,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loggerStartOver => 'Start over';
+
+  @override
+  String get editorDiscard => 'Discard';
+
+  @override
+  String get editorDiscardBody =>
+      'Your changes to the training plan are not saved yet.';
+
+  @override
+  String get editorDiscardTitle => 'Discard your changes?';
 }

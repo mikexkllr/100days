@@ -3366,5 +3366,8 @@
     }
   },
   "loggerResumeTitle": "Pick up where you left off?",
-  "loggerStartOver": "Start over"
+  "loggerStartOver": "Start over",
+  "editorDiscard": "Discard",
+  "editorDiscardBody": "Your changes to the training plan are not saved yet.",
+  "editorDiscardTitle": "Discard your changes?"
 }

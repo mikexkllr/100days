@@ -21,12 +21,49 @@ class TrainingEditorScreen extends ConsumerStatefulWidget {
 }
 
 class _TrainingEditorScreenState extends ConsumerState<TrainingEditorScreen> {
-  late int _days = widget.challenge.goal.trainingDaysPerWeek.clamp(2, 6);
-  late TrainingSetup _setup = widget.challenge.goal.training ??
+  late final int _initialDays =
+      widget.challenge.goal.trainingDaysPerWeek.clamp(2, 6);
+  late final TrainingSetup _initialSetup = widget.challenge.goal.training ??
       suggestTrainingSetup(widget.challenge.goal);
+  late int _days = _initialDays;
+  late TrainingSetup _setup = _initialSetup;
   bool _saving = false;
 
+  /// What the user made of each split they tried, so looking at another
+  /// one and coming back does not cost the edits.
+  final Map<SplitKind, TrainingSetup> _bySplit = <SplitKind, TrainingSetup>{};
+
   Goal get _goal => widget.challenge.goal.copyWith(trainingDaysPerWeek: _days);
+
+  bool get _dirty => _days != _initialDays || _setup != _initialSetup;
+
+  Future<bool> _confirmDiscard() async {
+    final AppLocalizations l10n = context.l10n;
+    final bool? discard = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text(l10n.editorDiscardTitle),
+        content: Text(l10n.editorDiscardBody),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.actionCancel),
+          ),
+          FilledButton(
+            key: const Key('editor-discard'),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.danger,
+              minimumSize: const Size(110, 44),
+            ),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.editorDiscard),
+          ),
+        ],
+      ),
+    );
+    return discard ?? false;
+  }
 
   Future<void> _save() async {
     setState(() => _saving = true);
@@ -52,64 +89,77 @@ class _TrainingEditorScreenState extends ConsumerState<TrainingEditorScreen> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.editorTitle),
-        actions: <Widget>[
-          TextButton(
-            onPressed: _saving ? null : _save,
-            child: Text(l10n.actionSave),
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.md,
-          0,
-          AppSpacing.md,
-          AppSpacing.xxl,
+    return PopScope(
+      canPop: !_dirty || _saving,
+      onPopInvokedWithResult: (bool didPop, Object? _) async {
+        if (didPop) return;
+        if (await _confirmDiscard() && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.editorTitle),
+          actions: <Widget>[
+            TextButton(
+              key: const Key('editor-save'),
+              onPressed: _saving ? null : _save,
+              child: Text(l10n.actionSave),
+            ),
+          ],
         ),
-        children: <Widget>[
-          SectionHeader(l10n.obTrainingDaysPerWeek,
-              subtitle: l10n.editorDaysNote),
-          Wrap(
-            spacing: AppSpacing.sm,
-            children: <Widget>[
-              for (final int days in const <int>[2, 3, 4, 5, 6])
-                ChoiceChip(
-                  label: Text('$days×'),
-                  selected: _days == days,
-                  selectedColor: AppColors.primary.withValues(alpha: 0.2),
-                  onSelected: (_) => setState(() => _days = days),
-                ),
-            ],
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            0,
+            AppSpacing.md,
+            AppSpacing.xxl,
           ),
-          SectionHeader(l10n.editorSplitTitle),
-          SplitPicker(
-            daysPerWeek: _days,
-            selected: _setup.split,
-            onSelected: (SplitKind split) => setState(
-              () => _setup = suggestTrainingSetup(_goal, split: split),
+          children: <Widget>[
+            SectionHeader(l10n.obTrainingDaysPerWeek,
+                subtitle: l10n.editorDaysNote),
+            Wrap(
+              spacing: AppSpacing.sm,
+              children: <Widget>[
+                for (final int days in const <int>[2, 3, 4, 5, 6])
+                  ChoiceChip(
+                    label: Text('$days×'),
+                    selected: _days == days,
+                    selectedColor: AppColors.primary.withValues(alpha: 0.2),
+                    onSelected: (_) => setState(() => _days = days),
+                  ),
+              ],
             ),
-          ),
-          SectionHeader(
-            l10n.editorSessionsTitle,
-            subtitle: l10n.editorSessionsSubtitle,
-          ),
-          SessionEditorList(
-            setup: _setup,
-            goal: _goal,
-            onChanged: (TrainingSetup setup) =>
-                setState(() => _setup = setup),
-          ),
-          TextButton.icon(
-            onPressed: () => setState(
-              () => _setup = suggestTrainingSetup(_goal, split: _setup.split),
+            SectionHeader(l10n.editorSplitTitle),
+            SplitPicker(
+              daysPerWeek: _days,
+              selected: _setup.split,
+              onSelected: (SplitKind split) => setState(() {
+                _bySplit[_setup.split] = _setup;
+                _setup = _bySplit[split] ??
+                    suggestTrainingSetup(_goal, split: split);
+              }),
             ),
-            icon: const Icon(Icons.restart_alt, size: 18),
-            label: Text(l10n.editorReset),
-          ),
-        ],
+            SectionHeader(
+              l10n.editorSessionsTitle,
+              subtitle: l10n.editorSessionsSubtitle,
+            ),
+            SessionEditorList(
+              setup: _setup,
+              goal: _goal,
+              onChanged: (TrainingSetup setup) =>
+                  setState(() => _setup = setup),
+            ),
+            TextButton.icon(
+              onPressed: () => setState(
+                () =>
+                    _setup = suggestTrainingSetup(_goal, split: _setup.split),
+              ),
+              icon: const Icon(Icons.restart_alt, size: 18),
+              label: Text(l10n.editorReset),
+            ),
+          ],
+        ),
       ),
     );
   }

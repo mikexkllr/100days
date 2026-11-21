@@ -4751,4 +4751,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get loggerStartOver => 'Neu beginnen';
+
+  @override
+  String get editorDiscard => 'Verwerfen';
+
+  @override
+  String get editorDiscardBody =>
+      'Deine Änderungen am Trainingsplan sind noch nicht gespeichert.';
+
+  @override
+  String get editorDiscardTitle => 'Änderungen verwerfen?';
 }

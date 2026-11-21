@@ -2553,5 +2553,8 @@
     }
   },
   "loggerResumeTitle": "Weitermachen, wo du warst?",
-  "loggerStartOver": "Neu beginnen"
+  "loggerStartOver": "Neu beginnen",
+  "editorDiscard": "Verwerfen",
+  "editorDiscardBody": "Deine Änderungen am Trainingsplan sind noch nicht gespeichert.",
+  "editorDiscardTitle": "Änderungen verwerfen?"
 }

@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hundred_core/hundred_core.dart';
 import 'package:hundred_days/data/app_repository.dart';
+import 'package:hundred_days/l10n/l10n.dart';
 import 'package:hundred_days/ui/nutrition/diary_view.dart';
 import 'package:hundred_days/ui/plan/plan_screen.dart';
+import 'package:hundred_days/ui/plan/session_editor.dart';
+import 'package:hundred_days/ui/plan/training_editor.dart';
 import 'package:hundred_days/ui/plan/workout_draft.dart';
 import 'package:hundred_days/ui/plan/workout_logger.dart';
 import 'package:hundred_days/ui/settings/privacy_screen.dart';
@@ -34,6 +37,17 @@ Challenge _fitChallenge({bool plans = true}) => Challenge(
         Habit.fromCategory(HabitCategory.nutrition),
       ],
       startDay: DayKey.today(),
+    );
+
+/// A button that pushes [screen], so leaving it goes through the real back
+/// navigation.
+Widget _opener(Widget screen) => Builder(
+      builder: (BuildContext context) => TextButton(
+        onPressed: () => Navigator.of(context).push<void>(
+          MaterialPageRoute<void>(builder: (BuildContext context) => screen),
+        ),
+        child: const Text('open'),
+      ),
     );
 
 void main() {
@@ -345,17 +359,7 @@ void main() {
         buildPlan(challenge).training!.weeks.first.workouts.first;
     await pump(
       tester,
-      Builder(
-        builder: (BuildContext context) => TextButton(
-          onPressed: () => Navigator.of(context).push<void>(
-            MaterialPageRoute<void>(
-              builder: (BuildContext context) =>
-                  WorkoutLoggerScreen(workout: workout, day: DayKey.today()),
-            ),
-          ),
-          child: const Text('open'),
-        ),
-      ),
+      _opener(WorkoutLoggerScreen(workout: workout, day: DayKey.today())),
     );
     Future<void> open() async {
       await tester.tap(find.text('open'));
@@ -404,6 +408,72 @@ void main() {
     expect(find.byType(WorkoutLoggerScreen), findsNothing);
     await open();
     expect(find.text('Weitermachen, wo du warst?'), findsNothing);
+  });
+
+  testWidgets('the plan editor keeps edits until they are saved or let go',
+      (WidgetTester tester) async {
+    final Challenge challenge = _fitChallenge();
+    await repository.startChallenge(challenge);
+    final ExerciseSlot first =
+        suggestTrainingSetup(challenge.goal).sessions.first.exercises.first;
+    final AppLocalizations de = await localizationsFor(const Locale('de'));
+    await pump(tester, _opener(TrainingEditorScreen(challenge: challenge)));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    // One more set, then move it down: the move keeps the extra set.
+    final Finder row = find.text(de.exerciseName(first.exerciseId)).first;
+    await tester.ensureVisible(row);
+    await tester.pumpAndSettle();
+    await tester.tap(row);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.add_circle_outline).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('slot-move-down')));
+    await tester.pumpAndSettle();
+
+    // Tapping the split that is already chosen changes nothing.
+    final Finder chosen = find.byKey(Key('split-${SplitKind.fullBody.name}'));
+    await tester.scrollUntilVisible(chosen, -300,
+        scrollable: find.byType(Scrollable).first);
+    await tester.ensureVisible(chosen);
+    await tester.pumpAndSettle();
+    await tester.tap(chosen);
+    await tester.pumpAndSettle();
+
+    // Back asks first; cancelling stays.
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.text('Änderungen verwerfen?'), findsOneWidget);
+    await tester.tap(find.text('Abbrechen'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TrainingEditorScreen), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('editor-save')));
+    await tester.pumpAndSettle();
+    final AppSnapshot snapshot = await repository.snapshot();
+    final ExerciseSlot moved =
+        snapshot.challenge!.goal.training!.sessions.first.exercises[1];
+    expect(moved.exerciseId, first.exerciseId);
+    expect(moved.sets, first.sets + 1);
+  });
+
+  testWidgets('tapping the split already chosen is not a new choice',
+      (WidgetTester tester) async {
+    final List<SplitKind> picked = <SplitKind>[];
+    await pump(
+      tester,
+      SingleChildScrollView(
+        child: SplitPicker(
+          daysPerWeek: 3,
+          selected: SplitKind.fullBody,
+          onSelected: picked.add,
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(Key('split-${SplitKind.fullBody.name}')));
+    await tester.tap(find.byKey(Key('split-${SplitKind.upperLower.name}')));
+    expect(picked, <SplitKind>[SplitKind.upperLower]);
   });
 
   testWidgets('hiding a habit keeps its check-ins private from then on',

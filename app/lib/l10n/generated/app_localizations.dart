@@ -7746,6 +7746,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start over'**
   String get loggerStartOver;
+
+  /// No description provided for @editorDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get editorDiscard;
+
+  /// No description provided for @editorDiscardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your changes to the training plan are not saved yet.'**
+  String get editorDiscardBody;
+
+  /// No description provided for @editorDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard your changes?'**
+  String get editorDiscardTitle;
 }
 
 class _AppLocalizationsDelegate
