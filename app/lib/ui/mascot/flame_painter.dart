@@ -172,6 +172,9 @@ class FlamePainter extends CustomPainter {
     required this.seconds,
     this.squash = 0,
     this.blink = true,
+    this.gaze = Offset.zero,
+    this.anticipation = 0,
+    this.urgency = 0,
   }) : palette = FlamePalette.of(stage);
 
   final FlameStage stage;
@@ -183,6 +186,16 @@ class FlamePainter extends CustomPainter {
 
   /// Whether the eyes may close now and then. Off for still renders.
   final bool blink;
+
+  /// Where Funki looks, each axis −1 … 1: at the habit being held, say.
+  final Offset gaze;
+
+  /// 0 … 1: something is about to be fed to him — the eyes widen and the
+  /// mouth opens as a held habit row fills.
+  final double anticipation;
+
+  /// 0 … 1: how close midnight is on an open day. He trembles.
+  final double urgency;
   final FlamePalette palette;
 
   double get _energy => switch (mood) {
@@ -215,7 +228,10 @@ class FlamePainter extends CustomPainter {
         ? -(math.sin(seconds * 7).abs()) * s * 0.045
         : 0;
     final double breath = 1 + 0.025 * math.sin(t * 2.3);
-    final Offset foot = Offset(size.width / 2, bottom + hop);
+    // A shiver when the day is running out — fast and small.
+    final double shiver =
+        urgency <= 0 ? 0 : math.sin(seconds * 47) * s * 0.012 * urgency;
+    final Offset foot = Offset(size.width / 2 + shiver, bottom + hop);
 
     _paintGlow(canvas, size, foot, r);
     if (palette.rays) _paintRays(canvas, foot.translate(0, -r * 1.2), r, t);
@@ -426,9 +442,11 @@ class FlamePainter extends CustomPainter {
       ..strokeWidth = r * 0.075
       ..strokeCap = StrokeCap.round;
 
-    final double eyeY = center.dy - r * 0.08;
+    final double eyeY = center.dy - r * 0.08 + gaze.dy * r * 0.07;
     final double eyeDx = r * 0.36;
-    final double look = math.sin(seconds * 0.7) * r * 0.03;
+    final double look =
+        math.sin(seconds * 0.7) * r * 0.03 * (1 - anticipation) +
+            gaze.dx * r * 0.09;
 
     // Blinks every few seconds, on an uneven beat so it never looks mechanical.
     final double beat = seconds % 3.9;
@@ -472,7 +490,12 @@ class FlamePainter extends CustomPainter {
         case MascotMood.worried:
         case MascotMood.happy:
         case MascotMood.sad:
-          final double big = mood == MascotMood.hungry ? 1.18 : mood == MascotMood.hopeful ? 0.85 : 1;
+          final double big = (mood == MascotMood.hungry
+                  ? 1.18
+                  : mood == MascotMood.hopeful
+                      ? 0.85
+                      : 1) *
+              (1 + 0.16 * anticipation);
           final double w = r * 0.25 * big;
           final double h = r * 0.34 * big * eyeOpen;
           canvas.drawOval(Rect.fromCenter(center: eye, width: w, height: h), inkPaint);
@@ -506,6 +529,21 @@ class FlamePainter extends CustomPainter {
     }
 
     final double mouthY = center.dy + r * 0.34;
+    // Waiting to be fed: whatever the mood, the mouth opens with the hold.
+    if (anticipation > 0.05 &&
+        mood != MascotMood.hyped &&
+        mood != MascotMood.sleepy) {
+      final double a = anticipation;
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: Offset(center.dx + gaze.dx * r * 0.05, mouthY + r * 0.04 * a),
+          width: r * (0.16 + 0.16 * a),
+          height: r * (0.19 + 0.26 * a),
+        ),
+        Paint()..color = const Color(0xFF3B0A45),
+      );
+      return;
+    }
     switch (mood) {
       case MascotMood.happy:
       case MascotMood.hyped:
@@ -577,7 +615,10 @@ class FlamePainter extends CustomPainter {
       oldDelegate.seconds != seconds ||
       oldDelegate.stage != stage ||
       oldDelegate.mood != mood ||
-      oldDelegate.squash != squash;
+      oldDelegate.squash != squash ||
+      oldDelegate.gaze != gaze ||
+      oldDelegate.anticipation != anticipation ||
+      oldDelegate.urgency != urgency;
 }
 
 /// A cartoon flame: a round belly with a tall middle tongue and one on each

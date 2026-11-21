@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hundred_core/hundred_core.dart';
@@ -28,6 +31,9 @@ class HabitTile extends StatefulWidget {
     required this.entry,
     required this.onCheckIn,
     required this.onRelapse,
+    this.onUndo,
+    this.onHoldFill,
+    this.tapToCheckIn = false,
     this.fire = const Fire(
       light: Color(0xFFFFA3BC),
       main: Color(0xFFFF5C8A),
@@ -43,6 +49,16 @@ class HabitTile extends StatefulWidget {
   final CheckIn? entry;
   final void Function(num value) onCheckIn;
   final VoidCallback onRelapse;
+
+  /// Takes today's entry back — a slip of the thumb is not a check-in.
+  final VoidCallback? onUndo;
+
+  /// How full the row is while it is held, for Funki to watch.
+  final ValueChanged<double>? onHoldFill;
+
+  /// A tap checks in (the setting for people who cannot hold a press); the
+  /// extras then open from a button of their own.
+  final bool tapToCheckIn;
 
   /// The colour a done habit is lit in.
   final Fire fire;
@@ -62,6 +78,28 @@ class _HabitTileState extends State<HabitTile> {
   bool _open = false;
   int _nudges = 0;
 
+  /// Let go too early: say so for a moment instead of doing nothing.
+  bool _holdHint = false;
+  Timer? _hintTimer;
+
+  @override
+  void dispose() {
+    _hintTimer?.cancel();
+    super.dispose();
+  }
+
+  void _onShortHold() {
+    HapticFeedback.lightImpact();
+    _hintTimer?.cancel();
+    setState(() {
+      _holdHint = true;
+      _nudges++;
+    });
+    _hintTimer = Timer(const Duration(milliseconds: 2400), () {
+      if (mounted) setState(() => _holdHint = false);
+    });
+  }
+
   Habit get _habit => widget.habit;
   CheckIn? get _entry => widget.entry;
 
@@ -71,8 +109,9 @@ class _HabitTileState extends State<HabitTile> {
   bool get _isAmount => _habit.definition.unit != HabitUnit.done;
   bool get _isAbstain => _habit.kind == HabitKind.abstain;
 
-  /// Whether a tap has anything to reveal.
-  bool get _hasMore => _isAmount || (_isAbstain && !_isRelapse);
+  /// Whether a tap has anything to reveal: always — a plain button for
+  /// those who cannot hold, the amount, a relapse, or the undo.
+  bool get _hasMore => true;
 
   @override
   void didUpdateWidget(HabitTile oldWidget) {
@@ -141,23 +180,15 @@ class _HabitTileState extends State<HabitTile> {
               onConfirmed:
                   canHold ? () => widget.onCheckIn(_habit.target) : null,
               onTap: _onTap,
+              onShortHold: _onShortHold,
+              onFill: widget.onHoldFill,
+              tapConfirms: widget.tapToCheckIn,
               builder: (BuildContext context, double fill) => Stack(
                 children: <Widget>[
                   if (fill > 0)
                     Positioned.fill(
-                      child: FractionallySizedBox(
-                        alignment: Alignment.centerLeft,
-                        widthFactor: fill,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: <Color>[
-                                fire.main.withValues(alpha: 0.28),
-                                fire.main.withValues(alpha: 0.62),
-                              ],
-                            ),
-                          ),
-                        ),
+                      child: CustomPaint(
+                        painter: _FlameFillPainter(fill: fill, fire: fire),
                       ),
                     ),
                   Padding(
@@ -182,7 +213,9 @@ class _HabitTileState extends State<HabitTile> {
                               ),
                               const SizedBox(height: 2),
                               _Subtitle(
-                                text: _subtitle(l10n),
+                                text: _holdHint
+                                    ? l10n.tileHoldLonger
+                                    : _subtitle(l10n),
                                 streak: _isRelapse ? 0 : widget.streak,
                                 color: _isRelapse
                                     ? AppColors.danger
@@ -195,6 +228,8 @@ class _HabitTileState extends State<HabitTile> {
                         const SizedBox(width: 10),
                         if (_isDone)
                           DoneBadge(label: l10n.tileDone, color: fire.light)
+                        else if (canHold && widget.tapToCheckIn)
+                          _HoldChip(label: _action(l10n), active: false)
                         else if (canHold)
                           TriggeredAnimation(
                             trigger: _nudges,
@@ -208,6 +243,16 @@ class _HabitTileState extends State<HabitTile> {
                             child: _HoldChip(
                               label: _action(l10n),
                               active: fill > 0,
+                            ),
+                          ),
+                        if (widget.tapToCheckIn)
+                          IconButton(
+                            tooltip: l10n.tileMoreSemantics(
+                                l10n.habitLabel(_habit)),
+                            onPressed: () => setState(() => _open = !_open),
+                            icon: Icon(
+                              _open ? Icons.expand_less : Icons.more_horiz,
+                              color: AppColors.textSecondary,
                             ),
                           ),
                       ],
@@ -226,8 +271,11 @@ class _HabitTileState extends State<HabitTile> {
                       current: _entry == null || _isRelapse ? 0 : _entry!.value,
                       isDone: _isDone,
                       canHold: canHold,
+                      hasEntry: _entry != null,
+                      showHoldTip: !widget.tapToCheckIn,
                       onCheckIn: widget.onCheckIn,
                       onRelapse: widget.onRelapse,
+                      onUndo: widget.onUndo,
                     )
                   : const SizedBox(width: double.infinity),
             ),
@@ -384,6 +432,30 @@ class _HoldChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // With large system text the label would be cut to "Heute c…"; the
+    // hand alone says "hold" and the row still names the habit.
+    final bool compact = MediaQuery.textScalerOf(context).scale(10) > 13;
+    if (compact) {
+      return Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: active ? AppColors.primary : Colors.transparent,
+          border: Border.all(
+            color: active
+                ? AppColors.primary
+                : AppColors.primary.withValues(alpha: 0.32),
+            width: 1.2,
+          ),
+        ),
+        child: Icon(
+          Icons.touch_app_outlined,
+          size: 18,
+          color: active ? AppColors.onPrimary : AppColors.textPrimary,
+        ),
+      );
+    }
     return Container(
       height: 36,
       constraints: const BoxConstraints(maxWidth: 138),
@@ -466,16 +538,22 @@ class _More extends StatefulWidget {
     required this.current,
     required this.isDone,
     required this.canHold,
+    required this.hasEntry,
+    required this.showHoldTip,
     required this.onCheckIn,
     required this.onRelapse,
+    this.onUndo,
   });
 
   final Habit habit;
   final num current;
   final bool isDone;
   final bool canHold;
+  final bool hasEntry;
+  final bool showHoldTip;
   final void Function(num value) onCheckIn;
   final VoidCallback onRelapse;
+  final VoidCallback? onUndo;
 
   @override
   State<_More> createState() => _MoreState();
@@ -543,36 +621,130 @@ class _MoreState extends State<_More> {
           else
             Row(
               children: <Widget>[
-                Expanded(
-                  child: Text(
-                    widget.canHold ? l10n.tileHoldExplain : '',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textTertiary,
-                          fontSize: 12.5,
-                        ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                OutlinedButton(
-                  onPressed: widget.onRelapse,
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(60, 40),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    foregroundColor: AppColors.danger,
-                    backgroundColor: Colors.transparent,
-                    side: BorderSide(
-                      color: AppColors.danger.withValues(alpha: 0.5),
-                      width: 1.2,
+                // The same check-in as the hold, as a plain button: for
+                // anyone who cannot or does not want to hold a press.
+                if (widget.canHold)
+                  Expanded(
+                    child: FilledButton(
+                      key: Key('tile-plain-${widget.habit.id}'),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(0, 42),
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                      ),
+                      onPressed: () => widget.onCheckIn(widget.habit.target),
+                      child: Text(
+                        widget.habit.kind == HabitKind.abstain
+                            ? l10n.tileCleanToday
+                            : l10n.tileCheckOff,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
+                  )
+                else
+                  const Spacer(),
+                if (widget.habit.kind == HabitKind.abstain &&
+                    widget.canHold) ...<Widget>[
+                  const SizedBox(width: 12),
+                  OutlinedButton(
+                    onPressed: widget.onRelapse,
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(60, 42),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      foregroundColor: AppColors.danger,
+                      backgroundColor: Colors.transparent,
+                      side: BorderSide(
+                        color: AppColors.danger.withValues(alpha: 0.5),
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Text(l10n.tileRelapse),
                   ),
-                  child: Text(l10n.tileRelapse),
-                ),
+                ],
               ],
+            ),
+          if (widget.hasEntry && widget.onUndo != null)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                key: Key('tile-undo-${widget.habit.id}'),
+                onPressed: widget.onUndo,
+                icon: const Icon(Icons.undo, size: 18),
+                label: Text(l10n.tileUndo),
+              ),
+            )
+          else if (widget.canHold && widget.showHoldTip)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                l10n.tileHoldTip,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textTertiary,
+                      fontSize: 12.5,
+                    ),
+              ),
             ),
         ],
       ),
     );
   }
+}
+
+/// The fill of a held row: fire climbing from the left, with a ragged,
+/// flickering edge of flame tongues and a few sparks at its front.
+class _FlameFillPainter extends CustomPainter {
+  _FlameFillPainter({required this.fill, required this.fire});
+
+  final double fill;
+  final Fire fire;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double front = size.width * fill;
+    final Rect body = Rect.fromLTWH(0, 0, front, size.height);
+    canvas.drawRect(
+      body,
+      Paint()
+        ..shader = LinearGradient(
+          colors: <Color>[
+            fire.main.withValues(alpha: 0.22),
+            fire.main.withValues(alpha: 0.58),
+          ],
+        ).createShader(body),
+    );
+    // Tongues of flame licking past the front; they move as the fill grows.
+    const int tongues = 5;
+    final double phase = fill * 23;
+    final Path edge = Path()..moveTo(front, 0);
+    for (int i = 0; i < tongues; i++) {
+      final double y0 = size.height * i / tongues;
+      final double y1 = size.height * (i + 1) / tongues;
+      final double reach =
+          10 + 8 * (0.5 + 0.5 * math.sin(phase + i * 1.7)) * fill;
+      edge.quadraticBezierTo(front + reach, (y0 + y1) / 2, front, y1);
+    }
+    edge.close();
+    canvas.drawPath(
+      edge,
+      Paint()
+        ..color = fire.light.withValues(alpha: 0.55)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
+    );
+    // Sparks just ahead of the fire.
+    final Paint spark = Paint()..color = fire.light.withValues(alpha: 0.9);
+    for (int i = 0; i < 4; i++) {
+      final double t = (phase * 0.37 + i * 0.29) % 1;
+      canvas.drawCircle(
+        Offset(front + 6 + 14 * t, size.height * (0.2 + 0.2 * i) - 6 * t),
+        1.6 * (1 - t),
+        spark,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_FlameFillPainter oldDelegate) =>
+      oldDelegate.fill != fill || oldDelegate.fire != fire;
 }
 
 class _StepButton extends StatelessWidget {

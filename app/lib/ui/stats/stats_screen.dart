@@ -9,6 +9,7 @@ import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/fire.dart';
 import '../../theme/theme.dart';
+import '../home/today.dart';
 import '../home/day_sheet.dart';
 import '../home/flame_evolution_sheet.dart';
 import '../home/week_strip.dart';
@@ -103,6 +104,8 @@ class StatsScreen extends ConsumerWidget {
                   habit: habit,
                   streak: snapshot.me.habitStreaks[habit.id] ?? 0,
                   totalDone: _countDone(snapshot, habit),
+                  doneToday: isHabitDone(
+                      habit, snapshot.me.logsByDay[snapshot.today.toString()]),
                   challenge: challenge,
                   today: snapshot.today,
                 ),
@@ -113,9 +116,15 @@ class StatsScreen extends ConsumerWidget {
     );
   }
 
+  /// Days this habit was done on a day it was scheduled — what the rate
+  /// below divides. Extra days on top of the plan do not inflate it past
+  /// 100 %.
   int _countDone(AppSnapshot snapshot, Habit habit) {
     var count = 0;
     for (final DayLog log in snapshot.me.logsByDay.values) {
+      if (!habit.isActiveOn(log.day) || !isHabitScheduledOn(habit, log.day)) {
+        continue;
+      }
       final CheckIn? entry = log.entryFor(habit.id);
       if (entry != null && !entry.relapse && entry.value >= habit.target) {
         count++;
@@ -475,7 +484,8 @@ class _WeeklyXpChart extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      weeks[i].split('-W').last,
+                      context.l10n.statsWeekLabel(weeks[i].split('-W').last),
+                      maxLines: 1,
                       style: Theme.of(context)
                           .textTheme
                           .labelSmall
@@ -499,6 +509,7 @@ class _HabitStatRow extends StatelessWidget {
     required this.habit,
     required this.streak,
     required this.totalDone,
+    required this.doneToday,
     required this.challenge,
     required this.today,
   });
@@ -506,17 +517,24 @@ class _HabitStatRow extends StatelessWidget {
   final Habit habit;
   final int streak;
   final int totalDone;
+  final bool doneToday;
   final Challenge challenge;
   final DayKey today;
 
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
-    final int elapsed =
-        math.max(1, today.differenceInDays(challenge.startDay) + 1);
-    final int scheduled = habit.kind == HabitKind.abstain
-        ? elapsed
-        : math.max(1, (elapsed * habit.daysPerWeek / 7).round());
+    // The days it was really scheduled on, by its schedule on each day —
+    // not an estimate from days per week. Today counts once it is done.
+    final int elapsed = today.differenceInDays(challenge.startDay) + 1;
+    var scheduledDays = 0;
+    for (var i = 0; i < elapsed; i++) {
+      final DayKey day = challenge.startDay.addDays(i);
+      if (!habit.isActiveOn(day) || !isHabitScheduledOn(habit, day)) continue;
+      if (day == today && !doneToday) continue;
+      scheduledDays++;
+    }
+    final int scheduled = math.max(1, scheduledDays);
     final double rate = (totalDone / scheduled).clamp(0.0, 1.0);
 
     return AppCard(

@@ -4831,4 +4831,93 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiRestoring => 'Checking your purchases…';
+
+  @override
+  String get tileHoldLonger => 'Hold on until it is full';
+
+  @override
+  String get tileHoldTip => 'Tip: holding the row is quicker.';
+
+  @override
+  String get tileUndo => 'Undo';
+
+  @override
+  String tileMoreSemantics(String habit) {
+    return 'More for $habit';
+  }
+
+  @override
+  String get tileUndone => 'Taken back.';
+
+  @override
+  String get homeFreezeConfirmTitle => 'Freeze today?';
+
+  @override
+  String homeFreezeConfirmBody(int left) {
+    String _temp0 = intl.Intl.pluralLogic(
+      left,
+      locale: localeName,
+      other: '$left freezes left in this cycle after this one.',
+      one: 'This is your last freeze in this cycle.',
+    );
+    return 'Your streak survives today without growing. $_temp0 It cannot be taken back.';
+  }
+
+  @override
+  String get homeYesterdayTitle => 'Yesterday slipped through';
+
+  @override
+  String homeYesterdayBodyFreeze(int streak, int left) {
+    return 'Your $streak-day streak broke at midnight. Done it but forgot to tick it? Log it now. Or save the streak with a freeze ($left left).';
+  }
+
+  @override
+  String homeYesterdayBody(int streak) {
+    return 'Your $streak-day streak broke at midnight. Done it but forgot to tick it? Log it now — it shows as logged late.';
+  }
+
+  @override
+  String get homeYesterdayLog => 'Log yesterday';
+
+  @override
+  String get homeYesterdayFreeze => 'Use a freeze';
+
+  @override
+  String get dayLogLate => 'Log';
+
+  @override
+  String get dayLogLateNote =>
+      'Only yesterday can be logged late. Friends see that it was.';
+
+  @override
+  String get profileEditTitle => 'Your profile';
+
+  @override
+  String get profileEditSub =>
+      'Name and face — what friends see in requests, the feed and the league.';
+
+  @override
+  String get profileSave => 'Save';
+
+  @override
+  String get profileSaved => 'Profile saved.';
+
+  @override
+  String get profileStatement => 'Your goal in one sentence';
+
+  @override
+  String stageDaysLeft(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days more days',
+      one: '1 more day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String statsWeekLabel(String week) {
+    return 'W$week';
+  }
 }

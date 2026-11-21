@@ -7914,6 +7914,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Checking your purchases…'**
   String get aiRestoring;
+
+  /// No description provided for @tileHoldLonger.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold on until it is full'**
+  String get tileHoldLonger;
+
+  /// No description provided for @tileHoldTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip: holding the row is quicker.'**
+  String get tileHoldTip;
+
+  /// No description provided for @tileUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get tileUndo;
+
+  /// No description provided for @tileMoreSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'More for {habit}'**
+  String tileMoreSemantics(String habit);
+
+  /// No description provided for @tileUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken back.'**
+  String get tileUndone;
+
+  /// No description provided for @homeFreezeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Freeze today?'**
+  String get homeFreezeConfirmTitle;
+
+  /// No description provided for @homeFreezeConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak survives today without growing. {left, plural, =1{This is your last freeze in this cycle.} other{{left} freezes left in this cycle after this one.}} It cannot be taken back.'**
+  String homeFreezeConfirmBody(int left);
+
+  /// No description provided for @homeYesterdayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday slipped through'**
+  String get homeYesterdayTitle;
+
+  /// No description provided for @homeYesterdayBodyFreeze.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {streak}-day streak broke at midnight. Done it but forgot to tick it? Log it now. Or save the streak with a freeze ({left} left).'**
+  String homeYesterdayBodyFreeze(int streak, int left);
+
+  /// No description provided for @homeYesterdayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {streak}-day streak broke at midnight. Done it but forgot to tick it? Log it now — it shows as logged late.'**
+  String homeYesterdayBody(int streak);
+
+  /// No description provided for @homeYesterdayLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Log yesterday'**
+  String get homeYesterdayLog;
+
+  /// No description provided for @homeYesterdayFreeze.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a freeze'**
+  String get homeYesterdayFreeze;
+
+  /// No description provided for @dayLogLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Log'**
+  String get dayLogLate;
+
+  /// No description provided for @dayLogLateNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Only yesterday can be logged late. Friends see that it was.'**
+  String get dayLogLateNote;
+
+  /// No description provided for @profileEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile'**
+  String get profileEditTitle;
+
+  /// No description provided for @profileEditSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Name and face — what friends see in requests, the feed and the league.'**
+  String get profileEditSub;
+
+  /// No description provided for @profileSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get profileSave;
+
+  /// No description provided for @profileSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile saved.'**
+  String get profileSaved;
+
+  /// No description provided for @profileStatement.
+  ///
+  /// In en, this message translates to:
+  /// **'Your goal in one sentence'**
+  String get profileStatement;
+
+  /// No description provided for @stageDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 more day} other{{days} more days}}'**
+  String stageDaysLeft(int days);
+
+  /// No description provided for @statsWeekLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'W{week}'**
+  String statsWeekLabel(String week);
 }
 
 class _AppLocalizationsDelegate

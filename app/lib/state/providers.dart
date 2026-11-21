@@ -396,6 +396,12 @@ class AppController extends AsyncNotifier<AppSnapshot> {
     ref.onDispose(() {
       _debounce?.cancel();
       _midnight?.cancel();
+      // Pushes still held back for the undo window are dropped with the
+      // session; the events themselves are already in the feed.
+      for (final Timer notice in _pendingNotices.values) {
+        notice.cancel();
+      }
+      _pendingNotices.clear();
       subscription.cancel();
       social.cancel();
     });

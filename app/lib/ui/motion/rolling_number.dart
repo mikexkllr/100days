@@ -153,30 +153,104 @@ class GlowText extends StatelessWidget {
         ),
       );
     }
-    final List<Shadow>? shadows = glow == null
-        ? style.shadows
-        : <Shadow>[
-            Shadow(color: glow!.withValues(alpha: 0.55), blurRadius: 22),
-          ];
+    if (gradient == null) {
+      return Text(
+        text,
+        style: style.copyWith(
+          shadows: glow == null
+              ? style.shadows
+              : <Shadow>[
+                  Shadow(color: glow!.withValues(alpha: 0.55), blurRadius: 22),
+                ],
+        ),
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: maxLines == null ? null : TextOverflow.ellipsis,
+      );
+    }
     final Widget label = Text(
       text,
-      style: style.copyWith(
-        shadows: shadows,
-        color: gradient == null ? style.color : const Color(0xFFFFFFFF),
-      ),
+      style: style.copyWith(shadows: const <Shadow>[], color: const Color(0xFFFFFFFF)),
       textAlign: textAlign,
       maxLines: maxLines,
       overflow: maxLines == null ? null : TextOverflow.ellipsis,
     );
-    if (gradient == null) return label;
     // The mask is measured on the laid-out text, so the gradient runs over
     // the glyphs wherever they sit on screen.
-    return ShaderMask(
+    final Widget masked = ShaderMask(
       blendMode: BlendMode.srcIn,
       shaderCallback: (Rect bounds) => gradient!.createShader(bounds),
       child: label,
     );
+    if (glow == null) return masked;
+    // The glow is painted underneath, blurred glyphs of its own. As a text
+    // shadow inside the mask it was tinted only within the text's box, and
+    // the box showed as a lighter rectangle behind the number.
+    return CustomPaint(
+      painter: _GlowPainter(
+        text: text,
+        style: DefaultTextStyle.of(context).style.merge(style),
+        color: glow!,
+        textAlign: textAlign,
+        textScaler: MediaQuery.textScalerOf(context),
+        textDirection: Directionality.of(context),
+      ),
+      child: masked,
+    );
   }
+}
+
+/// A soft glow behind gradient text: the glyphs again, blurred, in [color].
+class _GlowPainter extends CustomPainter {
+  _GlowPainter({
+    required this.text,
+    required this.style,
+    required this.color,
+    required this.textAlign,
+    required this.textScaler,
+    required this.textDirection,
+  });
+
+  final String text;
+  final TextStyle style;
+  final Color color;
+  final TextAlign textAlign;
+  final TextScaler textScaler;
+  final TextDirection textDirection;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          inherit: false,
+          fontFamily: style.fontFamily,
+          fontFamilyFallback: style.fontFamilyFallback,
+          fontSize: style.fontSize,
+          fontWeight: style.fontWeight,
+          height: style.height,
+          letterSpacing: style.letterSpacing,
+          fontFeatures: style.fontFeatures,
+          textBaseline: style.textBaseline ?? TextBaseline.alphabetic,
+          foreground: Paint()
+            ..color = color.withValues(alpha: 0.6)
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 11),
+        ),
+      ),
+      textAlign: textAlign,
+      textDirection: textDirection,
+      textScaler: textScaler,
+    )
+      ..layout(minWidth: size.width, maxWidth: size.width)
+      ..paint(canvas, Offset.zero);
+  }
+
+  @override
+  bool shouldRepaint(_GlowPainter oldDelegate) =>
+      oldDelegate.text != text ||
+      oldDelegate.color != color ||
+      oldDelegate.style != style;
 }
 
 /// Hollow type. A stroked glyph shows every seam where the font's own

@@ -146,8 +146,10 @@ class _StageRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
+                  // The name is the title already: the next form only
+                  // needs the days still missing.
                   left != null
-                      ? l10n.stageNext(l10n.stageName(stage), left)
+                      ? l10n.stageDaysLeft(left)
                       : l10n.stageFrom(stage.minStreak),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,

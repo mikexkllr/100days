@@ -4848,4 +4848,93 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiRestoring => 'Deine Käufe werden geprüft …';
+
+  @override
+  String get tileHoldLonger => 'Halten, bis es voll ist';
+
+  @override
+  String get tileHoldTip => 'Tipp: Die Zeile gedrückt halten geht schneller.';
+
+  @override
+  String get tileUndo => 'Rückgängig';
+
+  @override
+  String tileMoreSemantics(String habit) {
+    return 'Mehr zu $habit';
+  }
+
+  @override
+  String get tileUndone => 'Zurückgenommen.';
+
+  @override
+  String get homeFreezeConfirmTitle => 'Heute einfrieren?';
+
+  @override
+  String homeFreezeConfirmBody(int left) {
+    String _temp0 = intl.Intl.pluralLogic(
+      left,
+      locale: localeName,
+      other: 'Danach hast du noch $left Freezes in diesem Zyklus.',
+      one: 'Das ist dein letzter Freeze in diesem Zyklus.',
+    );
+    return 'Dein Streak übersteht heute, ohne zu wachsen. $_temp0 Das lässt sich nicht zurücknehmen.';
+  }
+
+  @override
+  String get homeYesterdayTitle => 'Gestern ist durchgerutscht';
+
+  @override
+  String homeYesterdayBodyFreeze(int streak, int left) {
+    return 'Dein Streak von $streak Tagen ist um Mitternacht gerissen. Gemacht, aber vergessen abzuhaken? Trag es jetzt nach. Oder rette den Streak mit einem Freeze (noch $left).';
+  }
+
+  @override
+  String homeYesterdayBody(int streak) {
+    return 'Dein Streak von $streak Tagen ist um Mitternacht gerissen. Gemacht, aber vergessen abzuhaken? Trag es jetzt nach — es wird als nachgetragen angezeigt.';
+  }
+
+  @override
+  String get homeYesterdayLog => 'Gestern nachtragen';
+
+  @override
+  String get homeYesterdayFreeze => 'Freeze einsetzen';
+
+  @override
+  String get dayLogLate => 'Nachtragen';
+
+  @override
+  String get dayLogLateNote =>
+      'Nachtragen geht nur für gestern. Deine Freunde sehen, dass es nachgetragen ist.';
+
+  @override
+  String get profileEditTitle => 'Dein Profil';
+
+  @override
+  String get profileEditSub =>
+      'Name und Gesicht — was Freunde in Anfragen, im Feed und in der Liga sehen.';
+
+  @override
+  String get profileSave => 'Speichern';
+
+  @override
+  String get profileSaved => 'Profil gespeichert.';
+
+  @override
+  String get profileStatement => 'Dein Ziel in einem Satz';
+
+  @override
+  String stageDaysLeft(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Noch $days Tage',
+      one: 'Noch 1 Tag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String statsWeekLabel(String week) {
+    return 'KW $week';
+  }
 }

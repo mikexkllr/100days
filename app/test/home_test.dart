@@ -529,4 +529,95 @@ void main() {
     // One finished day, one star.
     expect((await repository.snapshot()).me.streak.completedDays, 1);
   });
+
+  testWidgets('a done row still answers a tap, and the tick can be taken back',
+      (WidgetTester tester) async {
+    await startChallenge();
+    await pump(tester);
+
+    await holdToIgnite(tester, 'Heute clean');
+    expect(find.widgetWithText(DoneBadge, 'Erledigt'), findsOneWidget);
+
+    // Before the fix the row swallowed every tap after a hold.
+    await tester.tap(find.text('Kein Zucker'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('tile-undo-noSugar')));
+    await tester.pumpAndSettle();
+
+    final AppSnapshot snapshot = await repository.snapshot();
+    expect(snapshot.me.logsByDay[snapshot.today.toString()], isNull);
+    expect(find.widgetWithText(DoneBadge, 'Erledigt'), findsNothing);
+  });
+
+  testWidgets('every habit can be checked in without holding',
+      (WidgetTester tester) async {
+    await startChallenge();
+    await pump(tester);
+
+    await tester.tap(find.text('Kein Zucker'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('tile-plain-noSugar')));
+    await tester.pumpAndSettle();
+
+    final AppSnapshot snapshot = await repository.snapshot();
+    expect(
+      snapshot.me.logsByDay[snapshot.today.toString()]!.entryFor('noSugar'),
+      isNotNull,
+    );
+  });
+
+  testWidgets('a freeze asks first and holds the day only when confirmed',
+      (WidgetTester tester) async {
+    final Challenge challenge = testChallenge(
+      startDay: DayKey.today().addDays(-2),
+      habits: const <HabitCategory>[HabitCategory.reading],
+    );
+    await repository.saveProfile(displayName: 'Mike', avatarEmoji: '🐺');
+    await repository.startChallenge(challenge);
+    for (int i = 2; i >= 1; i--) {
+      await repository.checkIn(
+        habit: challenge.habits.first,
+        day: DayKey.today().addDays(-i),
+      );
+    }
+    await pump(tester);
+
+    await tester.tap(find.byKey(const Key('freeze-use')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Abbrechen'));
+    await tester.pumpAndSettle();
+    expect((await repository.snapshot()).me.frozenDays, isEmpty);
+
+    await tester.tap(find.byKey(const Key('freeze-use')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('freeze-confirm')));
+    await tester.pumpAndSettle();
+    expect((await repository.snapshot()).me.frozenDays,
+        <String>{DayKey.today().toString()});
+  });
+
+  testWidgets('a missed yesterday can be logged late', (WidgetTester tester) async {
+    final Challenge challenge = testChallenge(
+      startDay: DayKey.today().addDays(-3),
+      habits: const <HabitCategory>[HabitCategory.reading],
+    );
+    await repository.saveProfile(displayName: 'Mike', avatarEmoji: '🐺');
+    await repository.startChallenge(challenge);
+    for (int i = 3; i >= 2; i--) {
+      await repository.checkIn(
+        habit: challenge.habits.first,
+        day: DayKey.today().addDays(-i),
+      );
+    }
+    await pump(tester);
+
+    expect(find.text('Gestern ist durchgerutscht'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('yesterday-log')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('log-late-reading')));
+    await tester.pumpAndSettle();
+
+    final AppSnapshot snapshot = await repository.snapshot();
+    expect(snapshot.me.streak.current, 3);
+  });
 }

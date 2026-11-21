@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
@@ -13,6 +14,7 @@ import '../../theme/theme.dart';
 import '../motion/rolling_number.dart';
 import '../nutrition/diary_view.dart';
 import '../plan/workout_detail.dart';
+import '../settings/profile_edit_screen.dart';
 import '../widgets/app_card.dart';
 import '../widgets/day_board.dart';
 import '../widgets/habit_tile.dart';
@@ -73,6 +75,18 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
   final Map<String, int> _xpGain = <String, int>{};
   final Map<String, int> _celebrations = <String, int>{};
 
+  /// How full the row being held is — Funki watches it.
+  final ValueNotifier<double> _holdFill = ValueNotifier<double>(0);
+
+  /// How long an undo stays offered, and how long friends wait for the push.
+  static const Duration _undoWindow = Duration(seconds: 5);
+
+  @override
+  void dispose() {
+    _holdFill.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppSnapshot snapshot = widget.snapshot;
@@ -89,11 +103,19 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
     final Workout? workout = snapshot.plan?.workoutFor(challenge.startDay, today);
     // Day 100 of the *current* cycle, finished. The cycleOf check keeps the
     // card from reappearing on the same day after the user has ascended.
-    final bool cycleDone = challenge.cycleOf(today) >= challenge.cycle &&
-        challenge.dayInCycle(today) >= challenge.lengthDays &&
-        snapshot.me.streak.doneToday;
+    // Day 100 of the current cycle done, or already behind: the way up stays
+    // open until it is taken.
+    final bool cycleDone = challenge.canAscend(
+      today,
+      lastDayDone: snapshot.me.streak.doneToday,
+    );
     final int freezes =
-        challenge.streakFreezesRemaining - snapshot.me.streak.freezesUsed;
+        challenge.freezesLeftOn(today, snapshot.me.frozenDays);
+    final _Yesterday? yesterday = _Yesterday.of(snapshot, freezes);
+    final bool prefsTap = ref.watch(appPrefsProvider).tapToCheckIn;
+    // The coach already says who was active; the banner would say it twice.
+    final bool coachTellsPressure =
+        selectTone(snapshot.toCoachContext()) == CoachTone.socialPressure;
 
     Widget tile(Habit habit, {bool scheduled = true}) => Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -108,6 +130,9 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
             celebration: _celebrations[habit.id] ?? 0,
             onCheckIn: (num value) => _checkIn(habit, value),
             onRelapse: () => _confirmRelapse(habit),
+            onUndo: () => _undo(habit),
+            onHoldFill: (double fill) => _holdFill.value = fill,
+            tapToCheckIn: prefsTap,
           ),
         );
 
@@ -124,13 +149,18 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
           AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
         ),
         children: <Widget>[
-          _Header(snapshot: snapshot),
+          _Header(snapshot: snapshot, onOpenStats: widget.onOpenStats),
           const SizedBox(height: AppSpacing.sm),
           StreakHero(
             snapshot: snapshot,
+            holdFill: _holdFill,
             onTapDay: (DayKey day) =>
                 showDaySheet(context, snapshot: snapshot, day: day),
           ),
+          if (yesterday != null) ...<Widget>[
+            const SizedBox(height: AppSpacing.md),
+            _YesterdayCard(yesterday: yesterday, snapshot: snapshot),
+          ],
           if (cycleDone) ...<Widget>[
             const SizedBox(height: AppSpacing.md),
             _AscendCard(challenge: challenge),
@@ -158,13 +188,14 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
               padding: const EdgeInsets.only(top: AppSpacing.sm),
               child: ReminderPermissionCard(stage: flameStageFor(snapshot.me.streak.current)),
             ),
-          PressureBanner(
-            activePeers: snapshot.peerStates
-                .where((PeerState p) => p.activeToday)
-                .toList(),
-            doneToday: snapshot.me.streak.doneToday,
-            onTap: widget.onOpenSocial,
-          ),
+          if (!coachTellsPressure)
+            PressureBanner(
+              activePeers: snapshot.peerStates
+                  .where((PeerState p) => p.activeToday)
+                  .toList(),
+              doneToday: snapshot.me.streak.doneToday,
+              onTap: widget.onOpenSocial,
+            ),
           // The way out for a day that cannot be done — offered, not pushed.
           if (snapshot.me.streak.atRisk &&
               snapshot.me.streak.current > 0 &&
@@ -204,10 +235,34 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
     );
   }
 
+  Future<void> _undo(Habit habit) async {
+    HapticFeedback.selectionClick();
+    await ref.read(appStateProvider.notifier).undoCheckIn(habit);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(context.l10n.tileUndone)));
+  }
+
   Future<void> _checkIn(Habit habit, num value) async {
     final AppSnapshot before = widget.snapshot;
-    await ref.read(appStateProvider.notifier).checkIn(habit, value: value);
+    _holdFill.value = 0;
+    await ref
+        .read(appStateProvider.notifier)
+        .checkIn(habit, value: value, notifyDelay: _undoWindow);
     if (!mounted) return;
+    final AppLocalizations l10nNow = context.l10n;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        duration: _undoWindow,
+        content: Text(
+            l10nNow.homeCheckInToast(habit.emoji, l10nNow.habitLabel(habit))),
+        action: SnackBarAction(
+          label: l10nNow.tileUndo,
+          onPressed: () => _undo(habit),
+        ),
+      ));
 
     final AppSnapshot? after = ref.read(appStateProvider).valueOrNull;
     if (after == null) return;
@@ -262,6 +317,149 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
   }
 }
 
+/// Yesterday was missed and the streak broke at midnight — but it can still
+/// be logged late (it was done, just not ticked) or held with a freeze.
+/// Offered on the day after only.
+class _Yesterday {
+  const _Yesterday({
+    required this.day,
+    required this.lostStreak,
+    required this.freezesLeft,
+  });
+
+  final DayKey day;
+  final int lostStreak;
+  final int freezesLeft;
+
+  static _Yesterday? of(AppSnapshot snapshot, int freezesLeft) {
+    final Challenge challenge = snapshot.challenge!;
+    final DayKey day = snapshot.today.addDays(-1);
+    if (day.isBefore(challenge.startDay)) return null;
+    final DayMark mark = dayMarkFor(
+      challenge: challenge,
+      day: day,
+      today: snapshot.today,
+      logsByDay: snapshot.me.logsByDay,
+      frozenDays: snapshot.me.frozenDays,
+    );
+    if (mark != DayMark.missed) return null;
+    // What the streak would be with yesterday held: worth saving only if
+    // there was one.
+    final StreakStats held = computeStreak(
+      challenge: challenge,
+      logsByDay: snapshot.me.logsByDay,
+      frozenDays: <String>{...snapshot.me.frozenDays, day.toString()},
+      today: snapshot.today,
+    );
+    if (held.current <= snapshot.me.streak.current || held.current == 0) {
+      return null;
+    }
+    return _Yesterday(
+      day: day,
+      lostStreak: held.current,
+      freezesLeft: freezesLeft,
+    );
+  }
+}
+
+class _YesterdayCard extends ConsumerWidget {
+  const _YesterdayCard({required this.yesterday, required this.snapshot});
+
+  final _Yesterday yesterday;
+  final AppSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations l10n = context.l10n;
+    final bool canFreeze = yesterday.freezesLeft > 0;
+    return AppCard(
+      border: AppColors.danger.withValues(alpha: 0.45),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(l10n.homeYesterdayTitle,
+              style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            canFreeze
+                ? l10n.homeYesterdayBodyFreeze(
+                    yesterday.lostStreak, yesterday.freezesLeft)
+                : l10n.homeYesterdayBody(yesterday.lostStreak),
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: <Widget>[
+              OutlinedButton.icon(
+                key: const Key('yesterday-log'),
+                onPressed: () => showDaySheet(
+                  context,
+                  snapshot: snapshot,
+                  day: yesterday.day,
+                ),
+                icon: const Icon(Icons.edit_calendar, size: 18),
+                label: Text(l10n.homeYesterdayLog),
+              ),
+              if (canFreeze)
+                OutlinedButton.icon(
+                  key: const Key('yesterday-freeze'),
+                  style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.cool),
+                  onPressed: () async {
+                    if (!await confirmFreeze(
+                        context, yesterday.freezesLeft - 1)) {
+                      return;
+                    }
+                    await ref
+                        .read(appStateProvider.notifier)
+                        .useStreakFreeze(day: yesterday.day);
+                  },
+                  icon: const Icon(Icons.ac_unit, size: 18),
+                  label: Text(l10n.homeYesterdayFreeze),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Freezes are scarce and cannot be taken back: ask once.
+Future<bool> confirmFreeze(BuildContext context, int leftAfter) async {
+  final AppLocalizations l10n = context.l10n;
+  final bool? ok = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) => AlertDialog(
+      backgroundColor: AppColors.surface,
+      title: Text(l10n.homeFreezeConfirmTitle),
+      content: Text(l10n.homeFreezeConfirmBody(leftAfter)),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(l10n.actionCancel),
+        ),
+        FilledButton(
+          key: const Key('freeze-confirm'),
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.cool,
+            foregroundColor: AppColors.ink,
+            minimumSize: const Size(110, 44),
+          ),
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(l10n.homeFreezeUse),
+        ),
+      ],
+    ),
+  );
+  return ok ?? false;
+}
+
 /// The line over today's habits: what this list is and how far it is.
 class _TodayHeader extends StatelessWidget {
   const _TodayHeader({required this.title, required this.status, this.lit});
@@ -300,9 +498,10 @@ class _TodayHeader extends StatelessWidget {
 
 /// The title of Today is the day itself: "Day 13 / 100".
 class _Header extends StatelessWidget {
-  const _Header({required this.snapshot});
+  const _Header({required this.snapshot, this.onOpenStats});
 
   final AppSnapshot snapshot;
+  final VoidCallback? onOpenStats;
 
   @override
   Widget build(BuildContext context) {
@@ -325,7 +524,10 @@ class _Header extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text.rich(
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text.rich(
                   slash < 0
                       ? TextSpan(text: day)
                       : TextSpan(
@@ -340,6 +542,7 @@ class _Header extends StatelessWidget {
                         ),
                   maxLines: 1,
                   style: title,
+                ),
                 ),
                 Text(
                   l10n.homeLevelAndTier(
@@ -357,9 +560,24 @@ class _Header extends StatelessWidget {
               ],
             ),
           ),
-          _XpBadge(xp: xp, progress: levelProgress(xp)),
+          GestureDetector(
+            onTap: onOpenStats,
+            child: _XpBadge(xp: xp, progress: levelProgress(xp)),
+          ),
           const SizedBox(width: AppSpacing.sm + 2),
-          EmojiAvatar(snapshot.me.profile.avatarEmoji, size: 42),
+          Semantics(
+            button: true,
+            label: l10n.profileEditTitle,
+            child: GestureDetector(
+              key: const Key('home-avatar'),
+              onTap: () => Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  builder: (BuildContext context) => const ProfileEditScreen(),
+                ),
+              ),
+              child: EmojiAvatar(snapshot.me.profile.avatarEmoji, size: 42),
+            ),
+          ),
         ],
       ),
     );
@@ -727,8 +945,11 @@ class _FreezeCard extends ConsumerWidget {
             ),
           ),
           TextButton(
-            onPressed: () =>
-                ref.read(appStateProvider.notifier).useStreakFreeze(),
+            key: const Key('freeze-use'),
+            onPressed: () async {
+              if (!await confirmFreeze(context, remaining - 1)) return;
+              await ref.read(appStateProvider.notifier).useStreakFreeze();
+            },
             style: TextButton.styleFrom(foregroundColor: AppColors.cool),
             child: Text(l10n.homeFreezeUse),
           ),

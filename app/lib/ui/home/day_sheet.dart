@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
 import '../../data/app_repository.dart';
 import '../../l10n/l10n.dart';
+import '../../state/providers.dart';
 import '../../theme/fire.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
+import 'today.dart';
 import 'week_strip.dart';
 
 /// What happened on one day: its mark, every habit that was scheduled and
@@ -21,15 +24,22 @@ Future<void> showDaySheet(
       builder: (BuildContext context) => DaySheet(snapshot: snapshot, day: day),
     );
 
-class DaySheet extends StatelessWidget {
+class DaySheet extends ConsumerWidget {
   const DaySheet({super.key, required this.snapshot, required this.day});
 
   final AppSnapshot snapshot;
   final DayKey day;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations l10n = context.l10n;
+    // Live, so a habit logged late from here shows at once.
+    final AppSnapshot snapshot =
+        ref.watch(appStateProvider).valueOrNull ?? this.snapshot;
+    // Yesterday — and only yesterday — can still be logged: done, but not
+    // ticked before midnight. Friends see it as logged late.
+    final bool canLogLate = day == snapshot.today.addDays(-1) &&
+        !day.isBefore(snapshot.challenge!.startDay);
     final Challenge challenge = snapshot.challenge!;
     final DayLog? log = snapshot.me.logsByDay[day.toString()];
     final DayMark mark = dayMarkFor(
@@ -99,7 +109,27 @@ class DaySheet extends StatelessWidget {
                     ?.copyWith(color: AppColors.textSecondary),
               ),
             for (final Habit habit in <Habit>[...scheduled, ...extra])
-              _HabitLine(habit: habit, entry: log?.entryFor(habit.id), fire: fire),
+              _HabitLine(
+                habit: habit,
+                entry: log?.entryFor(habit.id),
+                fire: fire,
+                onLogLate: canLogLate && !isHabitDone(habit, log)
+                    ? () => ref
+                        .read(appStateProvider.notifier)
+                        .checkInOn(habit, day)
+                    : null,
+              ),
+            if (canLogLate &&
+                scheduled.any((Habit h) => !isHabitDone(h, log))) ...<Widget>[
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                l10n.dayLogLateNote,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textTertiary,
+                      fontSize: 12.5,
+                    ),
+              ),
+            ],
           ],
         ),
       ),
@@ -112,11 +142,15 @@ class _HabitLine extends StatelessWidget {
     required this.habit,
     required this.entry,
     required this.fire,
+    this.onLogLate,
   });
 
   final Habit habit;
   final CheckIn? entry;
   final Fire fire;
+
+  /// Set when the habit can still be logged for this day.
+  final VoidCallback? onLogLate;
 
   @override
   Widget build(BuildContext context) {
@@ -154,6 +188,13 @@ class _HabitLine extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
+          if (onLogLate != null)
+            TextButton(
+              key: Key('log-late-${habit.id}'),
+              onPressed: onLogLate,
+              child: Text(l10n.dayLogLate),
+            )
+          else
           Text(
             detail,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(

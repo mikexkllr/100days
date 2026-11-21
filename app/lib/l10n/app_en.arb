@@ -3414,5 +3414,71 @@
   "aiPurchaseRetryLater": "Paid, but the server could not confirm it yet. The app tries again at its next start — or tap \"Restore purchase\" once you are online.",
   "aiRestoreNothing": "No subscription found to restore on this store account.",
   "aiRestoreFailed": "Restoring did not work. Check your connection and try again.",
-  "aiRestoring": "Checking your purchases…"
+  "aiRestoring": "Checking your purchases…",
+  "tileHoldLonger": "Hold on until it is full",
+  "tileHoldTip": "Tip: holding the row is quicker.",
+  "tileUndo": "Undo",
+  "tileMoreSemantics": "More for {habit}",
+  "@tileMoreSemantics": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "tileUndone": "Taken back.",
+  "homeFreezeConfirmTitle": "Freeze today?",
+  "homeFreezeConfirmBody": "Your streak survives today without growing. {left, plural, =1{This is your last freeze in this cycle.} other{{left} freezes left in this cycle after this one.}} It cannot be taken back.",
+  "@homeFreezeConfirmBody": {
+    "placeholders": {
+      "left": {
+        "type": "int"
+      }
+    }
+  },
+  "homeYesterdayTitle": "Yesterday slipped through",
+  "homeYesterdayBodyFreeze": "Your {streak}-day streak broke at midnight. Done it but forgot to tick it? Log it now. Or save the streak with a freeze ({left} left).",
+  "@homeYesterdayBodyFreeze": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      },
+      "left": {
+        "type": "int"
+      }
+    }
+  },
+  "homeYesterdayBody": "Your {streak}-day streak broke at midnight. Done it but forgot to tick it? Log it now — it shows as logged late.",
+  "@homeYesterdayBody": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "homeYesterdayLog": "Log yesterday",
+  "homeYesterdayFreeze": "Use a freeze",
+  "dayLogLate": "Log",
+  "dayLogLateNote": "Only yesterday can be logged late. Friends see that it was.",
+  "profileEditTitle": "Your profile",
+  "profileEditSub": "Name and face — what friends see in requests, the feed and the league.",
+  "profileSave": "Save",
+  "profileSaved": "Profile saved.",
+  "profileStatement": "Your goal in one sentence",
+  "stageDaysLeft": "{days, plural, =1{1 more day} other{{days} more days}}",
+  "@stageDaysLeft": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "statsWeekLabel": "W{week}",
+  "@statsWeekLabel": {
+    "placeholders": {
+      "week": {
+        "type": "String"
+      }
+    }
+  }
 }
