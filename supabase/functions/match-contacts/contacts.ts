@@ -47,3 +47,17 @@ export function identifiersOf(
   }
   return [...out.values()];
 }
+
+/** The HMACs of [identifiers], split by kind for the lookup. */
+export async function hashByKind(
+  pepper: string,
+  identifiers: { kind: Kind; value: string }[],
+): Promise<{ emails: string[]; phones: string[] }> {
+  const hashed = await Promise.all(
+    identifiers.map(async ({ kind, value }) => ({ kind, hash: await hmac(pepper, kind, value) })),
+  );
+  return {
+    emails: hashed.filter((h) => h.kind === 'email').map((h) => h.hash),
+    phones: hashed.filter((h) => h.kind === 'phone').map((h) => h.hash),
+  };
+}

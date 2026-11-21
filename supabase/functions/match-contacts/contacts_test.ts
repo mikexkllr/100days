@@ -1,6 +1,6 @@
 // deno test supabase/functions/match-contacts/
 import { assertEquals, assertNotEquals } from 'jsr:@std/assert@1';
-import { hmac, identifiersOf, normalizeEmail, normalizePhone } from './contacts.ts';
+import { hashByKind, hmac, identifiersOf, normalizeEmail, normalizePhone } from './contacts.ts';
 
 Deno.test('e-mail addresses and phone numbers are normalised before hashing', () => {
   assertEquals(normalizeEmail('  Lena.Example@Mail.DE '), 'lena.example@mail.de');
@@ -28,4 +28,15 @@ Deno.test('a request keeps unique, valid identifiers up to the limit', () => {
     { kind: 'phone', value: '+491512345678' },
   ]);
   assertEquals(identifiersOf({ emails: ['a@b.de', 'c@d.de', 'e@f.de'] }, 2).length, 2);
+});
+
+Deno.test('hashes go to the lookup split by kind, as many as came in', async () => {
+  const identifiers = identifiersOf({
+    emails: Array.from({ length: 1500 }, (_, i) => `person${i}@example.org`),
+    phones: ['+491512345678'],
+  }, 2000);
+  const { emails, phones } = await hashByKind('pepper', identifiers);
+  assertEquals(emails.length, 1500);
+  assertEquals(phones, [await hmac('pepper', 'phone', '+491512345678')]);
+  assertEquals(emails[0], await hmac('pepper', 'email', 'person0@example.org'));
 });
