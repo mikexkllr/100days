@@ -197,6 +197,98 @@ void main() {
     );
   });
 
+  testWidgets('dips and pull-ups take added weight, but do not ask for it',
+      (WidgetTester tester) async {
+    await repository.startChallenge(_fitChallenge());
+    const Workout workout = Workout(
+      kind: WorkoutKind.push,
+      weekday: DateTime.monday,
+      estimatedMinutes: 20,
+      blocks: <PlannedSet>[
+        PlannedSet(
+          exerciseId: 'dip',
+          sets: 2,
+          repsLow: 6,
+          repsHigh: 10,
+          rpe: 8,
+          restSeconds: 120,
+        ),
+      ],
+    );
+    await pump(
+      tester,
+      WorkoutLoggerScreen(workout: workout, day: DayKey.today()),
+    );
+
+    // Optional, so the empty field says what it is for.
+    expect(find.text('+ kg'), findsNWidgets(2));
+    await tester.enterText(find.byType(TextField).first, '10');
+    await tester.tap(find.byIcon(Icons.check).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('finish-workout')));
+    await tester.pumpAndSettle();
+
+    final AppSnapshot snapshot = await repository.snapshot();
+    final LoggedSet set =
+        snapshot.me.workoutLogOn(DayKey.today())!.exercises.single.sets.single;
+    expect(set.weightKg, 10);
+    expect(set.reps, 6);
+  });
+
+  testWidgets('a deload week says go lighter, and is logged as one',
+      (WidgetTester tester) async {
+    final Challenge challenge = _fitChallenge();
+    await repository.startChallenge(challenge);
+    final TrainingPlan plan = buildPlan(challenge).training!;
+    final Workout build = plan.weeks.first.workouts.first;
+    final Workout deload = plan.weeks[3].workouts.first;
+    expect(deload.isDeload, isTrue);
+    final String exercise = deload.blocks.first.exerciseId;
+    // Last week's session: the top of the range at 80 kg.
+    await repository.logWorkout(
+      log: WorkoutLog(
+        day: DayKey.today().addDays(-7),
+        kind: build.kind,
+        sessionIndex: build.sessionIndex,
+        loggedAt: DateTime.now().subtract(const Duration(days: 7)),
+        exercises: <ExerciseLog>[
+          ExerciseLog(exerciseId: exercise, sets: <LoggedSet>[
+            for (int i = 0; i < 3; i++)
+              LoggedSet(weightKg: 80, reps: build.blocks.first.repsHigh),
+          ]),
+        ],
+      ),
+      habit: challenge.habits.first,
+      challenge: challenge,
+    );
+
+    await pump(
+      tester,
+      WorkoutLoggerScreen(workout: deload, day: DayKey.today()),
+    );
+
+    expect(find.byKey(const Key('logger-deload')), findsOneWidget);
+    expect(find.textContaining('Deload: leichter mit 72,5 kg'), findsOneWidget);
+    expect(find.textContaining('jetzt 82,5 kg'), findsNothing);
+    await tester.tap(find.byIcon(Icons.check).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('finish-workout')));
+    await tester.pumpAndSettle();
+
+    final AppSnapshot snapshot = await repository.snapshot();
+    final WorkoutLog log = snapshot.me.workoutLogOn(DayKey.today())!;
+    expect(log.deload, isTrue);
+    expect(log.exercises.first.sets.single.weightKg, 72.5);
+    // The week after, last week's 80 kg is still the number to beat.
+    expect(
+      recommendNext(
+        target: build.blocks.first,
+        history: snapshot.me.historyOf(exercise),
+      ).weightKg,
+      82.5,
+    );
+  });
+
   testWidgets('hiding a habit keeps its check-ins private from then on',
       (WidgetTester tester) async {
     await repository.saveProfile(

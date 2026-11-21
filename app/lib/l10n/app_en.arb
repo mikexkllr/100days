@@ -3336,5 +3336,20 @@
   "workoutStart": "Start workout",
   "workoutUpper": "Upper body",
   "workoutUpperFocus": "Push and pull",
-  "workoutWorkingSets": "Working sets"
+  "workoutWorkingSets": "Working sets",
+  "loggerAddedLoadHint": "+ kg",
+  "loggerAdviceAddRepsBodyweight": "One more rep per set",
+  "loggerAdviceBeyondRange": "Top of the range on every set: one more rep each — or carry some weight and enter it under + kg",
+  "loggerAdviceDeload": "Deload: lighter at {weight} kg, and stop well short of failure",
+  "@loggerAdviceDeload": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "loggerAdviceDeloadBodyweight": "Deload: easy reps, and stop well short of failure",
+  "loggerAdviceReduceBodyweight": "Missed twice — drop the added weight and build back up",
+  "loggerDeloadBody": "Fewer sets and lighter weights this week — on purpose. Your body catches up on three weeks of building; next week the numbers go up again.",
+  "loggerDeloadTitle": "Deload week"
 }

@@ -4696,4 +4696,34 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get workoutWorkingSets => 'Arbeitssätze';
+
+  @override
+  String get loggerAddedLoadHint => '+ kg';
+
+  @override
+  String get loggerAdviceAddRepsBodyweight => 'Eine Wdh. mehr pro Satz';
+
+  @override
+  String get loggerAdviceBeyondRange =>
+      'Jeder Satz am oberen Ende: je eine Wdh. mehr — oder nimm Zusatzgewicht und trag es bei + kg ein';
+
+  @override
+  String loggerAdviceDeload(String weight) {
+    return 'Deload: leichter mit $weight kg, und weit vor dem Muskelversagen aufhören';
+  }
+
+  @override
+  String get loggerAdviceDeloadBodyweight =>
+      'Deload: lockere Wiederholungen, und weit vor dem Muskelversagen aufhören';
+
+  @override
+  String get loggerAdviceReduceBodyweight =>
+      'Zweimal verfehlt — ohne Zusatzgewicht neu aufbauen';
+
+  @override
+  String get loggerDeloadBody =>
+      'Diese Woche weniger Sätze und leichtere Gewichte — mit Absicht. Dein Körper holt die drei Aufbauwochen nach, nächste Woche geht es wieder nach oben.';
+
+  @override
+  String get loggerDeloadTitle => 'Deload-Woche';
 }

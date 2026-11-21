@@ -7668,6 +7668,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Working sets'**
   String get workoutWorkingSets;
+
+  /// No description provided for @loggerAddedLoadHint.
+  ///
+  /// In en, this message translates to:
+  /// **'+ kg'**
+  String get loggerAddedLoadHint;
+
+  /// No description provided for @loggerAdviceAddRepsBodyweight.
+  ///
+  /// In en, this message translates to:
+  /// **'One more rep per set'**
+  String get loggerAdviceAddRepsBodyweight;
+
+  /// No description provided for @loggerAdviceBeyondRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Top of the range on every set: one more rep each — or carry some weight and enter it under + kg'**
+  String get loggerAdviceBeyondRange;
+
+  /// No description provided for @loggerAdviceDeload.
+  ///
+  /// In en, this message translates to:
+  /// **'Deload: lighter at {weight} kg, and stop well short of failure'**
+  String loggerAdviceDeload(String weight);
+
+  /// No description provided for @loggerAdviceDeloadBodyweight.
+  ///
+  /// In en, this message translates to:
+  /// **'Deload: easy reps, and stop well short of failure'**
+  String get loggerAdviceDeloadBodyweight;
+
+  /// No description provided for @loggerAdviceReduceBodyweight.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed twice — drop the added weight and build back up'**
+  String get loggerAdviceReduceBodyweight;
+
+  /// No description provided for @loggerDeloadBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer sets and lighter weights this week — on purpose. Your body catches up on three weeks of building; next week the numbers go up again.'**
+  String get loggerDeloadBody;
+
+  /// No description provided for @loggerDeloadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deload week'**
+  String get loggerDeloadTitle;
 }
 
 class _AppLocalizationsDelegate

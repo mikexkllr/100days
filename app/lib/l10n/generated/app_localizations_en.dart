@@ -4681,4 +4681,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get workoutWorkingSets => 'Working sets';
+
+  @override
+  String get loggerAddedLoadHint => '+ kg';
+
+  @override
+  String get loggerAdviceAddRepsBodyweight => 'One more rep per set';
+
+  @override
+  String get loggerAdviceBeyondRange =>
+      'Top of the range on every set: one more rep each — or carry some weight and enter it under + kg';
+
+  @override
+  String loggerAdviceDeload(String weight) {
+    return 'Deload: lighter at $weight kg, and stop well short of failure';
+  }
+
+  @override
+  String get loggerAdviceDeloadBodyweight =>
+      'Deload: easy reps, and stop well short of failure';
+
+  @override
+  String get loggerAdviceReduceBodyweight =>
+      'Missed twice — drop the added weight and build back up';
+
+  @override
+  String get loggerDeloadBody =>
+      'Fewer sets and lighter weights this week — on purpose. Your body catches up on three weeks of building; next week the numbers go up again.';
+
+  @override
+  String get loggerDeloadTitle => 'Deload week';
 }

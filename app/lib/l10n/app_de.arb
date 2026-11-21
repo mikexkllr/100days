@@ -2523,5 +2523,20 @@
   "workoutStart": "Training starten",
   "workoutUpper": "Oberkörper",
   "workoutUpperFocus": "Druck und Zug",
-  "workoutWorkingSets": "Arbeitssätze"
+  "workoutWorkingSets": "Arbeitssätze",
+  "loggerAddedLoadHint": "+ kg",
+  "loggerAdviceAddRepsBodyweight": "Eine Wdh. mehr pro Satz",
+  "loggerAdviceBeyondRange": "Jeder Satz am oberen Ende: je eine Wdh. mehr — oder nimm Zusatzgewicht und trag es bei + kg ein",
+  "loggerAdviceDeload": "Deload: leichter mit {weight} kg, und weit vor dem Muskelversagen aufhören",
+  "@loggerAdviceDeload": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "loggerAdviceDeloadBodyweight": "Deload: lockere Wiederholungen, und weit vor dem Muskelversagen aufhören",
+  "loggerAdviceReduceBodyweight": "Zweimal verfehlt — ohne Zusatzgewicht neu aufbauen",
+  "loggerDeloadBody": "Diese Woche weniger Sätze und leichtere Gewichte — mit Absicht. Dein Körper holt die drei Aufbauwochen nach, nächste Woche geht es wieder nach oben.",
+  "loggerDeloadTitle": "Deload-Woche"
 }

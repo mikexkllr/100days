@@ -65,14 +65,7 @@ class _WorkoutLoggerScreenState extends ConsumerState<WorkoutLoggerScreen> {
   List<_ExerciseState>? _exercises;
   bool _saving = false;
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _exercises ??= _build(Localizations.localeOf(context).toString());
-  }
-
-  List<_ExerciseState> _build(String locale) {
-    final AppSnapshot? snapshot = ref.read(appStateProvider).valueOrNull;
+  List<_ExerciseState> _build(AppSnapshot? snapshot, String locale) {
     final format = NumberFormat.decimalPattern(locale)
       ..maximumFractionDigits = 2;
     return <_ExerciseState>[
@@ -81,8 +74,11 @@ class _WorkoutLoggerScreenState extends ConsumerState<WorkoutLoggerScreen> {
           final List<ExerciseLog> history = snapshot?.me
                   .historyOf(block.exerciseId, before: widget.day) ??
               const <ExerciseLog>[];
-          final SetRecommendation rec =
-              recommendNext(target: block, history: history);
+          final SetRecommendation rec = recommendNext(
+            target: block,
+            history: history,
+            deload: widget.workout.isDeload,
+          );
           return _ExerciseState(
             block: block,
             history: history,
@@ -140,6 +136,7 @@ class _WorkoutLoggerScreenState extends ConsumerState<WorkoutLoggerScreen> {
       day: widget.day,
       kind: widget.workout.kind,
       sessionIndex: widget.workout.sessionIndex,
+      deload: widget.workout.isDeload,
       loggedAt: DateTime.now(),
       durationMinutes: DateTime.now().difference(_startedAt).inMinutes,
       exercises: <ExerciseLog>[
@@ -197,7 +194,17 @@ class _WorkoutLoggerScreenState extends ConsumerState<WorkoutLoggerScreen> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
-    final List<_ExerciseState> exercises = _exercises!;
+    final AsyncValue<AppSnapshot> app = ref.watch(appStateProvider);
+    // The prefill comes from the history: wait for it rather than settle
+    // for "first time" on every exercise and never look again.
+    if (_exercises == null && app.isLoading && !app.hasValue) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.workoutName(widget.workout.kind))),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    final List<_ExerciseState> exercises =
+        _exercises ??= _build(app.valueOrNull, l10n.localeName);
     return PopScope(
       canPop: !_anyDone || _saving,
       onPopInvokedWithResult: (bool didPop, Object? _) async {
@@ -216,25 +223,60 @@ class _WorkoutLoggerScreenState extends ConsumerState<WorkoutLoggerScreen> {
             AppSpacing.xxl + 40,
           ),
           children: <Widget>[
-            AppCard(
-              color: AppColors.surfaceHigh,
-              child: Row(
-                children: <Widget>[
-                  const Icon(Icons.trending_up,
-                      size: 19, color: AppColors.success),
-                  const SizedBox(width: AppSpacing.sm + 2),
-                  Expanded(
-                    child: Text(
-                      l10n.loggerIntro,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary,
-                            fontSize: 12.5,
+            if (widget.workout.isDeload)
+              AppCard(
+                key: const Key('logger-deload'),
+                color: AppColors.social,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    const Icon(Icons.self_improvement,
+                        size: 20, color: AppColors.social),
+                    const SizedBox(width: AppSpacing.sm + 2),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(l10n.loggerDeloadTitle,
+                              style: Theme.of(context).textTheme.titleMedium),
+                          const SizedBox(height: 2),
+                          Text(
+                            l10n.loggerDeloadBody,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12.5,
+                                ),
                           ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+              )
+            else
+              AppCard(
+                color: AppColors.surfaceHigh,
+                child: Row(
+                  children: <Widget>[
+                    const Icon(Icons.trending_up,
+                        size: 19, color: AppColors.success),
+                    const SizedBox(width: AppSpacing.sm + 2),
+                    Expanded(
+                      child: Text(
+                        l10n.loggerIntro,
+                        style:
+                            Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12.5,
+                                ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
             const SizedBox(height: AppSpacing.md),
             for (int i = 0; i < exercises.length; i++)
               Padding(
@@ -272,17 +314,28 @@ class _ExerciseCard extends StatelessWidget {
 
   String _adviceText(AppLocalizations l10n, NumberFormat format) {
     final SetRecommendation rec = state.recommendation;
+    final double? weight = rec.weightKg;
     switch (rec.advice) {
       case ProgressionAdvice.firstTime:
         return l10n.loggerAdviceFirst(state.block.rir);
       case ProgressionAdvice.addWeight:
-        return l10n.loggerAdviceAddWeight(format.format(rec.weightKg ?? 0));
+        return l10n.loggerAdviceAddWeight(format.format(weight ?? 0));
       case ProgressionAdvice.addReps:
-        return l10n.loggerAdviceAddReps;
+        return weight == null
+            ? l10n.loggerAdviceAddRepsBodyweight
+            : l10n.loggerAdviceAddReps;
+      case ProgressionAdvice.beyondRange:
+        return l10n.loggerAdviceBeyondRange;
       case ProgressionAdvice.hold:
         return l10n.loggerAdviceHold;
       case ProgressionAdvice.reduce:
-        return l10n.loggerAdviceReduce(format.format(rec.weightKg ?? 0));
+        return weight == null
+            ? l10n.loggerAdviceReduceBodyweight
+            : l10n.loggerAdviceReduce(format.format(weight));
+      case ProgressionAdvice.deload:
+        return weight == null
+            ? l10n.loggerAdviceDeloadBodyweight
+            : l10n.loggerAdviceDeload(format.format(weight));
     }
   }
 
@@ -293,9 +346,12 @@ class _ExerciseCard extends StatelessWidget {
       ..maximumFractionDigits = 2;
     final ExerciseLog? last =
         state.history.isEmpty ? null : state.history.first;
+    // Body weight is the load; a weight entered is carried on top of it.
     final bool bodyweight =
-        kExerciseById[state.block.exerciseId]?.minEquipment ==
-            EquipmentAccess.bodyweight;
+        kExerciseById[state.block.exerciseId]?.isBodyweight ?? false;
+    final bool deload =
+        state.recommendation.advice == ProgressionAdvice.deload;
+    final Color adviceColor = deload ? AppColors.social : AppColors.success;
 
     return AppCard(
       child: Column(
@@ -315,9 +371,11 @@ class _ExerciseCard extends StatelessWidget {
           if (last != null)
             Text(
               l10n.loggerLastTime(last.sets
-                  .map((LoggedSet s) => s.weightKg > 0
-                      ? '${format.format(s.weightKg)} × ${s.reps}'
-                      : '${s.reps}')
+                  .map((LoggedSet s) => s.weightKg <= 0
+                      ? '${s.reps}'
+                      : bodyweight
+                          ? '+${format.format(s.weightKg)} × ${s.reps}'
+                          : '${format.format(s.weightKg)} × ${s.reps}')
                   .join(', ')),
               style: Theme.of(context)
                   .textTheme
@@ -328,9 +386,13 @@ class _ExerciseCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              const Padding(
-                padding: EdgeInsets.only(top: 2),
-                child: Icon(Icons.trending_up, size: 16, color: AppColors.success),
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(
+                  deload ? Icons.self_improvement : Icons.trending_up,
+                  size: 16,
+                  color: adviceColor,
+                ),
               ),
               const SizedBox(width: AppSpacing.xs + 2),
               Expanded(
@@ -339,7 +401,7 @@ class _ExerciseCard extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium
-                      ?.copyWith(color: AppColors.success, fontSize: 13),
+                      ?.copyWith(color: adviceColor, fontSize: 13),
                 ),
               ),
             ],
@@ -349,7 +411,7 @@ class _ExerciseCard extends StatelessWidget {
             _SetRowView(
               index: i,
               row: state.rows[i],
-              showWeight: !bodyweight,
+              addedLoad: bodyweight,
               onChanged: onChanged,
             ),
           TextButton.icon(
@@ -374,21 +436,27 @@ class _SetRowView extends StatelessWidget {
   const _SetRowView({
     required this.index,
     required this.row,
-    required this.showWeight,
+    required this.addedLoad,
     required this.onChanged,
   });
 
   final int index;
   final _SetRow row;
-  final bool showWeight;
+
+  /// A bodyweight movement: the weight is optional and goes on top of the
+  /// body — a belt on dips, dumbbells on lunges — so the empty field reads
+  /// "+ kg" rather than asking for a number.
+  final bool addedLoad;
   final VoidCallback onChanged;
 
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
-    InputDecoration decoration(String suffix) => InputDecoration(
+    InputDecoration decoration(String suffix, {String? hint}) =>
+        InputDecoration(
           isDense: true,
           suffixText: suffix,
+          hintText: hint,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.sm,
             vertical: AppSpacing.sm,
@@ -409,20 +477,21 @@ class _SetRowView extends StatelessWidget {
                   ?.copyWith(color: AppColors.textTertiary),
             ),
           ),
-          if (showWeight) ...<Widget>[
-            Expanded(
-              child: TextField(
-                controller: row.weight,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-                ],
-                decoration: decoration(l10n.loggerKg),
+          Expanded(
+            child: TextField(
+              controller: row.weight,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+              ],
+              decoration: decoration(
+                l10n.loggerKg,
+                hint: addedLoad ? l10n.loggerAddedLoadHint : l10n.loggerKg,
               ),
             ),
-            const SizedBox(width: AppSpacing.sm),
-          ],
+          ),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: TextField(
               controller: row.reps,
