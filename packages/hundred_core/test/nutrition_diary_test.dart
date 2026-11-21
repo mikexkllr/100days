@@ -484,7 +484,57 @@ void main() {
       );
       expect(await assistant.estimateFoods('x'), isNull);
     });
+
+    test('a failed call is told apart from an answer that held nothing',
+        () async {
+      final List<Object> errors = <Object>[];
+      final offline = NutritionAssistant(llm: _FailingRuntime());
+      expect(await offline.estimateFoods('Rührei', onError: errors.add), isNull);
+      expect(
+          await offline.estimateFoodsFromPhoto(
+              LlmImage(bytes: Uint8List.fromList(<int>[1])),
+              onError: errors.add),
+          isNull);
+      expect(
+          await offline.adjustTargets(
+              plan: buildNutritionPlan(_goal()), wish: 'less', onError: errors.add),
+          isNull);
+      expect(errors, hasLength(3));
+      expect(errors.first, isA<StateError>());
+
+      // A timeout is a failed call too.
+      errors.clear();
+      await NutritionAssistant(
+        llm: _HangingRuntime(),
+        timeout: const Duration(milliseconds: 20),
+      ).estimateFoods('x', onError: errors.add);
+      expect(errors.single, isA<TimeoutException>());
+
+      // Nonsense from the model is not.
+      errors.clear();
+      expect(
+          await NutritionAssistant(llm: _FakeRuntime('no idea'))
+              .estimateFoods('x', onError: errors.add),
+          isNull);
+      expect(errors, isEmpty);
+    });
   });
+}
+
+class _FailingRuntime extends _FakeRuntime {
+  _FailingRuntime() : super('');
+
+  @override
+  Future<String> generate(
+    String prompt, {
+    List<LlmImage> images = const <LlmImage>[],
+    LlmPurpose purpose = LlmPurpose.food,
+    int maxTokens = 400,
+    double temperature = 0.7,
+    Duration timeout = const Duration(seconds: 30),
+    bool json = false,
+  }) async =>
+      throw StateError('no network');
 }
 
 class _HangingRuntime extends _FakeRuntime {
