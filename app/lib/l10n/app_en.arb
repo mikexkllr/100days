@@ -3369,5 +3369,23 @@
   "loggerStartOver": "Start over",
   "editorDiscard": "Discard",
   "editorDiscardBody": "Your changes to the training plan are not saved yet.",
-  "editorDiscardTitle": "Discard your changes?"
+  "editorDiscardTitle": "Discard your changes?",
+  "editorPlanOffBody": "Off: your training habit is a plain tick again, without the +{percent} % XP of a logged workout. The workouts you logged stay in your history, and your split and exercises wait here for when you switch it back on.",
+  "@editorPlanOffBody": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "editorPlanOnBody": "Log every set: each logged workout earns +{percent} % XP.",
+  "@editorPlanOnBody": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "editorPlanSwitch": "Training plan",
+  "editorPlanSwitchedOff": "Training plan switched off — your workouts stay logged"
 }

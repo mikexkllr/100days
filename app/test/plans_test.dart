@@ -422,7 +422,10 @@ void main() {
     await tester.pumpAndSettle();
 
     // One more set, then move it down: the move keeps the extra set.
-    final Finder row = find.text(de.exerciseName(first.exerciseId)).first;
+    final Finder name = find.text(de.exerciseName(first.exerciseId));
+    await tester.scrollUntilVisible(name, 300,
+        scrollable: find.byType(Scrollable).first);
+    final Finder row = name.first;
     await tester.ensureVisible(row);
     await tester.pumpAndSettle();
     await tester.tap(row);
@@ -456,6 +459,97 @@ void main() {
         snapshot.challenge!.goal.training!.sessions.first.exercises[1];
     expect(moved.exerciseId, first.exerciseId);
     expect(moved.sets, first.sets + 1);
+  });
+
+  testWidgets('the training plan switches off, keeps the log, comes back',
+      (WidgetTester tester) async {
+    final Challenge challenge = _fitChallenge();
+    await repository.startChallenge(challenge);
+    await repository.logWorkout(
+      log: WorkoutLog(
+        day: DayKey.today(),
+        kind: WorkoutKind.fullBodyA,
+        sessionIndex: 0,
+        loggedAt: DateTime.now(),
+        exercises: const <ExerciseLog>[
+          ExerciseLog(exerciseId: 'back_squat', sets: <LoggedSet>[
+            LoggedSet(weightKg: 80, reps: 8),
+          ]),
+        ],
+      ),
+      habit: challenge.habits.first,
+      challenge: challenge,
+    );
+    await pump(tester, const PlanScreen());
+
+    await tester.tap(find.byKey(const Key('edit-training-plan')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('training-plan-switch')));
+    await tester.pumpAndSettle();
+    // What off means, before it is saved: no split to edit, no bonus.
+    expect(find.text('Split'), findsNothing);
+    expect(find.textContaining('+50 % XP'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('editor-save')));
+    await tester.pumpAndSettle();
+
+    AppSnapshot snapshot = await repository.snapshot();
+    expect(snapshot.challenge!.goal.trainingPlanEnabled, isFalse);
+    expect(snapshot.plan?.training, isNull);
+    expect(snapshot.me.workoutLogOn(DayKey.today()), isNotNull);
+
+    // The way back: the tab offers the plan, and saving switches it on.
+    await tester.tap(find.text('Trainingsplan einschalten').last);
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<SwitchListTile>(
+              find.byKey(const Key('training-plan-switch')))
+          .value,
+      isTrue,
+    );
+    await tester.tap(find.byKey(const Key('editor-save')));
+    await tester.pumpAndSettle();
+    snapshot = await repository.snapshot();
+    expect(snapshot.challenge!.goal.trainingPlanEnabled, isTrue);
+    expect(snapshot.plan?.training, isNotNull);
+    expect(find.byKey(const Key('edit-training-plan')), findsOneWidget);
+  });
+
+  testWidgets('without a gym habit, cardio follows the plan\'s days',
+      (WidgetTester tester) async {
+    final Challenge challenge = Challenge(
+      id: 'run',
+      goal: const Goal(
+        archetype: GoalArchetype.getFit,
+        statement: 'Fitter werden',
+        trainingDaysPerWeek: 3,
+      ),
+      habits: <Habit>[
+        Habit.fromCategory(HabitCategory.cardio).copyWith(daysPerWeek: 3),
+        Habit.fromCategory(HabitCategory.reading),
+      ],
+      startDay: DayKey.today(),
+    );
+    await repository.startChallenge(challenge);
+    await pump(tester, _opener(TrainingEditorScreen(challenge: challenge)));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('4×'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('editor-save')));
+    await tester.pumpAndSettle();
+
+    final Challenge saved = (await repository.snapshot()).challenge!;
+    expect(saved.goal.trainingDaysPerWeek, 4);
+    expect(trainingHabitOf(saved.habits)!.category, HabitCategory.cardio);
+    expect(trainingHabitOf(saved.habits)!.daysPerWeek, 4);
+    expect(
+      saved.habits
+          .firstWhere((Habit h) => h.category == HabitCategory.reading)
+          .daysPerWeek,
+      challenge.habits.last.daysPerWeek,
+    );
   });
 
   testWidgets('tapping the split already chosen is not a new choice',

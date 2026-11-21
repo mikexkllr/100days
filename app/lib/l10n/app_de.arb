@@ -2556,5 +2556,23 @@
   "loggerStartOver": "Neu beginnen",
   "editorDiscard": "Verwerfen",
   "editorDiscardBody": "Deine Änderungen am Trainingsplan sind noch nicht gespeichert.",
-  "editorDiscardTitle": "Änderungen verwerfen?"
+  "editorDiscardTitle": "Änderungen verwerfen?",
+  "editorPlanOffBody": "Aus: Dein Trainings-Habit ist wieder ein einfacher Haken, ohne die +{percent} % XP eines geloggten Trainings. Deine geloggten Trainings bleiben in deinem Verlauf, und Split und Übungen warten hier, bis du ihn wieder einschaltest.",
+  "@editorPlanOffBody": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "editorPlanOnBody": "Logge jeden Satz: Jedes geloggte Training bringt +{percent} % XP.",
+  "@editorPlanOnBody": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "editorPlanSwitch": "Trainingsplan",
+  "editorPlanSwitchedOff": "Trainingsplan ausgeschaltet — deine Trainings bleiben geloggt"
 }

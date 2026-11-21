@@ -261,12 +261,8 @@ class _WorkoutLoggerScreenState extends ConsumerState<WorkoutLoggerScreen> {
       return;
     }
     final AppSnapshot? snapshot = ref.read(appStateProvider).valueOrNull;
-    final Habit? habit = snapshot?.challenge?.habits
-            .where((Habit h) => h.category == HabitCategory.gym)
-            .firstOrNull ??
-        snapshot?.challenge?.habits
-            .where((Habit h) => h.category == HabitCategory.cardio)
-            .firstOrNull;
+    final Habit? habit =
+        trainingHabitOf(snapshot?.challenge?.habits ?? const <Habit>[]);
     if (habit == null) return;
 
     setState(() => _saving = true);

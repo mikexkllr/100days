@@ -7764,6 +7764,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Discard your changes?'**
   String get editorDiscardTitle;
+
+  /// No description provided for @editorPlanOffBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: your training habit is a plain tick again, without the +{percent} % XP of a logged workout. The workouts you logged stay in your history, and your split and exercises wait here for when you switch it back on.'**
+  String editorPlanOffBody(int percent);
+
+  /// No description provided for @editorPlanOnBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Log every set: each logged workout earns +{percent} % XP.'**
+  String editorPlanOnBody(int percent);
+
+  /// No description provided for @editorPlanSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Training plan'**
+  String get editorPlanSwitch;
+
+  /// No description provided for @editorPlanSwitchedOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Training plan switched off — your workouts stay logged'**
+  String get editorPlanSwitchedOff;
 }
 
 class _AppLocalizationsDelegate

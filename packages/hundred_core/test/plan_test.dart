@@ -249,6 +249,17 @@ void main() {
     });
   });
 
+  group('training habit', () {
+    test('the plan checks in the gym habit, else cardio', () {
+      final gym = Habit.fromCategory(HabitCategory.gym);
+      final cardio = Habit.fromCategory(HabitCategory.cardio);
+      final reading = Habit.fromCategory(HabitCategory.reading);
+      expect(trainingHabitOf(<Habit>[cardio, reading, gym]), gym);
+      expect(trainingHabitOf(<Habit>[reading, cardio]), cardio);
+      expect(trainingHabitOf(<Habit>[reading]), isNull);
+    });
+  });
+
   group('buildPlan', () {
     test('a pure abstinence challenge gets neither sub-plan', () {
       final plan = buildPlan(Challenge(

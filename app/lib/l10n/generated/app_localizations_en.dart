@@ -4746,4 +4746,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get editorDiscardTitle => 'Discard your changes?';
+
+  @override
+  String editorPlanOffBody(int percent) {
+    return 'Off: your training habit is a plain tick again, without the +$percent % XP of a logged workout. The workouts you logged stay in your history, and your split and exercises wait here for when you switch it back on.';
+  }
+
+  @override
+  String editorPlanOnBody(int percent) {
+    return 'Log every set: each logged workout earns +$percent % XP.';
+  }
+
+  @override
+  String get editorPlanSwitch => 'Training plan';
+
+  @override
+  String get editorPlanSwitchedOff =>
+      'Training plan switched off — your workouts stay logged';
 }

@@ -4761,4 +4761,21 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get editorDiscardTitle => 'Änderungen verwerfen?';
+
+  @override
+  String editorPlanOffBody(int percent) {
+    return 'Aus: Dein Trainings-Habit ist wieder ein einfacher Haken, ohne die +$percent % XP eines geloggten Trainings. Deine geloggten Trainings bleiben in deinem Verlauf, und Split und Übungen warten hier, bis du ihn wieder einschaltest.';
+  }
+
+  @override
+  String editorPlanOnBody(int percent) {
+    return 'Logge jeden Satz: Jedes geloggte Training bringt +$percent % XP.';
+  }
+
+  @override
+  String get editorPlanSwitch => 'Trainingsplan';
+
+  @override
+  String get editorPlanSwitchedOff =>
+      'Trainingsplan ausgeschaltet — deine Trainings bleiben geloggt';
 }

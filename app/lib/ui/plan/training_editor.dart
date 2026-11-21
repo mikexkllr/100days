@@ -9,7 +9,8 @@ import '../widgets/app_card.dart';
 import 'session_editor.dart';
 
 /// Change the split, the training days and every exercise of a running
-/// plan. Saved as a challenge update: the history stays as it was.
+/// plan — or switch the plan off, and on again. Saved as a challenge
+/// update: the history stays as it was.
 class TrainingEditorScreen extends ConsumerStatefulWidget {
   const TrainingEditorScreen({super.key, required this.challenge});
 
@@ -29,13 +30,18 @@ class _TrainingEditorScreenState extends ConsumerState<TrainingEditorScreen> {
   late TrainingSetup _setup = _initialSetup;
   bool _saving = false;
 
+  /// Starts on even when the stored plan is off: the editor is opened to
+  /// edit a plan or to switch one on, and saving does the latter.
+  bool _enabled = true;
+
   /// What the user made of each split they tried, so looking at another
   /// one and coming back does not cost the edits.
   final Map<SplitKind, TrainingSetup> _bySplit = <SplitKind, TrainingSetup>{};
 
   Goal get _goal => widget.challenge.goal.copyWith(trainingDaysPerWeek: _days);
 
-  bool get _dirty => _days != _initialDays || _setup != _initialSetup;
+  bool get _dirty =>
+      !_enabled || _days != _initialDays || _setup != _initialSetup;
 
   Future<bool> _confirmDiscard() async {
     final AppLocalizations l10n = context.l10n;
@@ -69,19 +75,33 @@ class _TrainingEditorScreenState extends ConsumerState<TrainingEditorScreen> {
     setState(() => _saving = true);
     final DayKey today = DayKey.today();
     final Challenge challenge = widget.challenge;
-    final Challenge updated = challenge.copyWith(
-      goal: _goal.copyWith(training: _setup, trainingPlanEnabled: true),
-      habits: <Habit>[
-        for (final Habit h in challenge.habits)
-          h.category == HabitCategory.gym
-              ? h.withDaysPerWeek(_days, from: today)
-              : h,
-      ],
-    );
+    // The habit the plan checks in follows its days — gym, or cardio for a
+    // challenge without gym — or the workout card turns up on days that
+    // habit does not expect.
+    final Habit? planHabit = trainingHabitOf(challenge.habits);
+    final Challenge updated = _enabled
+        ? challenge.copyWith(
+            goal: _goal.copyWith(training: _setup, trainingPlanEnabled: true),
+            habits: <Habit>[
+              for (final Habit h in challenge.habits)
+                h.id == planHabit?.id
+                    ? h.withDaysPerWeek(_days, from: today)
+                    : h,
+            ],
+          )
+        // Off keeps everything else as it was: the split and exercises
+        // wait for the plan to come back, logged workouts stay logged.
+        : challenge.copyWith(
+            goal: challenge.goal.copyWith(trainingPlanEnabled: false),
+          );
     await ref.read(appStateProvider.notifier).updateChallenge(updated);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.editorSaved)),
+      SnackBar(
+        content: Text(_enabled
+            ? context.l10n.editorSaved
+            : context.l10n.editorPlanSwitchedOff),
+      ),
     );
     Navigator.of(context).pop();
   }
@@ -89,6 +109,7 @@ class _TrainingEditorScreenState extends ConsumerState<TrainingEditorScreen> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
+    final int bonus = ((kTrackedMultiplier - 1) * 100).round();
     return PopScope(
       canPop: !_dirty || _saving,
       onPopInvokedWithResult: (bool didPop, Object? _) async {
@@ -116,51 +137,78 @@ class _TrainingEditorScreenState extends ConsumerState<TrainingEditorScreen> {
             AppSpacing.xxl,
           ),
           children: <Widget>[
-            SectionHeader(l10n.obTrainingDaysPerWeek,
-                subtitle: l10n.editorDaysNote),
-            Wrap(
-              spacing: AppSpacing.sm,
-              children: <Widget>[
-                for (final int days in const <int>[2, 3, 4, 5, 6])
-                  ChoiceChip(
-                    label: Text('$days×'),
-                    selected: _days == days,
-                    selectedColor: AppColors.primary.withValues(alpha: 0.2),
-                    onSelected: (_) => setState(() => _days = days),
-                  ),
-              ],
-            ),
-            SectionHeader(l10n.editorSplitTitle),
-            SplitPicker(
-              daysPerWeek: _days,
-              selected: _setup.split,
-              onSelected: (SplitKind split) => setState(() {
-                _bySplit[_setup.split] = _setup;
-                _setup = _bySplit[split] ??
-                    suggestTrainingSetup(_goal, split: split);
-              }),
-            ),
-            SectionHeader(
-              l10n.editorSessionsTitle,
-              subtitle: l10n.editorSessionsSubtitle,
-            ),
-            SessionEditorList(
-              setup: _setup,
-              goal: _goal,
-              onChanged: (TrainingSetup setup) =>
-                  setState(() => _setup = setup),
-            ),
-            TextButton.icon(
-              onPressed: () => setState(
-                () =>
-                    _setup = suggestTrainingSetup(_goal, split: _setup.split),
+            const SizedBox(height: AppSpacing.sm),
+            AppCard(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.xs,
               ),
-              icon: const Icon(Icons.restart_alt, size: 18),
-              label: Text(l10n.editorReset),
+              child: SwitchListTile(
+                key: const Key('training-plan-switch'),
+                contentPadding: EdgeInsets.zero,
+                value: _enabled,
+                onChanged: (bool on) => setState(() => _enabled = on),
+                title: Text(l10n.editorPlanSwitch,
+                    style: Theme.of(context).textTheme.titleMedium),
+                subtitle: Text(
+                  _enabled
+                      ? l10n.editorPlanOnBody(bonus)
+                      : l10n.editorPlanOffBody(bonus),
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: AppColors.textSecondary, fontSize: 13),
+                ),
+              ),
             ),
+            if (_enabled) ..._planSections(l10n),
           ],
         ),
       ),
     );
   }
+
+  /// Days, split and exercises: only while the plan is on.
+  List<Widget> _planSections(AppLocalizations l10n) => <Widget>[
+        SectionHeader(l10n.obTrainingDaysPerWeek,
+            subtitle: l10n.editorDaysNote),
+        Wrap(
+          spacing: AppSpacing.sm,
+          children: <Widget>[
+            for (final int days in const <int>[2, 3, 4, 5, 6])
+              ChoiceChip(
+                label: Text('$days×'),
+                selected: _days == days,
+                selectedColor: AppColors.primary.withValues(alpha: 0.2),
+                onSelected: (_) => setState(() => _days = days),
+              ),
+          ],
+        ),
+        SectionHeader(l10n.editorSplitTitle),
+        SplitPicker(
+          daysPerWeek: _days,
+          selected: _setup.split,
+          onSelected: (SplitKind split) => setState(() {
+            _bySplit[_setup.split] = _setup;
+            _setup =
+                _bySplit[split] ?? suggestTrainingSetup(_goal, split: split);
+          }),
+        ),
+        SectionHeader(
+          l10n.editorSessionsTitle,
+          subtitle: l10n.editorSessionsSubtitle,
+        ),
+        SessionEditorList(
+          setup: _setup,
+          goal: _goal,
+          onChanged: (TrainingSetup setup) => setState(() => _setup = setup),
+        ),
+        TextButton.icon(
+          onPressed: () => setState(
+            () => _setup = suggestTrainingSetup(_goal, split: _setup.split),
+          ),
+          icon: const Icon(Icons.restart_alt, size: 18),
+          label: Text(l10n.editorReset),
+        ),
+      ];
 }
