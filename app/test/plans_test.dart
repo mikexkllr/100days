@@ -9,7 +9,9 @@ import 'package:hundred_days/ui/plan/session_editor.dart';
 import 'package:hundred_days/ui/plan/training_editor.dart';
 import 'package:hundred_days/ui/plan/workout_draft.dart';
 import 'package:hundred_days/ui/plan/workout_logger.dart';
+import 'package:hundred_days/theme/theme.dart';
 import 'package:hundred_days/ui/settings/privacy_screen.dart';
+import 'package:hundred_days/ui/widgets/app_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'helpers.dart';
@@ -550,6 +552,58 @@ void main() {
           .daysPerWeek,
       challenge.habits.last.daysPerWeek,
     );
+  });
+
+  testWidgets('a session with no exercise is not saved',
+      (WidgetTester tester) async {
+    final Challenge fit = _fitChallenge();
+    final TrainingSetup suggested = suggestTrainingSetup(fit.goal);
+    final Challenge challenge = fit.copyWith(
+      goal: fit.goal.copyWith(
+        training: suggested.withSession(
+          1,
+          suggested.sessions[1].copyWith(exercises: const <ExerciseSlot>[]),
+        ),
+      ),
+    );
+    await repository.startChallenge(challenge);
+    await pump(tester, _opener(TrainingEditorScreen(challenge: challenge)));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('editor-save')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Jede Einheit braucht mindestens eine Übung'),
+        findsOneWidget);
+    expect(find.byType(TrainingEditorScreen), findsOneWidget);
+    await tester.scrollUntilVisible(find.byKey(const Key('session-1')), 300,
+        scrollable: find.byType(Scrollable).first);
+    expect(
+      tester.widget<AppCard>(find.byKey(const Key('session-1'))).border,
+      AppColors.danger,
+    );
+    expect(tester.widget<AppCard>(find.byKey(const Key('session-0'))).border,
+        isNull);
+  });
+
+  testWidgets('a workout with nothing in it says so instead of hanging',
+      (WidgetTester tester) async {
+    await repository.startChallenge(_fitChallenge());
+    await pump(
+      tester,
+      WorkoutLoggerScreen(
+        workout: const Workout(
+          kind: WorkoutKind.upper,
+          weekday: DateTime.monday,
+          estimatedMinutes: 10,
+          blocks: <PlannedSet>[],
+        ),
+        day: DayKey.today(),
+      ),
+    );
+    expect(find.byKey(const Key('logger-empty')), findsOneWidget);
+    expect(find.byKey(const Key('finish-workout')), findsNothing);
+    expect(find.text('Split und Übungen bearbeiten'), findsOneWidget);
   });
 
   testWidgets('tapping the split already chosen is not a new choice',

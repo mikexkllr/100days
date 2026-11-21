@@ -34,6 +34,9 @@ class _TrainingEditorScreenState extends ConsumerState<TrainingEditorScreen> {
   /// edit a plan or to switch one on, and saving does the latter.
   bool _enabled = true;
 
+  /// Set once a save was refused for an empty session.
+  bool _flagEmpty = false;
+
   /// What the user made of each split they tried, so looking at another
   /// one and coming back does not cost the edits.
   final Map<SplitKind, TrainingSetup> _bySplit = <SplitKind, TrainingSetup>{};
@@ -72,6 +75,15 @@ class _TrainingEditorScreenState extends ConsumerState<TrainingEditorScreen> {
   }
 
   Future<void> _save() async {
+    // A session with nothing in it would be a workout that can never be
+    // finished. Say which one, rather than save it.
+    if (_enabled && !_setup.isTrainable) {
+      setState(() => _flagEmpty = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.editorEmptySession)),
+      );
+      return;
+    }
     setState(() => _saving = true);
     final DayKey today = DayKey.today();
     final Challenge challenge = widget.challenge;
@@ -201,6 +213,7 @@ class _TrainingEditorScreenState extends ConsumerState<TrainingEditorScreen> {
         SessionEditorList(
           setup: _setup,
           goal: _goal,
+          flagEmpty: _flagEmpty,
           onChanged: (TrainingSetup setup) => setState(() => _setup = setup),
         ),
         TextButton.icon(

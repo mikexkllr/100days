@@ -4763,4 +4763,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get editorPlanSwitchedOff =>
       'Training plan switched off — your workouts stay logged';
+
+  @override
+  String get editorEmptySession =>
+      'Every session needs at least one exercise — add one where it is marked.';
+
+  @override
+  String get loggerEmptyBody =>
+      'This session has no exercises. Add some to it in the training plan, then log it.';
+
+  @override
+  String get loggerEmptyTitle => 'Nothing to log yet';
 }

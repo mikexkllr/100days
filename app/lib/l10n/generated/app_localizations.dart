@@ -7788,6 +7788,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Training plan switched off — your workouts stay logged'**
   String get editorPlanSwitchedOff;
+
+  /// No description provided for @editorEmptySession.
+  ///
+  /// In en, this message translates to:
+  /// **'Every session needs at least one exercise — add one where it is marked.'**
+  String get editorEmptySession;
+
+  /// No description provided for @loggerEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This session has no exercises. Add some to it in the training plan, then log it.'**
+  String get loggerEmptyBody;
+
+  /// No description provided for @loggerEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to log yet'**
+  String get loggerEmptyTitle;
 }
 
 class _AppLocalizationsDelegate

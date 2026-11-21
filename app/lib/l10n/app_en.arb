@@ -3387,5 +3387,8 @@
     }
   },
   "editorPlanSwitch": "Training plan",
-  "editorPlanSwitchedOff": "Training plan switched off — your workouts stay logged"
+  "editorPlanSwitchedOff": "Training plan switched off — your workouts stay logged",
+  "editorEmptySession": "Every session needs at least one exercise — add one where it is marked.",
+  "loggerEmptyBody": "This session has no exercises. Add some to it in the training plan, then log it.",
+  "loggerEmptyTitle": "Nothing to log yet"
 }

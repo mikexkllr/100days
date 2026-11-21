@@ -11,6 +11,7 @@ import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
+import 'training_editor.dart';
 import 'workout_draft.dart';
 
 /// One session, logged set by set.
@@ -345,9 +346,37 @@ class _WorkoutLoggerScreenState extends ConsumerState<WorkoutLoggerScreen> {
     }
     if (_exercises == null) {
       _exercises = _build(app.valueOrNull, l10n.localeName);
-      WidgetsBinding.instance.addPostFrameCallback((_) => _offerDraft());
+      if (_exercises!.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _offerDraft());
+      }
     }
     final List<_ExerciseState> exercises = _exercises!;
+    final Challenge? challenge = app.valueOrNull?.challenge;
+    if (exercises.isEmpty) {
+      // Nothing to log, and so nothing to finish: point to where the
+      // session gets its exercises instead of a button that cannot work.
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.workoutName(widget.workout.kind))),
+        body: EmptyState(
+          key: const Key('logger-empty'),
+          emoji: '🏋️',
+          title: l10n.loggerEmptyTitle,
+          body: l10n.loggerEmptyBody,
+          action: challenge == null
+              ? null
+              : FilledButton.icon(
+                  onPressed: () => Navigator.of(context).pushReplacement(
+                    MaterialPageRoute<void>(
+                      builder: (BuildContext context) =>
+                          TrainingEditorScreen(challenge: challenge),
+                    ),
+                  ),
+                  icon: const Icon(Icons.edit, size: 18),
+                  label: Text(l10n.planEditTraining),
+                ),
+        ),
+      );
+    }
     return PopScope(
       canPop: !_edited || _saving,
       onPopInvokedWithResult: (bool didPop, Object? _) async {

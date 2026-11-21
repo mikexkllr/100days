@@ -4778,4 +4778,15 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get editorPlanSwitchedOff =>
       'Trainingsplan ausgeschaltet — deine Trainings bleiben geloggt';
+
+  @override
+  String get editorEmptySession =>
+      'Jede Einheit braucht mindestens eine Übung — füge dort eine hinzu, wo es markiert ist.';
+
+  @override
+  String get loggerEmptyBody =>
+      'Diese Einheit hat keine Übungen. Füge im Trainingsplan welche hinzu, dann kannst du sie loggen.';
+
+  @override
+  String get loggerEmptyTitle => 'Noch nichts zu loggen';
 }

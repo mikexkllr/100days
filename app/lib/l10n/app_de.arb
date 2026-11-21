@@ -2574,5 +2574,8 @@
     }
   },
   "editorPlanSwitch": "Trainingsplan",
-  "editorPlanSwitchedOff": "Trainingsplan ausgeschaltet — deine Trainings bleiben geloggt"
+  "editorPlanSwitchedOff": "Trainingsplan ausgeschaltet — deine Trainings bleiben geloggt",
+  "editorEmptySession": "Jede Einheit braucht mindestens eine Übung — füge dort eine hinzu, wo es markiert ist.",
+  "loggerEmptyBody": "Diese Einheit hat keine Übungen. Füge im Trainingsplan welche hinzu, dann kannst du sie loggen.",
+  "loggerEmptyTitle": "Noch nichts zu loggen"
 }

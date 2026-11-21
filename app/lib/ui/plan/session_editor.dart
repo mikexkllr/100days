@@ -99,6 +99,7 @@ class SessionEditorList extends StatelessWidget {
     required this.setup,
     required this.goal,
     required this.onChanged,
+    this.flagEmpty = false,
   });
 
   final TrainingSetup setup;
@@ -106,6 +107,11 @@ class SessionEditorList extends StatelessWidget {
   /// For the equipment filter and the default prescription of new slots.
   final Goal goal;
   final ValueChanged<TrainingSetup> onChanged;
+
+  /// Marks sessions with nothing to train as errors — after a save was
+  /// refused for them. Before that, an empty session is just work in
+  /// progress.
+  final bool flagEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +124,7 @@ class SessionEditorList extends StatelessWidget {
               index: i,
               session: setup.sessions[i],
               goal: goal,
+              flagEmpty: flagEmpty,
               onChanged: (SessionPlan session) =>
                   onChanged(setup.withSession(i, session)),
             ),
@@ -132,12 +139,14 @@ class _SessionCard extends StatelessWidget {
     required this.index,
     required this.session,
     required this.goal,
+    required this.flagEmpty,
     required this.onChanged,
   });
 
   final int index;
   final SessionPlan session;
   final Goal goal;
+  final bool flagEmpty;
   final ValueChanged<SessionPlan> onChanged;
 
   void _replace(int slotIndex, ExerciseSlot? slot) {
@@ -177,7 +186,10 @@ class _SessionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
+    final bool flagged = flagEmpty && !session.isTrainable;
     return AppCard(
+      key: Key('session-$index'),
+      border: flagged ? AppColors.danger : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -213,10 +225,9 @@ class _SessionCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
               child: Text(
                 l10n.editorSessionEmpty,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: AppColors.textTertiary),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color:
+                        flagged ? AppColors.danger : AppColors.textTertiary),
               ),
             ),
           for (int i = 0; i < session.exercises.length; i++)
