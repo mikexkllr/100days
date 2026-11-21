@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
@@ -5,10 +7,12 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../config/backend_config.dart';
 import '../../data/app_repository.dart';
+import '../../data/auth_service.dart';
 import '../../data/feed_sync.dart';
 import '../../data/locale_store.dart';
 import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
+import '../../state/sign_out.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
 import 'ai_screen.dart';
@@ -204,12 +208,39 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
-    if (confirmed != true) return;
+    if (confirmed != true || !context.mounted) return;
     final AppRepository repository = ref.read(repositoryProvider);
-    // Send what is still waiting, so nothing logged offline is lost.
+    // Send what is still waiting, so nothing logged offline is lost — and
+    // if it cannot be sent, say so before throwing it away.
     await repository.sync.syncNow();
-    await repository.clearLocal();
-    await ref.read(authServiceProvider).signOut();
+    final int unsent = await repository.unsentCount();
+    if (unsent > 0) {
+      if (!context.mounted) return;
+      final bool? anyway = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          backgroundColor: AppColors.surface,
+          title: Text(l10n.setSignOutUnsentTitle),
+          content: Text(l10n.setSignOutUnsentBody(unsent)),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.actionCancel),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.danger,
+                foregroundColor: AppColors.ink,
+              ),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.setSignOutAnyway),
+            ),
+          ],
+        ),
+      );
+      if (anyway != true) return;
+    }
+    await forgetThisPhoneAndSignOut(ref);
   }
 
   Future<void> _confirmDeleteAccount(BuildContext context, WidgetRef ref) async {
@@ -219,7 +250,11 @@ class SettingsScreen extends ConsumerWidget {
       builder: (BuildContext context) => AlertDialog(
         backgroundColor: AppColors.surface,
         title: Text(l10n.setDeleteAccountTitle),
-        content: Text(l10n.setDeleteAccountBody),
+        content: Text(
+          ref.read(authServiceProvider).signedInWithApple
+              ? '${l10n.setDeleteAccountBody}\n\n${l10n.setDeleteAccountAppleNote}'
+              : l10n.setDeleteAccountBody,
+        ),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -236,17 +271,45 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
-    if (confirmed != true) return;
-    final AppRepository repository = ref.read(repositoryProvider);
+    if (confirmed != true || !context.mounted) return;
+    // Deleting takes a few seconds and must not be tapped twice.
+    unawaited(showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) => PopScope(
+        canPop: false,
+        child: AlertDialog(
+          backgroundColor: AppColors.surface,
+          content: Row(
+            children: <Widget>[
+              const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(strokeWidth: 2.5),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(child: Text(l10n.setDeletingAccount)),
+            ],
+          ),
+        ),
+      ),
+    ));
+    final NavigatorState navigator = Navigator.of(context, rootNavigator: true);
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
     try {
       await ref.read(authServiceProvider).deleteAccount();
-      await repository.clearLocal();
+    } on AccountDeletionCancelled {
+      navigator.pop();
+      return;
     } on Object {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      navigator.pop();
+      messenger.showSnackBar(
         SnackBar(content: Text(l10n.setDeleteAccountFailed)),
       );
+      return;
     }
+    navigator.pop();
+    await forgetThisPhoneAndSignOut(ref);
   }
 }
 

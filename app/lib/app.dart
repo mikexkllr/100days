@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -14,6 +15,8 @@ import 'theme/theme.dart';
 import 'ui/home/home_screen.dart';
 import 'ui/mascot/flame_mascot.dart';
 import 'ui/auth/login_screen.dart';
+import 'ui/celebration/day_complete.dart';
+import 'ui/motion/motion.dart';
 import 'ui/home/today.dart';
 import 'ui/motion/sky.dart';
 import 'ui/onboarding/onboarding_flow.dart';
@@ -84,8 +87,13 @@ class _Gate extends ConsumerWidget {
         error: error,
         onRetry: () => ref.invalidate(appStateProvider),
       ),
-      data: (AppSnapshot snapshot) =>
-          snapshot.hasChallenge ? const AppShell() : const OnboardingFlow(),
+      data: (AppSnapshot snapshot) {
+        if (snapshot.hasChallenge) return const AppShell();
+        // A returning user on a new phone: the challenge is on the server,
+        // not here yet. Onboarding now would start a second one.
+        if (!snapshot.accountLoaded) return const _LoadingAccount();
+        return const OnboardingFlow();
+      },
     );
   }
 }
@@ -105,12 +113,24 @@ class _ErrorScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              const Text('💥', style: TextStyle(fontSize: 44)),
+              const FlameMascot(
+                stage: FlameStage.ember,
+                mood: MascotMood.sad,
+                size: 120,
+              ),
               const SizedBox(height: AppSpacing.md),
+              Text(
+                context.l10n.gateErrorTitle,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 context.l10n.homeStorageError,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
@@ -126,6 +146,88 @@ class _ErrorScreen extends StatelessWidget {
                 onPressed: onRetry,
                 child: Text(context.l10n.actionRetry),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Signed in on a phone that has not seen the account's feed yet: Funki
+/// waits for the first pull, and says so if it takes long.
+class _LoadingAccount extends ConsumerStatefulWidget {
+  const _LoadingAccount();
+
+  @override
+  ConsumerState<_LoadingAccount> createState() => _LoadingAccountState();
+}
+
+class _LoadingAccountState extends ConsumerState<_LoadingAccount> {
+  bool _slow = false;
+  bool _busy = false;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(const Duration(seconds: 8), () {
+      if (mounted) setState(() => _slow = true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _retry() async {
+    setState(() => _busy = true);
+    try {
+      await ref.read(appStateProvider.notifier).syncNow();
+    } on Object {
+      // Still offline; the screen stays and says so.
+    }
+    if (mounted) setState(() => _busy = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const FlameMascot(
+                stage: FlameStage.spark,
+                mood: MascotMood.hopeful,
+                size: 150,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                l10n.gateLoadingAccount,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              if (_slow) ...<Widget>[
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  l10n.gateLoadingAccountSlow,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                FilledButton(
+                  onPressed: _busy ? null : _retry,
+                  child: Text(l10n.actionRetry),
+                ),
+              ],
             ],
           ),
         ),
@@ -193,10 +295,27 @@ class AppShell extends ConsumerStatefulWidget {
   ConsumerState<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends ConsumerState<AppShell> {
+class _AppShellState extends ConsumerState<AppShell>
+    with SingleTickerProviderStateMixin {
   int _index = 0;
 
-  void _open(int index) => setState(() => _index = index);
+  /// A short fade into the tab just opened; the tabs themselves stay built.
+  late final AnimationController _fade = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+    value: 1,
+  );
+
+  @override
+  void dispose() {
+    _fade.dispose();
+    super.dispose();
+  }
+
+  void _open(int index) {
+    if (index != _index && ambientMotionOf(context)) _fade.forward(from: 0);
+    setState(() => _index = index);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -221,56 +340,61 @@ class _AppShellState extends ConsumerState<AppShell> {
       const SettingsScreen(),
     ];
 
-    return Scaffold(
-      extendBody: true,
-      // Today is the whole screen: it needs no title above it.
-      appBar: _index == 0 ? null : AppBar(title: Text(titles[_index])),
-      body: SafeArea(
-        bottom: false,
-        // Hidden tabs stay built, so their flames would keep flickering and
-        // draining the battery; only the visible one gets to animate.
-        child: IndexedStack(
+    return CelebrationHost(
+      child: Scaffold(
+        extendBody: true,
+        // Today is the whole screen: it needs no title above it.
+        appBar: _index == 0 ? null : AppBar(title: Text(titles[_index])),
+        body: SafeArea(
+          bottom: false,
+          // Hidden tabs stay built, so their flames would keep flickering and
+          // draining the battery; only the visible one gets to animate.
+          child: FadeTransition(
+            opacity: CurvedAnimation(parent: _fade, curve: Curves.easeOut),
+            child: IndexedStack(
+              index: _index,
+              children: <Widget>[
+                for (int i = 0; i < pages.length; i++)
+                  TickerMode(enabled: i == _index, child: pages[i]),
+              ],
+            ),
+          ),
+        ),
+        bottomNavigationBar: GlassDock(
           index: _index,
-          children: <Widget>[
-            for (int i = 0; i < pages.length; i++)
-              TickerMode(enabled: i == _index, child: pages[i]),
+          onSelect: _open,
+          items: <DockItem>[
+            DockItem(
+              icon: Icons.local_fire_department_outlined,
+              selectedIcon: Icons.local_fire_department,
+              label: l10n.navToday,
+              // The streak is at stake: a dot in its colour until today is done.
+              dot: stats != null && stats.atRisk
+                  ? Fire.ofStreak(stats.current).main
+                  : null,
+            ),
+            DockItem(
+              icon: Icons.assignment_outlined,
+              selectedIcon: Icons.assignment,
+              label: l10n.navPlan,
+            ),
+            DockItem(
+              icon: Icons.groups_outlined,
+              selectedIcon: Icons.groups,
+              label: l10n.navFriends,
+            ),
+            DockItem(
+              icon: Icons.insights_outlined,
+              selectedIcon: Icons.insights,
+              label: l10n.navStats,
+            ),
+            DockItem(
+              icon: Icons.person_outline,
+              selectedIcon: Icons.person,
+              label: l10n.navMore,
+            ),
           ],
         ),
-      ),
-      bottomNavigationBar: GlassDock(
-        index: _index,
-        onSelect: _open,
-        items: <DockItem>[
-          DockItem(
-            icon: Icons.local_fire_department_outlined,
-            selectedIcon: Icons.local_fire_department,
-            label: l10n.navToday,
-            // The streak is at stake: a dot in its colour until today is done.
-            dot: stats != null && stats.atRisk
-                ? Fire.ofStreak(stats.current).main
-                : null,
-          ),
-          DockItem(
-            icon: Icons.assignment_outlined,
-            selectedIcon: Icons.assignment,
-            label: l10n.navPlan,
-          ),
-          DockItem(
-            icon: Icons.groups_outlined,
-            selectedIcon: Icons.groups,
-            label: l10n.navFriends,
-          ),
-          DockItem(
-            icon: Icons.insights_outlined,
-            selectedIcon: Icons.insights,
-            label: l10n.navStats,
-          ),
-          DockItem(
-            icon: Icons.tune_outlined,
-            selectedIcon: Icons.tune,
-            label: l10n.navMore,
-          ),
-        ],
       ),
     );
   }

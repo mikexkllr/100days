@@ -181,8 +181,16 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Coming back into the app: the user is holding the phone, probably
-      // online, and wants to see what friends did meanwhile.
+      // Coming back into the app — maybe the next morning. Today first,
+      // from the phone's own store, so nothing waits on the network; then
+      // the user is holding the phone, probably online, and wants to see
+      // what friends did meanwhile.
+      if (ref.read(sessionRepositoryProvider).valueOrNull != null) {
+        unawaited(ref
+            .read(appStateProvider.notifier)
+            .refresh()
+            .then((void _) {}, onError: (Object _) {}));
+      }
       _sync();
     }
   }

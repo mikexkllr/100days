@@ -1422,9 +1422,9 @@
   "muscleShoulders": "Schultern",
   "muscleTriceps": "Trizeps",
   "navFriends": "Freunde",
-  "navMore": "Mehr",
+  "navMore": "Profil",
   "navPlan": "Plan",
-  "navSettingsTitle": "Einstellungen",
+  "navSettingsTitle": "Profil & Einstellungen",
   "navStats": "Zahlen",
   "navToday": "Heute",
   "notifChannelPressure": "Freunde & Streak-Warnungen",
@@ -2537,5 +2537,20 @@
   "workoutStart": "Training starten",
   "workoutUpper": "Oberkörper",
   "workoutUpperFocus": "Druck und Zug",
-  "workoutWorkingSets": "Arbeitssätze"
+  "workoutWorkingSets": "Arbeitssätze",
+  "gateLoadingAccount": "Deine Challenge wird geladen …",
+  "gateLoadingAccountSlow": "Das dauert gerade. Ohne Verbindung kann deine Challenge noch nicht auf dieses Handy geladen werden.",
+  "gateErrorTitle": "Funki ist über etwas gestolpert.",
+  "setSignOutUnsentTitle": "Noch nicht alles ist gesendet",
+  "setSignOutUnsentBody": "{count, plural, =1{1 Eintrag von diesem Handy ist noch nicht beim Server angekommen.} other{{count} Einträge von diesem Handy sind noch nicht beim Server angekommen.}} Meldest du dich jetzt ab, ist er weg. Geh online und versuch es noch mal, oder melde dich trotzdem ab.",
+  "@setSignOutUnsentBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "setSignOutAnyway": "Trotzdem abmelden",
+  "setDeletingAccount": "Dein Konto wird gelöscht …",
+  "setDeleteAccountAppleNote": "Apple fragt noch einmal nach, damit der Zugriff der App auf deine Apple-ID widerrufen werden kann."
 }

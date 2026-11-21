@@ -164,12 +164,38 @@ void main() {
   });
 
   group('MemoryFeedStore', () {
+    test('a clock that ran ahead does not drag later writes along', () async {
+      final ahead = await writer.append(
+        FeedEventType.profile,
+        <String, dynamic>{},
+        timestamp: DateTime.now().toUtc().add(const Duration(days: 1)),
+      );
+      final next = await writer.append(FeedEventType.profile, <String, dynamic>{});
+      expect(next.timestamp.isBefore(ahead.timestamp), isTrue);
+      expect(
+        next.timestamp.difference(DateTime.now().toUtc()).abs(),
+        lessThan(const Duration(minutes: 1)),
+      );
+    });
+
     test('confirming replaces the pending copy', () async {
       final e = await writer.append(FeedEventType.profile, <String, dynamic>{});
       await store.put(e.confirmed(createdAt: DateTime.utc(2026), serverSeq: 9));
       expect(await store.pending('alice'), isEmpty);
-      expect(await store.cursor(), 9);
+      // A confirmed push is not a pull: rows between the last pull and this
+      // event's number have not been fetched yet.
+      expect(await store.cursor(), 0);
       expect(await store.eventsOf('alice'), hasLength(1));
+    });
+
+    test('the pull cursor and the side table go with clear', () async {
+      await store.setCursor(42);
+      await store.setMeta('owner', 'alice');
+      expect(await store.cursor(), 42);
+      expect(await store.meta('owner'), 'alice');
+      await store.clear();
+      expect(await store.cursor(), 0);
+      expect(await store.meta('owner'), isNull);
     });
 
     test('forgets a former friend completely', () async {

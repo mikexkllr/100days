@@ -1834,9 +1834,9 @@
   "muscleShoulders": "Shoulders",
   "muscleTriceps": "Triceps",
   "navFriends": "Friends",
-  "navMore": "More",
+  "navMore": "Profile",
   "navPlan": "Plan",
-  "navSettingsTitle": "Settings",
+  "navSettingsTitle": "Profile & settings",
   "navStats": "Numbers",
   "navToday": "Today",
   "notifChannelPressure": "Friends & streak warnings",
@@ -3373,5 +3373,20 @@
   "workoutStart": "Start workout",
   "workoutUpper": "Upper body",
   "workoutUpperFocus": "Push and pull",
-  "workoutWorkingSets": "Working sets"
+  "workoutWorkingSets": "Working sets",
+  "gateLoadingAccount": "Fetching your challenge…",
+  "gateLoadingAccountSlow": "This is taking a while. Without a connection your challenge cannot be loaded onto this phone yet.",
+  "gateErrorTitle": "Funki tripped over something.",
+  "setSignOutUnsentTitle": "Not everything is sent yet",
+  "setSignOutUnsentBody": "{count, plural, =1{1 entry from this phone has not reached the server yet.} other{{count} entries from this phone have not reached the server yet.}} Signed out now, it is lost. Go online and try again, or sign out anyway.",
+  "@setSignOutUnsentBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "setSignOutAnyway": "Sign out anyway",
+  "setDeletingAccount": "Deleting your account…",
+  "setDeleteAccountAppleNote": "Apple asks you to confirm once more, so the app's access to your Apple ID can be revoked."
 }

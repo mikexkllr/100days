@@ -33,6 +33,11 @@ enum SignInProblem {
   failed,
 }
 
+/// The user closed Apple's confirmation sheet while deleting the account.
+class AccountDeletionCancelled implements Exception {
+  const AccountDeletionCancelled();
+}
+
 class SignInException implements Exception {
   const SignInException(this.problem, [this.cause]);
 
@@ -214,6 +219,12 @@ class AuthService {
     };
   }
 
+  /// Whether the session came from Sign in with Apple — deleting it asks
+  /// Apple once more.
+  bool get signedInWithApple =>
+      _client.auth.currentUser?.appMetadata['provider'] == 'apple' &&
+      canUseApple;
+
   Future<void> signOut() async {
     try {
       if (_googleReady) await GoogleSignIn.instance.signOut();
@@ -239,6 +250,11 @@ class AuthService {
           scopes: const <AppleIDAuthorizationScopes>[],
         );
         appleCode = credential.authorizationCode;
+      } on SignInWithAppleAuthorizationException catch (error) {
+        // Closing Apple's sheet means "not now", not "delete anyway".
+        if (error.code == AuthorizationErrorCode.canceled) {
+          throw const AccountDeletionCancelled();
+        }
       } on Object {
         // Without the code the account is still deleted; only the
         // revocation at Apple is skipped, and the function logs it.
@@ -253,7 +269,8 @@ class AuthService {
     if (response.status != 200) {
       throw StateError('delete-account failed: ${response.status}');
     }
-    await signOut();
+    // The caller signs out once it has forgotten everything on this phone:
+    // signing out here would close the local store under its feet.
   }
 
   static String _randomNonce([int length = 32]) {

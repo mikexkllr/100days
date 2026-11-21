@@ -5,6 +5,10 @@ import 'package:hundred_core/hundred_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+/// Set in the cache's side table once a pull has completed: until then an
+/// empty cache does not mean the account has no challenge.
+const String kPulledOnceMeta = 'pulled_once';
+
 /// What the last sync did, for the settings screen and for notifications
 /// about friends who were active.
 class SyncReport {
@@ -119,7 +123,11 @@ class SupabaseFeedSync implements FeedSync {
       final FeedEvent event = FeedEvent.fromRow(payload.newRecord);
       if (event.author != userId && !_authors.contains(event.author)) return;
       await store.put(event);
-      _reports.add(SyncReport(at: DateTime.now(), received: 1));
+      // The echo of our own write is not news: only what friends wrote
+      // counts as received (and may tell the user someone was active).
+      if (event.author != userId) {
+        _reports.add(SyncReport(at: DateTime.now(), received: 1));
+      }
     } on Object catch (error) {
       debugPrint('Realtime event ignored: $error');
     }
@@ -139,79 +147,152 @@ class SupabaseFeedSync implements FeedSync {
   Future<SyncReport> syncNow() =>
       _running ??= _sync().whenComplete(() => _running = null);
 
+  /// Sends, then fetches — and fetches even when sending failed: one event
+  /// the server refuses must not stop the user from seeing what friends did.
   Future<SyncReport> _sync() async {
     var sent = 0;
     var received = 0;
+    Object? error;
     try {
       sent = await _push();
-      received = await _pull();
-      final report =
-          SyncReport(at: DateTime.now(), sent: sent, received: received);
-      _reports.add(report);
-      return report;
-    } on Object catch (error) {
-      final report = SyncReport(
-        at: DateTime.now(),
-        sent: sent,
-        received: received,
-        error: error,
-      );
-      _reports.add(report);
-      return report;
+    } on Object catch (e) {
+      error = e;
     }
+    try {
+      received = await _pull();
+      await store.setMeta(kPulledOnceMeta, '1');
+    } on Object catch (e) {
+      error ??= e;
+    }
+    final report = SyncReport(
+      at: DateTime.now(),
+      sent: sent,
+      received: received,
+      error: error,
+    );
+    _reports.add(report);
+    return report;
   }
 
   Future<int> _push() async {
-    final List<FeedEvent> pending = await store.pending(userId);
+    final List<FeedEvent> pending = await _withSaneClocks(
+      await store.pending(userId),
+    );
     var sent = 0;
+    Object? firstError;
     for (var i = 0; i < pending.length; i += _pushBatch) {
       final List<FeedEvent> batch =
           pending.sublist(i, (i + _pushBatch).clamp(0, pending.length));
-      await _client.from('events').upsert(
-            batch.map((FeedEvent e) => e.toInsertRow()).toList(),
-            onConflict: 'id',
-            ignoreDuplicates: true,
-          );
-      final List<Map<String, dynamic>> confirmed = await _client
-          .from('events')
-          .select('id, created_at, server_seq')
-          .inFilter('id', batch.map((FeedEvent e) => e.id).toList());
-      final Map<String, Map<String, dynamic>> byId =
-          <String, Map<String, dynamic>>{
-        for (final Map<String, dynamic> row in confirmed) row['id'] as String: row,
-      };
-      await store.putAll(<FeedEvent>[
-        for (final FeedEvent e in batch)
-          if (byId[e.id] case final Map<String, dynamic> row)
-            e.confirmed(
-              createdAt: DateTime.parse(row['created_at'] as String),
-              serverSeq: (row['server_seq'] as num).toInt(),
-            ),
-      ]);
-      sent += byId.length;
+      try {
+        await _insert(batch);
+      } on Object catch (error) {
+        // One refused event fails the whole request. Send the batch one by
+        // one, so the rest still goes out and only the culprit waits.
+        firstError ??= error;
+        for (final FeedEvent event in batch) {
+          try {
+            await _insert(<FeedEvent>[event]);
+          } on Object {
+            // Stays pending; reported through firstError.
+          }
+        }
+      }
+      sent += await _confirm(batch);
     }
+    if (firstError != null && sent < pending.length) throw firstError;
     return sent;
   }
 
+  Future<void> _insert(List<FeedEvent> events) =>
+      _client.from('events').upsert(
+            events.map((FeedEvent e) => e.toInsertRow()).toList(),
+            onConflict: 'id',
+            ignoreDuplicates: true,
+          );
+
+  /// Swaps the pending copies of [batch] for the server's, where it has one.
+  Future<int> _confirm(List<FeedEvent> batch) async {
+    final List<Map<String, dynamic>> confirmed = await _client
+        .from('events')
+        .select('id, created_at, server_seq')
+        .inFilter('id', batch.map((FeedEvent e) => e.id).toList());
+    final Map<String, Map<String, dynamic>> byId =
+        <String, Map<String, dynamic>>{
+      for (final Map<String, dynamic> row in confirmed) row['id'] as String: row,
+    };
+    await store.putAll(<FeedEvent>[
+      for (final FeedEvent e in batch)
+        if (byId[e.id] case final Map<String, dynamic> row)
+          e.confirmed(
+            createdAt: DateTime.parse(row['created_at'] as String),
+            serverSeq: (row['server_seq'] as num).toInt(),
+          ),
+    ]);
+    return byId.length;
+  }
+
+  /// The server refuses events stamped more than ten minutes ahead. Unsent
+  /// events from a phone whose clock ran ahead get the real time instead,
+  /// in the order they were written.
+  Future<List<FeedEvent>> _withSaneClocks(List<FeedEvent> pending) async {
+    final DateTime now = DateTime.now().toUtc();
+    final DateTime limit = now.add(kClockTolerance);
+    if (pending.every((FeedEvent e) => !e.timestamp.isAfter(limit))) {
+      return pending;
+    }
+    final List<FeedEvent> fixed = <FeedEvent>[];
+    var next = now;
+    for (final FeedEvent event in pending) {
+      if (event.timestamp.isAfter(limit)) {
+        next = next.add(const Duration(microseconds: 1));
+        fixed.add(event.restamped(next));
+      } else {
+        fixed.add(event);
+      }
+    }
+    await store.putAll(fixed);
+    return fixed;
+  }
+
+  /// Rows that commit out of order can land just below the cursor after the
+  /// last pull read past them; a small overlap picks those up again.
+  static const int _pullOverlap = 25;
+
   Future<int> _pull() async {
-    var cursor = await store.cursor();
+    final int start = await store.cursor();
+    var cursor = start;
+    var after = start > _pullOverlap ? start - _pullOverlap : 0;
     var received = 0;
     while (true) {
       final List<Map<String, dynamic>> rows = await _client
           .from('events')
           .select()
-          .gt('server_seq', cursor)
+          .gt('server_seq', after)
           .order('server_seq')
           .limit(_pageSize);
       if (rows.isEmpty) break;
-      final List<FeedEvent> events = rows
-          .map(FeedEvent.fromRow)
+      final List<FeedEvent> events = <FeedEvent>[];
+      for (final Map<String, dynamic> row in rows) {
+        try {
+          final FeedEvent event = FeedEvent.fromRow(row);
           // A friendship that ended between two pulls: not ours to keep.
-          .where((FeedEvent e) => e.author == userId || _authors.contains(e.author))
-          .toList();
+          if (event.author == userId || _authors.contains(event.author)) {
+            events.add(event);
+          }
+        } on Object catch (error) {
+          debugPrint('Unreadable event skipped: $error');
+        }
+      }
       await store.putAll(events);
-      received += events.where((FeedEvent e) => e.author != userId).length;
-      cursor = (rows.last['server_seq'] as num).toInt();
+      received += events
+          .where((FeedEvent e) =>
+              e.author != userId && (e.serverSeq ?? 0) > start)
+          .length;
+      after = (rows.last['server_seq'] as num).toInt();
+      if (after > cursor) {
+        cursor = after;
+        await store.setCursor(cursor);
+      }
       if (rows.length < _pageSize) break;
     }
     return received;

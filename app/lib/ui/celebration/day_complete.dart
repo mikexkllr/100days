@@ -1,12 +1,15 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../l10n/l10n.dart';
+import '../../state/providers.dart';
 import '../../theme/fire.dart';
 import '../../theme/theme.dart';
 import '../mascot/flame_mascot.dart';
@@ -16,6 +19,41 @@ import '../motion/motion.dart';
 import '../motion/particles.dart';
 import '../motion/rolling_number.dart';
 import '../widgets/juicy_button.dart';
+
+/// Rolls the slot machine whenever [celebrationProvider] hands it a day just
+/// completed — on Today, in the workout logger or in the food diary. Sits
+/// around the app shell, which stays mounted under every pushed screen.
+class CelebrationHost extends ConsumerWidget {
+  const CelebrationHost({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<DayCelebration?>(celebrationProvider,
+        (DayCelebration? _, DayCelebration? next) {
+      if (next == null) return;
+      ref.read(celebrationProvider.notifier).state = null;
+      unawaited(_celebrate(context, next));
+    });
+    return child;
+  }
+
+  static Future<void> _celebrate(
+    BuildContext context,
+    DayCelebration celebration,
+  ) async {
+    // Let the check-in's own burst (or the logger closing) land first.
+    await Future<void>.delayed(const Duration(milliseconds: 650));
+    if (!context.mounted) return;
+    await showDayCompleteCelebration(
+      context,
+      reward: celebration.reward,
+      challenge: celebration.challenge,
+      lifetimeXp: celebration.lifetimeXp,
+    );
+  }
+}
 
 /// The day is done: spin the machine.
 ///

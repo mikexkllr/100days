@@ -4557,7 +4557,7 @@ abstract class AppLocalizations {
   /// No description provided for @navMore.
   ///
   /// In en, this message translates to:
-  /// **'More'**
+  /// **'Profile'**
   String get navMore;
 
   /// No description provided for @navPlan.
@@ -4569,7 +4569,7 @@ abstract class AppLocalizations {
   /// No description provided for @navSettingsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Settings'**
+  /// **'Profile & settings'**
   String get navSettingsTitle;
 
   /// No description provided for @navStats.
@@ -7752,6 +7752,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Working sets'**
   String get workoutWorkingSets;
+
+  /// No description provided for @gateLoadingAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching your challenge…'**
+  String get gateLoadingAccount;
+
+  /// No description provided for @gateLoadingAccountSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'This is taking a while. Without a connection your challenge cannot be loaded onto this phone yet.'**
+  String get gateLoadingAccountSlow;
+
+  /// No description provided for @gateErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Funki tripped over something.'**
+  String get gateErrorTitle;
+
+  /// No description provided for @setSignOutUnsentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not everything is sent yet'**
+  String get setSignOutUnsentTitle;
+
+  /// No description provided for @setSignOutUnsentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 entry from this phone has not reached the server yet.} other{{count} entries from this phone have not reached the server yet.}} Signed out now, it is lost. Go online and try again, or sign out anyway.'**
+  String setSignOutUnsentBody(int count);
+
+  /// No description provided for @setSignOutAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out anyway'**
+  String get setSignOutAnyway;
+
+  /// No description provided for @setDeletingAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting your account…'**
+  String get setDeletingAccount;
+
+  /// No description provided for @setDeleteAccountAppleNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple asks you to confirm once more, so the app\'s access to your Apple ID can be revoked.'**
+  String get setDeleteAccountAppleNote;
 }
 
 class _AppLocalizationsDelegate

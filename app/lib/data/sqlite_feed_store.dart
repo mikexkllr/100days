@@ -18,7 +18,8 @@ class SqliteFeedStore implements FeedStore {
   final StreamController<FeedEvent> _changes =
       StreamController<FeedEvent>.broadcast();
 
-  static const int _schemaVersion = 1;
+  /// 2 added the `meta` side table (pull cursor, owner, friend list).
+  static const int _schemaVersion = 2;
 
   /// The cache of the account-based app. The peer-to-peer app before it kept
   /// a signed log in `hundred_days_feed.db`; nothing in it belongs to an
@@ -51,10 +52,26 @@ class SqliteFeedStore implements FeedStore {
             'CREATE INDEX idx_events_author ON events (author, client_ts)');
         await db.execute('CREATE INDEX idx_events_ts ON events (client_ts DESC)');
         await db.execute('CREATE INDEX idx_events_seq ON events (server_seq)');
+        await _createMeta(db);
+      },
+      onUpgrade: (Database db, int from, int to) async {
+        // No pull cursor was kept before: the first sync after the update
+        // pulls everything again, which also fetches what the old cursor
+        // skipped.
+        if (from < 2) await _createMeta(db);
       },
     );
     return SqliteFeedStore._(db);
   }
+
+  static Future<void> _createMeta(Database db) => db.execute('''
+        CREATE TABLE IF NOT EXISTS meta (
+          key   TEXT PRIMARY KEY,
+          value TEXT NOT NULL
+        )
+      ''');
+
+  static const String _cursorKey = 'pull_cursor';
 
   @override
   Future<void> put(FeedEvent event) async {
@@ -124,10 +141,27 @@ class SqliteFeedStore implements FeedStore {
   }
 
   @override
-  Future<int> cursor() async {
-    final rows =
-        await _db.rawQuery('SELECT MAX(server_seq) AS seq FROM events');
-    return (rows.first['seq'] as int?) ?? 0;
+  Future<int> cursor() async =>
+      int.tryParse(await meta(_cursorKey) ?? '') ?? 0;
+
+  @override
+  Future<void> setCursor(int serverSeq) => setMeta(_cursorKey, '$serverSeq');
+
+  @override
+  Future<String?> meta(String key) async {
+    final rows = await _db.query('meta',
+        columns: <String>['value'], where: 'key = ?', whereArgs: <Object?>[key]);
+    return rows.isEmpty ? null : rows.first['value'] as String?;
+  }
+
+  @override
+  Future<void> setMeta(String key, String? value) async {
+    if (value == null) {
+      await _db.delete('meta', where: 'key = ?', whereArgs: <Object?>[key]);
+    } else {
+      await _db.insert('meta', <String, Object?>{'key': key, 'value': value},
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    }
   }
 
   @override
@@ -138,6 +172,7 @@ class SqliteFeedStore implements FeedStore {
   @override
   Future<void> clear() async {
     await _db.delete('events');
+    await _db.delete('meta');
   }
 
   @override

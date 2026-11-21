@@ -10,7 +10,6 @@ import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/fire.dart';
 import '../../theme/theme.dart';
-import '../celebration/day_complete.dart';
 import '../motion/rolling_number.dart';
 import '../nutrition/diary_view.dart';
 import '../plan/workout_detail.dart';
@@ -222,26 +221,8 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
           : l10n.homeCheckInToast(habit.emoji, l10n.habitLabel(habit)),
       Directionality.of(context),
     );
-    if (!justCompleted) return;
-
-    final DayReward reward = rewardForDay(
-      challenge: after.challenge!,
-      today: after.today,
-      before: before.me.streak,
-      after: after.me.streak,
-      xpBefore: before.me.lifetimeXp,
-      xpAfter: after.me.lifetimeXp,
-      xpToday: after.me.xpByDay[after.today.toString()] ?? gain,
-    );
-    // Let the tile's own burst land first, then roll the machine.
-    await Future<void>.delayed(const Duration(milliseconds: 650));
-    if (!mounted) return;
-    await showDayCompleteCelebration(
-      context,
-      reward: reward,
-      challenge: after.challenge!,
-      lifetimeXp: after.me.lifetimeXp,
-    );
+    // The slot machine for a completed day is rolled by the app shell, for
+    // every way a day can be completed (see `celebrationProvider`).
   }
 
   Future<void> _confirmRelapse(Habit habit) async {

@@ -2770,13 +2770,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navFriends => 'Freunde';
 
   @override
-  String get navMore => 'Mehr';
+  String get navMore => 'Profil';
 
   @override
   String get navPlan => 'Plan';
 
   @override
-  String get navSettingsTitle => 'Einstellungen';
+  String get navSettingsTitle => 'Profil & Einstellungen';
 
   @override
   String get navStats => 'Zahlen';
@@ -4746,4 +4746,39 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get workoutWorkingSets => 'Arbeitssätze';
+
+  @override
+  String get gateLoadingAccount => 'Deine Challenge wird geladen …';
+
+  @override
+  String get gateLoadingAccountSlow =>
+      'Das dauert gerade. Ohne Verbindung kann deine Challenge noch nicht auf dieses Handy geladen werden.';
+
+  @override
+  String get gateErrorTitle => 'Funki ist über etwas gestolpert.';
+
+  @override
+  String get setSignOutUnsentTitle => 'Noch nicht alles ist gesendet';
+
+  @override
+  String setSignOutUnsentBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Einträge von diesem Handy sind noch nicht beim Server angekommen.',
+      one: '1 Eintrag von diesem Handy ist noch nicht beim Server angekommen.',
+    );
+    return '$_temp0 Meldest du dich jetzt ab, ist er weg. Geh online und versuch es noch mal, oder melde dich trotzdem ab.';
+  }
+
+  @override
+  String get setSignOutAnyway => 'Trotzdem abmelden';
+
+  @override
+  String get setDeletingAccount => 'Dein Konto wird gelöscht …';
+
+  @override
+  String get setDeleteAccountAppleNote =>
+      'Apple fragt noch einmal nach, damit der Zugriff der App auf deine Apple-ID widerrufen werden kann.';
 }

@@ -67,11 +67,21 @@ final Provider<String?> accountGivenNameProvider = Provider<String?>((Ref ref) {
 final StreamProvider<String?> signedInUserProvider =
     StreamProvider<String?>((Ref ref) async* {
   final SupabaseClient client = ref.watch(supabaseClientProvider);
-  yield client.auth.currentUser?.id;
-  yield* client.auth.onAuthStateChange
-      .map((AuthState state) => state.session?.user.id)
-      .distinct();
+  String? last = client.auth.currentUser?.id;
+  yield last;
+  // The first auth event repeats the session we already reported; yielding
+  // it again would build the account's repository a second time.
+  await for (final AuthState state in client.auth.onAuthStateChange) {
+    final String? id = state.session?.user.id;
+    if (id == last) continue;
+    last = id;
+    yield id;
+  }
 });
+
+/// The previous account's repository while it shuts down. The next one
+/// waits for it: both open the same database file.
+Future<void>? _closingRepository;
 
 /// The signed-in account's data: its local store, its friends, its sync.
 /// Null while signed out. Rebuilt — and the previous one closed — when the
@@ -79,6 +89,8 @@ final StreamProvider<String?> signedInUserProvider =
 final FutureProvider<AppRepository?> sessionRepositoryProvider =
     FutureProvider<AppRepository?>((Ref ref) async {
   final String? userId = await ref.watch(signedInUserProvider.future);
+  final Future<void>? closing = _closingRepository;
+  if (closing != null) await closing.catchError((Object _) {});
   if (userId == null) return null;
   final SupabaseClient client = ref.watch(supabaseClientProvider);
   final SqliteFeedStore store = await SqliteFeedStore.open();
@@ -89,13 +101,13 @@ final FutureProvider<AppRepository?> sessionRepositoryProvider =
     store: store,
     social: SupabaseSocialBackend(client, userId: userId),
     sync: sync,
+    requiresFirstPull: true,
   );
   // A store left over from another account on this phone is not ours.
-  final Set<String> authors = await store.authors();
-  if (authors.isNotEmpty && !authors.contains(userId)) {
-    await store.clear();
-  }
-  ref.onDispose(() => unawaited(repository.close()));
+  await repository.open();
+  ref.onDispose(() {
+    _closingRepository = repository.close();
+  });
   sync.start();
   unawaited(repository.syncNow());
   return repository;
@@ -311,12 +323,41 @@ final FutureProvider<NutritionAssistant?> nutritionAssistantProvider =
 });
 
 /// The app's single source of truth for the UI.
+/// A day the user just completed, waiting to be celebrated. Set by
+/// [AppController] whichever screen completed the day — the check-in on
+/// Today, the workout logger or the food diary — and shown once by the app
+/// shell.
+class DayCelebration {
+  const DayCelebration({
+    required this.reward,
+    required this.challenge,
+    required this.lifetimeXp,
+  });
+
+  final DayReward reward;
+  final Challenge challenge;
+  final int lifetimeXp;
+}
+
+final StateProvider<DayCelebration?> celebrationProvider =
+    StateProvider<DayCelebration?>((Ref ref) => null);
+
 class AppController extends AsyncNotifier<AppSnapshot> {
   Timer? _debounce;
+  Timer? _midnight;
 
   @override
   Future<AppSnapshot> build() async {
     final repository = ref.watch(repositoryProvider);
+
+    // Today ends at midnight even with the app open: the streak, the ring,
+    // the clock and where a check-in lands all move to the new day.
+    _midnight?.cancel();
+    final DateTime now = DateTime.now();
+    _midnight = Timer(
+      DateTime(now.year, now.month, now.day + 1, 0, 0, 1).difference(now),
+      ref.invalidateSelf,
+    );
 
     // The feed changes both from local actions and from peer sync. Debounced
     // because a sync round can land two hundred events in a burst, and
@@ -335,6 +376,7 @@ class AppController extends AsyncNotifier<AppSnapshot> {
     });
     ref.onDispose(() {
       _debounce?.cancel();
+      _midnight?.cancel();
       subscription.cancel();
       social.cancel();
     });
@@ -373,35 +415,98 @@ class AppController extends AsyncNotifier<AppSnapshot> {
     await refresh();
   }
 
+  /// Logs [habit]. Without [day] it lands on the real today — not on the
+  /// day the snapshot was taken, which after midnight is yesterday.
+  ///
+  /// Friends hear about it after [notifyDelay], so an undo right after a
+  /// slip of the thumb does not send them a push first.
   Future<void> checkIn(
     Habit habit, {
     num? value,
     String? note,
     bool tracked = false,
     DayKey? day,
+    Duration notifyDelay = Duration.zero,
   }) async {
     final snapshot = state.valueOrNull;
+    final DayKey target = day ?? DayKey.today();
     final FeedEvent event = await _repository.checkIn(
       habit: habit,
-      day: day ?? snapshot?.today ?? DayKey.today(),
+      day: target,
       value: value,
       note: note,
       streak: snapshot?.me.habitStreaks[habit.id],
       tracked: tracked,
       challenge: snapshot?.challenge,
     );
-    unawaited(_repository.notifyFriends(event));
+    _notifyLater(event, habit, target, notifyDelay);
     await refresh();
+    _celebrateIfCompleted(snapshot);
   }
 
+  final Map<String, Timer> _pendingNotices = <String, Timer>{};
+
+  void _notifyLater(FeedEvent event, Habit habit, DayKey day, Duration delay) {
+    final String key = '${habit.id}|$day';
+    _pendingNotices.remove(key)?.cancel();
+    if (delay == Duration.zero) {
+      unawaited(_repository.notifyFriends(event));
+      return;
+    }
+    _pendingNotices[key] = Timer(delay, () {
+      _pendingNotices.remove(key);
+      unawaited(_repository.notifyFriends(event));
+    });
+  }
+
+  /// A check-in on a day that has passed — yesterday, forgotten. It counts,
+  /// and friends see that it was logged late.
   Future<void> checkInOn(Habit habit, DayKey day, {num? value}) async {
+    final snapshot = state.valueOrNull;
     await _repository.checkIn(
       habit: habit,
       day: day,
       value: value,
+      challenge: snapshot?.challenge,
+    );
+    await refresh();
+    _celebrateIfCompleted(snapshot);
+  }
+
+  /// Takes back today's (or [day]'s) entry for [habit].
+  Future<void> undoCheckIn(Habit habit, {DayKey? day}) async {
+    final DayKey target = day ?? DayKey.today();
+    // A push still waiting to go out for this tick goes nowhere.
+    _pendingNotices.remove('${habit.id}|$target')?.cancel();
+    await _repository.undoCheckIn(
+      habit: habit,
+      day: target,
       challenge: state.valueOrNull?.challenge,
     );
     await refresh();
+  }
+
+  /// Hands the day just completed to the celebration, if [before] was taken
+  /// on the same day and today was not done then.
+  void _celebrateIfCompleted(AppSnapshot? before) {
+    final AppSnapshot? after = state.valueOrNull;
+    if (before == null || after == null || after.challenge == null) return;
+    if (before.today != after.today) return;
+    if (before.me.streak.doneToday || !after.me.streak.doneToday) return;
+    ref.read(celebrationProvider.notifier).state = DayCelebration(
+      reward: rewardForDay(
+        challenge: after.challenge!,
+        today: after.today,
+        before: before.me.streak,
+        after: after.me.streak,
+        xpBefore: before.me.lifetimeXp,
+        xpAfter: after.me.lifetimeXp,
+        xpToday: after.me.xpByDay[after.today.toString()] ??
+            after.me.lifetimeXp - before.me.lifetimeXp,
+      ),
+      challenge: after.challenge!,
+      lifetimeXp: after.me.lifetimeXp,
+    );
   }
 
   Future<void> logRelapse(Habit habit, {String? note}) async {
@@ -426,6 +531,7 @@ class AppController extends AsyncNotifier<AppSnapshot> {
       streak: snapshot?.me.habitStreaks[habit.id],
     );
     await refresh();
+    _celebrateIfCompleted(snapshot);
   }
 
   Future<void> logFood(FoodEntry entry) async {
@@ -443,16 +549,24 @@ class AppController extends AsyncNotifier<AppSnapshot> {
     await refresh();
   }
 
-  Future<void> useStreakFreeze() async {
-    final day = state.valueOrNull?.today ?? DayKey.today();
-    await _repository.useStreakFreeze(day);
+  /// Freezes [day] — today, or a missed yesterday when offered right after.
+  Future<void> useStreakFreeze({DayKey? day}) async {
+    await _repository.useStreakFreeze(day ?? DayKey.today());
     await refresh();
   }
 
   Future<void> ascend() async {
     final challenge = state.valueOrNull?.challenge;
     if (challenge == null) return;
-    await _repository.ascend(challenge);
+    await _repository.ascend(challenge, today: DayKey.today());
+    await refresh();
+  }
+
+  /// Begins the challenge again from day one, with [challenge]'s habits.
+  Future<void> restartChallenge(Challenge challenge) async {
+    await _repository.restartChallenge(
+      challenge.copyWith(startDay: DayKey.today(), cycle: 0),
+    );
     await refresh();
   }
 

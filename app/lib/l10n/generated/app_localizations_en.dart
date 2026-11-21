@@ -2757,13 +2757,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navFriends => 'Friends';
 
   @override
-  String get navMore => 'More';
+  String get navMore => 'Profile';
 
   @override
   String get navPlan => 'Plan';
 
   @override
-  String get navSettingsTitle => 'Settings';
+  String get navSettingsTitle => 'Profile & settings';
 
   @override
   String get navStats => 'Numbers';
@@ -4731,4 +4731,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get workoutWorkingSets => 'Working sets';
+
+  @override
+  String get gateLoadingAccount => 'Fetching your challenge…';
+
+  @override
+  String get gateLoadingAccountSlow =>
+      'This is taking a while. Without a connection your challenge cannot be loaded onto this phone yet.';
+
+  @override
+  String get gateErrorTitle => 'Funki tripped over something.';
+
+  @override
+  String get setSignOutUnsentTitle => 'Not everything is sent yet';
+
+  @override
+  String setSignOutUnsentBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entries from this phone have not reached the server yet.',
+      one: '1 entry from this phone has not reached the server yet.',
+    );
+    return '$_temp0 Signed out now, it is lost. Go online and try again, or sign out anyway.';
+  }
+
+  @override
+  String get setSignOutAnyway => 'Sign out anyway';
+
+  @override
+  String get setDeletingAccount => 'Deleting your account…';
+
+  @override
+  String get setDeleteAccountAppleNote =>
+      'Apple asks you to confirm once more, so the app\'s access to your Apple ID can be revoked.';
 }

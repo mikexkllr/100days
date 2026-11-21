@@ -167,6 +167,20 @@ class FeedEvent {
         if (serverSeq != null) 'server_seq': serverSeq,
       };
 
+  /// The same, not yet sent event at another time — for an outbox entry
+  /// whose clock ran ahead of what the server accepts.
+  FeedEvent restamped(DateTime timestamp) {
+    assert(isPending, 'Only an unsent event may change its time.');
+    return FeedEvent(
+      id: id,
+      author: author,
+      timestamp: timestamp.toUtc(),
+      type: type,
+      payload: payload,
+      visibility: visibility,
+    );
+  }
+
   /// The same event as confirmed by the server.
   FeedEvent confirmed({required DateTime createdAt, required int serverSeq}) =>
       FeedEvent(
