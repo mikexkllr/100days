@@ -46,13 +46,16 @@ jobs:
       - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         if: steps.secrets.outputs.ok == 'true'
         with:
-          version: latest
+          # Pinned: CLI 3 changed what `db push` targets, and a floating
+          # version broke this deploy without anyone noticing.
+          version: 3.2.0
       - name: Link
         if: steps.secrets.outputs.ok == 'true'
-        run: supabase link --project-ref "$PROJECT_REF" -p "$SUPABASE_DB_PASSWORD"
+        run: supabase link --project-ref "$PROJECT_REF"
       - name: Migrations
         if: steps.secrets.outputs.ok == 'true'
-        run: supabase db push -p "$SUPABASE_DB_PASSWORD" --yes
+        # CLI 3 pushes to the local database unless told otherwise.
+        run: supabase db push --remote -p "$SUPABASE_DB_PASSWORD" --yes
       - name: Functions
         if: steps.secrets.outputs.ok == 'true'
         run: supabase functions deploy --use-api --project-ref "$PROJECT_REF" --yes
