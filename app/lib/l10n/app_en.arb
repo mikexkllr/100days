@@ -1572,8 +1572,6 @@
     }
   },
   "loggerDiscard": "Discard",
-  "loggerDiscardBody": "The sets you entered will be lost.",
-  "loggerDiscardTitle": "Discard this workout?",
   "loggerFinish": "Finish workout",
   "loggerFinishNoSets": "Tick off at least one set first.",
   "loggerIntro": "Log every set. Next time the app tells you what to beat: more reps at the same weight, then more weight.",
@@ -3351,5 +3349,22 @@
   "loggerAdviceDeloadBodyweight": "Deload: easy reps, and stop well short of failure",
   "loggerAdviceReduceBodyweight": "Missed twice — drop the added weight and build back up",
   "loggerDeloadBody": "Fewer sets and lighter weights this week — on purpose. Your body catches up on three weeks of building; next week the numbers go up again.",
-  "loggerDeloadTitle": "Deload week"
+  "loggerDeloadTitle": "Deload week",
+  "loggerKeepForLater": "Keep for later",
+  "loggerLeaveBody": "What you entered stays on this phone until you finish. Open the workout again today to pick up where you left off.",
+  "loggerLeaveTitle": "Leave the workout?",
+  "loggerResume": "Resume",
+  "loggerResumeBody": "You started this workout at {time}. {sets, plural, =0{No set ticked off yet.} =1{One set is ticked off.} other{{sets} sets are ticked off.}}",
+  "@loggerResumeBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "sets": {
+        "type": "int"
+      }
+    }
+  },
+  "loggerResumeTitle": "Pick up where you left off?",
+  "loggerStartOver": "Start over"
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +11,7 @@ import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
+import 'workout_draft.dart';
 
 /// One session, logged set by set.
 ///
@@ -16,6 +19,9 @@ import '../widgets/app_card.dart';
 /// double progression: more reps at the same weight until the top of the
 /// range, then more weight. Finishing writes the log and a tracked gym
 /// check-in, which is worth more XP than a tick.
+///
+/// Until then the workout is a [WorkoutDraft] on the device, rewritten on
+/// every change and offered again when the logger reopens.
 class WorkoutLoggerScreen extends ConsumerStatefulWidget {
   const WorkoutLoggerScreen({
     super.key,
@@ -32,19 +38,46 @@ class WorkoutLoggerScreen extends ConsumerStatefulWidget {
 }
 
 class _SetRow {
-  _SetRow({String weight = '', String reps = ''})
+  _SetRow({String weight = '', String reps = '', this.planned = true})
       : weight = TextEditingController(text: weight),
-        reps = TextEditingController(text: reps);
+        reps = TextEditingController(text: reps),
+        _prefillWeight = weight,
+        _prefillReps = reps;
 
   final TextEditingController weight;
   final TextEditingController reps;
   bool done = false;
+
+  /// False for a row added with "Add a set".
+  final bool planned;
+
+  /// What the logger proposed. Anything else in the fields is the user's.
+  final String _prefillWeight;
+  final String _prefillReps;
+
+  /// Whether leaving now would lose something the user did.
+  bool get edited =>
+      done ||
+      !planned ||
+      weight.text != _prefillWeight ||
+      reps.text != _prefillReps;
+
+  DraftSet toDraft() =>
+      DraftSet(weight: weight.text, reps: reps.text, done: done);
+
+  void restore(DraftSet set) {
+    weight.text = set.weight;
+    reps.text = set.reps;
+    done = set.done;
+  }
 
   void dispose() {
     weight.dispose();
     reps.dispose();
   }
 }
+
+enum _Leave { stay, keep, discard }
 
 class _ExerciseState {
   _ExerciseState({
@@ -61,9 +94,25 @@ class _ExerciseState {
 }
 
 class _WorkoutLoggerScreenState extends ConsumerState<WorkoutLoggerScreen> {
-  final DateTime _startedAt = DateTime.now();
+  DateTime _startedAt = DateTime.now();
   List<_ExerciseState>? _exercises;
   bool _saving = false;
+
+  late final WorkoutDraftStore _drafts = ref.read(workoutDraftStoreProvider);
+  late final String _userId = ref.read(repositoryProvider).userId;
+
+  /// Set once a stored draft was offered (or there was none). Until then
+  /// nothing is written, so a draft from before cannot be overwritten by
+  /// the prefill before the user had a say.
+  bool _draftChecked = false;
+
+  int get _session => widget.workout.sessionIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_drafts.prune(_userId, widget.day.addDays(-1)));
+  }
 
   List<_ExerciseState> _build(AppSnapshot? snapshot, String locale) {
     final format = NumberFormat.decimalPattern(locale)
@@ -111,8 +160,97 @@ class _WorkoutLoggerScreenState extends ConsumerState<WorkoutLoggerScreen> {
       _exercises?.any((_ExerciseState e) => e.rows.any((_SetRow r) => r.done)) ??
       false;
 
+  /// Anything typed, ticked or added — ticked or not, it is the user's work.
+  bool get _edited =>
+      _exercises?.any((_ExerciseState e) => e.rows.any((_SetRow r) => r.edited)) ??
+      false;
+
   double _parse(String raw) =>
       double.tryParse(raw.trim().replaceAll(',', '.')) ?? 0;
+
+  /// After every change: the draft on the device follows the screen.
+  void _changed() {
+    setState(() {});
+    if (!_draftChecked) return;
+    if (_edited) {
+      unawaited(_drafts.save(_userId, widget.day, _session, _toDraft()));
+    } else {
+      unawaited(_drafts.clear(_userId, widget.day, _session));
+    }
+  }
+
+  WorkoutDraft _toDraft() => WorkoutDraft(
+        startedAt: _startedAt,
+        exercises: <DraftExercise>[
+          for (final _ExerciseState e in _exercises!)
+            DraftExercise(
+              exerciseId: e.block.exerciseId,
+              sets: e.rows.map((_SetRow r) => r.toDraft()).toList(),
+            ),
+        ],
+      );
+
+  /// Offers a workout left unfinished on this day, for this session — the
+  /// app was closed, or Android killed it in the background.
+  Future<void> _offerDraft() async {
+    final WorkoutDraft? draft =
+        await _drafts.load(_userId, widget.day, _session);
+    if (!mounted) return;
+    if (draft == null || draft.exercises.isEmpty) {
+      _draftChecked = true;
+      return;
+    }
+    final AppLocalizations l10n = context.l10n;
+    final bool? resume = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text(l10n.loggerResumeTitle),
+        content: Text(l10n.loggerResumeBody(
+          MaterialLocalizations.of(context)
+              .formatTimeOfDay(TimeOfDay.fromDateTime(draft.startedAt)),
+          draft.doneSets,
+        )),
+        actions: <Widget>[
+          TextButton(
+            key: const Key('draft-start-over'),
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.loggerStartOver),
+          ),
+          FilledButton(
+            key: const Key('draft-resume'),
+            style: FilledButton.styleFrom(minimumSize: const Size(110, 44)),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.loggerResume),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    _draftChecked = true;
+    if (resume ?? false) {
+      setState(() => _restore(draft));
+    } else {
+      await _drafts.clear(_userId, widget.day, _session);
+    }
+  }
+
+  void _restore(WorkoutDraft draft) {
+    _startedAt = draft.startedAt;
+    final List<DraftExercise> left = draft.exercises.toList();
+    for (final _ExerciseState e in _exercises!) {
+      // By movement, not position: the plan may have been edited since.
+      final int at = left.indexWhere(
+          (DraftExercise d) => d.exerciseId == e.block.exerciseId);
+      if (at < 0) continue;
+      final DraftExercise saved = left.removeAt(at);
+      for (int i = 0; i < saved.sets.length; i++) {
+        if (i >= e.rows.length) e.rows.add(_SetRow(planned: false));
+        e.rows[i].restore(saved.sets[i]);
+      }
+    }
+  }
 
   Future<void> _finish() async {
     final AppLocalizations l10n = context.l10n;
@@ -155,6 +293,7 @@ class _WorkoutLoggerScreenState extends ConsumerState<WorkoutLoggerScreen> {
       ],
     );
     await ref.read(appStateProvider.notifier).logWorkout(log, habit);
+    await _drafts.clear(_userId, widget.day, _session);
     if (!mounted) return;
     HapticFeedback.heavyImpact();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -163,32 +302,37 @@ class _WorkoutLoggerScreenState extends ConsumerState<WorkoutLoggerScreen> {
     Navigator.of(context).pop(true);
   }
 
-  Future<bool> _confirmDiscard() async {
-    if (!_anyDone) return true;
+  /// Leaving with something entered: keep it for later (the default — it
+  /// is on the device already), throw it away, or stay.
+  Future<_Leave> _confirmLeave() async {
     final AppLocalizations l10n = context.l10n;
-    final bool? discard = await showDialog<bool>(
+    final _Leave? choice = await showDialog<_Leave>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text(l10n.loggerDiscardTitle),
-        content: Text(l10n.loggerDiscardBody),
+        title: Text(l10n.loggerLeaveTitle),
+        content: Text(l10n.loggerLeaveBody),
         actions: <Widget>[
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () => Navigator.of(context).pop(_Leave.stay),
             child: Text(l10n.actionCancel),
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.danger,
-              minimumSize: const Size(110, 44),
-            ),
-            onPressed: () => Navigator.of(context).pop(true),
+          TextButton(
+            key: const Key('logger-discard'),
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            onPressed: () => Navigator.of(context).pop(_Leave.discard),
             child: Text(l10n.loggerDiscard),
+          ),
+          FilledButton(
+            key: const Key('logger-keep'),
+            style: FilledButton.styleFrom(minimumSize: const Size(110, 44)),
+            onPressed: () => Navigator.of(context).pop(_Leave.keep),
+            child: Text(l10n.loggerKeepForLater),
           ),
         ],
       ),
     );
-    return discard ?? false;
+    return choice ?? _Leave.stay;
   }
 
   @override
@@ -203,15 +347,21 @@ class _WorkoutLoggerScreenState extends ConsumerState<WorkoutLoggerScreen> {
         body: const Center(child: CircularProgressIndicator()),
       );
     }
-    final List<_ExerciseState> exercises =
-        _exercises ??= _build(app.valueOrNull, l10n.localeName);
+    if (_exercises == null) {
+      _exercises = _build(app.valueOrNull, l10n.localeName);
+      WidgetsBinding.instance.addPostFrameCallback((_) => _offerDraft());
+    }
+    final List<_ExerciseState> exercises = _exercises!;
     return PopScope(
-      canPop: !_anyDone || _saving,
+      canPop: !_edited || _saving,
       onPopInvokedWithResult: (bool didPop, Object? _) async {
         if (didPop) return;
-        if (await _confirmDiscard() && context.mounted) {
-          Navigator.of(context).pop();
+        final _Leave choice = await _confirmLeave();
+        if (choice == _Leave.stay || !context.mounted) return;
+        if (choice == _Leave.discard) {
+          await _drafts.clear(_userId, widget.day, _session);
         }
+        if (context.mounted) Navigator.of(context).pop();
       },
       child: Scaffold(
         appBar: AppBar(title: Text(l10n.workoutName(widget.workout.kind))),
@@ -283,7 +433,7 @@ class _WorkoutLoggerScreenState extends ConsumerState<WorkoutLoggerScreen> {
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm + 2),
                 child: _ExerciseCard(
                   state: exercises[i],
-                  onChanged: () => setState(() {}),
+                  onChanged: _changed,
                 ),
               ),
           ],
@@ -420,6 +570,7 @@ class _ExerciseCard extends StatelessWidget {
               state.rows.add(_SetRow(
                 weight: previous.weight.text,
                 reps: previous.reps.text,
+                planned: false,
               ));
               onChanged();
             },
@@ -485,6 +636,7 @@ class _SetRowView extends StatelessWidget {
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
               ],
+              onChanged: (_) => onChanged(),
               decoration: decoration(
                 l10n.loggerKg,
                 hint: addedLoad ? l10n.loggerAddedLoadHint : l10n.loggerKg,
@@ -499,6 +651,7 @@ class _SetRowView extends StatelessWidget {
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly,
               ],
+              onChanged: (_) => onChanged(),
               decoration: decoration(l10n.loggerReps),
             ),
           ),

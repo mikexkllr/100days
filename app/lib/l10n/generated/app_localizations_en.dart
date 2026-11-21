@@ -2137,12 +2137,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loggerDiscard => 'Discard';
 
   @override
-  String get loggerDiscardBody => 'The sets you entered will be lost.';
-
-  @override
-  String get loggerDiscardTitle => 'Discard this workout?';
-
-  @override
   String get loggerFinish => 'Finish workout';
 
   @override
@@ -4711,4 +4705,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loggerDeloadTitle => 'Deload week';
+
+  @override
+  String get loggerKeepForLater => 'Keep for later';
+
+  @override
+  String get loggerLeaveBody =>
+      'What you entered stays on this phone until you finish. Open the workout again today to pick up where you left off.';
+
+  @override
+  String get loggerLeaveTitle => 'Leave the workout?';
+
+  @override
+  String get loggerResume => 'Resume';
+
+  @override
+  String loggerResumeBody(String time, int sets) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets sets are ticked off.',
+      one: 'One set is ticked off.',
+      zero: 'No set ticked off yet.',
+    );
+    return 'You started this workout at $time. $_temp0';
+  }
+
+  @override
+  String get loggerResumeTitle => 'Pick up where you left off?';
+
+  @override
+  String get loggerStartOver => 'Start over';
 }

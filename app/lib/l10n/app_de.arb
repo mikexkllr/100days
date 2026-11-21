@@ -1212,8 +1212,6 @@
   "loggerAdviceHold": "Gewicht halten — jeden Satz in den Bereich bringen",
   "loggerAdviceReduce": "Zweimal verfehlt — zurück auf {weight} kg und neu aufbauen",
   "loggerDiscard": "Verwerfen",
-  "loggerDiscardBody": "Die eingetragenen Sätze gehen verloren.",
-  "loggerDiscardTitle": "Training verwerfen?",
   "loggerFinish": "Training abschließen",
   "loggerFinishNoSets": "Hake zuerst mindestens einen Satz ab.",
   "loggerIntro": "Trag jeden Satz ein. Beim nächsten Mal sagt dir die App, was du schlagen musst: mehr Wiederholungen beim gleichen Gewicht, dann mehr Gewicht.",
@@ -2538,5 +2536,22 @@
   "loggerAdviceDeloadBodyweight": "Deload: lockere Wiederholungen, und weit vor dem Muskelversagen aufhören",
   "loggerAdviceReduceBodyweight": "Zweimal verfehlt — ohne Zusatzgewicht neu aufbauen",
   "loggerDeloadBody": "Diese Woche weniger Sätze und leichtere Gewichte — mit Absicht. Dein Körper holt die drei Aufbauwochen nach, nächste Woche geht es wieder nach oben.",
-  "loggerDeloadTitle": "Deload-Woche"
+  "loggerDeloadTitle": "Deload-Woche",
+  "loggerKeepForLater": "Für später behalten",
+  "loggerLeaveBody": "Was du eingetragen hast, bleibt auf diesem Handy, bis du abschließt. Öffne das Training heute noch einmal, dann machst du da weiter, wo du warst.",
+  "loggerLeaveTitle": "Training verlassen?",
+  "loggerResume": "Weitermachen",
+  "loggerResumeBody": "Du hast dieses Training um {time} begonnen. {sets, plural, =0{Noch kein Satz abgehakt.} =1{Ein Satz ist abgehakt.} other{{sets} Sätze sind abgehakt.}}",
+  "@loggerResumeBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "sets": {
+        "type": "int"
+      }
+    }
+  },
+  "loggerResumeTitle": "Weitermachen, wo du warst?",
+  "loggerStartOver": "Neu beginnen"
 }

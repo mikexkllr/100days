@@ -4,8 +4,10 @@ import 'package:hundred_core/hundred_core.dart';
 import 'package:hundred_days/data/app_repository.dart';
 import 'package:hundred_days/ui/nutrition/diary_view.dart';
 import 'package:hundred_days/ui/plan/plan_screen.dart';
+import 'package:hundred_days/ui/plan/workout_draft.dart';
 import 'package:hundred_days/ui/plan/workout_logger.dart';
 import 'package:hundred_days/ui/settings/privacy_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'helpers.dart';
 
@@ -38,6 +40,8 @@ void main() {
   late AppRepository repository;
 
   setUp(() async {
+    // Unfinished workouts wait in the preferences; start every test clean.
+    SharedPreferences.setMockInitialValues(<String, Object>{});
     repository = await testRepository();
     await repository.saveProfile(displayName: 'Mia', avatarEmoji: '🦊');
   });
@@ -287,6 +291,119 @@ void main() {
       ).weightKg,
       82.5,
     );
+  });
+
+  testWidgets('a workout killed halfway is offered again, sets and all',
+      (WidgetTester tester) async {
+    final Challenge challenge = _fitChallenge();
+    await repository.startChallenge(challenge);
+    final Workout workout =
+        buildPlan(challenge).training!.weeks.first.workouts.first;
+    final Widget logger =
+        WorkoutLoggerScreen(workout: workout, day: DayKey.today());
+    await pump(tester, logger);
+
+    await tester.enterText(find.byType(TextField).first, '40');
+    await tester.tap(find.byIcon(Icons.check).first);
+    await tester.pumpAndSettle();
+    // Android kills the app in the background: no pop, no dispose hook.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpAndSettle();
+
+    await pump(tester, logger);
+    expect(find.text('Weitermachen, wo du warst?'), findsOneWidget);
+    expect(find.textContaining('Ein Satz ist abgehakt'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('draft-resume')));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextField>(find.byType(TextField).first).controller!.text,
+      '40',
+    );
+
+    await tester.tap(find.byKey(const Key('finish-workout')));
+    await tester.pumpAndSettle();
+    final AppSnapshot snapshot = await repository.snapshot();
+    expect(snapshot.me.workoutLogOn(DayKey.today())!.totalSets, 1);
+    expect(
+      snapshot.me.workoutLogOn(DayKey.today())!.exercises.first.sets.single
+          .weightKg,
+      40,
+    );
+    // Finished: nothing left to offer.
+    expect(
+      await WorkoutDraftStore()
+          .load(repository.userId, DayKey.today(), workout.sessionIndex),
+      isNull,
+    );
+  });
+
+  testWidgets('typed but unticked numbers are not lost on the way out',
+      (WidgetTester tester) async {
+    final Challenge challenge = _fitChallenge();
+    await repository.startChallenge(challenge);
+    final Workout workout =
+        buildPlan(challenge).training!.weeks.first.workouts.first;
+    await pump(
+      tester,
+      Builder(
+        builder: (BuildContext context) => TextButton(
+          onPressed: () => Navigator.of(context).push<void>(
+            MaterialPageRoute<void>(
+              builder: (BuildContext context) =>
+                  WorkoutLoggerScreen(workout: workout, day: DayKey.today()),
+            ),
+          ),
+          child: const Text('open'),
+        ),
+      ),
+    );
+    Future<void> open() async {
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+    }
+
+    // Nothing entered: back simply leaves.
+    await open();
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(WorkoutLoggerScreen), findsNothing);
+
+    // A number typed, no set ticked: back asks first, and can keep it.
+    await open();
+    await tester.enterText(find.byType(TextField).first, '55');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.text('Training verlassen?'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('logger-keep')));
+    await tester.pumpAndSettle();
+    expect(find.byType(WorkoutLoggerScreen), findsNothing);
+
+    // Back in: offered, and starting over throws it away.
+    await open();
+    expect(find.text('Weitermachen, wo du warst?'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('draft-start-over')));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextField>(find.byType(TextField).first).controller!.text,
+      isNot('55'),
+    );
+    expect(
+      await WorkoutDraftStore()
+          .load(repository.userId, DayKey.today(), workout.sessionIndex),
+      isNull,
+    );
+
+    // Discarding on the way out leaves nothing behind either.
+    await tester.enterText(find.byType(TextField).first, '60');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('logger-discard')));
+    await tester.pumpAndSettle();
+    expect(find.byType(WorkoutLoggerScreen), findsNothing);
+    await open();
+    expect(find.text('Weitermachen, wo du warst?'), findsNothing);
   });
 
   testWidgets('hiding a habit keeps its check-ins private from then on',

@@ -3462,18 +3462,6 @@ abstract class AppLocalizations {
   /// **'Discard'**
   String get loggerDiscard;
 
-  /// No description provided for @loggerDiscardBody.
-  ///
-  /// In en, this message translates to:
-  /// **'The sets you entered will be lost.'**
-  String get loggerDiscardBody;
-
-  /// No description provided for @loggerDiscardTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard this workout?'**
-  String get loggerDiscardTitle;
-
   /// No description provided for @loggerFinish.
   ///
   /// In en, this message translates to:
@@ -7716,6 +7704,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deload week'**
   String get loggerDeloadTitle;
+
+  /// No description provided for @loggerKeepForLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep for later'**
+  String get loggerKeepForLater;
+
+  /// No description provided for @loggerLeaveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What you entered stays on this phone until you finish. Open the workout again today to pick up where you left off.'**
+  String get loggerLeaveBody;
+
+  /// No description provided for @loggerLeaveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave the workout?'**
+  String get loggerLeaveTitle;
+
+  /// No description provided for @loggerResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get loggerResume;
+
+  /// No description provided for @loggerResumeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You started this workout at {time}. {sets, plural, =0{No set ticked off yet.} =1{One set is ticked off.} other{{sets} sets are ticked off.}}'**
+  String loggerResumeBody(String time, int sets);
+
+  /// No description provided for @loggerResumeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick up where you left off?'**
+  String get loggerResumeTitle;
+
+  /// No description provided for @loggerStartOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Start over'**
+  String get loggerStartOver;
 }
 
 class _AppLocalizationsDelegate

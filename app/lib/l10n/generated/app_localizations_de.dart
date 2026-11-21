@@ -2145,12 +2145,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get loggerDiscard => 'Verwerfen';
 
   @override
-  String get loggerDiscardBody => 'Die eingetragenen Sätze gehen verloren.';
-
-  @override
-  String get loggerDiscardTitle => 'Training verwerfen?';
-
-  @override
   String get loggerFinish => 'Training abschließen';
 
   @override
@@ -4726,4 +4720,35 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get loggerDeloadTitle => 'Deload-Woche';
+
+  @override
+  String get loggerKeepForLater => 'Für später behalten';
+
+  @override
+  String get loggerLeaveBody =>
+      'Was du eingetragen hast, bleibt auf diesem Handy, bis du abschließt. Öffne das Training heute noch einmal, dann machst du da weiter, wo du warst.';
+
+  @override
+  String get loggerLeaveTitle => 'Training verlassen?';
+
+  @override
+  String get loggerResume => 'Weitermachen';
+
+  @override
+  String loggerResumeBody(String time, int sets) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets Sätze sind abgehakt.',
+      one: 'Ein Satz ist abgehakt.',
+      zero: 'Noch kein Satz abgehakt.',
+    );
+    return 'Du hast dieses Training um $time begonnen. $_temp0';
+  }
+
+  @override
+  String get loggerResumeTitle => 'Weitermachen, wo du warst?';
+
+  @override
+  String get loggerStartOver => 'Neu beginnen';
 }
