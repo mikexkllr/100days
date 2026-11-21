@@ -11,6 +11,11 @@ import 'projection.dart';
 /// A day counts when each of them either completed it or had nothing
 /// scheduled (a rest day), and at least one of them completed it. Today
 /// counts once both are done; until then it is open and breaks nothing.
+///
+/// A streak freeze works here as it does alone: a day either of them froze
+/// holds the shared streak without counting for it. Both phones compute this
+/// from what friends can see — pass each side's public projection, never the
+/// owner's full one, or the two would disagree.
 int friendStreak({
   required UserProjection a,
   required UserProjection b,
@@ -20,14 +25,22 @@ int friendStreak({
   final challengeB = b.challenge;
   if (challengeA == null || challengeB == null) return 0;
 
-  // 0: broken, 1: counts, 2: nobody had anything — neither counts nor breaks.
+  // 0: broken, 1: counts, 2: held — nobody had anything, or a freeze
+  // covered a miss — neither counts nor breaks.
   int status(DayKey day) {
+    final key = day.toString();
     final requiredA = requiredHabitsOn(challengeA, day).isNotEmpty;
     final requiredB = requiredHabitsOn(challengeB, day).isNotEmpty;
-    final doneA = isDayComplete(challengeA, day, a.logsByDay[day.toString()]);
-    final doneB = isDayComplete(challengeB, day, b.logsByDay[day.toString()]);
     if (!requiredA && !requiredB) return 2;
-    if ((requiredA && !doneA) || (requiredB && !doneB)) return 0;
+    final missedA =
+        requiredA && !isDayComplete(challengeA, day, a.logsByDay[key]);
+    final missedB =
+        requiredB && !isDayComplete(challengeB, day, b.logsByDay[key]);
+    if ((missedA && !a.frozenDays.contains(key)) ||
+        (missedB && !b.frozenDays.contains(key))) {
+      return 0;
+    }
+    if (missedA || missedB) return 2;
     return 1;
   }
 
