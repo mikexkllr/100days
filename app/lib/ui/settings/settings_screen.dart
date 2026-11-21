@@ -17,6 +17,7 @@ import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
 import 'ai_screen.dart';
 import 'privacy_screen.dart';
+import 'reminders_screen.dart';
 import 'social_settings_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -92,6 +93,19 @@ class SettingsScreen extends ConsumerWidget {
               MaterialPageRoute<void>(
                 builder: (BuildContext context) =>
                     const SocialSettingsScreen(),
+              ),
+            ),
+          ),
+          _Row(
+            icon: Icons.notifications_none,
+            title: l10n.remindTitle,
+            subtitle: ref.watch(appPrefsProvider).remindersOn
+                ? l10n.remindRowSub(
+                    ref.watch(appPrefsProvider).reminderTime.format(context))
+                : l10n.remindRowOff,
+            onTap: () => Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => const RemindersScreen(),
               ),
             ),
           ),

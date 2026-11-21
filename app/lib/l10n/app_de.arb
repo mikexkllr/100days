@@ -2552,5 +2552,31 @@
   },
   "setSignOutAnyway": "Trotzdem abmelden",
   "setDeletingAccount": "Dein Konto wird gelöscht …",
-  "setDeleteAccountAppleNote": "Apple fragt noch einmal nach, damit der Zugriff der App auf deine Apple-ID widerrufen werden kann."
+  "setDeleteAccountAppleNote": "Apple fragt noch einmal nach, damit der Zugriff der App auf deine Apple-ID widerrufen werden kann.",
+  "remindCardTitle": "Soll Funki dich erinnern?",
+  "remindCardBody": "Eine Erinnerung am Abend, solange heute offen ist, eine Warnung, wenn dein Streak auf der Kippe steht, und ein Ping, wenn dich jemand anstupst. Sonst nichts.",
+  "remindCardYes": "Ja, erinnere mich",
+  "remindCardLater": "Jetzt nicht",
+  "remindTitle": "Erinnerungen",
+  "remindRowSub": "Täglich um {time}",
+  "@remindRowSub": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "remindRowOff": "Aus",
+  "remindDaily": "Tägliche Erinnerung",
+  "remindDailySub": "Nur an Tagen, die noch offen sind — nie, wenn du schon fertig bist.",
+  "remindTime": "Uhrzeit",
+  "remindWarning": "Streak-Warnung",
+  "remindWarningSub": "Am späten Abend, wenn ein Streak ab drei Tagen um Mitternacht enden würde.",
+  "remindBlocked": "Benachrichtigungen sind für diese App ausgeschaltet.",
+  "remindAllow": "Benachrichtigungen erlauben",
+  "remindBlockedHint": "Passiert nichts, schalte sie in den Einstellungen deines Handys unter 100 Tage ein.",
+  "aiPurchaseRetryLater": "Bezahlt, aber der Server konnte es noch nicht bestätigen. Die App versucht es beim nächsten Start erneut — oder tipp auf „Kauf wiederherstellen“, sobald du online bist.",
+  "aiRestoreNothing": "Auf diesem Store-Konto wurde kein Abo zum Wiederherstellen gefunden.",
+  "aiRestoreFailed": "Wiederherstellen hat nicht geklappt. Prüf deine Verbindung und versuch es noch mal.",
+  "aiRestoring": "Deine Käufe werden geprüft …"
 }

@@ -4765,4 +4765,70 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get setDeleteAccountAppleNote =>
       'Apple asks you to confirm once more, so the app\'s access to your Apple ID can be revoked.';
+
+  @override
+  String get remindCardTitle => 'Should Funki remind you?';
+
+  @override
+  String get remindCardBody =>
+      'One reminder in the evening while today is open, a warning when your streak is on the line, and a ping when a friend nudges you. Nothing else.';
+
+  @override
+  String get remindCardYes => 'Yes, remind me';
+
+  @override
+  String get remindCardLater => 'Not now';
+
+  @override
+  String get remindTitle => 'Reminders';
+
+  @override
+  String remindRowSub(String time) {
+    return 'Daily at $time';
+  }
+
+  @override
+  String get remindRowOff => 'Off';
+
+  @override
+  String get remindDaily => 'Daily reminder';
+
+  @override
+  String get remindDailySub =>
+      'Only on days that are still open — never once you are done.';
+
+  @override
+  String get remindTime => 'Time';
+
+  @override
+  String get remindWarning => 'Streak warning';
+
+  @override
+  String get remindWarningSub =>
+      'In the late evening, when a streak of three days or more would end at midnight.';
+
+  @override
+  String get remindBlocked => 'Notifications are switched off for this app.';
+
+  @override
+  String get remindAllow => 'Allow notifications';
+
+  @override
+  String get remindBlockedHint =>
+      'If nothing happens, switch them on in your phone\'s settings under 100 Days.';
+
+  @override
+  String get aiPurchaseRetryLater =>
+      'Paid, but the server could not confirm it yet. The app tries again at its next start — or tap \"Restore purchase\" once you are online.';
+
+  @override
+  String get aiRestoreNothing =>
+      'No subscription found to restore on this store account.';
+
+  @override
+  String get aiRestoreFailed =>
+      'Restoring did not work. Check your connection and try again.';
+
+  @override
+  String get aiRestoring => 'Checking your purchases…';
 }

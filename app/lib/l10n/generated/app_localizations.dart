@@ -7800,6 +7800,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apple asks you to confirm once more, so the app\'s access to your Apple ID can be revoked.'**
   String get setDeleteAccountAppleNote;
+
+  /// No description provided for @remindCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Should Funki remind you?'**
+  String get remindCardTitle;
+
+  /// No description provided for @remindCardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'One reminder in the evening while today is open, a warning when your streak is on the line, and a ping when a friend nudges you. Nothing else.'**
+  String get remindCardBody;
+
+  /// No description provided for @remindCardYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, remind me'**
+  String get remindCardYes;
+
+  /// No description provided for @remindCardLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get remindCardLater;
+
+  /// No description provided for @remindTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get remindTitle;
+
+  /// No description provided for @remindRowSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily at {time}'**
+  String remindRowSub(String time);
+
+  /// No description provided for @remindRowOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get remindRowOff;
+
+  /// No description provided for @remindDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily reminder'**
+  String get remindDaily;
+
+  /// No description provided for @remindDailySub.
+  ///
+  /// In en, this message translates to:
+  /// **'Only on days that are still open — never once you are done.'**
+  String get remindDailySub;
+
+  /// No description provided for @remindTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get remindTime;
+
+  /// No description provided for @remindWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak warning'**
+  String get remindWarning;
+
+  /// No description provided for @remindWarningSub.
+  ///
+  /// In en, this message translates to:
+  /// **'In the late evening, when a streak of three days or more would end at midnight.'**
+  String get remindWarningSub;
+
+  /// No description provided for @remindBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are switched off for this app.'**
+  String get remindBlocked;
+
+  /// No description provided for @remindAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow notifications'**
+  String get remindAllow;
+
+  /// No description provided for @remindBlockedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'If nothing happens, switch them on in your phone\'s settings under 100 Days.'**
+  String get remindBlockedHint;
+
+  /// No description provided for @aiPurchaseRetryLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid, but the server could not confirm it yet. The app tries again at its next start — or tap \"Restore purchase\" once you are online.'**
+  String get aiPurchaseRetryLater;
+
+  /// No description provided for @aiRestoreNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No subscription found to restore on this store account.'**
+  String get aiRestoreNothing;
+
+  /// No description provided for @aiRestoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring did not work. Check your connection and try again.'**
+  String get aiRestoreFailed;
+
+  /// No description provided for @aiRestoring.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking your purchases…'**
+  String get aiRestoring;
 }
 
 class _AppLocalizationsDelegate

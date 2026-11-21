@@ -11,6 +11,7 @@ import '../ai/gateway.dart';
 import '../ai/own_key.dart';
 import '../ai/subscription_service.dart';
 import '../config/backend_config.dart';
+import '../data/app_prefs.dart';
 import '../data/app_repository.dart';
 import '../data/auth_service.dart';
 import '../data/feed_sync.dart';
@@ -138,6 +139,24 @@ final Provider<StreakWidgetSync> streakWidgetProvider =
 /// launcher that supports it, and no widget there yet.
 final FutureProvider<bool> canPinStreakWidgetProvider =
     FutureProvider<bool>((Ref ref) => ref.watch(streakWidgetProvider).canPin());
+
+/// Where this phone's preferences live. Overridden in `main()`; memory
+/// otherwise (tests, the demo).
+final Provider<AppPrefsStore> appPrefsStoreProvider =
+    Provider<AppPrefsStore>((Ref ref) => MemoryPrefsStore());
+
+class AppPrefsController extends Notifier<AppPrefs> {
+  @override
+  AppPrefs build() => ref.watch(appPrefsStoreProvider).read();
+
+  Future<void> update(AppPrefs Function(AppPrefs prefs) change) async {
+    state = change(state);
+    await ref.read(appPrefsStoreProvider).write(state);
+  }
+}
+
+final NotifierProvider<AppPrefsController, AppPrefs> appPrefsProvider =
+    NotifierProvider<AppPrefsController, AppPrefs>(AppPrefsController.new);
 
 final Provider<LocaleStore> localeStoreProvider = Provider<LocaleStore>(
   (Ref ref) => throw UnimplementedError('localeStoreProvider not initialised'),
@@ -623,16 +642,41 @@ final FutureProvider<CoachDirective?> briefingProvider =
   return const HeuristicCoach().dailyBriefing(snapshot.toCoachContext());
 });
 
+/// The last line the model wrote, and the moment it was written for.
+class _BriefingCache {
+  String? key;
+  Future<CoachDirective?>? line;
+}
+
+final Provider<_BriefingCache> _briefingCacheProvider =
+    Provider<_BriefingCache>((Ref ref) => _BriefingCache());
+
 /// The same moment phrased by the language model, when one is reachable.
 /// Takes a moment; the card swaps it in once it arrives.
+///
+/// The snapshot changes with every check-in and every sync; the model is
+/// only asked again when the *moment* changes — another day, another tone,
+/// another streak, today done — not every two minutes the app is open.
 final FutureProvider<CoachDirective?> modelBriefingProvider =
     FutureProvider<CoachDirective?>((Ref ref) async {
   final snapshot = await ref.watch(appStateProvider.future);
   if (!snapshot.hasChallenge) return null;
   final coach = await ref.watch(coachEngineProvider.future);
   if (coach.modelName == null) return null;
-  final directive = await coach.dailyBriefing(snapshot.toCoachContext());
-  return directive.source == CoachSource.llm ? directive : null;
+  final CoachContext context = snapshot.toCoachContext();
+  final String key = '${snapshot.today}|${selectTone(context).name}|'
+      '${snapshot.me.streak.current}|${snapshot.me.streak.doneToday}|'
+      '${coach.modelName}|${ref.watch(effectiveLocaleProvider).languageCode}';
+  final _BriefingCache cache = ref.read(_briefingCacheProvider);
+  if (cache.key != key || cache.line == null) {
+    cache.key = key;
+    cache.line = coach.dailyBriefing(context).then(
+          (CoachDirective directive) =>
+              directive.source == CoachSource.llm ? directive : null,
+          onError: (Object _) => null,
+        );
+  }
+  return cache.line;
 });
 
 /// Ready-made jabs for friends who have not moved today.

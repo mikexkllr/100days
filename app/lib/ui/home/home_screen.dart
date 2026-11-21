@@ -19,6 +19,7 @@ import '../widgets/habit_tile.dart';
 import '../widgets/juicy_button.dart';
 import '../widgets/pressure_banner.dart';
 import 'coach_card.dart';
+import 'reminder_card.dart';
 import 'day_sheet.dart';
 import 'streak_hero.dart';
 import 'today.dart';
@@ -151,6 +152,12 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
             ),
             for (final Habit habit in otherHabits) tile(habit, scheduled: false),
           ],
+          if (!ref.watch(appPrefsProvider).permissionAsked &&
+              snapshot.me.logsByDay.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              child: ReminderPermissionCard(stage: flameStageFor(snapshot.me.streak.current)),
+            ),
           PressureBanner(
             activePeers: snapshot.peerStates
                 .where((PeerState p) => p.activeToday)

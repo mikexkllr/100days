@@ -4781,4 +4781,71 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get setDeleteAccountAppleNote =>
       'Apple fragt noch einmal nach, damit der Zugriff der App auf deine Apple-ID widerrufen werden kann.';
+
+  @override
+  String get remindCardTitle => 'Soll Funki dich erinnern?';
+
+  @override
+  String get remindCardBody =>
+      'Eine Erinnerung am Abend, solange heute offen ist, eine Warnung, wenn dein Streak auf der Kippe steht, und ein Ping, wenn dich jemand anstupst. Sonst nichts.';
+
+  @override
+  String get remindCardYes => 'Ja, erinnere mich';
+
+  @override
+  String get remindCardLater => 'Jetzt nicht';
+
+  @override
+  String get remindTitle => 'Erinnerungen';
+
+  @override
+  String remindRowSub(String time) {
+    return 'Täglich um $time';
+  }
+
+  @override
+  String get remindRowOff => 'Aus';
+
+  @override
+  String get remindDaily => 'Tägliche Erinnerung';
+
+  @override
+  String get remindDailySub =>
+      'Nur an Tagen, die noch offen sind — nie, wenn du schon fertig bist.';
+
+  @override
+  String get remindTime => 'Uhrzeit';
+
+  @override
+  String get remindWarning => 'Streak-Warnung';
+
+  @override
+  String get remindWarningSub =>
+      'Am späten Abend, wenn ein Streak ab drei Tagen um Mitternacht enden würde.';
+
+  @override
+  String get remindBlocked =>
+      'Benachrichtigungen sind für diese App ausgeschaltet.';
+
+  @override
+  String get remindAllow => 'Benachrichtigungen erlauben';
+
+  @override
+  String get remindBlockedHint =>
+      'Passiert nichts, schalte sie in den Einstellungen deines Handys unter 100 Tage ein.';
+
+  @override
+  String get aiPurchaseRetryLater =>
+      'Bezahlt, aber der Server konnte es noch nicht bestätigen. Die App versucht es beim nächsten Start erneut — oder tipp auf „Kauf wiederherstellen“, sobald du online bist.';
+
+  @override
+  String get aiRestoreNothing =>
+      'Auf diesem Store-Konto wurde kein Abo zum Wiederherstellen gefunden.';
+
+  @override
+  String get aiRestoreFailed =>
+      'Wiederherstellen hat nicht geklappt. Prüf deine Verbindung und versuch es noch mal.';
+
+  @override
+  String get aiRestoring => 'Deine Käufe werden geprüft …';
 }
