@@ -168,17 +168,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (signedIn != false || !mounted) return;
     await showDialog<void>(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        key: const Key('login-email-confirm'),
-        title: Text(context.l10n.loginEmailConfirmTitle),
-        content: Text(context.l10n.loginEmailConfirmBody(request.email)),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(context.l10n.actionOk),
-          ),
-        ],
-      ),
+      builder: (BuildContext context) =>
+          _ConfirmEmailDialog(email: request.email),
     );
   }
 
@@ -206,6 +197,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 }
 
 /// What the e-mail sheet hands back: sign in, or make a new account.
+/// Asks to confirm the address. The link in the mail signs the account in
+/// and the app moves on to onboarding underneath; the dialog closes itself
+/// then instead of sitting on top of it.
+class _ConfirmEmailDialog extends ConsumerWidget {
+  const _ConfirmEmailDialog({required this.email});
+
+  final String email;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<AsyncValue<String?>>(signedInUserProvider,
+        (AsyncValue<String?>? previous, AsyncValue<String?> next) {
+      if (next.valueOrNull != null) Navigator.of(context).pop();
+    });
+    return AlertDialog(
+      key: const Key('login-email-confirm'),
+      title: Text(context.l10n.loginEmailConfirmTitle),
+      content: Text(context.l10n.loginEmailConfirmBody(email)),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(context.l10n.actionOk),
+        ),
+      ],
+    );
+  }
+}
+
 typedef _EmailRequest = ({String email, String password, bool register});
 
 /// E-mail and password: sign in, or register a new account with them.

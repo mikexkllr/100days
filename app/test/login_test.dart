@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -41,11 +43,19 @@ class _FakeAuth implements AuthService {
 }
 
 void main() {
-  Future<void> pump(WidgetTester tester, _FakeAuth auth) async {
+  Future<void> pump(
+    WidgetTester tester,
+    _FakeAuth auth, {
+    Stream<String?>? signIns,
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: <Override>[
           authServiceProvider.overrideWithValue(auth),
+          // Signed out, unless a test signs someone in.
+          signedInUserProvider.overrideWith(
+            (Ref ref) => signIns ?? Stream<String?>.value(null),
+          ),
           ...platformFreeOverrides(),
         ],
         child: const MaterialApp(
@@ -108,6 +118,25 @@ void main() {
     expect(auth.calls, <String>['signUp neu@example.com']);
     expect(find.byKey(const Key('login-email-confirm')), findsOneWidget);
     expect(find.textContaining('neu@example.com'), findsOneWidget);
+  });
+
+  testWidgets('the confirm dialog closes once the mail link signs in', (
+    WidgetTester tester,
+  ) async {
+    final StreamController<String?> signIns = StreamController<String?>();
+    addTearDown(signIns.close);
+    await pump(tester, _FakeAuth(), signIns: signIns.stream);
+    signIns.add(null);
+    await openSheet(tester);
+    await tester.tap(find.byKey(const Key('login-email-register')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('login-email-confirm')), findsOneWidget);
+
+    // The link in the mail opens the app and signs the account in.
+    signIns.add('new-user');
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('login-email-confirm')), findsNothing);
   });
 
   testWidgets('registering that signs in right away shows no dialog', (
