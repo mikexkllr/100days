@@ -2537,5 +2537,86 @@
   "workoutStart": "Training starten",
   "workoutUpper": "Oberkörper",
   "workoutUpperFocus": "Druck und Zug",
-  "workoutWorkingSets": "Arbeitssätze"
+  "workoutWorkingSets": "Arbeitssätze",
+  "actionUndo": "Rückgängig",
+  "aiAllowanceUsedUp": "Dein KI-Kontingent für diesen Monat ist aufgebraucht. Mit Premium oder deinem eigenen API-Key geht es sofort weiter.",
+  "aiBadgeCloud": "Cloud-KI",
+  "aiRateLimited": "Gerade zu viele KI-Anfragen auf einmal. Warte eine Minute und versuch es dann noch einmal.",
+  "aiUnreachable": "Die KI war nicht erreichbar — du scheinst offline zu sein, oder es hat zu lange gedauert. Versuch es gleich noch einmal.",
+  "diaryCountOnTarget": "Jetzt im Ziel — mit Plan-Bonus zählen",
+  "diaryEntryRemoved": "{name} aus dem Tagebuch genommen",
+  "@diaryEntryRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryOffTargetOver": "Du liegst {kcal} kcal über deinem Ziel. Du kannst den Tag trotzdem abhaken — nur ohne Plan-Bonus.",
+  "@diaryOffTargetOver": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryOffTargetUnder": "Du liegst {kcal} kcal unter deinem Ziel. Du kannst den Tag trotzdem abhaken — nur ohne Plan-Bonus.",
+  "@diaryOffTargetUnder": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "foodEditHint": "Eine neue Menge rechnet die Kalorien mit. Stimmt die Schätzung nicht, korrigier die Kalorien.",
+  "foodEditTooltip": "Menge oder Kalorien ändern",
+  "foodPhotoNoCamera": "Kein Zugriff auf die Kamera. Erlaube ihn 100 Days in den Einstellungen deines Handys, oder wähl ein Foto aus der Galerie.",
+  "foodPhotoNoGallery": "Kein Zugriff auf deine Fotos. Erlaube ihn 100 Days in den Einstellungen deines Handys, oder mach ein neues Foto.",
+  "foodPhotoPickFailed": "Kamera oder Galerie ließen sich nicht öffnen. Versuch es noch einmal oder beschreib das Essen.",
+  "foodPhotoUnreadable": "Dieses Foto lässt sich nicht lesen — manche HEIC-Fotos nicht. Mach ein neues oder wähl ein JPEG.",
+  "householdJoinWarning": "Du wechselst den Haushalt: Dein jetziger Plan und deine Liste bleiben, wo sie sind, und du siehst stattdessen die des neuen Haushalts. Du kannst ihn später wieder verlassen.",
+  "householdLeave": "Haushalt verlassen",
+  "householdLeaveBody": "Plan, Rezepte und Listen bleiben bei den anderen. Du fängst mit einem eigenen Haushalt neu an und kannst jederzeit wieder eingeladen werden.",
+  "householdLeaveFailed": "Du konntest den Haushalt nicht verlassen. Prüf deine Verbindung und versuch es noch einmal.",
+  "householdLeaveTitle": "Haushalt verlassen?",
+  "householdLeft": "Du hast den Haushalt verlassen.",
+  "householdLoadFailed": "Der Haushalt konnte nicht geladen werden.",
+  "householdRemoveBody": "Plan und Liste sieht die Person dann nicht mehr. Mit einer Einladung kann sie wieder beitreten.",
+  "householdRemoveTitle": "{name} aus dem Haushalt entfernen?",
+  "@householdRemoveTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "householdSaveFailed": "Nicht gespeichert — prüf deine Verbindung und versuch es noch einmal.",
+  "planMealRemoved": "{title} aus dem Plan genommen",
+  "@planMealRemoved": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "planSaveFailed": "Der Plan konnte nicht gespeichert werden. Dein Entwurf ist noch da — versuch es noch einmal.",
+  "plannerListToppedUp": "Einkaufsliste aus dem Plan ergänzt",
+  "plannerQuotaUsedUp": "Dein KI-Kontingent für diesen Monat ist aufgebraucht, deshalb kann ich gerade nicht mit dir planen. Mit Premium oder deinem eigenen API-Key geht es sofort weiter — oder du planst bis zum 1. von Hand.",
+  "shopCloseEmpty": "Liste schließen",
+  "shopItemRemoved": "{name} von der Liste genommen",
+  "@shopItemRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shopTopUp": "{count, plural, =0{Auf der offenen Liste steht schon alles für diese Tage} =1{1 Zeile zur offenen Liste hinzugefügt} other{{count} Zeilen zur offenen Liste hinzugefügt}}",
+  "@shopTopUp": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

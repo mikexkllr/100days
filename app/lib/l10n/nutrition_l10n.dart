@@ -1,5 +1,6 @@
 import 'package:hundred_core/hundred_core.dart';
 
+import '../ai/dartantic_llm_client.dart' show AiFailure, classifyAiError;
 import 'generated/app_localizations.dart';
 
 /// Wording for the food diary, the nutrition targets and their prompts.
@@ -179,4 +180,16 @@ class LocalizedNutritionPrompts implements NutritionPromptBuilder {
         return l10n.mealDinner;
     }
   }
+}
+
+/// What went wrong when a model call failed before it had an answer.
+extension AiErrorL10n on AppLocalizations {
+  /// The allowance, too many requests, or — everything else, from a dead
+  /// network to a timeout — "could not reach it". Never "nothing
+  /// recognised": that is what an answer without food gets.
+  String aiErrorMessage(Object error) => switch (classifyAiError(error)) {
+        AiFailure.quotaExceeded || AiFailure.premiumOnly => aiAllowanceUsedUp,
+        AiFailure.rateLimited => aiRateLimited,
+        AiFailure.other => aiUnreachable,
+      };
 }
