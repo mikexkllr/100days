@@ -11,6 +11,7 @@ import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/fire.dart';
 import '../../theme/theme.dart';
+import '../celebration/day_complete.dart';
 import '../motion/rolling_number.dart';
 import '../nutrition/diary_view.dart';
 import '../plan/workout_detail.dart';
@@ -20,7 +21,11 @@ import '../widgets/day_board.dart';
 import '../widgets/habit_tile.dart';
 import '../widgets/juicy_button.dart';
 import '../widgets/pressure_banner.dart';
+import '../mascot/flame_mascot.dart';
+import '../mascot/speech_bubble.dart';
+import '../../data/app_prefs.dart';
 import 'coach_card.dart';
+import 'feeding.dart';
 import 'reminder_card.dart';
 import 'day_sheet.dart';
 import 'streak_hero.dart';
@@ -78,6 +83,12 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
   /// How full the row being held is — Funki watches it.
   final ValueNotifier<double> _holdFill = ValueNotifier<double>(0);
 
+  /// Where Funki and the rows are, for the ember that flies between them,
+  /// and a counter that makes him gulp when it lands.
+  final GlobalKey _ringKey = GlobalKey(debugLabel: 'today-ring');
+  final Map<String, GlobalKey> _tileKeys = <String, GlobalKey>{};
+  int _feeds = 0;
+
   /// How long an undo stays offered, and how long friends wait for the push.
   static const Duration _undoWindow = Duration(seconds: 5);
 
@@ -112,12 +123,15 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
     final int freezes =
         challenge.freezesLeftOn(today, snapshot.me.frozenDays);
     final _Yesterday? yesterday = _Yesterday.of(snapshot, freezes);
+    _maybeTalkAboutLoss(snapshot, yesterday);
     final bool prefsTap = ref.watch(appPrefsProvider).tapToCheckIn;
     // The coach already says who was active; the banner would say it twice.
     final bool coachTellsPressure =
         selectTone(snapshot.toCoachContext()) == CoachTone.socialPressure;
 
     Widget tile(Habit habit, {bool scheduled = true}) => Padding(
+          key: _tileKeys.putIfAbsent(
+              habit.id, () => GlobalKey(debugLabel: 'tile-${habit.id}')),
           padding: const EdgeInsets.only(bottom: AppSpacing.sm),
           child: HabitTile(
             key: ValueKey<String>('habit-${habit.id}'),
@@ -154,6 +168,8 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
           StreakHero(
             snapshot: snapshot,
             holdFill: _holdFill,
+            ringKey: _ringKey,
+            feeds: _feeds,
             onTapDay: (DayKey day) =>
                 showDaySheet(context, snapshot: snapshot, day: day),
           ),
@@ -235,6 +251,58 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
     );
   }
 
+  /// The morning after a lost streak: Funki says so once, gently, and
+  /// points at the next day — instead of the app opening on a bare 0. Not
+  /// when yesterday can still be rescued: the card on Today offers that.
+  void _maybeTalkAboutLoss(AppSnapshot snapshot, _Yesterday? yesterday) {
+    final StreakStats streak = snapshot.me.streak;
+    if (yesterday != null || streak.current > 0 || streak.doneToday) return;
+    final int lost = _lastLostRun(snapshot);
+    if (lost < 2) return;
+    final String key = 'loss-${streak.completedDays}-$lost';
+    if (ref.read(appPrefsProvider).lossShownFor == key) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || ref.read(appPrefsProvider).lossShownFor == key) return;
+      await ref
+          .read(appPrefsProvider.notifier)
+          .update((AppPrefs p) => p.copyWith(lossShownFor: key));
+      if (!mounted) return;
+      await showModalBottomSheet<void>(
+        context: context,
+        builder: (BuildContext context) => _LossSheet(
+          lost: lost,
+          stars: streak.completedDays,
+        ),
+      );
+    });
+  }
+
+  /// The run that ended most recently: completed days back from the last
+  /// done day, through held, frozen and rest days, to the miss before it.
+  static int _lastLostRun(AppSnapshot snapshot) {
+    final Challenge challenge = snapshot.challenge!;
+    var run = 0;
+    var counting = false;
+    for (var day = snapshot.today.addDays(-1);
+        !day.isBefore(challenge.startDay);
+        day = day.addDays(-1)) {
+      final DayMark mark = dayMarkFor(
+        challenge: challenge,
+        day: day,
+        today: snapshot.today,
+        logsByDay: snapshot.me.logsByDay,
+        frozenDays: snapshot.me.frozenDays,
+      );
+      if (mark == DayMark.done) {
+        counting = true;
+        run++;
+      } else if (mark == DayMark.missed && counting) {
+        break;
+      }
+    }
+    return run;
+  }
+
   Future<void> _undo(Habit habit) async {
     HapticFeedback.selectionClick();
     await ref.read(appStateProvider.notifier).undoCheckIn(habit);
@@ -244,9 +312,44 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
       ..showSnackBar(SnackBar(content: Text(context.l10n.tileUndone)));
   }
 
+  /// The ember from the row to Funki — or to a small Funki peeking in at
+  /// the top when the big one is scrolled out of sight.
+  void _feed(Habit habit, Fire fire, FlameStage stage) {
+    final RenderBox? tileBox =
+        _tileKeys[habit.id]?.currentContext?.findRenderObject() as RenderBox?;
+    if (tileBox == null || !tileBox.attached) return;
+    final Offset from = tileBox.localToGlobal(
+        Offset(tileBox.size.width - 60, tileBox.size.height / 2));
+    final RenderBox? ringBox =
+        _ringKey.currentContext?.findRenderObject() as RenderBox?;
+    final double top = MediaQuery.paddingOf(context).top;
+    Offset? ring;
+    if (ringBox != null && ringBox.attached) {
+      final Offset centre = ringBox.localToGlobal(
+          Offset(ringBox.size.width / 2, ringBox.size.height * 0.58));
+      if (centre.dy > top + 20) ring = centre;
+    }
+    final Offset to = ring ??
+        Offset(MediaQuery.sizeOf(context).width - 48, top + 48);
+    if (ring == null) showMiniFunki(context, at: to, stage: stage);
+    flyEmber(
+      context,
+      from: from,
+      to: to,
+      fire: fire,
+      onArrive: () {
+        if (!mounted || ring == null) return;
+        HapticFeedback.lightImpact();
+        setState(() => _feeds++);
+      },
+    );
+  }
+
   Future<void> _checkIn(Habit habit, num value) async {
     final AppSnapshot before = widget.snapshot;
     _holdFill.value = 0;
+    _feed(habit, TodayState.of(before).fire,
+        flameStageFor(before.me.streak.current));
     await ref
         .read(appStateProvider.notifier)
         .checkIn(habit, value: value, notifyDelay: _undoWindow);
@@ -425,6 +528,57 @@ class _YesterdayCard extends ConsumerWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _LossSheet extends StatelessWidget {
+  const _LossSheet({required this.lost, required this.stars});
+
+  final int lost;
+  final int stars;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            SpeechBubble(text: l10n.lossFunki),
+            const FlameMascot(
+              stage: FlameStage.ember,
+              mood: MascotMood.hopeful,
+              size: 130,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.lossTitle(lost),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.lossBody(stars),
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            JuicyButton(
+              key: const Key('loss-relight'),
+              label: l10n.lossRelight,
+              icon: Icons.local_fire_department,
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -967,7 +1121,8 @@ class _AscendCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations l10n = context.l10n;
-    final ChallengeTier next = tierForCycle(challenge.cycle + 1);
+    final ChallengeTier next =
+        tierForCycle(challenge.ascentTarget(DayKey.today()));
     final String nextName = l10n.tierName(next);
     return AppCard(
       border: AppColors.success,
@@ -999,7 +1154,15 @@ class _AscendCard extends ConsumerWidget {
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(48),
             ),
-            onPressed: () => ref.read(appStateProvider.notifier).ascend(),
+            onPressed: () => showAscendCelebration(
+              context,
+              tierName: nextName,
+              tierEmoji: next.emoji,
+              stage: flameStageFor(
+                  ref.read(appStateProvider).valueOrNull?.me.streak.current ??
+                      0),
+              onAscend: () => ref.read(appStateProvider.notifier).ascend(),
+            ),
             child: Text(l10n.homeAscendAction(nextName)),
           ),
         ],

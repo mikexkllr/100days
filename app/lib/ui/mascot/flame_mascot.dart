@@ -29,7 +29,11 @@ class FlameMascot extends StatefulWidget {
     this.semanticLabel,
     this.anticipation,
     this.urgency = 0,
+    this.gulps = 0,
   });
+
+  /// Bumped when something lands in his mouth: he gulps and glows.
+  final int gulps;
 
   final FlameStage stage;
   final MascotMood mood;
@@ -74,6 +78,15 @@ class _FlameMascotState extends State<FlameMascot>
     duration: const Duration(milliseconds: 700),
   );
   double _pullAtRelease = 0;
+
+  @override
+  void didUpdateWidget(FlameMascot oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.gulps != oldWidget.gulps) {
+      _poke.forward(from: 0);
+      setState(() => _bursts++);
+    }
+  }
 
   @override
   void dispose() {

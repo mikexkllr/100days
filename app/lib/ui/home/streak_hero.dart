@@ -32,7 +32,15 @@ class StreakHero extends StatefulWidget {
     required this.snapshot,
     this.onTapDay,
     this.holdFill,
+    this.ringKey,
+    this.feeds = 0,
   });
+
+  /// Marks the ring, so an ember can find its way to Funki.
+  final Key? ringKey;
+
+  /// Bumped when an ember lands: Funki gulps.
+  final int feeds;
 
   final AppSnapshot snapshot;
 
@@ -189,6 +197,8 @@ class _StreakHeroState extends State<StreakHero> {
             ),
             const SizedBox(width: 8),
             TodayRing(
+              key: widget.ringKey,
+              feeds: widget.feeds,
               parts: state.parts,
               fire: fire,
               stage: stage,

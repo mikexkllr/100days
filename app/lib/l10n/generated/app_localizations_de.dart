@@ -5105,4 +5105,65 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get loginNewPasswordSaved => 'Dein neues Passwort ist gesetzt.';
+
+  @override
+  String get celebrateEvolving => 'Funki verwandelt sich …';
+
+  @override
+  String celebrateEvolved(String stage) {
+    return '$stage!';
+  }
+
+  @override
+  String shareCardStreak(int streak) {
+    String _temp0 = intl.Intl.pluralLogic(
+      streak,
+      locale: localeName,
+      other: 'Tage Streak',
+      one: 'Tag Streak',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String shareCardDay(int day) {
+    return 'Tag $day meiner Challenge';
+  }
+
+  @override
+  String get ascendTitle => 'Zyklus geschafft';
+
+  @override
+  String ascendNext(String tier) {
+    return 'Willkommen in $tier';
+  }
+
+  @override
+  String get ascendBody =>
+      'Streak, Flamme und Historie kommen mit. Die nächsten hundert Tage beginnen jetzt.';
+
+  @override
+  String get ascendGo => 'Ab in den nächsten Zyklus';
+
+  @override
+  String lossTitle(int streak) {
+    return 'Dein Streak von $streak Tagen ist ausgegangen.';
+  }
+
+  @override
+  String get lossFunki => 'Ich glühe noch. Puste mich an.';
+
+  @override
+  String lossBody(int stars) {
+    String _temp0 = intl.Intl.pluralLogic(
+      stars,
+      locale: localeName,
+      other: 'Deine $stars Sterne bleiben',
+      one: 'Dein Stern bleibt',
+    );
+    return '$_temp0 an deinem Himmel — nichts davon ist verloren. Der Unterschied zwischen einem Ausrutscher und einem Abbruch ist, was du in den nächsten 24 Stunden machst.';
+  }
+
+  @override
+  String get lossRelight => 'Zünd mich wieder an';
 }

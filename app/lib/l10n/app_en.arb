@@ -3573,5 +3573,59 @@
   },
   "loginNewPasswordTitle": "Set a new password",
   "loginNewPasswordSave": "Save password",
-  "loginNewPasswordSaved": "Your new password is set."
+  "loginNewPasswordSaved": "Your new password is set.",
+  "celebrateEvolving": "Funki is changing…",
+  "celebrateEvolved": "{stage}!",
+  "@celebrateEvolved": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "shareCardStreak": "{streak, plural, =1{day streak} other{days streak}}",
+  "@shareCardStreak": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "shareCardDay": "Day {day} of my challenge",
+  "@shareCardDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "ascendTitle": "Cycle complete",
+  "ascendNext": "Welcome to {tier}",
+  "@ascendNext": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "ascendBody": "Streak, flame and history come along. The next hundred days start now.",
+  "ascendGo": "Into the next cycle",
+  "lossTitle": "Your {streak}-day streak went out.",
+  "@lossTitle": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "lossFunki": "I am still glowing. Blow on me.",
+  "lossBody": "Your {stars, plural, =1{star stays} other{{stars} stars stay}} in your sky — none of it is lost. The difference between a slip and quitting is what you do in the next 24 hours.",
+  "@lossBody": {
+    "placeholders": {
+      "stars": {
+        "type": "int"
+      }
+    }
+  },
+  "lossRelight": "Light me again"
 }

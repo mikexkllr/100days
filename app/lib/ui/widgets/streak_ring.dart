@@ -29,7 +29,11 @@ class TodayRing extends StatelessWidget {
     this.mascotLabel,
     this.holdFill,
     this.urgency = 0,
+    this.feeds = 0,
   });
+
+  /// Bumped when an ember lands in Funki's mouth.
+  final int feeds;
 
   /// 0 … 1, how close midnight is on an open day.
   final double urgency;
@@ -125,6 +129,7 @@ class TodayRing extends StatelessWidget {
               semanticLabel: mascotLabel,
               anticipation: holdFill,
               urgency: urgency,
+              gulps: feeds,
             ),
           ),
         ],

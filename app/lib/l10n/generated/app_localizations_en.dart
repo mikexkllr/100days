@@ -5086,4 +5086,65 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginNewPasswordSaved => 'Your new password is set.';
+
+  @override
+  String get celebrateEvolving => 'Funki is changing…';
+
+  @override
+  String celebrateEvolved(String stage) {
+    return '$stage!';
+  }
+
+  @override
+  String shareCardStreak(int streak) {
+    String _temp0 = intl.Intl.pluralLogic(
+      streak,
+      locale: localeName,
+      other: 'days streak',
+      one: 'day streak',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String shareCardDay(int day) {
+    return 'Day $day of my challenge';
+  }
+
+  @override
+  String get ascendTitle => 'Cycle complete';
+
+  @override
+  String ascendNext(String tier) {
+    return 'Welcome to $tier';
+  }
+
+  @override
+  String get ascendBody =>
+      'Streak, flame and history come along. The next hundred days start now.';
+
+  @override
+  String get ascendGo => 'Into the next cycle';
+
+  @override
+  String lossTitle(int streak) {
+    return 'Your $streak-day streak went out.';
+  }
+
+  @override
+  String get lossFunki => 'I am still glowing. Blow on me.';
+
+  @override
+  String lossBody(int stars) {
+    String _temp0 = intl.Intl.pluralLogic(
+      stars,
+      locale: localeName,
+      other: '$stars stars stay',
+      one: 'star stays',
+    );
+    return 'Your $_temp0 in your sky — none of it is lost. The difference between a slip and quitting is what you do in the next 24 hours.';
+  }
+
+  @override
+  String get lossRelight => 'Light me again';
 }

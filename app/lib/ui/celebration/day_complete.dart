@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
@@ -19,6 +18,7 @@ import '../motion/motion.dart';
 import '../motion/particles.dart';
 import '../motion/rolling_number.dart';
 import '../widgets/juicy_button.dart';
+import 'share_card.dart';
 
 /// Rolls the slot machine whenever [celebrationProvider] hands it a day just
 /// completed — on Today, in the workout logger or in the food diary. Sits
@@ -117,15 +117,28 @@ class DayCompleteCelebration extends StatefulWidget {
 }
 
 class _DayCompleteCelebrationState extends State<DayCompleteCelebration>
-    with SingleTickerProviderStateMixin {
-  static const Duration _spin = Duration(milliseconds: 3400);
+    with TickerProviderStateMixin {
+  /// A day like the others spins briefly; a jackpot takes its time, so the
+  /// rare moment feels bigger than the daily one.
+  static const Duration _spinOrdinary = Duration(milliseconds: 1900);
+  static const Duration _spinJackpot = Duration(milliseconds: 3400);
+
+  /// Before the reels, a new form of the flame gets its own moment: the old
+  /// form shakes, charges, flashes white — and the new one stands there.
+  late final AnimationController _evolve = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1700),
+  );
+  bool get _evolves =>
+      widget.reward.highlights.contains(RewardHighlight.evolution) &&
+      widget.reward.stageBefore != widget.reward.stage;
 
   /// When each reel stops, as a fraction of the whole spin.
   static const List<double> _stops = <double>[0.52, 0.74, 1];
 
   late final AnimationController _controller = AnimationController(
     vsync: this,
-    duration: _spin,
+    duration: widget.reward.isJackpot ? _spinJackpot : _spinOrdinary,
   );
   final List<int> _lastIndex = <int>[-1, -1, -1];
   final List<bool> _landed = <bool>[false, false, false];
@@ -146,8 +159,16 @@ class _DayCompleteCelebrationState extends State<DayCompleteCelebration>
     _started = true;
     if (ambientMotionOf(context)) {
       HapticFeedback.mediumImpact();
-      _controller.forward();
+      if (_evolves) {
+        _evolve.addListener(_onEvolveTick);
+        _evolve.forward().whenComplete(() {
+          if (mounted) _controller.forward();
+        });
+      } else {
+        _controller.forward();
+      }
     } else {
+      _evolve.value = 1;
       // Asked for less motion: the result, without the show.
       _controller.value = 1;
       for (int i = 0; i < 3; i++) {
@@ -190,12 +211,31 @@ class _DayCompleteCelebrationState extends State<DayCompleteCelebration>
     }
   }
 
+  bool _flashed = false;
+
+  void _onEvolveTick() {
+    // The charge rattles in the hand; the change lands with a knock.
+    if (_evolve.value < 0.55 && (_evolve.value * 40).floor().isEven) {
+      HapticFeedback.selectionClick();
+    }
+    if (!_flashed && _evolve.value >= 0.55) {
+      _flashed = true;
+      HapticFeedback.heavyImpact();
+    }
+  }
+
   void _skip() {
+    if (_evolve.isAnimating) {
+      _evolve.value = 1;
+      _controller.value = 1;
+      return;
+    }
     if (_controller.isAnimating) _controller.value = 1;
   }
 
   @override
   void dispose() {
+    _evolve.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -293,10 +333,14 @@ class _DayCompleteCelebrationState extends State<DayCompleteCelebration>
                         ),
                         accent: accent,
                       ),
-                      FlameMascot(
-                        stage: reward.stage,
-                        mood: MascotMood.hyped,
-                        size: 170,
+                      AnimatedBuilder(
+                        animation: _evolve,
+                        builder: (BuildContext context, Widget? _) =>
+                            _EvolvingFunki(
+                          from: reward.stageBefore,
+                          to: reward.stage,
+                          t: _evolves ? _evolve.value : 1,
+                        ),
                       ),
                       _SlotMachine(
                         controller: _controller,
@@ -334,15 +378,22 @@ class _DayCompleteCelebrationState extends State<DayCompleteCelebration>
                           onPressed: () => Navigator.of(context).maybePop(),
                         ),
                         const SizedBox(height: AppSpacing.sm),
-                        TextButton.icon(
-                          onPressed: () => Share.share(
-                            l10n.celebrateShareText(
-                              reward.streak,
-                              reward.dayNumber,
+                        Builder(
+                          builder: (BuildContext context) => TextButton.icon(
+                            key: const Key('celebration-share'),
+                            onPressed: () => shareStreak(
+                              context,
+                              stage: reward.stage,
+                              streak: reward.streak,
+                              dayNumber: reward.dayNumber,
+                              text: l10n.celebrateShareText(
+                                reward.streak,
+                                reward.dayNumber,
+                              ),
                             ),
+                            icon: const Icon(Icons.ios_share, size: 18),
+                            label: Text(l10n.celebrateShare),
                           ),
-                          icon: const Icon(Icons.ios_share, size: 18),
-                          label: Text(l10n.celebrateShare),
                         ),
                       ] else
                         Text(
@@ -1018,6 +1069,233 @@ class _NextUp extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Funki through an evolution: the old form shakes and charges up to the
+/// flash at [t] = 0.55, then the new form pops in and its name lands.
+class _EvolvingFunki extends StatelessWidget {
+  const _EvolvingFunki({required this.from, required this.to, required this.t});
+
+  final FlameStage from;
+  final FlameStage to;
+  final double t;
+
+  @override
+  Widget build(BuildContext context) {
+    const double flash = 0.55;
+    final bool before = t < flash;
+    final double charge = before ? t / flash : 0;
+    final double after = before ? 0 : ((t - flash) / (1 - flash)).clamp(0, 1);
+    final double shake = before ? math.sin(t * 90) * 7 * charge : 0;
+    final double scale = before
+        ? 1 + 0.12 * charge
+        : 0.6 + 0.4 * popCurve(after);
+    final double white = before
+        ? math.pow(charge, 3).toDouble() * 0.9
+        : (1 - after * 3).clamp(0.0, 1.0);
+    return SizedBox(
+      width: 200,
+      height: 196,
+      child: Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          Transform.translate(
+            offset: Offset(shake, 0),
+            child: Transform.scale(
+              scale: scale,
+              child: FlameMascot(
+                stage: before ? from : to,
+                mood: MascotMood.hyped,
+                size: 170,
+              ),
+            ),
+          ),
+          if (white > 0.01)
+            IgnorePointer(
+              child: Container(
+                width: 200,
+                height: 196,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: <Color>[
+                      Colors.white.withValues(alpha: white),
+                      Colors.white.withValues(alpha: 0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          if (!before && after > 0 && t < 1)
+            Positioned(
+              bottom: 0,
+              child: Opacity(
+                opacity: (1 - (after - 0.6).clamp(0.0, 0.4) / 0.4),
+                child: GlowText(
+                  context.l10n.celebrateEvolved(context.l10n.stageName(to)),
+                  style: displayStyle(22),
+                  gradient: Fire.of(to).text,
+                  glow: Fire.of(to).main,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Day 100 done and the step up taken: the next tier, with the show it
+/// deserves. [onAscend] writes the ascent when the user goes on.
+Future<void> showAscendCelebration(
+  BuildContext context, {
+  required String tierName,
+  required String tierEmoji,
+  required FlameStage stage,
+  required Future<void> Function() onAscend,
+}) =>
+    Navigator.of(context).push<void>(
+      PageRouteBuilder<void>(
+        opaque: false,
+        transitionDuration: const Duration(milliseconds: 420),
+        pageBuilder: (BuildContext context, Animation<double> _,
+                Animation<double> __) =>
+            _AscendCelebration(
+          tierName: tierName,
+          tierEmoji: tierEmoji,
+          stage: stage,
+          onAscend: onAscend,
+        ),
+        transitionsBuilder: (BuildContext context, Animation<double> animation,
+                Animation<double> _, Widget child) =>
+            FadeTransition(opacity: animation, child: child),
+      ),
+    );
+
+class _AscendCelebration extends StatefulWidget {
+  const _AscendCelebration({
+    required this.tierName,
+    required this.tierEmoji,
+    required this.stage,
+    required this.onAscend,
+  });
+
+  final String tierName;
+  final String tierEmoji;
+  final FlameStage stage;
+  final Future<void> Function() onAscend;
+
+  @override
+  State<_AscendCelebration> createState() => _AscendCelebrationState();
+}
+
+class _AscendCelebrationState extends State<_AscendCelebration> {
+  bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    HapticFeedback.heavyImpact();
+  }
+
+  Future<void> _go() async {
+    setState(() => _busy = true);
+    HapticFeedback.heavyImpact();
+    await widget.onAscend();
+    if (mounted) Navigator.of(context).maybePop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    final Color accent = Fire.of(widget.stage).main;
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: <Widget>[
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(0, -0.3),
+                  radius: 1.1,
+                  colors: <Color>[
+                    Color.lerp(AppColors.ink, accent, 0.35)!,
+                    AppColors.ink,
+                    AppColors.inkDeep,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const Positioned.fill(child: _Sunburst(color: AppColors.reward, strong: true)),
+          const Positioned.fill(
+            child: EmberField(count: 40, intensity: 1.6, speed: 1.8),
+          ),
+          Positioned.fill(
+            child: ParticleBurst(
+              trigger: null,
+              burstOnMount: ambientMotionOf(context),
+              origin: const Alignment(0, -0.25),
+              count: 120,
+              kinds: const <ParticleKind>[
+                ParticleKind.gem,
+                ParticleKind.star,
+                ParticleKind.confetti,
+              ],
+              colors: kHoloParticles,
+              power: 1.6,
+            ),
+          ),
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    _Title(text: l10n.ascendTitle.toUpperCase(), gold: true),
+                    const SizedBox(height: AppSpacing.md),
+                    FlameMascot(
+                      stage: widget.stage,
+                      mood: MascotMood.hyped,
+                      size: 190,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(widget.tierEmoji,
+                        style: const TextStyle(fontSize: 48)),
+                    const SizedBox(height: AppSpacing.sm),
+                    GlowText(
+                      l10n.ascendNext(widget.tierName),
+                      style: displayStyle(24),
+                      gradient: AppGradients.holo,
+                      glow: AppColors.reward,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      l10n.ascendBody,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyLarge
+                          ?.copyWith(color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    JuicyButton.holo(
+                      key: const Key('ascend-go'),
+                      label: l10n.ascendGo,
+                      icon: Icons.keyboard_double_arrow_up,
+                      onPressed: _busy ? null : _go,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

@@ -2737,5 +2737,59 @@
   },
   "loginNewPasswordTitle": "Neues Passwort setzen",
   "loginNewPasswordSave": "Passwort speichern",
-  "loginNewPasswordSaved": "Dein neues Passwort ist gesetzt."
+  "loginNewPasswordSaved": "Dein neues Passwort ist gesetzt.",
+  "celebrateEvolving": "Funki verwandelt sich …",
+  "celebrateEvolved": "{stage}!",
+  "@celebrateEvolved": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "shareCardStreak": "{streak, plural, =1{Tag Streak} other{Tage Streak}}",
+  "@shareCardStreak": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "shareCardDay": "Tag {day} meiner Challenge",
+  "@shareCardDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "ascendTitle": "Zyklus geschafft",
+  "ascendNext": "Willkommen in {tier}",
+  "@ascendNext": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "ascendBody": "Streak, Flamme und Historie kommen mit. Die nächsten hundert Tage beginnen jetzt.",
+  "ascendGo": "Ab in den nächsten Zyklus",
+  "lossTitle": "Dein Streak von {streak} Tagen ist ausgegangen.",
+  "@lossTitle": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "lossFunki": "Ich glühe noch. Puste mich an.",
+  "lossBody": "{stars, plural, =1{Dein Stern bleibt} other{Deine {stars} Sterne bleiben}} an deinem Himmel — nichts davon ist verloren. Der Unterschied zwischen einem Ausrutscher und einem Abbruch ist, was du in den nächsten 24 Stunden machst.",
+  "@lossBody": {
+    "placeholders": {
+      "stars": {
+        "type": "int"
+      }
+    }
+  },
+  "lossRelight": "Zünd mich wieder an"
 }

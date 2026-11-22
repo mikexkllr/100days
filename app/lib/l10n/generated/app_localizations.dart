@@ -8304,6 +8304,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your new password is set.'**
   String get loginNewPasswordSaved;
+
+  /// No description provided for @celebrateEvolving.
+  ///
+  /// In en, this message translates to:
+  /// **'Funki is changing…'**
+  String get celebrateEvolving;
+
+  /// No description provided for @celebrateEvolved.
+  ///
+  /// In en, this message translates to:
+  /// **'{stage}!'**
+  String celebrateEvolved(String stage);
+
+  /// No description provided for @shareCardStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{streak, plural, =1{day streak} other{days streak}}'**
+  String shareCardStreak(int streak);
+
+  /// No description provided for @shareCardDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day} of my challenge'**
+  String shareCardDay(int day);
+
+  /// No description provided for @ascendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cycle complete'**
+  String get ascendTitle;
+
+  /// No description provided for @ascendNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to {tier}'**
+  String ascendNext(String tier);
+
+  /// No description provided for @ascendBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak, flame and history come along. The next hundred days start now.'**
+  String get ascendBody;
+
+  /// No description provided for @ascendGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Into the next cycle'**
+  String get ascendGo;
+
+  /// No description provided for @lossTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {streak}-day streak went out.'**
+  String lossTitle(int streak);
+
+  /// No description provided for @lossFunki.
+  ///
+  /// In en, this message translates to:
+  /// **'I am still glowing. Blow on me.'**
+  String get lossFunki;
+
+  /// No description provided for @lossBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {stars, plural, =1{star stays} other{{stars} stars stay}} in your sky — none of it is lost. The difference between a slip and quitting is what you do in the next 24 hours.'**
+  String lossBody(int stars);
+
+  /// No description provided for @lossRelight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light me again'**
+  String get lossRelight;
 }
 
 class _AppLocalizationsDelegate
