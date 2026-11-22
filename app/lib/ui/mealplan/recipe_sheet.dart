@@ -88,6 +88,9 @@ class _RecipeSheetState extends ConsumerState<_RecipeSheet> {
           ..hideCurrentSnackBar()
           ..showSnackBar(SnackBar(
             content: Text(l10n.planMealRemoved(widget.recipe.title)),
+            // An undo is offered for a moment; with an action a snackbar
+            // would otherwise stay until dismissed.
+            persist: false,
             action: SnackBarAction(
               label: l10n.actionUndo,
               onPressed: () => actions.restoreEntry(entry).catchError(

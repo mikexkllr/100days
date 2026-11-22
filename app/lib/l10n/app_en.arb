@@ -2947,7 +2947,7 @@
   "setSignOutBody": "Everything is saved in your account; it is back as soon as you sign in again. This phone forgets it until then.",
   "setSignOutSub": "Your data stays in your account.",
   "setStreakMode": "How strict is your streak?",
-  "setStreakModeNote": "Applies from today. Days behind you stay counted the way they were. Your friends count your streak by the same mode.",
+  "setStreakModeNote": "A change applies from tomorrow. Today and the days behind you stay counted the way they were. Your friends count your streak by the same mode.",
   "setStreakModeSection": "Streak",
   "setSyncDone": "Up to date · {sent} sent, {received} received",
   "@setSyncDone": {

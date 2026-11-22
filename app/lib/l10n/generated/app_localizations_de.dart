@@ -4077,7 +4077,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get setStreakModeNote =>
-      'Gilt ab heute. Vergangene Tage bleiben so gezählt, wie sie gezählt wurden. Deine Freunde zählen deinen Streak nach demselben Modus.';
+      'Eine Änderung gilt ab morgen. Heute und vergangene Tage bleiben so gezählt, wie sie gezählt wurden. Deine Freunde zählen deinen Streak nach demselben Modus.';
 
   @override
   String get setStreakModeSection => 'Streak';

@@ -362,6 +362,9 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(
         duration: _undoWindow,
+        // With an action a snackbar would stay until dismissed; the undo
+        // is an offer for the moment, not a fixture.
+        persist: false,
         content: Text(
             l10nNow.homeCheckInToast(habit.emoji, l10nNow.habitLabel(habit))),
         action: SnackBarAction(

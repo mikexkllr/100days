@@ -308,6 +308,9 @@ class _ListBodyState extends ConsumerState<_ListBody> {
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(
         content: Text(l10n.shopItemRemoved(line.name)),
+        // An undo is offered for a moment; with an action a snackbar
+        // would otherwise stay until dismissed.
+        persist: false,
         action: SnackBarAction(
           label: l10n.actionUndo,
           onPressed: () async {

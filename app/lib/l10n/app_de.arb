@@ -2173,7 +2173,7 @@
   "setSignOutBody": "Alles ist in deinem Konto gespeichert und wieder da, sobald du dich neu anmeldest. Dieses Handy vergisst es bis dahin.",
   "setSignOutSub": "Deine Daten bleiben in deinem Konto.",
   "setStreakMode": "Wie streng ist dein Streak?",
-  "setStreakModeNote": "Gilt ab heute. Vergangene Tage bleiben so gezählt, wie sie gezählt wurden. Deine Freunde zählen deinen Streak nach demselben Modus.",
+  "setStreakModeNote": "Eine Änderung gilt ab morgen. Heute und vergangene Tage bleiben so gezählt, wie sie gezählt wurden. Deine Freunde zählen deinen Streak nach demselben Modus.",
   "setStreakModeSection": "Streak",
   "setSyncDone": "Aktuell · {sent} gesendet, {received} empfangen",
   "setSyncNever": "Noch nicht synchronisiert.",

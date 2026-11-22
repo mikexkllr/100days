@@ -4063,7 +4063,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setStreakModeNote =>
-      'Applies from today. Days behind you stay counted the way they were. Your friends count your streak by the same mode.';
+      'A change applies from tomorrow. Today and the days behind you stay counted the way they were. Your friends count your streak by the same mode.';
 
   @override
   String get setStreakModeSection => 'Streak';
