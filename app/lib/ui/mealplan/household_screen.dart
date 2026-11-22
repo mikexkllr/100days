@@ -1,85 +1,176 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../data/app_repository.dart';
 import '../../data/household_backend.dart';
 import '../../l10n/l10n.dart';
 import '../../state/household_providers.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
+import 'household_load_error.dart';
 
 /// Who cooks and shops together: members, what each shares, when the
 /// household shops, and the invite.
+///
+/// One way of saving throughout: a switch or a chip saves when tapped, a
+/// text field with its card's Save button, which lights up once something
+/// changed. Every save says "saved" or, when it failed, puts the old value
+/// back and says why.
 class HouseholdScreen extends ConsumerWidget {
   const HouseholdScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations l10n = context.l10n;
+    ref.watch(sharedTargetsSyncProvider);
     final AsyncValue<Household> household = ref.watch(householdProvider);
     final String me = ref.watch(repositoryProvider).userId;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.householdTitle)),
+      // A realtime tick reloads the household; what is on screen stays, and
+      // with it whatever is typed into the fields.
       body: household.when(
+        skipLoadingOnReload: true,
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (Object error, StackTrace _) =>
-            Center(child: Text(l10n.planLoadFailed)),
+        error: (Object error, StackTrace _) => const HouseholdLoadError(),
         data: (Household h) {
           final bool owner = h.member(me)?.owner ?? false;
-          return ListView(
+          final HouseholdMember? mine = h.member(me);
+          // A scroll view rather than a list: the fields further down keep
+          // their text when scrolled out of sight.
+          return SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(
                 AppSpacing.md, 0, AppSpacing.md, AppSpacing.xxl),
-            children: <Widget>[
-              SectionHeader(l10n.householdMembersTitle),
-              AppCard(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                child: Column(
-                  children: <Widget>[
-                    for (final HouseholdMember m in h.members)
-                      ListTile(
-                        leading: EmojiAvatar(m.emoji, size: 36),
-                        title: Text(m.userId == me
-                            ? l10n.householdYou(m.displayName)
-                            : m.displayName),
-                        subtitle: Text(m.shareTargets && m.kcalTarget != null
-                            ? l10n.householdSharesTarget(m.kcalTarget!)
-                            : l10n.householdNoTarget),
-                        trailing: owner && m.userId != me
-                            ? IconButton(
-                                icon: const Icon(Icons.person_remove_outlined),
-                                onPressed: () => ref
-                                    .read(householdActionsProvider)
-                                    .removeMember(m.userId),
-                              )
-                            : (m.owner ? const Icon(Icons.star_outline, size: 18) : null),
-                      ),
-                  ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                SectionHeader(l10n.householdMembersTitle),
+                AppCard(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                  child: Column(
+                    children: <Widget>[
+                      for (final HouseholdMember m in h.members)
+                        ListTile(
+                          leading: EmojiAvatar(m.emoji, size: 36),
+                          title: Text(m.userId == me
+                              ? l10n.householdYou(m.displayName)
+                              : m.displayName),
+                          subtitle: Text(m.shareTargets && m.kcalTarget != null
+                              ? l10n.householdSharesTarget(m.kcalTarget!)
+                              : l10n.householdNoTarget),
+                          trailing: owner && m.userId != me
+                              ? IconButton(
+                                  key: Key('household-remove-${m.userId}'),
+                                  tooltip: l10n.actionRemove,
+                                  icon: const Icon(Icons.person_remove_outlined),
+                                  onPressed: () => _removeMember(context, ref, m),
+                                )
+                              : (m.owner
+                                  ? const Icon(Icons.star_outline, size: 18)
+                                  : null),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _InviteCard(householdId: h.id),
-              TextButton.icon(
-                key: const Key('household-join'),
-                onPressed: () => _join(context, ref),
-                icon: const Icon(Icons.login, size: 18),
-                label: Text(l10n.householdJoin),
-              ),
-              if (h.member(me) != null) ...<Widget>[
-                SectionHeader(l10n.householdMeTitle, subtitle: l10n.householdMeSub),
-                _MyMembership(member: h.member(me)!),
+                const SizedBox(height: AppSpacing.sm),
+                _InviteCard(householdId: h.id),
+                TextButton.icon(
+                  key: const Key('household-join'),
+                  onPressed: () => _join(context, ref),
+                  icon: const Icon(Icons.login, size: 18),
+                  label: Text(l10n.householdJoin),
+                ),
+                if (mine != null) ...<Widget>[
+                  SectionHeader(l10n.householdMeTitle, subtitle: l10n.householdMeSub),
+                  _MyMembership(key: ValueKey<String>('me-${h.id}'), member: mine),
+                ],
+                SectionHeader(l10n.householdShoppingTitle),
+                _CadenceCard(key: ValueKey<String>('cadence-${h.id}'), household: h),
+                // Alone, leaving would only make a new household of one.
+                if (h.members.length > 1) ...<Widget>[
+                  const SizedBox(height: AppSpacing.lg),
+                  TextButton.icon(
+                    key: const Key('household-leave'),
+                    onPressed: () => _leave(context, ref),
+                    style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+                    icon: const Icon(Icons.logout, size: 18),
+                    label: Text(l10n.householdLeave),
+                  ),
+                ],
               ],
-              SectionHeader(l10n.householdShoppingTitle),
-              _CadenceCard(household: h),
-            ],
+            ),
           );
         },
       ),
     );
+  }
+
+  Future<void> _removeMember(
+      BuildContext context, WidgetRef ref, HouseholdMember member) async {
+    final AppLocalizations l10n = context.l10n;
+    final bool? yes = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text(l10n.householdRemoveTitle(member.displayName)),
+        content: Text(l10n.householdRemoveBody),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.actionCancel),
+          ),
+          FilledButton(
+            key: const Key('household-remove-confirm'),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.actionRemove),
+          ),
+        ],
+      ),
+    );
+    if (yes != true || !context.mounted) return;
+    try {
+      await ref.read(householdActionsProvider).removeMember(member.userId);
+    } on Object {
+      if (context.mounted) showHouseholdSaveFailed(context);
+    }
+  }
+
+  Future<void> _leave(BuildContext context, WidgetRef ref) async {
+    final AppLocalizations l10n = context.l10n;
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final HouseholdActions actions = ref.read(householdActionsProvider);
+    final bool? yes = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text(l10n.householdLeaveTitle),
+        content: Text(l10n.householdLeaveBody),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.actionCancel),
+          ),
+          FilledButton(
+            key: const Key('household-leave-confirm'),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.householdLeave),
+          ),
+        ],
+      ),
+    );
+    if (yes != true) return;
+    try {
+      await actions.leave();
+      messenger.showSnackBar(SnackBar(content: Text(l10n.householdLeft)));
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.householdLeaveFailed)));
+    }
   }
 
   Future<void> _join(BuildContext context, WidgetRef ref) async {
@@ -113,6 +204,24 @@ class HouseholdScreen extends ConsumerWidget {
   }
 }
 
+/// Whether joining another household would hide something of the user's:
+/// people they share with now, or a plan and lists of their own. Joining
+/// keeps the old household, but the app shows the newest one.
+Future<bool> _wouldSwitchAway(WidgetRef ref) async {
+  const Duration patience = Duration(seconds: 5);
+  final HouseholdBackend backend = ref.read(householdBackendProvider);
+  try {
+    final String id = await ref.read(householdIdProvider.future).timeout(patience);
+    final Household current = await backend.household(id).timeout(patience);
+    if (current.members.length > 1) return true;
+    return (await backend.recipes(id).timeout(patience)).isNotEmpty;
+  } on Object {
+    // Offline: the invite preview got through, so this rarely happens;
+    // the join itself says what it does.
+    return false;
+  }
+}
+
 /// Shows whose household an invite is for, asks once, and joins.
 Future<void> joinHouseholdFlow(BuildContext context, WidgetRef ref, String code) async {
   final AppLocalizations l10n = context.l10n;
@@ -129,6 +238,7 @@ Future<void> joinHouseholdFlow(BuildContext context, WidgetRef ref, String code)
     messenger.showSnackBar(SnackBar(content: Text(l10n.inviteErrorMalformed)));
     return;
   }
+  final bool switching = await _wouldSwitchAway(ref);
   if (!context.mounted) return;
   final HouseholdInvitePreview found = preview;
   final bool? yes = await showDialog<bool>(
@@ -136,7 +246,24 @@ Future<void> joinHouseholdFlow(BuildContext context, WidgetRef ref, String code)
     builder: (BuildContext context) => AlertDialog(
       title: Text(l10n.householdJoinTitle(
           found.name.isEmpty ? found.memberNames.join(', ') : found.name)),
-      content: Text(l10n.householdJoinBody),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(l10n.householdJoinBody),
+          if (switching) ...<Widget>[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.householdJoinWarning,
+              key: const Key('household-join-warning'),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: AppColors.attention),
+            ),
+          ],
+        ],
+      ),
       actions: <Widget>[
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
@@ -212,8 +339,42 @@ class _InviteCard extends ConsumerWidget {
   }
 }
 
+/// Runs a household save and tells the user how it went — the same way for
+/// every setting on this screen. Returns whether it went through.
+Future<bool> _save(BuildContext context, Future<void> Function() write) async {
+  final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+  final AppLocalizations l10n = context.l10n;
+  try {
+    await write();
+  } on Object {
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(l10n.householdSaveFailed)));
+    return false;
+  }
+  messenger
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(
+      content: Text(l10n.householdSaved),
+      duration: const Duration(seconds: 2),
+    ));
+  return true;
+}
+
+List<String> _split(String text) => text
+    .split(',')
+    .map((String s) => s.trim())
+    .where((String s) => s.isNotEmpty)
+    .toList();
+
+/// Keeps a field in step with the server while the user has not touched
+/// it: someone else's change shows, the user's unsaved typing stays.
+void _follow(TextEditingController field, String before, String now) {
+  if (field.text == before && before != now) field.text = now;
+}
+
 class _MyMembership extends ConsumerStatefulWidget {
-  const _MyMembership({required this.member});
+  const _MyMembership({super.key, required this.member});
 
   final HouseholdMember member;
 
@@ -223,12 +384,38 @@ class _MyMembership extends ConsumerStatefulWidget {
 
 class _MyMembershipState extends ConsumerState<_MyMembership> {
   late bool _share = widget.member.shareTargets;
+  bool _saving = false;
   late final TextEditingController _diet =
       TextEditingController(text: widget.member.diet ?? '');
   late final TextEditingController _dislikes =
       TextEditingController(text: widget.member.dislikes.join(', '));
   late final TextEditingController _allergies =
       TextEditingController(text: widget.member.allergies.join(', '));
+
+  @override
+  void initState() {
+    super.initState();
+    for (final TextEditingController c in <TextEditingController>[
+      _diet,
+      _dislikes,
+      _allergies,
+    ]) {
+      c.addListener(_changed);
+    }
+  }
+
+  void _changed() => setState(() {});
+
+  @override
+  void didUpdateWidget(_MyMembership old) {
+    super.didUpdateWidget(old);
+    final HouseholdMember was = old.member;
+    final HouseholdMember now = widget.member;
+    if (!_saving) _share = now.shareTargets;
+    _follow(_diet, was.diet ?? '', now.diet ?? '');
+    _follow(_dislikes, was.dislikes.join(', '), now.dislikes.join(', '));
+    _follow(_allergies, was.allergies.join(', '), now.allergies.join(', '));
+  }
 
   @override
   void dispose() {
@@ -238,29 +425,49 @@ class _MyMembershipState extends ConsumerState<_MyMembership> {
     super.dispose();
   }
 
-  List<String> _split(String text) => text
-      .split(',')
-      .map((String s) => s.trim())
-      .where((String s) => s.isNotEmpty)
-      .toList();
+  bool get _dirty =>
+      _diet.text.trim() != (widget.member.diet ?? '') ||
+      _split(_dislikes.text).join(', ') != widget.member.dislikes.join(', ') ||
+      _split(_allergies.text).join(', ') != widget.member.allergies.join(', ');
 
-  Future<void> _save() async {
-    final AppSnapshot? snapshot = ref.read(appStateProvider).valueOrNull;
-    final NutritionPlan? plan = snapshot?.plan?.nutrition;
-    await ref.read(householdActionsProvider).updateMe(HouseholdMember(
-          userId: widget.member.userId,
-          displayName: widget.member.displayName,
-          emoji: widget.member.emoji,
-          shareTargets: _share && plan != null,
-          kcalTarget: plan?.kcal,
-          proteinG: plan?.proteinG,
-          diet: _diet.text.trim(),
-          dislikes: _split(_dislikes.text),
-          allergies: _split(_allergies.text),
-        ));
+  /// The whole membership, with [share] as the switch: the switch saves on
+  /// its own, the text with the button — both send what is on screen.
+  Future<bool> _store({required bool share}) {
+    final NutritionPlan? plan =
+        ref.read(appStateProvider).valueOrNull?.plan?.nutrition;
+    final HouseholdActions actions = ref.read(householdActionsProvider);
+    final HouseholdMember me = HouseholdMember(
+      userId: widget.member.userId,
+      displayName: widget.member.displayName,
+      emoji: widget.member.emoji,
+      diet: _diet.text.trim(),
+      dislikes: _split(_dislikes.text),
+      allergies: _split(_allergies.text),
+    ).withTargets(
+      share: share && plan != null,
+      kcal: plan?.kcal,
+      protein: plan?.proteinG,
+    );
+    return _save(context, () => actions.updateMe(me));
+  }
+
+  Future<void> _toggleShare(bool on) async {
+    setState(() {
+      _share = on;
+      _saving = true;
+    });
+    final bool ok = await _store(share: on);
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(context.l10n.householdSaved)));
+    setState(() {
+      _saving = false;
+      if (!ok) _share = !on;
+    });
+  }
+
+  Future<void> _saveText() async {
+    setState(() => _saving = true);
+    await _store(share: _share);
+    if (mounted) setState(() => _saving = false);
   }
 
   @override
@@ -276,7 +483,7 @@ class _MyMembershipState extends ConsumerState<_MyMembership> {
             key: const Key('household-share-targets'),
             contentPadding: EdgeInsets.zero,
             value: _share && plan != null,
-            onChanged: plan == null ? null : (bool on) => setState(() => _share = on),
+            onChanged: plan == null || _saving ? null : _toggleShare,
             title: Text(l10n.householdShareTargets),
             subtitle: Text(plan == null
                 ? l10n.householdShareTargetsNoPlan
@@ -300,7 +507,7 @@ class _MyMembershipState extends ConsumerState<_MyMembership> {
           const SizedBox(height: AppSpacing.md),
           FilledButton(
             key: const Key('household-save-me'),
-            onPressed: _save,
+            onPressed: _dirty && !_saving ? _saveText : null,
             child: Text(l10n.actionSave),
           ),
         ],
@@ -309,16 +516,42 @@ class _MyMembershipState extends ConsumerState<_MyMembership> {
   }
 }
 
-class _CadenceCard extends ConsumerWidget {
-  const _CadenceCard({required this.household});
+class _CadenceCard extends ConsumerStatefulWidget {
+  const _CadenceCard({super.key, required this.household});
 
   final Household household;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final AppLocalizations l10n = context.l10n;
-    final ShoppingCadence cadence = household.cadence;
+  ConsumerState<_CadenceCard> createState() => _CadenceCardState();
+}
+
+class _CadenceCardState extends ConsumerState<_CadenceCard> {
+  /// The rhythm tapped and on its way to the server, shown as chosen.
+  ShoppingCadence? _pending;
+
+  static String _key(ShoppingCadence c) => jsonEncode(c.toJson());
+
+  @override
+  void didUpdateWidget(_CadenceCard old) {
+    super.didUpdateWidget(old);
+    final ShoppingCadence? pending = _pending;
+    if (pending != null && _key(pending) == _key(widget.household.cadence)) {
+      _pending = null;
+    }
+  }
+
+  Future<void> _choose(ShoppingCadence cadence) async {
     final HouseholdActions actions = ref.read(householdActionsProvider);
+    setState(() => _pending = cadence);
+    final bool ok =
+        await _save(context, () => actions.updateHousehold(cadence: cadence));
+    if (!ok && mounted) setState(() => _pending = null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    final ShoppingCadence cadence = _pending ?? widget.household.cadence;
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,10 +564,10 @@ class _CadenceCard extends ConsumerWidget {
             children: <Widget>[
               for (int weekday = 1; weekday <= 7; weekday++)
                 ChoiceChip(
+                  key: Key('cadence-weekday-$weekday'),
                   label: Text(l10n.weekdayShort(weekday)),
                   selected: cadence is WeeklyShopping && cadence.weekday == weekday,
-                  onSelected: (_) =>
-                      actions.updateHousehold(cadence: WeeklyShopping(weekday: weekday)),
+                  onSelected: (_) => _choose(WeeklyShopping(weekday: weekday)),
                 ),
             ],
           ),
@@ -346,25 +579,26 @@ class _CadenceCard extends ConsumerWidget {
                 ChoiceChip(
                   label: Text(l10n.cadenceEveryNDays(days)),
                   selected: cadence is EveryNDays && cadence.days == days,
-                  onSelected: (_) => actions.updateHousehold(
-                      cadence: EveryNDays(days: days, anchor: DayKey.today())),
+                  onSelected: (_) =>
+                      _choose(EveryNDays(days: days, anchor: DayKey.today())),
                 ),
               ChoiceChip(
                 label: Text(l10n.cadenceManual),
                 selected: cadence is ManualShopping,
-                onSelected: (_) =>
-                    actions.updateHousehold(cadence: const ManualShopping()),
+                onSelected: (_) => _choose(const ManualShopping()),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          _PantryField(pantry: household.pantry),
+          _PantryField(pantry: widget.household.pantry),
         ],
       ),
     );
   }
 }
 
+/// What is usually at home, left off lists made from the plan. Saved with
+/// its own button, like the other text on this screen.
 class _PantryField extends ConsumerStatefulWidget {
   const _PantryField({required this.pantry});
 
@@ -376,7 +610,15 @@ class _PantryField extends ConsumerStatefulWidget {
 
 class _PantryFieldState extends ConsumerState<_PantryField> {
   late final TextEditingController _text =
-      TextEditingController(text: widget.pantry.join(', '));
+      TextEditingController(text: widget.pantry.join(', '))
+        ..addListener(() => setState(() {}));
+  bool _saving = false;
+
+  @override
+  void didUpdateWidget(_PantryField old) {
+    super.didUpdateWidget(old);
+    _follow(_text, old.pantry.join(', '), widget.pantry.join(', '));
+  }
 
   @override
   void dispose() {
@@ -384,25 +626,38 @@ class _PantryFieldState extends ConsumerState<_PantryField> {
     super.dispose();
   }
 
+  Future<void> _store() async {
+    final HouseholdActions actions = ref.read(householdActionsProvider);
+    setState(() => _saving = true);
+    await _save(context, () => actions.updateHousehold(pantry: _split(_text.text)));
+    if (mounted) setState(() => _saving = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
-    return TextField(
-      controller: _text,
-      decoration: InputDecoration(
-        labelText: l10n.householdPantry,
-        hintText: l10n.householdPantryHint,
-        suffixIcon: IconButton(
-          icon: const Icon(Icons.check),
-          onPressed: () => ref.read(householdActionsProvider).updateHousehold(
-                pantry: _text.text
-                    .split(',')
-                    .map((String s) => s.trim())
-                    .where((String s) => s.isNotEmpty)
-                    .toList(),
-              ),
+    final bool dirty = _split(_text.text).join(', ') != widget.pantry.join(', ');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        TextField(
+          key: const Key('household-pantry'),
+          controller: _text,
+          decoration: InputDecoration(
+            labelText: l10n.householdPantry,
+            hintText: l10n.householdPantryHint,
+          ),
         ),
-      ),
+        const SizedBox(height: AppSpacing.sm),
+        Align(
+          alignment: Alignment.centerRight,
+          child: FilledButton(
+            key: const Key('household-save-pantry'),
+            onPressed: dirty && !_saving ? _store : null,
+            child: Text(l10n.actionSave),
+          ),
+        ),
+      ],
     );
   }
 }

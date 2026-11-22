@@ -21,7 +21,14 @@ Goal _goal({NutritionGoals? nutrition}) => Goal(
 
 /// A tiny English vocabulary, standing in for the one the app supplies.
 const FoodVocabulary _english = FoodVocabulary(
-  numberWords: <String, double>{'a': 1, 'an': 1, 'one': 1, 'two': 2, 'half': 0.5},
+  numberWords: <String, double>{
+    'a': 1,
+    'an': 1,
+    'one': 1,
+    'two': 2,
+    'half': 0.5,
+    'couple': 2,
+  },
   unitWords: <String, FoodUnit>{
     'g': FoodUnit.grams,
     'ml': FoodUnit.millilitres,
@@ -29,9 +36,11 @@ const FoodVocabulary _english = FoodVocabulary(
     'slice': FoodUnit.slice,
     'slices': FoodUnit.slice,
     'tbsp': FoodUnit.tablespoon,
+    'cup': FoodUnit.cup,
+    'pcs': FoodUnit.piece,
   },
-  separators: <String>['and', 'with'],
-  fillerWords: <String>{'of', 'i', 'had'},
+  separators: <String>['and', 'with', 'then', 'after that'],
+  fillerWords: <String>{'of', 'i', 'had', 'approx'},
 );
 
 FoodItem? _lookup(String phrase) {
@@ -43,7 +52,13 @@ FoodItem? _lookup(String phrase) {
     'milk': 'milk',
     'chicken breast': 'chicken_breast',
     'banana': 'banana',
+    'bananas': 'banana',
     'olive oil': 'olive_oil',
+    'avocado': 'avocado',
+    'rice': 'rice',
+    'pizza': 'pizza',
+    'sushi': 'sushi',
+    'milk chocolate': 'milk_chocolate',
   };
   final id = names[phrase];
   return id == null ? null : kFoodById[id];
@@ -229,6 +244,66 @@ void main() {
       expect(items.single.isRecognised, isFalse);
       expect(items.single.phrase, 'dragonfruit smoothies');
     });
+
+    ParsedFood one(String text) => parseFoodText(
+          text,
+          vocabulary: _english,
+          lookup: _lookup,
+        ).single;
+
+    test('fractions are amounts, not a number and a stray word', () {
+      // Half an avocado (a piece is 150 g), not a whole one.
+      expect(one('1/2 avocado').amount, 0.5);
+      expect(one('1/2 avocado').grams, 75);
+      expect(one('1/2avocado').grams, 75);
+      // Three quarters of a cup, not three cups.
+      expect(one('3/4 cup rice').amount, 0.75);
+      expect(one('3/4 cup rice').grams, 150);
+      expect(one('½ avocado').grams, 75);
+      expect(one('1½ bananas').amount, 1.5);
+      expect(one('1 1/2 bananas').amount, 1.5);
+      expect(one('1 1/2 bananas').grams, 180);
+    });
+
+    test('number words in a row make one amount', () {
+      expect(one('half a pizza').amount, 0.5);
+      expect(one('a half pizza').grams, 175);
+      expect(one('a couple of eggs').amount, 2);
+      expect(one('a couple of eggs').unit, FoodUnit.piece);
+    });
+
+    test('a count of a countable food is pieces, a weight stays grams', () {
+      // 12 pieces of sushi, not 12 g.
+      final sushi = one('12 sushi');
+      expect(sushi.unit, FoodUnit.piece);
+      expect(sushi.grams, 360);
+      // 150 bananas would be 18 kg: that is grams.
+      expect(one('150 bananas').unit, FoodUnit.grams);
+      expect(one('banana 150').grams, 150);
+      // 100 of a 6 g square is a bar's weight, not 100 squares.
+      expect(one('100 milk chocolate').grams, 100);
+      expect(one('2 eggs').unit, FoodUnit.piece);
+    });
+
+    test('a sentence end and "then" end an item', () {
+      for (final String text in <String>[
+        '2 eggs. Then a banana',
+        '2 eggs and then a banana',
+        '2 eggs! After that a banana',
+        '2 eggs then a banana.',
+      ]) {
+        final items = parseFoodText(text, vocabulary: _english, lookup: _lookup);
+        expect(items.map((ParsedFood p) => p.food?.id), <String>['egg', 'banana'],
+            reason: text);
+        expect(items[0].amount, 2, reason: text);
+        expect(items[1].amount, 1, reason: text);
+      }
+      // A dot after an abbreviation the vocabulary knows, or inside a
+      // number, is no sentence end.
+      final items = parseFoodText('approx. 1.5 l milk, 2 pcs. bananas',
+          vocabulary: _english, lookup: _lookup);
+      expect(items.map((ParsedFood p) => p.grams), <double>[1500, 240]);
+    });
   });
 
   group('meal suggestions', () {
@@ -297,6 +372,33 @@ void main() {
       expect(copy.nutrients.kcal, closeTo(95, 0.6));
       expect(copy.source, FoodSource.barcode);
       expect(copy.barcode, '4001234567890');
+    });
+
+    test('a corrected entry keeps its id and scales its macros', () {
+      final estimate = FoodEntry(
+        id: 'photo-1',
+        day: DayKey.parse('2026-11-02'),
+        meal: MealSlotKind.dinner,
+        name: 'Lasagne',
+        grams: 400,
+        nutrients: const Nutrients(kcal: 600, proteinG: 32, carbsG: 52, fatG: 28),
+        source: FoodSource.photo,
+      );
+      // Half of it, the calories as the amount says.
+      final half = estimate.corrected(grams: 200, kcal: 300);
+      expect(half.id, 'photo-1');
+      expect(half.source, FoodSource.photo);
+      expect(half.nutrients.proteinG, 16);
+      // The amount was right, the estimate too low.
+      final more = estimate.corrected(grams: 400, kcal: 750);
+      expect(more.nutrients.fatG, 35);
+      expect(more.grams, 400);
+      // A line without calories to go by follows its amount.
+      expect(
+          correctNutrients(const Nutrients(kcal: 0, proteinG: 10, carbsG: 0, fatG: 0),
+                  fromGrams: 100, toGrams: 200, kcal: 0)
+              .proteinG,
+          20);
     });
   });
 
@@ -409,7 +511,57 @@ void main() {
       );
       expect(await assistant.estimateFoods('x'), isNull);
     });
+
+    test('a failed call is told apart from an answer that held nothing',
+        () async {
+      final List<Object> errors = <Object>[];
+      final offline = NutritionAssistant(llm: _FailingRuntime());
+      expect(await offline.estimateFoods('Rührei', onError: errors.add), isNull);
+      expect(
+          await offline.estimateFoodsFromPhoto(
+              LlmImage(bytes: Uint8List.fromList(<int>[1])),
+              onError: errors.add),
+          isNull);
+      expect(
+          await offline.adjustTargets(
+              plan: buildNutritionPlan(_goal()), wish: 'less', onError: errors.add),
+          isNull);
+      expect(errors, hasLength(3));
+      expect(errors.first, isA<StateError>());
+
+      // A timeout is a failed call too.
+      errors.clear();
+      await NutritionAssistant(
+        llm: _HangingRuntime(),
+        timeout: const Duration(milliseconds: 20),
+      ).estimateFoods('x', onError: errors.add);
+      expect(errors.single, isA<TimeoutException>());
+
+      // Nonsense from the model is not.
+      errors.clear();
+      expect(
+          await NutritionAssistant(llm: _FakeRuntime('no idea'))
+              .estimateFoods('x', onError: errors.add),
+          isNull);
+      expect(errors, isEmpty);
+    });
   });
+}
+
+class _FailingRuntime extends _FakeRuntime {
+  _FailingRuntime() : super('');
+
+  @override
+  Future<String> generate(
+    String prompt, {
+    List<LlmImage> images = const <LlmImage>[],
+    LlmPurpose purpose = LlmPurpose.food,
+    int maxTokens = 400,
+    double temperature = 0.7,
+    Duration timeout = const Duration(seconds: 30),
+    bool json = false,
+  }) async =>
+      throw StateError('no network');
 }
 
 class _HangingRuntime extends _FakeRuntime {

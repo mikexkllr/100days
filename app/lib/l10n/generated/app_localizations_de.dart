@@ -5166,4 +5166,136 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get lossRelight => 'Zünd mich wieder an';
+
+  @override
+  String get actionUndo => 'Rückgängig';
+
+  @override
+  String get aiAllowanceUsedUp =>
+      'Dein KI-Kontingent für diesen Monat ist aufgebraucht. Mit Premium oder deinem eigenen API-Key geht es sofort weiter.';
+
+  @override
+  String get aiBadgeCloud => 'Cloud-KI';
+
+  @override
+  String get aiRateLimited =>
+      'Gerade zu viele KI-Anfragen auf einmal. Warte eine Minute und versuch es dann noch einmal.';
+
+  @override
+  String get aiUnreachable =>
+      'Die KI war nicht erreichbar — du scheinst offline zu sein, oder es hat zu lange gedauert. Versuch es gleich noch einmal.';
+
+  @override
+  String get diaryCountOnTarget => 'Jetzt im Ziel — mit Plan-Bonus zählen';
+
+  @override
+  String diaryEntryRemoved(String name) {
+    return '$name aus dem Tagebuch genommen';
+  }
+
+  @override
+  String diaryOffTargetOver(int kcal) {
+    return 'Du liegst $kcal kcal über deinem Ziel. Du kannst den Tag trotzdem abhaken — nur ohne Plan-Bonus.';
+  }
+
+  @override
+  String diaryOffTargetUnder(int kcal) {
+    return 'Du liegst $kcal kcal unter deinem Ziel. Du kannst den Tag trotzdem abhaken — nur ohne Plan-Bonus.';
+  }
+
+  @override
+  String get foodEditHint =>
+      'Eine neue Menge rechnet die Kalorien mit. Stimmt die Schätzung nicht, korrigier die Kalorien.';
+
+  @override
+  String get foodEditTooltip => 'Menge oder Kalorien ändern';
+
+  @override
+  String get foodPhotoNoCamera =>
+      'Kein Zugriff auf die Kamera. Erlaube ihn 100 Days in den Einstellungen deines Handys, oder wähl ein Foto aus der Galerie.';
+
+  @override
+  String get foodPhotoNoGallery =>
+      'Kein Zugriff auf deine Fotos. Erlaube ihn 100 Days in den Einstellungen deines Handys, oder mach ein neues Foto.';
+
+  @override
+  String get foodPhotoPickFailed =>
+      'Kamera oder Galerie ließen sich nicht öffnen. Versuch es noch einmal oder beschreib das Essen.';
+
+  @override
+  String get foodPhotoUnreadable =>
+      'Dieses Foto lässt sich nicht lesen — manche HEIC-Fotos nicht. Mach ein neues oder wähl ein JPEG.';
+
+  @override
+  String get householdJoinWarning =>
+      'Du wechselst den Haushalt: Dein jetziger Plan und deine Liste bleiben, wo sie sind, und du siehst stattdessen die des neuen Haushalts. Du kannst ihn später wieder verlassen.';
+
+  @override
+  String get householdLeave => 'Haushalt verlassen';
+
+  @override
+  String get householdLeaveBody =>
+      'Plan, Rezepte und Listen bleiben bei den anderen. Du fängst mit einem eigenen Haushalt neu an und kannst jederzeit wieder eingeladen werden.';
+
+  @override
+  String get householdLeaveFailed =>
+      'Du konntest den Haushalt nicht verlassen. Prüf deine Verbindung und versuch es noch einmal.';
+
+  @override
+  String get householdLeaveTitle => 'Haushalt verlassen?';
+
+  @override
+  String get householdLeft => 'Du hast den Haushalt verlassen.';
+
+  @override
+  String get householdLoadFailed => 'Der Haushalt konnte nicht geladen werden.';
+
+  @override
+  String get householdRemoveBody =>
+      'Plan und Liste sieht die Person dann nicht mehr. Mit einer Einladung kann sie wieder beitreten.';
+
+  @override
+  String householdRemoveTitle(String name) {
+    return '$name aus dem Haushalt entfernen?';
+  }
+
+  @override
+  String get householdSaveFailed =>
+      'Nicht gespeichert — prüf deine Verbindung und versuch es noch einmal.';
+
+  @override
+  String planMealRemoved(String title) {
+    return '$title aus dem Plan genommen';
+  }
+
+  @override
+  String get planSaveFailed =>
+      'Der Plan konnte nicht gespeichert werden. Dein Entwurf ist noch da — versuch es noch einmal.';
+
+  @override
+  String get plannerListToppedUp => 'Einkaufsliste aus dem Plan ergänzt';
+
+  @override
+  String get plannerQuotaUsedUp =>
+      'Dein KI-Kontingent für diesen Monat ist aufgebraucht, deshalb kann ich gerade nicht mit dir planen. Mit Premium oder deinem eigenen API-Key geht es sofort weiter — oder du planst bis zum 1. von Hand.';
+
+  @override
+  String get shopCloseEmpty => 'Liste schließen';
+
+  @override
+  String shopItemRemoved(String name) {
+    return '$name von der Liste genommen';
+  }
+
+  @override
+  String shopTopUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zeilen zur offenen Liste hinzugefügt',
+      one: '1 Zeile zur offenen Liste hinzugefügt',
+      zero: 'Auf der offenen Liste steht schon alles für diese Tage',
+    );
+    return '$_temp0';
+  }
 }

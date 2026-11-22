@@ -5147,4 +5147,137 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lossRelight => 'Light me again';
+
+  @override
+  String get actionUndo => 'Undo';
+
+  @override
+  String get aiAllowanceUsedUp =>
+      'This month\'s AI allowance is used up. With Premium or your own API key it goes on right away.';
+
+  @override
+  String get aiBadgeCloud => 'Cloud AI';
+
+  @override
+  String get aiRateLimited =>
+      'Too many AI requests at once. Wait a minute, then try again.';
+
+  @override
+  String get aiUnreachable =>
+      'The AI could not be reached — you seem to be offline, or it took too long. Try again in a moment.';
+
+  @override
+  String get diaryCountOnTarget =>
+      'On target now — count it with the plan bonus';
+
+  @override
+  String diaryEntryRemoved(String name) {
+    return '$name taken out of the diary';
+  }
+
+  @override
+  String diaryOffTargetOver(int kcal) {
+    return 'You are $kcal kcal over your target. You can still tick the day off — just without the plan bonus.';
+  }
+
+  @override
+  String diaryOffTargetUnder(int kcal) {
+    return 'You are $kcal kcal under your target. You can still tick the day off — just without the plan bonus.';
+  }
+
+  @override
+  String get foodEditHint =>
+      'A new amount scales the calories. If the estimate is off, correct the calories.';
+
+  @override
+  String get foodEditTooltip => 'Change amount or calories';
+
+  @override
+  String get foodPhotoNoCamera =>
+      'No access to the camera. Allow it for 100 Days in your phone\'s settings, or pick a photo from the gallery.';
+
+  @override
+  String get foodPhotoNoGallery =>
+      'No access to your photos. Allow it for 100 Days in your phone\'s settings, or take a new photo.';
+
+  @override
+  String get foodPhotoPickFailed =>
+      'The camera or the gallery could not be opened. Try again, or describe the meal.';
+
+  @override
+  String get foodPhotoUnreadable =>
+      'This photo cannot be read — some HEIC photos cannot. Take a new one, or pick a JPEG.';
+
+  @override
+  String get householdJoinWarning =>
+      'You are switching households: your current plan and list stay where they are, and you will see the new household\'s instead. You can leave it again later.';
+
+  @override
+  String get householdLeave => 'Leave household';
+
+  @override
+  String get householdLeaveBody =>
+      'The plan, the recipes and the lists stay with the others. You start over with a household of your own and can be invited back any time.';
+
+  @override
+  String get householdLeaveFailed =>
+      'Could not leave the household. Check your connection and try again.';
+
+  @override
+  String get householdLeaveTitle => 'Leave the household?';
+
+  @override
+  String get householdLeft => 'You left the household.';
+
+  @override
+  String get householdLoadFailed => 'The household could not be loaded.';
+
+  @override
+  String get householdRemoveBody =>
+      'They will no longer see the plan and the list. With an invite they can join again.';
+
+  @override
+  String householdRemoveTitle(String name) {
+    return 'Remove $name from the household?';
+  }
+
+  @override
+  String get householdSaveFailed =>
+      'Not saved — check your connection and try again.';
+
+  @override
+  String planMealRemoved(String title) {
+    return '$title taken off the plan';
+  }
+
+  @override
+  String get planSaveFailed =>
+      'The plan could not be saved. Your draft is still here — try again.';
+
+  @override
+  String get plannerListToppedUp => 'Topped up the shopping list from the plan';
+
+  @override
+  String get plannerQuotaUsedUp =>
+      'This month\'s AI allowance is used up, so I cannot plan with you right now. With Premium or your own API key it goes on straight away — or plan by hand until the 1st.';
+
+  @override
+  String get shopCloseEmpty => 'Close this list';
+
+  @override
+  String shopItemRemoved(String name) {
+    return '$name taken off the list';
+  }
+
+  @override
+  String shopTopUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lines added to the open list',
+      one: '1 line added to the open list',
+      zero: 'The open list already has everything for these days',
+    );
+    return '$_temp0';
+  }
 }

@@ -8376,6 +8376,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Light me again'**
   String get lossRelight;
+
+  /// No description provided for @actionUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get actionUndo;
+
+  /// No description provided for @aiAllowanceUsedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'This month\'s AI allowance is used up. With Premium or your own API key it goes on right away.'**
+  String get aiAllowanceUsedUp;
+
+  /// No description provided for @aiBadgeCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud AI'**
+  String get aiBadgeCloud;
+
+  /// No description provided for @aiRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many AI requests at once. Wait a minute, then try again.'**
+  String get aiRateLimited;
+
+  /// No description provided for @aiUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI could not be reached — you seem to be offline, or it took too long. Try again in a moment.'**
+  String get aiUnreachable;
+
+  /// No description provided for @diaryCountOnTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'On target now — count it with the plan bonus'**
+  String get diaryCountOnTarget;
+
+  /// No description provided for @diaryEntryRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} taken out of the diary'**
+  String diaryEntryRemoved(String name);
+
+  /// No description provided for @diaryOffTargetOver.
+  ///
+  /// In en, this message translates to:
+  /// **'You are {kcal} kcal over your target. You can still tick the day off — just without the plan bonus.'**
+  String diaryOffTargetOver(int kcal);
+
+  /// No description provided for @diaryOffTargetUnder.
+  ///
+  /// In en, this message translates to:
+  /// **'You are {kcal} kcal under your target. You can still tick the day off — just without the plan bonus.'**
+  String diaryOffTargetUnder(int kcal);
+
+  /// No description provided for @foodEditHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A new amount scales the calories. If the estimate is off, correct the calories.'**
+  String get foodEditHint;
+
+  /// No description provided for @foodEditTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Change amount or calories'**
+  String get foodEditTooltip;
+
+  /// No description provided for @foodPhotoNoCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'No access to the camera. Allow it for 100 Days in your phone\'s settings, or pick a photo from the gallery.'**
+  String get foodPhotoNoCamera;
+
+  /// No description provided for @foodPhotoNoGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'No access to your photos. Allow it for 100 Days in your phone\'s settings, or take a new photo.'**
+  String get foodPhotoNoGallery;
+
+  /// No description provided for @foodPhotoPickFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera or the gallery could not be opened. Try again, or describe the meal.'**
+  String get foodPhotoPickFailed;
+
+  /// No description provided for @foodPhotoUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'This photo cannot be read — some HEIC photos cannot. Take a new one, or pick a JPEG.'**
+  String get foodPhotoUnreadable;
+
+  /// No description provided for @householdJoinWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'You are switching households: your current plan and list stay where they are, and you will see the new household\'s instead. You can leave it again later.'**
+  String get householdJoinWarning;
+
+  /// No description provided for @householdLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave household'**
+  String get householdLeave;
+
+  /// No description provided for @householdLeaveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan, the recipes and the lists stay with the others. You start over with a household of your own and can be invited back any time.'**
+  String get householdLeaveBody;
+
+  /// No description provided for @householdLeaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not leave the household. Check your connection and try again.'**
+  String get householdLeaveFailed;
+
+  /// No description provided for @householdLeaveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave the household?'**
+  String get householdLeaveTitle;
+
+  /// No description provided for @householdLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'You left the household.'**
+  String get householdLeft;
+
+  /// No description provided for @householdLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The household could not be loaded.'**
+  String get householdLoadFailed;
+
+  /// No description provided for @householdRemoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They will no longer see the plan and the list. With an invite they can join again.'**
+  String get householdRemoveBody;
+
+  /// No description provided for @householdRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name} from the household?'**
+  String householdRemoveTitle(String name);
+
+  /// No description provided for @householdSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not saved — check your connection and try again.'**
+  String get householdSaveFailed;
+
+  /// No description provided for @planMealRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} taken off the plan'**
+  String planMealRemoved(String title);
+
+  /// No description provided for @planSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan could not be saved. Your draft is still here — try again.'**
+  String get planSaveFailed;
+
+  /// No description provided for @plannerListToppedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Topped up the shopping list from the plan'**
+  String get plannerListToppedUp;
+
+  /// No description provided for @plannerQuotaUsedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'This month\'s AI allowance is used up, so I cannot plan with you right now. With Premium or your own API key it goes on straight away — or plan by hand until the 1st.'**
+  String get plannerQuotaUsedUp;
+
+  /// No description provided for @shopCloseEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Close this list'**
+  String get shopCloseEmpty;
+
+  /// No description provided for @shopItemRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} taken off the list'**
+  String shopItemRemoved(String name);
+
+  /// No description provided for @shopTopUp.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{The open list already has everything for these days} =1{1 line added to the open list} other{{count} lines added to the open list}}'**
+  String shopTopUp(int count);
 }
 
 class _AppLocalizationsDelegate

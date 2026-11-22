@@ -46,7 +46,11 @@ class _PlanWeekSheetState extends ConsumerState<_PlanWeekSheet> {
   final Set<MealSlotKind> _slots = <MealSlotKind>{MealSlotKind.dinner};
   int? _maxMinutes = 30;
   bool _working = false;
-  bool _failed = false;
+  bool _saving = false;
+
+  /// Why the last attempt gave nothing — offline, allowance, no usable
+  /// plan, a save that failed — or null.
+  String? _problem;
   List<ProposedMeal>? _proposal;
   final Set<int> _rejected = <int>{};
 
@@ -56,44 +60,88 @@ class _PlanWeekSheetState extends ConsumerState<_PlanWeekSheet> {
     super.dispose();
   }
 
+  /// The dishes planned most recently, around and in this week — what the
+  /// draft should not repeat. Without them it is still a plan.
+  Future<List<String>> _recentDishes() async {
+    try {
+      final String id = await ref.read(householdIdProvider.future);
+      final List<PlanEntry> entries = await ref
+          .read(householdBackendProvider)
+          .plan(id, widget.weekStart.addDays(-28), widget.weekStart.addDays(6));
+      return recentTitles(entries, await ref.read(recipesProvider.future));
+    } on Object {
+      return const <String>[];
+    }
+  }
+
   Future<void> _propose() async {
-    final MealPlanner? planner = await ref.read(mealPlannerProvider.future);
-    final Household household = await ref.read(householdProvider.future);
-    final Map<String, Recipe> recipes = await ref.read(recipesProvider.future);
-    if (planner == null) return;
+    if (_working) return;
+    final AppLocalizations l10n = context.l10n;
     setState(() {
       _working = true;
-      _failed = false;
+      _problem = null;
       _proposal = null;
       _rejected.clear();
     });
-    final List<ProposedMeal>? meals = await planner.proposeWeek(MealPlanRequest(
-      days: _days.toList()..sort(),
-      slots: MealSlotKind.values.where(_slots.contains).toList(),
-      people: household.members.map((HouseholdMember m) => m.toPlanFor()).toList(),
-      wish: _wish.text,
-      maxMinutes: _maxMinutes,
-      avoidTitles: recipes.values.map((Recipe r) => r.title).take(20).toList(),
-    ));
-    if (!mounted) return;
-    setState(() {
-      _working = false;
-      _failed = meals == null;
-      _proposal = meals;
-    });
+    try {
+      final MealPlanner? planner = await ref.read(mealPlannerProvider.future);
+      if (planner == null) return;
+      final Household household = await ref.read(householdProvider.future);
+      Object? failure;
+      final List<ProposedMeal>? meals = await planner.proposeWeek(
+        MealPlanRequest(
+          days: _days.toList()..sort(),
+          slots: MealSlotKind.values.where(_slots.contains).toList(),
+          people: household.members.map((HouseholdMember m) => m.toPlanFor()).toList(),
+          wish: _wish.text,
+          maxMinutes: _maxMinutes,
+          avoidTitles: await _recentDishes(),
+        ),
+        onError: (Object error) => failure = error,
+      );
+      if (!mounted) return;
+      setState(() {
+        _proposal = meals;
+        _problem = meals != null
+            ? null
+            : failure != null
+                ? l10n.aiErrorMessage(failure!)
+                : l10n.planWeekFailed;
+      });
+    } on Object {
+      // The household itself could not be read: offline.
+      if (mounted) setState(() => _problem = l10n.aiUnreachable);
+    } finally {
+      if (mounted) setState(() => _working = false);
+    }
   }
 
+  /// Saves the meals kept. A failure leaves the draft where it was, with
+  /// the reason: what was already saved is replaced again on the retry.
   Future<void> _accept() async {
+    if (_saving) return;
     final List<ProposedMeal> chosen = <ProposedMeal>[
       for (int i = 0; i < _proposal!.length; i++)
         if (!_rejected.contains(i)) _proposal![i],
     ];
-    setState(() => _working = true);
-    await ref.read(householdActionsProvider).acceptProposal(chosen);
+    final AppLocalizations l10n = context.l10n;
+    setState(() {
+      _saving = true;
+      _problem = null;
+    });
+    try {
+      await ref.read(householdActionsProvider).acceptProposal(chosen);
+    } on Object {
+      if (mounted) setState(() => _problem = l10n.planSaveFailed);
+      return;
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
     if (!mounted) return;
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
     Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.planAccepted(chosen.length))),
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.planAccepted(chosen.length))),
     );
   }
 
@@ -161,7 +209,9 @@ class _PlanWeekSheetState extends ConsumerState<_PlanWeekSheet> {
         const SizedBox(height: AppSpacing.md),
         FilledButton.icon(
           key: const Key('plan-propose'),
-          onPressed: _working || _days.isEmpty || _slots.isEmpty ? null : _propose,
+          onPressed: _working || _saving || _days.isEmpty || _slots.isEmpty
+              ? null
+              : _propose,
           icon: const Icon(Icons.auto_awesome, size: 18),
           label: Text(proposal == null ? l10n.planWeekPropose : l10n.planWeekAgain),
         ),
@@ -171,10 +221,11 @@ class _PlanWeekSheetState extends ConsumerState<_PlanWeekSheet> {
           const SizedBox(height: AppSpacing.sm),
           Center(child: Text(l10n.planWeekWorking, style: text.bodySmall)),
         ],
-        if (_failed)
+        if (_problem != null)
           Padding(
             padding: const EdgeInsets.only(top: AppSpacing.md),
-            child: Text(l10n.planWeekFailed,
+            child: Text(_problem!,
+                key: const Key('plan-problem'),
                 style: text.bodyMedium?.copyWith(color: AppColors.danger)),
           ),
         if (proposal != null && !_working) ...<Widget>[
@@ -183,8 +234,10 @@ class _PlanWeekSheetState extends ConsumerState<_PlanWeekSheet> {
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               value: !_rejected.contains(i),
-              onChanged: (bool? keep) =>
-                  setState(() => keep == true ? _rejected.remove(i) : _rejected.add(i)),
+              onChanged: _saving
+                  ? null
+                  : (bool? keep) => setState(
+                      () => keep == true ? _rejected.remove(i) : _rejected.add(i)),
               title: Text(proposal[i].recipe.title),
               subtitle: Text(
                 '${l10n.formatDay(proposal[i].day)} · ${l10n.mealName(proposal[i].slot)} · '
@@ -193,10 +246,18 @@ class _PlanWeekSheetState extends ConsumerState<_PlanWeekSheet> {
               ),
             ),
           const SizedBox(height: AppSpacing.sm),
-          FilledButton(
+          FilledButton.icon(
             key: const Key('plan-accept'),
-            onPressed: _rejected.length == proposal.length ? null : _accept,
-            child: Text(l10n.planWeekAccept(proposal.length - _rejected.length)),
+            onPressed:
+                _saving || _rejected.length == proposal.length ? null : _accept,
+            icon: _saving
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.check, size: 18),
+            label: Text(l10n.planWeekAccept(proposal.length - _rejected.length)),
           ),
         ],
       ],

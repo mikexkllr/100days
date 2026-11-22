@@ -252,15 +252,67 @@ void main() {
 
     test('a model that answers nothing usable yields null', () async {
       final planner = MealPlanner(llm: _Llm('Sorry, I cannot help.'));
-      expect(await planner.proposeWeek(request), isNull);
+      final errors = <Object>[];
+      expect(await planner.proposeWeek(request, onError: errors.add), isNull);
+      // Nothing usable is not a failed call: the user hears different
+      // things for the two.
+      expect(errors, isEmpty);
+    });
+
+    test('a call that fails says so', () async {
+      final planner = MealPlanner(llm: _Llm('', fails: true));
+      final errors = <Object>[];
+      expect(await planner.proposeWeek(request, onError: errors.add), isNull);
+      expect(errors.single, isA<StateError>());
+    });
+
+    test('what not to repeat is what was planned last, each dish once', () {
+      final recipes = <String, Recipe>{
+        'curry': _curry(),
+        'omelette': _omelette(),
+        'dal': const Recipe(
+            id: 'dal', title: 'Dal', servings: 2, ingredients: <Ingredient>[], perServing: Nutrients.zero),
+      };
+      final titles = recentTitles(<PlanEntry>[
+        _entry('a', _sat.addDays(-20), 'dal'),
+        _entry('b', _sat.addDays(-2), 'curry'),
+        _entry('c', _sat.addDays(-1), 'omelette'),
+        _entry('d', _sat.addDays(-9), 'curry'),
+        _entry('e', _sat, 'gone'),
+      ], recipes, limit: 2);
+      expect(titles, <String>['Omelett', 'Hähnchen-Curry']);
+    });
+  });
+
+  group('a list made again', () {
+    test('only tops up what the open list does not hold yet', () {
+      const wanted = <ShoppingItem>[
+        ShoppingItem(name: 'Hähnchenbrust', category: ShopCategory.meat, quantity: Quantity(600, QtyUnit.g)),
+        ShoppingItem(name: 'Reis', category: ShopCategory.pantry, quantity: Quantity(300, QtyUnit.g)),
+        ShoppingItem(name: 'Zwiebeln', category: ShopCategory.produce, quantity: Quantity(2, QtyUnit.piece)),
+        ShoppingItem(name: 'Milch', category: ShopCategory.dairy, quantity: Quantity(500, QtyUnit.ml)),
+      ];
+      final missing = stillMissing(wanted, const <ShoppingItem>[
+        // Already planned once: the same amounts, one of them ticked off.
+        ShoppingItem(name: 'Hähnchenbrust', category: ShopCategory.meat, quantity: Quantity(300, QtyUnit.g)),
+        ShoppingItem(name: 'Reis', category: ShopCategory.pantry, quantity: Quantity(300, QtyUnit.g), checked: true),
+        ShoppingItem(name: 'Zwiebel', category: ShopCategory.produce, quantity: Quantity(1, QtyUnit.piece)),
+        // Typed by hand without an amount: covered.
+        ShoppingItem(name: 'Milch', category: ShopCategory.dairy),
+      ]);
+      expect(missing.map((ShoppingItem i) => i.name), <String>['Hähnchenbrust', 'Zwiebeln']);
+      expect(missing.first.quantity, const Quantity(300, QtyUnit.g));
+      expect(missing.last.quantity, const Quantity(1, QtyUnit.piece));
+      expect(stillMissing(wanted, wanted), isEmpty);
     });
   });
 }
 
 class _Llm implements LlmClient {
-  _Llm(this.answer);
+  _Llm(this.answer, {this.fails = false});
 
   final String answer;
+  final bool fails;
 
   @override
   String get modelName => 'fake';
@@ -278,5 +330,5 @@ class _Llm implements LlmClient {
     Duration timeout = const Duration(seconds: 30),
     bool json = false,
   }) async =>
-      answer;
+      fails ? throw StateError('offline') : answer;
 }

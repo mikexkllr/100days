@@ -113,6 +113,51 @@ List<ShoppingItem> buildShoppingList({
   return items;
 }
 
+/// What of [wanted] is not on a list yet that already holds [onList] — so
+/// making the list from the plan again tops it up instead of doubling it.
+///
+/// Lines are matched by name and unit, ticked ones included: bought is
+/// covered. A line without an amount ("Milch", typed by hand) covers its
+/// name in full. What is left is rounded the way [buildShoppingList]
+/// rounds.
+List<ShoppingItem> stillMissing(
+  Iterable<ShoppingItem> wanted,
+  Iterable<ShoppingItem> onList, {
+  String Function(String name)? canonical,
+}) {
+  final key = canonical ?? shoppingKey;
+  final covered = <(String, QtyUnit), double>{};
+  final named = <String>{};
+  for (final item in onList) {
+    final quantity = item.quantity;
+    if (quantity == null) {
+      named.add(key(item.name));
+      continue;
+    }
+    final k = (key(item.name), quantity.unit);
+    covered[k] = (covered[k] ?? 0) + quantity.amount;
+  }
+  final missing = <ShoppingItem>[];
+  for (final item in wanted) {
+    final k = key(item.name);
+    if (named.contains(k)) continue;
+    final quantity = item.quantity;
+    if (quantity == null) {
+      if (!covered.keys.any(((String, QtyUnit) c) => c.$1 == k)) missing.add(item);
+      continue;
+    }
+    final left = quantity.amount - (covered[(k, quantity.unit)] ?? 0);
+    if (left <= 0.001) continue;
+    missing.add(ShoppingItem(
+      name: item.name,
+      category: item.category,
+      quantity: Quantity(_shoppable(left, quantity.unit), quantity.unit),
+      recipeIds: item.recipeIds,
+    ));
+  }
+  return missing;
+}
+
 /// Rounds up to what a shop sells: whole pieces, 10 g / 10 ml steps,
 /// half spoons. Nobody buys 1.3 onions.
 double _shoppable(double amount, QtyUnit unit) => switch (unit) {

@@ -3627,5 +3627,86 @@
       }
     }
   },
-  "lossRelight": "Light me again"
+  "lossRelight": "Light me again",
+  "actionUndo": "Undo",
+  "aiAllowanceUsedUp": "This month's AI allowance is used up. With Premium or your own API key it goes on right away.",
+  "aiBadgeCloud": "Cloud AI",
+  "aiRateLimited": "Too many AI requests at once. Wait a minute, then try again.",
+  "aiUnreachable": "The AI could not be reached — you seem to be offline, or it took too long. Try again in a moment.",
+  "diaryCountOnTarget": "On target now — count it with the plan bonus",
+  "diaryEntryRemoved": "{name} taken out of the diary",
+  "@diaryEntryRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryOffTargetOver": "You are {kcal} kcal over your target. You can still tick the day off — just without the plan bonus.",
+  "@diaryOffTargetOver": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryOffTargetUnder": "You are {kcal} kcal under your target. You can still tick the day off — just without the plan bonus.",
+  "@diaryOffTargetUnder": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "foodEditHint": "A new amount scales the calories. If the estimate is off, correct the calories.",
+  "foodEditTooltip": "Change amount or calories",
+  "foodPhotoNoCamera": "No access to the camera. Allow it for 100 Days in your phone's settings, or pick a photo from the gallery.",
+  "foodPhotoNoGallery": "No access to your photos. Allow it for 100 Days in your phone's settings, or take a new photo.",
+  "foodPhotoPickFailed": "The camera or the gallery could not be opened. Try again, or describe the meal.",
+  "foodPhotoUnreadable": "This photo cannot be read — some HEIC photos cannot. Take a new one, or pick a JPEG.",
+  "householdJoinWarning": "You are switching households: your current plan and list stay where they are, and you will see the new household's instead. You can leave it again later.",
+  "householdLeave": "Leave household",
+  "householdLeaveBody": "The plan, the recipes and the lists stay with the others. You start over with a household of your own and can be invited back any time.",
+  "householdLeaveFailed": "Could not leave the household. Check your connection and try again.",
+  "householdLeaveTitle": "Leave the household?",
+  "householdLeft": "You left the household.",
+  "householdLoadFailed": "The household could not be loaded.",
+  "householdRemoveBody": "They will no longer see the plan and the list. With an invite they can join again.",
+  "householdRemoveTitle": "Remove {name} from the household?",
+  "@householdRemoveTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "householdSaveFailed": "Not saved — check your connection and try again.",
+  "planMealRemoved": "{title} taken off the plan",
+  "@planMealRemoved": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "planSaveFailed": "The plan could not be saved. Your draft is still here — try again.",
+  "plannerListToppedUp": "Topped up the shopping list from the plan",
+  "plannerQuotaUsedUp": "This month's AI allowance is used up, so I cannot plan with you right now. With Premium or your own API key it goes on straight away — or plan by hand until the 1st.",
+  "shopCloseEmpty": "Close this list",
+  "shopItemRemoved": "{name} taken off the list",
+  "@shopItemRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shopTopUp": "{count, plural, =0{The open list already has everything for these days} =1{1 line added to the open list} other{{count} lines added to the open list}}",
+  "@shopTopUp": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

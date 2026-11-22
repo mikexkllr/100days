@@ -81,9 +81,19 @@ class ParsedFood {
   Nutrients? get nutrients => food?.forGrams(grams);
 }
 
-final RegExp _numberGlued = RegExp(r'(\d+(?:[.,]\d+)?)([^\d\s.,]+)');
+// A slash stays with its number: "1/2" is a half, not 1 of "/2".
+final RegExp _numberGlued = RegExp(r'(\d+(?:[.,]\d+)?)([^\d\s.,/]+)');
 final RegExp _number = RegExp(r'^\d+(?:[.,]\d+)?$');
 final RegExp _fraction = RegExp(r'^(\d+)/(\d+)$');
+final RegExp _sentenceEnd = RegExp(r'(\S*?)([.!?]+)(?=\s|$)');
+
+const Map<String, double> _fractionGlyphs = <String, double>{
+  '¼': 0.25,
+  '½': 0.5,
+  '¾': 0.75,
+  '⅓': 1 / 3,
+  '⅔': 2 / 3,
+};
 
 /// Splits a sentence like "2 Eier, 1 Scheibe Vollkornbrot und Kaffee mit
 /// Milch" into items, reads the amount of each and looks the food up.
@@ -96,21 +106,40 @@ List<ParsedFood> parseFoodText(
   required FoodVocabulary vocabulary,
   required FoodLookup lookup,
 }) {
-  final separators = vocabulary.separators
-      .map((String s) => RegExp.escape(s.trim().toLowerCase()))
+  // Longest first, so "and then" is taken whole before "and".
+  final words = vocabulary.separators
+      .map((String s) => s.trim().toLowerCase())
       .where((String s) => s.isNotEmpty)
-      .join('|');
+      .toList()
+    ..sort((String a, String b) => b.length.compareTo(a.length));
+  final separators = words.map(RegExp.escape).join('|');
+  // The spaces around a separator are looked at, not taken, so two in a row
+  // ("und dann") both split.
   final splitter = RegExp(
     separators.isEmpty
         ? r'[,;+\n&]'
-        : '[,;+\\n&]|\\s(?:$separators)\\s',
+        : '[,;+\\n&]|(?<=\\s)(?:$separators)(?=\\s)',
     caseSensitive: false,
   );
 
-  // A decimal comma ("1,5 l") is not a list comma.
+  // A decimal comma ("1,5 l") is not a list comma, and "1½" is one and a
+  // half.
   final normalised = text
       .toLowerCase()
-      .replaceAllMapped(RegExp(r'(\d),(\d)'), (Match m) => '${m[1]}.${m[2]}');
+      .replaceAllMapped(RegExp(r'(\d),(\d)'), (Match m) => '${m[1]}.${m[2]}')
+      .replaceAllMapped(
+          RegExp('[${_fractionGlyphs.keys.join()}]'), (Match m) => ' ${m[0]} ')
+      // A sentence ends an item too: "2 Eier. Danach eine Banane" is two of
+      // them — but not the dot of "ca." or "Stk.", which the vocabulary
+      // knows as words.
+      .replaceAllMapped(_sentenceEnd, (Match m) {
+    final word = m[1]!;
+    final abbreviation = m[2] == '.' &&
+        (vocabulary.unitWords.containsKey(word) ||
+            vocabulary.fillerWords.contains(word) ||
+            vocabulary.fillerWords.contains('$word.'));
+    return abbreviation ? '$word ' : '$word\n';
+  });
 
   final results = <ParsedFood>[];
   for (final String raw in ' $normalised '.split(splitter)) {
@@ -137,14 +166,33 @@ ParsedFood? _parseChunk(
       .toList();
 
   double? amount;
+  _NumberKind? amountKind;
+  var afterNumber = false;
   FoodUnit? unit;
   final words = <String>[];
   for (final String token in tokens) {
     final number = _readNumber(token, vocabulary);
     if (number != null && amount == null) {
-      amount = number;
+      (amount, amountKind) = number;
+      afterNumber = true;
       continue;
     }
+    // Two numbers in a row are one amount: "eine halbe" is a half, "ein
+    // paar" a couple, "1 1/2" one and a half.
+    if (number != null && afterNumber) {
+      final (double value, _NumberKind kind) = number;
+      if (amountKind == _NumberKind.whole && kind == _NumberKind.fraction) {
+        amount = amount! + value;
+        amountKind = _NumberKind.decimal;
+        continue;
+      }
+      if (amountKind == _NumberKind.word || kind == _NumberKind.word) {
+        amount = amount! * value;
+        amountKind = _NumberKind.word;
+        continue;
+      }
+    }
+    afterNumber = false;
     final unitWord = vocabulary.unitWords[token];
     if (unitWord != null && unit == null) {
       unit = unitWord;
@@ -158,14 +206,7 @@ ParsedFood? _parseChunk(
 
   final food = lookup(phrase);
   final resolvedAmount = amount ?? 1;
-  final resolvedUnit = unit ??
-      (amount == null
-          ? (food?.pieceG != null ? FoodUnit.piece : FoodUnit.portion)
-          : food?.pieceG != null && resolvedAmount < 10
-              ? FoodUnit.piece
-              : resolvedAmount >= 10
-                  ? FoodUnit.grams
-                  : FoodUnit.portion);
+  final resolvedUnit = unit ?? _unitFor(amount, food);
 
   return ParsedFood(
     original: chunk,
@@ -177,18 +218,44 @@ ParsedFood? _parseChunk(
   );
 }
 
-double? _readNumber(String token, FoodVocabulary vocabulary) {
+/// The unit of an amount written without one: "2 Eier" are pieces, "200
+/// Reis" grams, "Pizza" one of whatever the food comes in.
+FoodUnit _unitFor(double? amount, FoodItem? food) {
+  final pieceG = food?.pieceG;
+  if (amount == null) return pieceG != null ? FoodUnit.piece : FoodUnit.portion;
+  if (pieceG != null && _isCount(amount, pieceG)) return FoodUnit.piece;
+  return amount >= 10 ? FoodUnit.grams : FoodUnit.portion;
+}
+
+/// Whether a bare number before a countable food counts pieces. Small
+/// numbers always do. A larger one does when, read as grams, it would be
+/// less than one piece ("12 Sushi" is not 12 g) and, read as pieces, it is
+/// still a meal ("150 Banane" is 150 g, not 18 kg).
+bool _isCount(double amount, double pieceG) =>
+    amount < 10 || (amount <= pieceG && amount * pieceG <= 1500);
+
+/// How a number was written, which decides how two in a row combine.
+enum _NumberKind { whole, decimal, fraction, word }
+
+(double, _NumberKind)? _readNumber(String token, FoodVocabulary vocabulary) {
   if (_number.hasMatch(token)) {
-    return double.tryParse(token.replaceAll(',', '.'));
+    final value = double.tryParse(token.replaceAll(',', '.'));
+    if (value == null) return null;
+    return (
+      value,
+      token.contains(RegExp('[.,]')) ? _NumberKind.decimal : _NumberKind.whole,
+    );
   }
   final fraction = _fraction.firstMatch(token);
   if (fraction != null) {
     final denominator = int.parse(fraction[2]!);
     if (denominator == 0) return null;
-    return int.parse(fraction[1]!) / denominator;
+    return (int.parse(fraction[1]!) / denominator, _NumberKind.fraction);
   }
-  if (token == '½') return 0.5;
-  return vocabulary.numberWords[token];
+  final glyph = _fractionGlyphs[token];
+  if (glyph != null) return (glyph, _NumberKind.fraction);
+  final word = vocabulary.numberWords[token];
+  return word == null ? null : (word, _NumberKind.word);
 }
 
 /// Weight of [amount] [unit] of [food]. Units that need to know the food

@@ -7,6 +7,7 @@ import '../../l10n/l10n.dart';
 import '../../state/household_providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
+import 'household_load_error.dart';
 import 'household_screen.dart';
 import 'plan_week_sheet.dart';
 import 'planner_chat_screen.dart';
@@ -38,6 +39,7 @@ class _WeekPlanViewState extends ConsumerState<WeekPlanView> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
+    ref.watch(sharedTargetsSyncProvider);
     final AsyncValue<List<PlanEntry>> plan =
         ref.watch(weekPlanProvider(_weekStart));
     final Map<String, Recipe> recipes =
@@ -47,7 +49,16 @@ class _WeekPlanViewState extends ConsumerState<WeekPlanView> {
     final DayKey today = DayKey.today();
 
     return RefreshIndicator(
-      onRefresh: () => ref.refresh(weekPlanProvider(_weekStart).future),
+      onRefresh: () async {
+        // A household that failed to load stays failed until asked again.
+        if (ref.read(householdIdProvider).hasError) retryHousehold(ref);
+        ref.invalidate(weekPlanProvider(_weekStart));
+        try {
+          await ref.read(weekPlanProvider(_weekStart).future);
+        } on Object {
+          // The error shows in the list.
+        }
+      },
       child: ListView(
         padding: EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md,
             AppSpacing.xxl + MediaQuery.paddingOf(context).bottom),
@@ -121,13 +132,15 @@ class _WeekPlanViewState extends ConsumerState<WeekPlanView> {
               ),
             ),
           const SizedBox(height: AppSpacing.md),
+          // A realtime tick reloads the week; the old one stays on screen
+          // meanwhile instead of a spinner that throws the scroll away.
           plan.when(
+            skipLoadingOnReload: true,
             loading: () => const Padding(
               padding: EdgeInsets.all(AppSpacing.xl),
               child: Center(child: CircularProgressIndicator()),
             ),
-            error: (Object error, StackTrace _) =>
-                Text(l10n.planLoadFailed, textAlign: TextAlign.center),
+            error: (Object error, StackTrace _) => const HouseholdLoadError(),
             data: (List<PlanEntry> entries) => Column(
               children: <Widget>[
                 for (int i = 0; i < 7; i++)
