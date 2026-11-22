@@ -182,6 +182,12 @@ class SessionPlan {
   int get totalSets =>
       exercises.fold(0, (int sum, ExerciseSlot s) => sum + s.sets);
 
+  /// Whether there is anything to train: at least one exercise this
+  /// version of the library knows. A session without one cannot be logged,
+  /// so the editor refuses to save it and the rotation skips it.
+  bool get isTrainable =>
+      exercises.any((ExerciseSlot s) => s.exercise != null);
+
   SessionPlan copyWith({List<ExerciseSlot>? exercises}) => SessionPlan(
         kind: kind,
         exercises: exercises ?? this.exercises,
@@ -191,6 +197,23 @@ class SessionPlan {
         'kind': kind.name,
         'ex': exercises.map((ExerciseSlot s) => s.toJson()).toList(),
       };
+
+  @override
+  bool operator ==(Object other) =>
+      other is SessionPlan &&
+      other.kind == kind &&
+      _listEquals(other.exercises, exercises);
+
+  @override
+  int get hashCode => Object.hash(kind, Object.hashAll(exercises));
+}
+
+bool _listEquals<T>(List<T> a, List<T> b) {
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
 }
 
 /// The user's training plan as configured: a split and the sessions it
@@ -220,10 +243,24 @@ class TrainingSetup {
         ],
       );
 
+  /// True when every session has something to train — what the editor
+  /// checks before it saves.
+  bool get isTrainable =>
+      sessions.isNotEmpty && sessions.every((SessionPlan s) => s.isTrainable);
+
   Map<String, dynamic> toJson() => <String, dynamic>{
         'split': split.name,
         'sessions': sessions.map((SessionPlan s) => s.toJson()).toList(),
       };
+
+  @override
+  bool operator ==(Object other) =>
+      other is TrainingSetup &&
+      other.split == split &&
+      _listEquals(other.sessions, sessions);
+
+  @override
+  int get hashCode => Object.hash(split, Object.hashAll(sessions));
 }
 
 @immutable
@@ -234,6 +271,7 @@ class Workout {
     required this.blocks,
     required this.estimatedMinutes,
     this.sessionIndex = 0,
+    this.isDeload = false,
   });
 
   final WorkoutKind kind;
@@ -244,6 +282,11 @@ class Workout {
   /// Position of this session in [TrainingSetup.sessions]; the workout
   /// logger uses it to find what the user lifted the last time round.
   final int sessionIndex;
+
+  /// Part of a deload week. The logger then recommends going lighter
+  /// instead of beating last time, and the log says so, so the next build
+  /// week is measured against real work rather than the easy week.
+  final bool isDeload;
 
   int get totalSets =>
       blocks.fold(0, (int sum, PlannedSet b) => sum + b.sets);
@@ -280,28 +323,137 @@ class TrainingWeek {
 
 @immutable
 class TrainingPlan {
-  const TrainingPlan({
+  TrainingPlan({
     required this.split,
     required this.daysPerWeek,
-    required this.weeks,
     required this.setup,
-  });
+    this.startWeekday = DateTime.monday,
+    int overviewWeeks = 15,
+  }) : weeks = List<TrainingWeek>.unmodifiable(<TrainingWeek>[
+          for (var week = 1; week <= overviewWeeks; week++)
+            _buildWeek(setup, daysPerWeek, week, startWeekday),
+        ]);
 
   final SplitKind split;
   final int daysPerWeek;
-  final List<TrainingWeek> weeks;
 
   /// What the weeks were built from, for the editor.
   final TrainingSetup setup;
 
+  /// The weekday the challenge started on. Plan weeks count from the start
+  /// day, so a challenge begun on a Wednesday has weeks running Wednesday
+  /// to Tuesday, and each week's training days come in that order.
+  final int startWeekday;
+
+  /// The first cycle's weeks, for overviews. The plan does not end there:
+  /// [week] builds any week of the challenge.
+  final List<TrainingWeek> weeks;
+
+  /// Week [number] (1-based) of the challenge. The periodisation runs on
+  /// for as long as the challenge does — week 16 is a deload like week 4,
+  /// rather than the plan wrapping back to week 1 after day 100.
+  TrainingWeek week(int number) => number >= 1 && number <= weeks.length
+      ? weeks[number - 1]
+      : _buildWeek(setup, daysPerWeek, math.max(number, 1), startWeekday);
+
+  /// The plan week [day] falls in: days 1–7 of the challenge are week 1,
+  /// and so are the days before the start.
+  int weekNumberFor(DayKey startDay, DayKey day) =>
+      math.max(day.differenceInDays(startDay), 0) ~/ 7 + 1;
+
+  /// Weeks [first] to [last], both included.
+  List<TrainingWeek> weeksBetween(int first, int last) => <TrainingWeek>[
+        for (var n = math.max(first, 1); n <= last; n++) week(n),
+      ];
+
   TrainingWeek weekFor(DayKey startDay, DayKey day) {
-    final dayNumber = day.differenceInDays(startDay);
-    if (dayNumber < 0 || weeks.isEmpty) return weeks.first;
-    return weeks[(dayNumber ~/ 7) % weeks.length];
+    final number = weekNumberFor(startDay, day);
+    final start = startDay.toDateTime().weekday;
+    // A plan built for another start weekday is reordered for this one, so
+    // the rotation never depends on who built the plan.
+    return start == startWeekday
+        ? week(number)
+        : _buildWeek(setup, daysPerWeek, number, start);
   }
 
-  Workout? workoutFor(DayKey startDay, DayKey day) =>
-      weekFor(startDay, day).workoutOn(day.toDateTime().weekday);
+  Workout? workoutFor(DayKey startDay, DayKey day) {
+    if (day.isBefore(startDay)) return null;
+    return weekFor(startDay, day).workoutOn(day.toDateTime().weekday);
+  }
+}
+
+/// Week [number] of a plan: the training days of that challenge week in
+/// the order they come, each with the next session of the rotation.
+///
+/// Sessions follow each other across *training days* counted from the
+/// start: the k-th training day of the challenge gets session k mod n.
+/// Any seven consecutive days hold each weekday once, so week w begins at
+/// training day (w - 1) × days whatever the start weekday — but inside the
+/// week the days must be taken in calendar order from the start weekday,
+/// not Monday first, or a challenge begun on a Wednesday runs Lower,
+/// Upper, Upper, Upper, Lower, Lower …
+TrainingWeek _buildWeek(
+  TrainingSetup setup,
+  int daysPerWeek,
+  int number,
+  int startWeekday,
+) {
+  final positionInBlock = (number - 1) % 4;
+  final isDeload = positionInBlock == 3;
+  final weekdays = kWeekdaySpread[daysPerWeek]!.toList()
+    ..sort((int a, int b) =>
+        ((a - startWeekday) % 7).compareTo((b - startWeekday) % 7));
+  // A session with nothing in it would be a workout that can never be
+  // finished: leave it out of the rotation rather than schedule it.
+  final rotation = <int>[
+    for (var i = 0; i < setup.sessions.length; i++)
+      if (setup.sessions[i].isTrainable) i,
+  ];
+  final workouts = <Workout>[];
+
+  for (var i = 0; i < weekdays.length && rotation.isNotEmpty; i++) {
+    final trainingDay = (number - 1) * daysPerWeek + i;
+    final sessionIndex = rotation[trainingDay % rotation.length];
+    final session = setup.sessions[sessionIndex];
+    final blocks = <PlannedSet>[];
+
+    for (final ExerciseSlot slot in session.exercises) {
+      final exercise = slot.exercise;
+      if (exercise == null) continue;
+      final sets = isDeload
+          ? (slot.sets * 0.6).ceil()
+          : slot.sets + (exercise.isCompound ? positionInBlock : 0);
+      blocks.add(PlannedSet(
+        exerciseId: slot.exerciseId,
+        sets: sets,
+        repsLow: slot.repsLow,
+        repsHigh: slot.repsHigh,
+        rpe: isDeload
+            ? math.max(slot.rpe - 2, 5)
+            : math.min(slot.rpe + positionInBlock * 0.5, 10),
+        restSeconds: slot.restSeconds,
+      ));
+    }
+
+    final totalSets = blocks.fold(0, (int sum, PlannedSet b) => sum + b.sets);
+    workouts.add(Workout(
+      kind: session.kind,
+      weekday: weekdays[i],
+      blocks: blocks,
+      sessionIndex: sessionIndex,
+      isDeload: isDeload,
+      // ~3 min per working set including rest, plus a 10 min warm-up.
+      estimatedMinutes: 10 + totalSets * 3,
+    ));
+  }
+
+  return TrainingWeek(
+    weekNumber: number,
+    blockNumber: ((number - 1) ~/ 4) + 1,
+    weekInBlock: positionInBlock + 1,
+    isDeload: isDeload,
+    workouts: workouts,
+  );
 }
 
 /// One exercise position in a session template: a movement pattern, and
@@ -577,68 +729,21 @@ TrainingSetup suggestTrainingSetup(Goal goal, {SplitKind? split}) {
 /// Four-week blocks: three weeks of adding a set per compound, then a deload
 /// at roughly 60 % volume. Without the deload, 100 straight days of adding
 /// volume ends in a stalled lifter or an injured one — both quit.
-TrainingPlan buildTrainingPlan(Goal goal, {int totalWeeks = 15}) {
-  final daysPerWeek = goal.trainingDaysPerWeek.clamp(2, 6);
+///
+/// [startWeekday] is the weekday the challenge started on: the plan's weeks
+/// run from it. [totalWeeks] only sets how many weeks [TrainingPlan.weeks]
+/// holds up front; any later week is built when asked for.
+TrainingPlan buildTrainingPlan(
+  Goal goal, {
+  int startWeekday = DateTime.monday,
+  int totalWeeks = 15,
+}) {
   final setup = goal.training ?? suggestTrainingSetup(goal);
-  final weekdays = kWeekdaySpread[daysPerWeek]!;
-
-  final weeks = <TrainingWeek>[];
-  for (var week = 1; week <= totalWeeks; week++) {
-    final positionInBlock = (week - 1) % 4;
-    final isDeload = positionInBlock == 3;
-    final workouts = <Workout>[];
-
-    for (var i = 0; i < weekdays.length && setup.sessions.isNotEmpty; i++) {
-      // Rotate rather than pin: day i of week w is training day number
-      // (w - 1) * days + i, and the sessions follow each other in order.
-      final sessionIndex =
-          ((week - 1) * daysPerWeek + i) % setup.sessions.length;
-      final session = setup.sessions[sessionIndex];
-      final blocks = <PlannedSet>[];
-
-      for (final ExerciseSlot slot in session.exercises) {
-        final exercise = slot.exercise;
-        if (exercise == null) continue;
-        final sets = isDeload
-            ? (slot.sets * 0.6).ceil()
-            : slot.sets + (exercise.isCompound ? positionInBlock : 0);
-        blocks.add(PlannedSet(
-          exerciseId: slot.exerciseId,
-          sets: sets,
-          repsLow: slot.repsLow,
-          repsHigh: slot.repsHigh,
-          rpe: isDeload
-              ? math.max(slot.rpe - 2, 5)
-              : math.min(slot.rpe + positionInBlock * 0.5, 10),
-          restSeconds: slot.restSeconds,
-        ));
-      }
-
-      final totalSets =
-          blocks.fold(0, (int sum, PlannedSet b) => sum + b.sets);
-      workouts.add(Workout(
-        kind: session.kind,
-        weekday: weekdays[i],
-        blocks: blocks,
-        sessionIndex: sessionIndex,
-        // ~3 min per working set including rest, plus a 10 min warm-up.
-        estimatedMinutes: 10 + totalSets * 3,
-      ));
-    }
-
-    weeks.add(TrainingWeek(
-      weekNumber: week,
-      blockNumber: ((week - 1) ~/ 4) + 1,
-      weekInBlock: positionInBlock + 1,
-      isDeload: isDeload,
-      workouts: workouts,
-    ));
-  }
-
   return TrainingPlan(
     split: setup.split,
-    daysPerWeek: daysPerWeek,
-    weeks: weeks,
+    daysPerWeek: goal.trainingDaysPerWeek.clamp(2, 6),
     setup: setup,
+    startWeekday: startWeekday,
+    overviewWeeks: totalWeeks,
   );
 }

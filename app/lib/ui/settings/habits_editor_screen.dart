@@ -248,7 +248,7 @@ class _HabitsEditorState extends ConsumerState<HabitsEditorScreen> {
           context: context,
           builder: (BuildContext context) => AlertDialog(
             backgroundColor: AppColors.surface,
-            title: Text(l10n.loggerDiscardTitle),
+            title: Text(l10n.editDiscardTitle),
             actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
@@ -257,7 +257,7 @@ class _HabitsEditorState extends ConsumerState<HabitsEditorScreen> {
               FilledButton(
                 style: FilledButton.styleFrom(minimumSize: const Size(110, 44)),
                 onPressed: () => Navigator.of(context).pop(true),
-                child: Text(l10n.loggerDiscard),
+                child: Text(l10n.editDiscard),
               ),
             ],
           ),

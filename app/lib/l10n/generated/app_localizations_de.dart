@@ -2156,12 +2156,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get loggerDiscard => 'Verwerfen';
 
   @override
-  String get loggerDiscardBody => 'Die eingetragenen Sätze gehen verloren.';
-
-  @override
-  String get loggerDiscardTitle => 'Training verwerfen?';
-
-  @override
   String get loggerFinish => 'Training abschließen';
 
   @override
@@ -3457,7 +3451,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get planProtein => 'Protein';
 
   @override
-  String get planTabAbstinence => 'Clean bleiben';
+  String get planTabAbstinence => 'Clean';
 
   @override
   String get planTabMeals => 'Essensplan';
@@ -5298,4 +5292,109 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get loggerAddedLoadHint => '+ kg';
+
+  @override
+  String get loggerAdviceAddRepsBodyweight => 'Eine Wdh. mehr pro Satz';
+
+  @override
+  String get loggerAdviceBeyondRange =>
+      'Jeder Satz am oberen Ende: je eine Wdh. mehr — oder nimm Zusatzgewicht und trag es bei + kg ein';
+
+  @override
+  String loggerAdviceDeload(String weight) {
+    return 'Deload: leichter mit $weight kg, und weit vor dem Muskelversagen aufhören';
+  }
+
+  @override
+  String get loggerAdviceDeloadBodyweight =>
+      'Deload: lockere Wiederholungen, und weit vor dem Muskelversagen aufhören';
+
+  @override
+  String get loggerAdviceReduceBodyweight =>
+      'Zweimal verfehlt — ohne Zusatzgewicht neu aufbauen';
+
+  @override
+  String get loggerDeloadBody =>
+      'Diese Woche weniger Sätze und leichtere Gewichte — mit Absicht. Dein Körper holt die drei Aufbauwochen nach, nächste Woche geht es wieder nach oben.';
+
+  @override
+  String get loggerDeloadTitle => 'Deload-Woche';
+
+  @override
+  String get loggerKeepForLater => 'Für später behalten';
+
+  @override
+  String get loggerLeaveBody =>
+      'Was du eingetragen hast, bleibt auf diesem Handy, bis du abschließt. Öffne das Training heute noch einmal, dann machst du da weiter, wo du warst.';
+
+  @override
+  String get loggerLeaveTitle => 'Training verlassen?';
+
+  @override
+  String get loggerResume => 'Weitermachen';
+
+  @override
+  String loggerResumeBody(String time, int sets) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets Sätze sind abgehakt.',
+      one: 'Ein Satz ist abgehakt.',
+      zero: 'Noch kein Satz abgehakt.',
+    );
+    return 'Du hast dieses Training um $time begonnen. $_temp0';
+  }
+
+  @override
+  String get loggerResumeTitle => 'Weitermachen, wo du warst?';
+
+  @override
+  String get loggerStartOver => 'Neu beginnen';
+
+  @override
+  String get editorDiscard => 'Verwerfen';
+
+  @override
+  String get editorDiscardBody =>
+      'Deine Änderungen am Trainingsplan sind noch nicht gespeichert.';
+
+  @override
+  String get editorDiscardTitle => 'Änderungen verwerfen?';
+
+  @override
+  String editorPlanOffBody(int percent) {
+    return 'Aus: Dein Trainings-Habit ist wieder ein einfacher Haken, ohne die +$percent % XP eines geloggten Trainings. Deine geloggten Trainings bleiben in deinem Verlauf, und Split und Übungen warten hier, bis du ihn wieder einschaltest.';
+  }
+
+  @override
+  String editorPlanOnBody(int percent) {
+    return 'Logge jeden Satz: Jedes geloggte Training bringt +$percent % XP.';
+  }
+
+  @override
+  String get editorPlanSwitch => 'Trainingsplan';
+
+  @override
+  String get editorPlanSwitchedOff =>
+      'Trainingsplan ausgeschaltet — deine Trainings bleiben geloggt';
+
+  @override
+  String get editorEmptySession =>
+      'Jede Einheit braucht mindestens eine Übung — füge dort eine hinzu, wo es markiert ist.';
+
+  @override
+  String get loggerEmptyBody =>
+      'Diese Einheit hat keine Übungen. Füge im Trainingsplan welche hinzu, dann kannst du sie loggen.';
+
+  @override
+  String get loggerEmptyTitle => 'Noch nichts zu loggen';
+
+  @override
+  String get editDiscardTitle => 'Änderungen verwerfen?';
+
+  @override
+  String get editDiscard => 'Verwerfen';
 }

@@ -51,7 +51,25 @@ ChallengePlan buildPlan(Challenge challenge) {
 
   return ChallengePlan(
     generatedAt: DateTime.now(),
-    training: wantsTraining ? buildTrainingPlan(goal) : null,
+    training: wantsTraining
+        ? buildTrainingPlan(
+            goal,
+            startWeekday: challenge.startDay.toDateTime().weekday,
+          )
+        : null,
     nutrition: wantsNutrition ? buildNutritionPlan(goal) : null,
   );
+}
+
+/// The habit a logged workout checks in, and so the one whose weekly days
+/// the training plan sets: the gym habit, or cardio for a challenge without
+/// one. The two must agree, or the workout card shows up on days the habit
+/// does not expect it.
+Habit? trainingHabitOf(Iterable<Habit> habits) {
+  Habit? cardio;
+  for (final habit in habits) {
+    if (habit.category == HabitCategory.gym) return habit;
+    if (habit.category == HabitCategory.cardio) cardio ??= habit;
+  }
+  return cardio;
 }

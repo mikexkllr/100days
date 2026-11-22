@@ -1215,8 +1215,6 @@
   "loggerAdviceHold": "Gewicht halten — jeden Satz in den Bereich bringen",
   "loggerAdviceReduce": "Zweimal verfehlt — zurück auf {weight} kg und neu aufbauen",
   "loggerDiscard": "Verwerfen",
-  "loggerDiscardBody": "Die eingetragenen Sätze gehen verloren.",
-  "loggerDiscardTitle": "Training verwerfen?",
   "loggerFinish": "Training abschließen",
   "loggerFinishNoSets": "Hake zuerst mindestens einen Satz ab.",
   "loggerIntro": "Trag jeden Satz ein. Beim nächsten Mal sagt dir die App, was du schlagen musst: mehr Wiederholungen beim gleichen Gewicht, dann mehr Gewicht.",
@@ -1804,7 +1802,7 @@
     }
   },
   "planProtein": "Protein",
-  "planTabAbstinence": "Clean bleiben",
+  "planTabAbstinence": "Clean",
   "planTabMeals": "Essensplan",
   "planTabShopping": "Einkauf",
   "planTabTraining": "Training",
@@ -2872,5 +2870,63 @@
         "type": "int"
       }
     }
-  }
+  },
+  "loggerAddedLoadHint": "+ kg",
+  "loggerAdviceAddRepsBodyweight": "Eine Wdh. mehr pro Satz",
+  "loggerAdviceBeyondRange": "Jeder Satz am oberen Ende: je eine Wdh. mehr — oder nimm Zusatzgewicht und trag es bei + kg ein",
+  "loggerAdviceDeload": "Deload: leichter mit {weight} kg, und weit vor dem Muskelversagen aufhören",
+  "@loggerAdviceDeload": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "loggerAdviceDeloadBodyweight": "Deload: lockere Wiederholungen, und weit vor dem Muskelversagen aufhören",
+  "loggerAdviceReduceBodyweight": "Zweimal verfehlt — ohne Zusatzgewicht neu aufbauen",
+  "loggerDeloadBody": "Diese Woche weniger Sätze und leichtere Gewichte — mit Absicht. Dein Körper holt die drei Aufbauwochen nach, nächste Woche geht es wieder nach oben.",
+  "loggerDeloadTitle": "Deload-Woche",
+  "loggerKeepForLater": "Für später behalten",
+  "loggerLeaveBody": "Was du eingetragen hast, bleibt auf diesem Handy, bis du abschließt. Öffne das Training heute noch einmal, dann machst du da weiter, wo du warst.",
+  "loggerLeaveTitle": "Training verlassen?",
+  "loggerResume": "Weitermachen",
+  "loggerResumeBody": "Du hast dieses Training um {time} begonnen. {sets, plural, =0{Noch kein Satz abgehakt.} =1{Ein Satz ist abgehakt.} other{{sets} Sätze sind abgehakt.}}",
+  "@loggerResumeBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "sets": {
+        "type": "int"
+      }
+    }
+  },
+  "loggerResumeTitle": "Weitermachen, wo du warst?",
+  "loggerStartOver": "Neu beginnen",
+  "editorDiscard": "Verwerfen",
+  "editorDiscardBody": "Deine Änderungen am Trainingsplan sind noch nicht gespeichert.",
+  "editorDiscardTitle": "Änderungen verwerfen?",
+  "editorPlanOffBody": "Aus: Dein Trainings-Habit ist wieder ein einfacher Haken, ohne die +{percent} % XP eines geloggten Trainings. Deine geloggten Trainings bleiben in deinem Verlauf, und Split und Übungen warten hier, bis du ihn wieder einschaltest.",
+  "@editorPlanOffBody": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "editorPlanOnBody": "Logge jeden Satz: Jedes geloggte Training bringt +{percent} % XP.",
+  "@editorPlanOnBody": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "editorPlanSwitch": "Trainingsplan",
+  "editorPlanSwitchedOff": "Trainingsplan ausgeschaltet — deine Trainings bleiben geloggt",
+  "editorEmptySession": "Jede Einheit braucht mindestens eine Übung — füge dort eine hinzu, wo es markiert ist.",
+  "loggerEmptyBody": "Diese Einheit hat keine Übungen. Füge im Trainingsplan welche hinzu, dann kannst du sie loggen.",
+  "loggerEmptyTitle": "Noch nichts zu loggen",
+  "editDiscardTitle": "Änderungen verwerfen?",
+  "editDiscard": "Verwerfen"
 }

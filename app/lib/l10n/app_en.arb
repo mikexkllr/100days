@@ -1582,8 +1582,6 @@
     }
   },
   "loggerDiscard": "Discard",
-  "loggerDiscardBody": "The sets you entered will be lost.",
-  "loggerDiscardTitle": "Discard this workout?",
   "loggerFinish": "Finish workout",
   "loggerFinishNoSets": "Tick off at least one set first.",
   "loggerIntro": "Log every set. Next time the app tells you what to beat: more reps at the same weight, then more weight.",
@@ -2295,7 +2293,7 @@
     }
   },
   "planProtein": "Protein",
-  "planTabAbstinence": "Staying clean",
+  "planTabAbstinence": "Clean",
   "planTabMeals": "Meal plan",
   "planTabShopping": "Shopping",
   "planTabTraining": "Training",
@@ -3708,5 +3706,63 @@
         "type": "int"
       }
     }
-  }
+  },
+  "loggerAddedLoadHint": "+ kg",
+  "loggerAdviceAddRepsBodyweight": "One more rep per set",
+  "loggerAdviceBeyondRange": "Top of the range on every set: one more rep each — or carry some weight and enter it under + kg",
+  "loggerAdviceDeload": "Deload: lighter at {weight} kg, and stop well short of failure",
+  "@loggerAdviceDeload": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "loggerAdviceDeloadBodyweight": "Deload: easy reps, and stop well short of failure",
+  "loggerAdviceReduceBodyweight": "Missed twice — drop the added weight and build back up",
+  "loggerDeloadBody": "Fewer sets and lighter weights this week — on purpose. Your body catches up on three weeks of building; next week the numbers go up again.",
+  "loggerDeloadTitle": "Deload week",
+  "loggerKeepForLater": "Keep for later",
+  "loggerLeaveBody": "What you entered stays on this phone until you finish. Open the workout again today to pick up where you left off.",
+  "loggerLeaveTitle": "Leave the workout?",
+  "loggerResume": "Resume",
+  "loggerResumeBody": "You started this workout at {time}. {sets, plural, =0{No set ticked off yet.} =1{One set is ticked off.} other{{sets} sets are ticked off.}}",
+  "@loggerResumeBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "sets": {
+        "type": "int"
+      }
+    }
+  },
+  "loggerResumeTitle": "Pick up where you left off?",
+  "loggerStartOver": "Start over",
+  "editorDiscard": "Discard",
+  "editorDiscardBody": "Your changes to the training plan are not saved yet.",
+  "editorDiscardTitle": "Discard your changes?",
+  "editorPlanOffBody": "Off: your training habit is a plain tick again, without the +{percent} % XP of a logged workout. The workouts you logged stay in your history, and your split and exercises wait here for when you switch it back on.",
+  "@editorPlanOffBody": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "editorPlanOnBody": "Log every set: each logged workout earns +{percent} % XP.",
+  "@editorPlanOnBody": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "editorPlanSwitch": "Training plan",
+  "editorPlanSwitchedOff": "Training plan switched off — your workouts stay logged",
+  "editorEmptySession": "Every session needs at least one exercise — add one where it is marked.",
+  "loggerEmptyBody": "This session has no exercises. Add some to it in the training plan, then log it.",
+  "loggerEmptyTitle": "Nothing to log yet",
+  "editDiscardTitle": "Discard your changes?",
+  "editDiscard": "Discard"
 }

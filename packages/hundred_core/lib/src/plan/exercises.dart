@@ -60,6 +60,11 @@ class Exercise {
   /// Whether the localizations carry a form cue for this movement.
   final bool hasCue;
 
+  /// Done with body weight alone. Load is still optional — a dip belt, a
+  /// vest, a dumbbell in each hand on lunges — so a weight logged for one
+  /// of these is load on top of the body, not instead of it.
+  bool get isBodyweight => minEquipment == EquipmentAccess.bodyweight;
+
   bool availableWith(EquipmentAccess access) {
     switch (access) {
       case EquipmentAccess.fullGym:
@@ -625,3 +630,8 @@ double progressionIncrementKg(Exercise exercise) {
       return 2.5;
   }
 }
+
+/// The load jump for a bodyweight movement once the user carries extra
+/// weight on it: the smallest common plate on a belt, roughly the next
+/// pair of dumbbells.
+const double kAddedLoadIncrementKg = 2.5;

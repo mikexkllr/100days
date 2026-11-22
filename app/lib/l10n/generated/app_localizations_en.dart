@@ -2148,12 +2148,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loggerDiscard => 'Discard';
 
   @override
-  String get loggerDiscardBody => 'The sets you entered will be lost.';
-
-  @override
-  String get loggerDiscardTitle => 'Discard this workout?';
-
-  @override
   String get loggerFinish => 'Finish workout';
 
   @override
@@ -3442,7 +3436,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planProtein => 'Protein';
 
   @override
-  String get planTabAbstinence => 'Staying clean';
+  String get planTabAbstinence => 'Clean';
 
   @override
   String get planTabMeals => 'Meal plan';
@@ -5280,4 +5274,109 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get loggerAddedLoadHint => '+ kg';
+
+  @override
+  String get loggerAdviceAddRepsBodyweight => 'One more rep per set';
+
+  @override
+  String get loggerAdviceBeyondRange =>
+      'Top of the range on every set: one more rep each — or carry some weight and enter it under + kg';
+
+  @override
+  String loggerAdviceDeload(String weight) {
+    return 'Deload: lighter at $weight kg, and stop well short of failure';
+  }
+
+  @override
+  String get loggerAdviceDeloadBodyweight =>
+      'Deload: easy reps, and stop well short of failure';
+
+  @override
+  String get loggerAdviceReduceBodyweight =>
+      'Missed twice — drop the added weight and build back up';
+
+  @override
+  String get loggerDeloadBody =>
+      'Fewer sets and lighter weights this week — on purpose. Your body catches up on three weeks of building; next week the numbers go up again.';
+
+  @override
+  String get loggerDeloadTitle => 'Deload week';
+
+  @override
+  String get loggerKeepForLater => 'Keep for later';
+
+  @override
+  String get loggerLeaveBody =>
+      'What you entered stays on this phone until you finish. Open the workout again today to pick up where you left off.';
+
+  @override
+  String get loggerLeaveTitle => 'Leave the workout?';
+
+  @override
+  String get loggerResume => 'Resume';
+
+  @override
+  String loggerResumeBody(String time, int sets) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets sets are ticked off.',
+      one: 'One set is ticked off.',
+      zero: 'No set ticked off yet.',
+    );
+    return 'You started this workout at $time. $_temp0';
+  }
+
+  @override
+  String get loggerResumeTitle => 'Pick up where you left off?';
+
+  @override
+  String get loggerStartOver => 'Start over';
+
+  @override
+  String get editorDiscard => 'Discard';
+
+  @override
+  String get editorDiscardBody =>
+      'Your changes to the training plan are not saved yet.';
+
+  @override
+  String get editorDiscardTitle => 'Discard your changes?';
+
+  @override
+  String editorPlanOffBody(int percent) {
+    return 'Off: your training habit is a plain tick again, without the +$percent % XP of a logged workout. The workouts you logged stay in your history, and your split and exercises wait here for when you switch it back on.';
+  }
+
+  @override
+  String editorPlanOnBody(int percent) {
+    return 'Log every set: each logged workout earns +$percent % XP.';
+  }
+
+  @override
+  String get editorPlanSwitch => 'Training plan';
+
+  @override
+  String get editorPlanSwitchedOff =>
+      'Training plan switched off — your workouts stay logged';
+
+  @override
+  String get editorEmptySession =>
+      'Every session needs at least one exercise — add one where it is marked.';
+
+  @override
+  String get loggerEmptyBody =>
+      'This session has no exercises. Add some to it in the training plan, then log it.';
+
+  @override
+  String get loggerEmptyTitle => 'Nothing to log yet';
+
+  @override
+  String get editDiscardTitle => 'Discard your changes?';
+
+  @override
+  String get editDiscard => 'Discard';
 }

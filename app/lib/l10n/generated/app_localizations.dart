@@ -3480,18 +3480,6 @@ abstract class AppLocalizations {
   /// **'Discard'**
   String get loggerDiscard;
 
-  /// No description provided for @loggerDiscardBody.
-  ///
-  /// In en, this message translates to:
-  /// **'The sets you entered will be lost.'**
-  String get loggerDiscardBody;
-
-  /// No description provided for @loggerDiscardTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard this workout?'**
-  String get loggerDiscardTitle;
-
   /// No description provided for @loggerFinish.
   ///
   /// In en, this message translates to:
@@ -5703,7 +5691,7 @@ abstract class AppLocalizations {
   /// No description provided for @planTabAbstinence.
   ///
   /// In en, this message translates to:
-  /// **'Staying clean'**
+  /// **'Clean'**
   String get planTabAbstinence;
 
   /// No description provided for @planTabMeals.
@@ -8568,6 +8556,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{The open list already has everything for these days} =1{1 line added to the open list} other{{count} lines added to the open list}}'**
   String shopTopUp(int count);
+
+  /// No description provided for @loggerAddedLoadHint.
+  ///
+  /// In en, this message translates to:
+  /// **'+ kg'**
+  String get loggerAddedLoadHint;
+
+  /// No description provided for @loggerAdviceAddRepsBodyweight.
+  ///
+  /// In en, this message translates to:
+  /// **'One more rep per set'**
+  String get loggerAdviceAddRepsBodyweight;
+
+  /// No description provided for @loggerAdviceBeyondRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Top of the range on every set: one more rep each — or carry some weight and enter it under + kg'**
+  String get loggerAdviceBeyondRange;
+
+  /// No description provided for @loggerAdviceDeload.
+  ///
+  /// In en, this message translates to:
+  /// **'Deload: lighter at {weight} kg, and stop well short of failure'**
+  String loggerAdviceDeload(String weight);
+
+  /// No description provided for @loggerAdviceDeloadBodyweight.
+  ///
+  /// In en, this message translates to:
+  /// **'Deload: easy reps, and stop well short of failure'**
+  String get loggerAdviceDeloadBodyweight;
+
+  /// No description provided for @loggerAdviceReduceBodyweight.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed twice — drop the added weight and build back up'**
+  String get loggerAdviceReduceBodyweight;
+
+  /// No description provided for @loggerDeloadBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer sets and lighter weights this week — on purpose. Your body catches up on three weeks of building; next week the numbers go up again.'**
+  String get loggerDeloadBody;
+
+  /// No description provided for @loggerDeloadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deload week'**
+  String get loggerDeloadTitle;
+
+  /// No description provided for @loggerKeepForLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep for later'**
+  String get loggerKeepForLater;
+
+  /// No description provided for @loggerLeaveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What you entered stays on this phone until you finish. Open the workout again today to pick up where you left off.'**
+  String get loggerLeaveBody;
+
+  /// No description provided for @loggerLeaveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave the workout?'**
+  String get loggerLeaveTitle;
+
+  /// No description provided for @loggerResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get loggerResume;
+
+  /// No description provided for @loggerResumeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You started this workout at {time}. {sets, plural, =0{No set ticked off yet.} =1{One set is ticked off.} other{{sets} sets are ticked off.}}'**
+  String loggerResumeBody(String time, int sets);
+
+  /// No description provided for @loggerResumeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick up where you left off?'**
+  String get loggerResumeTitle;
+
+  /// No description provided for @loggerStartOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Start over'**
+  String get loggerStartOver;
+
+  /// No description provided for @editorDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get editorDiscard;
+
+  /// No description provided for @editorDiscardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your changes to the training plan are not saved yet.'**
+  String get editorDiscardBody;
+
+  /// No description provided for @editorDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard your changes?'**
+  String get editorDiscardTitle;
+
+  /// No description provided for @editorPlanOffBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: your training habit is a plain tick again, without the +{percent} % XP of a logged workout. The workouts you logged stay in your history, and your split and exercises wait here for when you switch it back on.'**
+  String editorPlanOffBody(int percent);
+
+  /// No description provided for @editorPlanOnBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Log every set: each logged workout earns +{percent} % XP.'**
+  String editorPlanOnBody(int percent);
+
+  /// No description provided for @editorPlanSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Training plan'**
+  String get editorPlanSwitch;
+
+  /// No description provided for @editorPlanSwitchedOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Training plan switched off — your workouts stay logged'**
+  String get editorPlanSwitchedOff;
+
+  /// No description provided for @editorEmptySession.
+  ///
+  /// In en, this message translates to:
+  /// **'Every session needs at least one exercise — add one where it is marked.'**
+  String get editorEmptySession;
+
+  /// No description provided for @loggerEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This session has no exercises. Add some to it in the training plan, then log it.'**
+  String get loggerEmptyBody;
+
+  /// No description provided for @loggerEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to log yet'**
+  String get loggerEmptyTitle;
+
+  /// No description provided for @editDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard your changes?'**
+  String get editDiscardTitle;
+
+  /// No description provided for @editDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get editDiscard;
 }
 
 class _AppLocalizationsDelegate

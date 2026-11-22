@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
@@ -92,11 +94,8 @@ class PlanScreen extends ConsumerWidget {
           length: tabs.length,
           child: Column(
             children: <Widget>[
-              GlassTabBar(
-                isScrollable: true,
-                tabs: <Widget>[
-                  for (final _Tab tab in tabs) Tab(text: tab.label),
-                ],
+              PlanTabBar(
+                labels: <String>[for (final _Tab tab in tabs) tab.label],
               ),
               Expanded(
                 child: TabBarView(
@@ -119,6 +118,126 @@ class _Tab {
   final Widget child;
 }
 
+/// The plan's sub-tabs, fitted to the width they get.
+///
+/// Up to five tabs share a phone's width. Spread evenly they cut the last
+/// label off at the edge ("Clean bleit"), which reads as a bug rather than
+/// as more to scroll to. So the labels are measured at the user's text
+/// size: when they fit, the spare room goes into the padding and every tab
+/// is whole; when they do not — large system text — the bar scrolls and
+/// fades out at the edge where more tabs wait.
+class PlanTabBar extends StatefulWidget {
+  const PlanTabBar({super.key, required this.labels});
+
+  final List<String> labels;
+
+  @override
+  State<PlanTabBar> createState() => _PlanTabBarState();
+}
+
+class _PlanTabBarState extends State<PlanTabBar> {
+  /// What [GlassTabBar] puts around the tabs: its side padding, the
+  /// track's inset and its hairline.
+  static const double _frame = 2 * AppSpacing.md + 2 * 4 + 2 * 1;
+
+  /// Less than this beside a label and the selected pill hugs the text.
+  static const double _minPadding = 6;
+  static const double _scrollPadding = 12;
+  static const double _fade = 28;
+
+  bool _moreBefore = false;
+  bool _moreAfter = true;
+
+  double _labelWidth(String label, TabBarThemeData theme, TextScaler scaler) {
+    double widest = 0;
+    // Selected labels are bolder; leave room for either.
+    for (final TextStyle? style in <TextStyle?>[
+      theme.labelStyle,
+      theme.unselectedLabelStyle,
+    ]) {
+      final TextPainter painter = TextPainter(
+        text: TextSpan(text: label, style: style),
+        textDirection: Directionality.of(context),
+        textScaler: scaler,
+        maxLines: 1,
+      )..layout();
+      widest = math.max(widest, painter.width);
+      painter.dispose();
+    }
+    return widest;
+  }
+
+  bool _onScroll(ScrollMetrics metrics) {
+    final bool before = metrics.extentBefore > 0.5;
+    final bool after = metrics.extentAfter > 0.5;
+    if (before != _moreBefore || after != _moreAfter) {
+      setState(() {
+        _moreBefore = before;
+        _moreAfter = after;
+      });
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final TabBarThemeData theme = TabBarTheme.of(context);
+    final TextScaler scaler = MediaQuery.textScalerOf(context);
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final double room = constraints.maxWidth - _frame;
+        final double text = widget.labels.fold(
+            0.0,
+            (double sum, String label) =>
+                sum + _labelWidth(label, theme, scaler));
+        // A pixel to spare, so rounding never tips it into scrolling.
+        final double padding =
+            ((room - text - 1) / (2 * widget.labels.length)).floorToDouble();
+        final bool fits = padding >= _minPadding;
+        final Widget bar = GlassTabBar(
+          key: const Key('plan-tabs'),
+          isScrollable: true,
+          labelPadding: EdgeInsets.symmetric(
+              horizontal: fits ? padding : _scrollPadding),
+          tabs: <Widget>[
+            for (final String label in widget.labels) Tab(text: label),
+          ],
+        );
+        if (fits) return bar;
+        return NotificationListener<ScrollMetricsNotification>(
+          onNotification: (ScrollMetricsNotification n) =>
+              _onScroll(n.metrics),
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (ScrollNotification n) => _onScroll(n.metrics),
+            child: ShaderMask(
+              blendMode: BlendMode.dstIn,
+              shaderCallback: (Rect bounds) {
+                final double inset = AppSpacing.md / bounds.width;
+                final double fade = _fade / bounds.width;
+                return LinearGradient(
+                  colors: <Color>[
+                    _moreBefore ? Colors.transparent : Colors.white,
+                    Colors.white,
+                    Colors.white,
+                    _moreAfter ? Colors.transparent : Colors.white,
+                  ],
+                  stops: <double>[
+                    inset,
+                    inset + fade,
+                    1 - inset - fade,
+                    1 - inset,
+                  ],
+                ).createShader(bounds);
+              },
+              child: bar,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _TrainingTab extends StatelessWidget {
   const _TrainingTab({required this.snapshot});
 
@@ -129,53 +248,78 @@ class _TrainingTab extends StatelessWidget {
     final AppLocalizations l10n = context.l10n;
     final TrainingPlan plan = snapshot.plan!.training!;
     final Challenge challenge = snapshot.challenge!;
-    final TrainingWeek currentWeek =
-        plan.weekFor(challenge.startDay, snapshot.today);
+    final DayKey today = snapshot.today;
+    final int current = plan.weekNumberFor(challenge.startDay, today);
 
-    return ListView(
-      padding: EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        AppSpacing.md,
-        AppSpacing.md,
-        // The dock floats over the end of the list.
-        AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
-      ),
-      children: <Widget>[
-        AppCard(
-          color: AppColors.surfaceHigh,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(l10n.splitName(plan.split),
-                  style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                l10n.trainingPlanRationale(plan),
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              OutlinedButton.icon(
-                key: const Key('edit-training-plan'),
-                onPressed: () => Navigator.of(context).push<void>(
-                  MaterialPageRoute<void>(
-                    builder: (BuildContext context) =>
-                        TrainingEditorScreen(challenge: challenge),
+    // The weeks of the cycle the user is in: 1–15 for the first 100 days,
+    // then on from there — the plan does not start over.
+    final DayKey cycleStart = challenge.startDay
+        .addDays(challenge.cycleOf(today) * challenge.lengthDays);
+    final int first = plan.weekNumberFor(challenge.startDay, cycleStart);
+    final int last = plan.weekNumberFor(
+      challenge.startDay,
+      cycleStart.addDays(challenge.lengthDays - 1),
+    );
+
+    // Opens on the current week rather than on week 1: the list is centred
+    // on it, with the weeks before (and the plan's header) above.
+    const Key currentWeek = Key('plan-current-week');
+    const EdgeInsets sides = EdgeInsets.symmetric(horizontal: AppSpacing.md);
+    return CustomScrollView(
+      center: current > first ? currentWeek : null,
+      slivers: <Widget>[
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),
+          sliver: SliverToBoxAdapter(
+            child: AppCard(
+              color: AppColors.surfaceHigh,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(l10n.splitName(plan.split),
+                      style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    l10n.trainingPlanRationale(plan),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: AppColors.textSecondary),
                   ),
-                ),
-                icon: const Icon(Icons.edit, size: 18),
-                label: Text(l10n.planEditTraining),
+                  const SizedBox(height: AppSpacing.sm),
+                  OutlinedButton.icon(
+                    key: const Key('edit-training-plan'),
+                    onPressed: () => Navigator.of(context).push<void>(
+                      MaterialPageRoute<void>(
+                        builder: (BuildContext context) =>
+                            TrainingEditorScreen(challenge: challenge),
+                      ),
+                    ),
+                    icon: const Icon(Icons.edit, size: 18),
+                    label: Text(l10n.planEditTraining),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
-        for (final TrainingWeek week in plan.weeks)
-          _WeekSection(
-            week: week,
-            isCurrent: week.weekNumber == currentWeek.weekNumber,
+        for (final TrainingWeek week in plan.weeksBetween(first, last))
+          SliverPadding(
+            key: week.weekNumber == current ? currentWeek : null,
+            padding: sides,
+            sliver: SliverToBoxAdapter(
+              child: _WeekSection(
+                week: week,
+                isCurrent: week.weekNumber == current,
+              ),
+            ),
           ),
+        // The dock floats over the end of the list.
+        SliverToBoxAdapter(
+          child: SizedBox(
+              height: AppSpacing.lg + MediaQuery.paddingOf(context).bottom),
+        ),
       ],
     );
   }
