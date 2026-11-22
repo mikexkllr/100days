@@ -98,7 +98,7 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
     final Fire fire = state.fire;
     final List<Habit> todayHabits = state.habits;
     final List<Habit> otherHabits = challenge.habits
-        .where((Habit h) => !todayHabits.contains(h))
+        .where((Habit h) => !todayHabits.contains(h) && !h.isRetiredOn(today))
         .toList();
     final Workout? workout = snapshot.plan?.workoutFor(challenge.startDay, today);
     // Day 100 of the *current* cycle, finished. The cycleOf check keeps the

@@ -98,6 +98,7 @@ class StatsScreen extends ConsumerWidget {
             AppCard(child: _WeeklyXpChart(snapshot: snapshot)),
             SectionHeader(l10n.statsPerHabit),
             for (final Habit habit in challenge.habits)
+              if (!habit.isRetiredOn(snapshot.today))
               Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: _HabitStatRow(

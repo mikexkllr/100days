@@ -33,14 +33,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted || error.problem == SignInProblem.cancelled) return;
       final AppLocalizations l10n = context.l10n;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(switch (error.problem) {
-          SignInProblem.notConfigured => l10n.loginNotConfigured,
-          SignInProblem.wrongCredentials => l10n.loginWrongCredentials,
-          SignInProblem.emailNotConfirmed => l10n.loginEmailNotConfirmed,
-          SignInProblem.emailTaken => l10n.loginEmailTaken,
-          SignInProblem.weakPassword => l10n.loginWeakPassword,
-          SignInProblem.cancelled || SignInProblem.failed => l10n.loginFailed,
-        }),
+        content: Text(signInProblemText(l10n, error.problem)),
       ));
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -147,29 +140,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
+  /// The e-mail sheet signs in by itself and stays open on a wrong
+  /// password, so nothing has to be typed twice. It closes with the address
+  /// when a new account still has to be confirmed.
   Future<void> _emailSignIn() async {
-    final _EmailRequest? request = await showModalBottomSheet<_EmailRequest>(
+    final String? toConfirm = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      builder: (BuildContext context) => const _EmailSheet(),
+      builder: (BuildContext context) =>
+          _EmailSheet(auth: ref.read(authServiceProvider)),
     );
-    if (request == null || !mounted) return;
-    if (!request.register) {
-      await _signIn(
-          (AuthService a) => a.signInWithEmail(request.email, request.password));
-      return;
-    }
-    bool? signedIn;
-    await _signIn((AuthService a) async {
-      signedIn = await a.signUpWithEmail(request.email, request.password);
-    });
-    // Signed in: the app moves on to onboarding by itself. Otherwise the
-    // address needs confirming first.
-    if (signedIn != false || !mounted) return;
+    if (toConfirm == null || !mounted) return;
     await showDialog<void>(
       context: context,
-      builder: (BuildContext context) =>
-          _ConfirmEmailDialog(email: request.email),
+      builder: (BuildContext context) => _ConfirmEmailDialog(email: toConfirm),
     );
   }
 
@@ -225,14 +209,25 @@ class _ConfirmEmailDialog extends ConsumerWidget {
   }
 }
 
-typedef _EmailRequest = ({String email, String password, bool register});
+/// What went wrong with an e-mail sign-in, in words.
+String signInProblemText(AppLocalizations l10n, SignInProblem problem) =>
+    switch (problem) {
+      SignInProblem.notConfigured => l10n.loginNotConfigured,
+      SignInProblem.wrongCredentials => l10n.loginWrongCredentials,
+      SignInProblem.emailNotConfirmed => l10n.loginEmailNotConfirmed,
+      SignInProblem.emailTaken => l10n.loginEmailTaken,
+      SignInProblem.weakPassword => l10n.loginWeakPassword,
+      SignInProblem.cancelled || SignInProblem.failed => l10n.loginFailed,
+    };
 
 /// E-mail and password: sign in, or register a new account with them.
 class _EmailSheet extends StatefulWidget {
-  const _EmailSheet();
+  const _EmailSheet({required this.auth});
+
+  final AuthService auth;
 
   /// New accounts need at least this many characters. The backend may ask
-  /// for more; it says so, and the login screen passes that on.
+  /// for more; it says so, and the sheet passes that on.
   static const int minPasswordLength = 8;
 
   @override
@@ -242,87 +237,305 @@ class _EmailSheet extends StatefulWidget {
 class _EmailSheetState extends State<_EmailSheet> {
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
-  bool _passwordTooShort = false;
+  final TextEditingController _repeat = TextEditingController();
+  bool _register = false;
+  bool _showPassword = false;
+  bool _busy = false;
+  String? _passwordError;
+  String? _repeatError;
+  String? _error;
+  String? _info;
 
   @override
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _repeat.dispose();
     super.dispose();
   }
 
-  void _submit({required bool register}) {
+  Future<void> _submit() async {
+    final AppLocalizations l10n = context.l10n;
     final String email = _email.text.trim();
-    if (email.isEmpty || _password.text.isEmpty) return;
-    if (register && _password.text.length < _EmailSheet.minPasswordLength) {
-      setState(() => _passwordTooShort = true);
+    if (email.isEmpty || _password.text.isEmpty || _busy) return;
+    if (_register && _password.text.length < _EmailSheet.minPasswordLength) {
+      setState(() => _passwordError =
+          l10n.loginPasswordTooShort(_EmailSheet.minPasswordLength));
       return;
     }
-    Navigator.of(context)
-        .pop((email: email, password: _password.text, register: register));
+    if (_register && _repeat.text != _password.text) {
+      setState(() => _repeatError = l10n.loginPasswordMismatch);
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+      _info = null;
+    });
+    try {
+      if (_register) {
+        final bool signedIn =
+            await widget.auth.signUpWithEmail(email, _password.text);
+        if (!mounted) return;
+        // Signed in: the app moves on by itself. Otherwise the address
+        // needs confirming first.
+        Navigator.of(context).pop(signedIn ? null : email);
+      } else {
+        await widget.auth.signInWithEmail(email, _password.text);
+        if (mounted) Navigator.of(context).pop();
+      }
+    } on SignInException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _error = signInProblemText(l10n, error.problem);
+      });
+    }
+  }
+
+  Future<void> _forgot() async {
+    final AppLocalizations l10n = context.l10n;
+    final String email = _email.text.trim();
+    if (email.isEmpty) {
+      setState(() => _error = l10n.loginForgotNeedsEmail);
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await widget.auth.sendPasswordReset(email);
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _info = l10n.loginForgotSent(email);
+      });
+    } on SignInException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _error = signInProblemText(l10n, error.problem);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
+    final Widget eye = IconButton(
+      tooltip: _showPassword ? l10n.loginHidePassword : l10n.loginShowPassword,
+      onPressed: () => setState(() => _showPassword = !_showPassword),
+      icon: Icon(_showPassword ? Icons.visibility_off : Icons.visibility),
+    );
     return Padding(
       padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg,
           AppSpacing.lg + MediaQuery.viewInsetsOf(context).bottom),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Text(l10n.loginEmail, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            l10n.loginEmailHint,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          TextField(
-            key: const Key('login-email-address'),
-            controller: _email,
-            keyboardType: TextInputType.emailAddress,
-            autocorrect: false,
-            autofillHints: const <String>[AutofillHints.email],
-            decoration: InputDecoration(labelText: l10n.loginEmailAddress),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          TextField(
-            key: const Key('login-email-password'),
-            controller: _password,
-            obscureText: true,
-            autocorrect: false,
-            enableSuggestions: false,
-            autofillHints: const <String>[AutofillHints.password],
-            onChanged: (_) {
-              if (_passwordTooShort) setState(() => _passwordTooShort = false);
-            },
-            decoration: InputDecoration(
-              labelText: l10n.loginPassword,
-              errorText: _passwordTooShort
-                  ? l10n.loginPasswordTooShort(_EmailSheet.minPasswordLength)
-                  : null,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Text(l10n.loginEmail,
+                style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              l10n.loginEmailHint,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: AppColors.textSecondary),
             ),
-            onSubmitted: (_) => _submit(register: false),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          FilledButton(
-            key: const Key('login-email-submit'),
-            onPressed: () => _submit(register: false),
-            child: Text(l10n.loginEmailSubmit),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          OutlinedButton(
-            key: const Key('login-email-register'),
-            onPressed: () => _submit(register: true),
-            child: Text(l10n.loginEmailRegister),
-          ),
-        ],
+            const SizedBox(height: AppSpacing.md),
+            SegmentedButton<bool>(
+              segments: <ButtonSegment<bool>>[
+                ButtonSegment<bool>(
+                    value: false, label: Text(l10n.loginModeSignIn)),
+                ButtonSegment<bool>(
+                    value: true, label: Text(l10n.loginModeRegister)),
+              ],
+              selected: <bool>{_register},
+              onSelectionChanged: (Set<bool> v) => setState(() {
+                _register = v.first;
+                _error = null;
+                _info = null;
+                _passwordError = null;
+                _repeatError = null;
+              }),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              key: const Key('login-email-address'),
+              controller: _email,
+              keyboardType: TextInputType.emailAddress,
+              autocorrect: false,
+              autofillHints: const <String>[AutofillHints.email],
+              decoration: InputDecoration(labelText: l10n.loginEmailAddress),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              key: const Key('login-email-password'),
+              controller: _password,
+              obscureText: !_showPassword,
+              autocorrect: false,
+              enableSuggestions: false,
+              autofillHints: <String>[
+                if (_register) AutofillHints.newPassword else AutofillHints.password,
+              ],
+              onChanged: (_) {
+                if (_passwordError != null) {
+                  setState(() => _passwordError = null);
+                }
+              },
+              decoration: InputDecoration(
+                labelText: l10n.loginPassword,
+                errorText: _passwordError,
+                suffixIcon: eye,
+              ),
+              onSubmitted: (_) => _register ? null : _submit(),
+            ),
+            if (_register) ...<Widget>[
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                key: const Key('login-email-repeat'),
+                controller: _repeat,
+                obscureText: !_showPassword,
+                autocorrect: false,
+                enableSuggestions: false,
+                onChanged: (_) {
+                  if (_repeatError != null) setState(() => _repeatError = null);
+                },
+                decoration: InputDecoration(
+                  labelText: l10n.loginPasswordRepeat,
+                  errorText: _repeatError,
+                ),
+                onSubmitted: (_) => _submit(),
+              ),
+            ],
+            if (_error != null) ...<Widget>[
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                _error!,
+                key: const Key('login-email-error'),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: AppColors.danger),
+              ),
+            ],
+            if (_info != null) ...<Widget>[
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                _info!,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: AppColors.success),
+              ),
+            ],
+            const SizedBox(height: AppSpacing.md),
+            FilledButton(
+              key: Key(_register ? 'login-email-register' : 'login-email-submit'),
+              onPressed: _busy ? null : _submit,
+              child: _busy
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2.5),
+                    )
+                  : Text(_register
+                      ? l10n.loginEmailRegister
+                      : l10n.loginEmailSubmit),
+            ),
+            if (!_register)
+              TextButton(
+                key: const Key('login-forgot'),
+                onPressed: _busy ? null : _forgot,
+                child: Text(l10n.loginForgot),
+              ),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+/// After a reset link opened the app: the new password.
+class NewPasswordDialog extends ConsumerStatefulWidget {
+  const NewPasswordDialog({super.key});
+
+  @override
+  ConsumerState<NewPasswordDialog> createState() => _NewPasswordDialogState();
+}
+
+class _NewPasswordDialogState extends ConsumerState<NewPasswordDialog> {
+  final TextEditingController _password = TextEditingController();
+  bool _show = false;
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _password.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final AppLocalizations l10n = context.l10n;
+    if (_password.text.length < _EmailSheet.minPasswordLength) {
+      setState(() =>
+          _error = l10n.loginPasswordTooShort(_EmailSheet.minPasswordLength));
+      return;
+    }
+    setState(() => _busy = true);
+    try {
+      await ref.read(authServiceProvider).updatePassword(_password.text);
+      if (!mounted) return;
+      final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+      Navigator.of(context).pop();
+      messenger.showSnackBar(
+          SnackBar(content: Text(l10n.loginNewPasswordSaved)));
+    } on SignInException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _error = signInProblemText(l10n, error.problem);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    return AlertDialog(
+      backgroundColor: AppColors.surface,
+      title: Text(l10n.loginNewPasswordTitle),
+      content: TextField(
+        key: const Key('new-password'),
+        controller: _password,
+        obscureText: !_show,
+        autofocus: true,
+        autofillHints: const <String>[AutofillHints.newPassword],
+        decoration: InputDecoration(
+          labelText: l10n.loginPassword,
+          errorText: _error,
+          suffixIcon: IconButton(
+            onPressed: () => setState(() => _show = !_show),
+            icon: Icon(_show ? Icons.visibility_off : Icons.visibility),
+          ),
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: _busy ? null : () => Navigator.of(context).pop(),
+          child: Text(l10n.actionCancel),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(minimumSize: const Size(120, 44)),
+          onPressed: _busy ? null : _save,
+          child: Text(l10n.loginNewPasswordSave),
+        ),
+      ],
     );
   }
 }

@@ -402,7 +402,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get coachBadgeLlm => 'on-device AI';
+  String get coachBadgeLlm => 'AI';
 
   @override
   String get coachBadgeRule => 'Coach';
@@ -4920,4 +4920,170 @@ class AppLocalizationsEn extends AppLocalizations {
   String statsWeekLabel(String week) {
     return 'W$week';
   }
+
+  @override
+  String get habitsEditTitle => 'Your habits';
+
+  @override
+  String get habitsEditSub =>
+      'Change a target, how often, or take a habit out. Past days keep counting by the rules they were counted with.';
+
+  @override
+  String get habitsEditRow => 'Habits';
+
+  @override
+  String habitsEditRowSub(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count habits',
+      one: '1 habit',
+    );
+    return '$_temp0 — add, change, take out';
+  }
+
+  @override
+  String habitsDaysPerWeek(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days a week',
+      one: '1 day a week',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get habitsRemove => 'Take out';
+
+  @override
+  String habitsRemoveTitle(String habit) {
+    return 'Take $habit out?';
+  }
+
+  @override
+  String get habitsRemoveBody =>
+      'From tomorrow it no longer counts. The days it was part of stay as they were.';
+
+  @override
+  String get habitsAdd => 'Add a habit';
+
+  @override
+  String get habitsAddCustom => 'Your own…';
+
+  @override
+  String get habitsCustomName => 'What is it?';
+
+  @override
+  String get habitsSave => 'Save changes';
+
+  @override
+  String get habitsSaved => 'Habits saved.';
+
+  @override
+  String get habitsFromTomorrow =>
+      'Today is done already, so this counts from tomorrow.';
+
+  @override
+  String get habitsTrainingNote => 'Training days follow your training plan.';
+
+  @override
+  String get habitsKeepOne => 'At least one habit has to stay.';
+
+  @override
+  String setStreakModeConfirmTitle(String mode) {
+    return 'Switch to $mode?';
+  }
+
+  @override
+  String get setStreakModeConfirmBody =>
+      'From tomorrow on. Today and every day before keep the mode they are counted in.';
+
+  @override
+  String get setStreakModeTomorrow => 'Switch from tomorrow';
+
+  @override
+  String setStreakModePending(String mode) {
+    return 'Changes to $mode tomorrow.';
+  }
+
+  @override
+  String get setAppSection => 'App';
+
+  @override
+  String get setTapToCheckIn => 'Tap instead of hold';
+
+  @override
+  String get setTapToCheckInSub =>
+      'A tap checks a habit in. For anyone who cannot or does not want to hold a press.';
+
+  @override
+  String get setSound => 'Sounds';
+
+  @override
+  String get setSoundSub =>
+      'Crackle, ignition and the slot machine. Silent mode keeps them quiet.';
+
+  @override
+  String get setRestart => 'Start again from day 1';
+
+  @override
+  String get setRestartSub =>
+      'Same habits, a new day 1. Your history stays in your feed.';
+
+  @override
+  String get setRestartTitle => 'Start again from day 1?';
+
+  @override
+  String get setRestartBody =>
+      'Your streak, your flame and the board start over today. Friends see the new start. This cannot be undone.';
+
+  @override
+  String get setRestartConfirm => 'Start again';
+
+  @override
+  String setServerInfo(String server) {
+    return 'Server: $server';
+  }
+
+  @override
+  String get habitsEveryDay => 'Every day';
+
+  @override
+  String get loginModeSignIn => 'Sign in';
+
+  @override
+  String get loginModeRegister => 'New account';
+
+  @override
+  String get loginPasswordRepeat => 'Password again';
+
+  @override
+  String get loginPasswordMismatch => 'The two passwords are not the same.';
+
+  @override
+  String get loginShowPassword => 'Show password';
+
+  @override
+  String get loginHidePassword => 'Hide password';
+
+  @override
+  String get loginForgot => 'Forgot your password?';
+
+  @override
+  String get loginForgotNeedsEmail => 'Enter your e-mail address first.';
+
+  @override
+  String loginForgotSent(String email) {
+    return 'If there is an account for $email, a link to set a new password is on its way.';
+  }
+
+  @override
+  String get loginNewPasswordTitle => 'Set a new password';
+
+  @override
+  String get loginNewPasswordSave => 'Save password';
+
+  @override
+  String get loginNewPasswordSaved => 'Your new password is set.';
 }

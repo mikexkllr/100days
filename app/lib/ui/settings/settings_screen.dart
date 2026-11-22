@@ -6,6 +6,7 @@ import 'package:hundred_core/hundred_core.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../config/backend_config.dart';
+import '../../data/app_prefs.dart';
 import '../../data/app_repository.dart';
 import '../../data/auth_service.dart';
 import '../../data/feed_sync.dart';
@@ -16,6 +17,8 @@ import '../../state/sign_out.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
 import 'ai_screen.dart';
+import 'habits_editor_screen.dart';
+import 'profile_edit_screen.dart';
 import 'privacy_screen.dart';
 import 'reminders_screen.dart';
 import 'social_settings_screen.dart';
@@ -48,6 +51,11 @@ class SettingsScreen extends ConsumerWidget {
         ),
         children: <Widget>[
           AppCard(
+            onTap: () => Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => const ProfileEditScreen(),
+              ),
+            ),
             child: Row(
               children: <Widget>[
                 EmojiAvatar(snapshot.me.profile.avatarEmoji, size: 50),
@@ -69,10 +77,41 @@ class SettingsScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+                const Icon(Icons.edit_outlined,
+                    size: 20, color: AppColors.textTertiary),
               ],
             ),
           ),
-          SectionHeader(l10n.setAccountSection),
+          if (snapshot.challenge != null) ...<Widget>[
+            SectionHeader(l10n.setStreakModeSection),
+            _Row(
+              icon: Icons.checklist,
+              iconColor: AppColors.primary,
+              title: l10n.habitsEditRow,
+              subtitle: l10n.habitsEditRowSub(snapshot.challenge!.habits
+                  .where((Habit h) => !h.isRetiredOn(snapshot.today))
+                  .length),
+              onTap: () => Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  builder: (BuildContext context) => const HabitsEditorScreen(),
+                ),
+              ),
+            ),
+            _StreakModeRow(challenge: snapshot.challenge!),
+          ],
+          _Row(
+            icon: Icons.notifications_none,
+            title: l10n.remindTitle,
+            subtitle: ref.watch(appPrefsProvider).remindersOn
+                ? l10n.remindRowSub(
+                    ref.watch(appPrefsProvider).reminderTime.format(context))
+                : l10n.remindRowOff,
+            onTap: () => Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => const RemindersScreen(),
+              ),
+            ),
+          ),
           _Row(
             icon: Icons.lock_outline,
             iconColor: AppColors.success,
@@ -96,61 +135,8 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
-          _Row(
-            icon: Icons.notifications_none,
-            title: l10n.remindTitle,
-            subtitle: ref.watch(appPrefsProvider).remindersOn
-                ? l10n.remindRowSub(
-                    ref.watch(appPrefsProvider).reminderTime.format(context))
-                : l10n.remindRowOff,
-            onTap: () => Navigator.of(context).push<void>(
-              MaterialPageRoute<void>(
-                builder: (BuildContext context) => const RemindersScreen(),
-              ),
-            ),
-          ),
-          _Row(
-            icon: Icons.sync,
-            title: l10n.setSyncNow,
-            subtitle: lastSync.maybeWhen(
-              data: (SyncReport report) => _describeSync(l10n, report),
-              orElse: () => l10n.setSyncNever,
-            ),
-            onTap: () async {
-              final SyncReport report =
-                  await ref.read(appStateProvider.notifier).syncNow();
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(_describeSync(l10n, report))),
-              );
-            },
-          ),
-          _Row(
-            icon: Icons.dns_outlined,
-            title: l10n.setServer,
-            subtitle: backend.isCustom
-                ? l10n.setServerCustom(
-                    Uri.tryParse(backend.supabaseUrl)?.host ?? '')
-                : l10n.setServerDefault,
-          ),
-          _Row(
-            icon: Icons.logout,
-            title: l10n.setSignOut,
-            subtitle: l10n.setSignOutSub,
-            onTap: () => _confirmSignOut(context, ref),
-          ),
-          _Row(
-            icon: Icons.delete_forever_outlined,
-            iconColor: AppColors.danger,
-            title: l10n.setDeleteAccount,
-            subtitle: l10n.setDeleteAccountSub,
-            onTap: () => _confirmDeleteAccount(context, ref),
-          ),
-          if (snapshot.challenge != null) ...<Widget>[
-            SectionHeader(l10n.setStreakModeSection),
-            _StreakModeRow(challenge: snapshot.challenge!),
-          ],
-          SectionHeader(l10n.setLanguageSection),
+          SectionHeader(l10n.setAppSection),
+          const _AppPrefsCard(),
           const _LanguageRow(),
           SectionHeader(l10n.setCoachSection),
           _Row(
@@ -169,6 +155,43 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
+          SectionHeader(l10n.setAccountSection),
+          _Row(
+            icon: Icons.sync,
+            title: l10n.setSyncNow,
+            subtitle: lastSync.maybeWhen(
+              data: (SyncReport report) => _describeSync(l10n, report),
+              orElse: () => l10n.setSyncNever,
+            ),
+            onTap: () async {
+              final SyncReport report =
+                  await ref.read(appStateProvider.notifier).syncNow();
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(_describeSync(l10n, report))),
+              );
+            },
+          ),
+          _Row(
+            icon: Icons.logout,
+            title: l10n.setSignOut,
+            subtitle: l10n.setSignOutSub,
+            onTap: () => _confirmSignOut(context, ref),
+          ),
+          if (snapshot.challenge != null)
+            _Row(
+              icon: Icons.restart_alt,
+              title: l10n.setRestart,
+              subtitle: l10n.setRestartSub,
+              onTap: () => _confirmRestart(context, ref, snapshot.challenge!),
+            ),
+          _Row(
+            icon: Icons.delete_forever_outlined,
+            iconColor: AppColors.danger,
+            title: l10n.setDeleteAccount,
+            subtitle: l10n.setDeleteAccountSub,
+            onTap: () => _confirmDeleteAccount(context, ref),
+          ),
           SectionHeader(l10n.setAboutSection),
           AppCard(
             child: Column(
@@ -183,6 +206,17 @@ class SettingsScreen extends ConsumerWidget {
                       .textTheme
                       .bodyMedium
                       ?.copyWith(color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  l10n.setServerInfo(backend.isCustom
+                      ? l10n.setServerCustom(
+                          Uri.tryParse(backend.supabaseUrl)?.host ?? '')
+                      : l10n.setServerDefault),
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: AppColors.textTertiary, fontSize: 12.5),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 OutlinedButton.icon(
@@ -255,6 +289,63 @@ class SettingsScreen extends ConsumerWidget {
       if (anyway != true) return;
     }
     await forgetThisPhoneAndSignOut(ref);
+  }
+
+  Future<void> _confirmRestart(
+    BuildContext context,
+    WidgetRef ref,
+    Challenge challenge,
+  ) async {
+    final AppLocalizations l10n = context.l10n;
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text(l10n.setRestartTitle),
+        content: Text(l10n.setRestartBody),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.actionCancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.danger,
+              foregroundColor: AppColors.ink,
+              minimumSize: const Size(120, 44),
+            ),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.setRestartConfirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    // The habits as they are today, without the ones taken out and without
+    // the history of changes: a clean day 1.
+    final DayKey today = DayKey.today();
+    await ref.read(appStateProvider.notifier).restartChallenge(
+          Challenge(
+            id: challenge.id,
+            goal: challenge.goal,
+            habits: <Habit>[
+              for (final Habit h in challenge.habits)
+                if (!h.isRetiredOn(today))
+                  Habit(
+                    id: h.id,
+                    category: h.category,
+                    target: h.target,
+                    daysPerWeek: h.daysPerWeek,
+                    title: h.title,
+                    note: h.note,
+                  ),
+            ],
+            startDay: today,
+            lengthDays: challenge.lengthDays,
+            sharing: challenge.sharing,
+            streakMode: challenge.streakMode,
+          ),
+        );
   }
 
   Future<void> _confirmDeleteAccount(BuildContext context, WidgetRef ref) async {
@@ -380,21 +471,95 @@ class _StreakModeRow extends ConsumerWidget {
                     label: Text(l10n.streakModeName(mode)),
                     selected: selected == mode,
                     selectedColor: AppColors.primary.withValues(alpha: 0.2),
-                    onSelected: (_) {
+                    onSelected: (_) async {
                       if (mode == selected) return;
-                      ref.read(appStateProvider.notifier).updateChallenge(
+                      // From tomorrow, and asked first: switching to gentle
+                      // at five to midnight must not rescue today.
+                      final bool? ok = await showDialog<bool>(
+                        context: context,
+                        builder: (BuildContext context) => AlertDialog(
+                          backgroundColor: AppColors.surface,
+                          title: Text(l10n.setStreakModeConfirmTitle(
+                              l10n.streakModeName(mode))),
+                          content: Text(
+                            '${l10n.streakModeDescription(mode)}\n\n'
+                            '${l10n.setStreakModeConfirmBody}',
+                          ),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.of(context).pop(false),
+                              child: Text(l10n.actionCancel),
+                            ),
+                            FilledButton(
+                              style: FilledButton.styleFrom(
+                                  minimumSize: const Size(120, 44)),
+                              onPressed: () =>
+                                  Navigator.of(context).pop(true),
+                              child: Text(l10n.setStreakModeTomorrow),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (ok != true) return;
+                      await ref.read(appStateProvider.notifier).updateChallenge(
                             challenge.withStreakMode(mode,
-                                from: DayKey.today()),
+                                from: DayKey.today().addDays(1)),
                           );
                     },
                   ),
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
+            if (challenge.streakModeOn(DayKey.today()) != selected) ...<Widget>[
+              Text(l10n.setStreakModePending(l10n.streakModeName(selected)),
+                  style: note?.copyWith(color: AppColors.primarySoft)),
+              const SizedBox(height: AppSpacing.xs),
+            ],
             Text(l10n.streakModeDescription(selected),
                 style: note?.copyWith(color: AppColors.textPrimary)),
             const SizedBox(height: AppSpacing.xs),
             Text(l10n.setStreakModeNote, style: note),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// How this phone checks in and whether it makes sounds.
+class _AppPrefsCard extends ConsumerWidget {
+  const _AppPrefsCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations l10n = context.l10n;
+    final AppPrefs prefs = ref.watch(appPrefsProvider);
+    final AppPrefsController controller = ref.read(appPrefsProvider.notifier);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: AppCard(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+        child: Column(
+          children: <Widget>[
+            SwitchListTile(
+              key: const Key('pref-tap'),
+              value: prefs.tapToCheckIn,
+              secondary: const Icon(Icons.touch_app_outlined),
+              title: Text(l10n.setTapToCheckIn),
+              subtitle: Text(l10n.setTapToCheckInSub),
+              onChanged: (bool on) => controller
+                  .update((AppPrefs p) => p.copyWith(tapToCheckIn: on)),
+            ),
+            SwitchListTile(
+              key: const Key('pref-sound'),
+              value: prefs.soundOn,
+              secondary: const Icon(Icons.volume_up_outlined),
+              title: Text(l10n.setSound),
+              subtitle: Text(l10n.setSoundSub),
+              onChanged: (bool on) =>
+                  controller.update((AppPrefs p) => p.copyWith(soundOn: on)),
+            ),
           ],
         ),
       ),

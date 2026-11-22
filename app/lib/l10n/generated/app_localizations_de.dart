@@ -402,7 +402,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get coachBadgeLlm => 'on-device KI';
+  String get coachBadgeLlm => 'KI';
 
   @override
   String get coachBadgeRule => 'Coach';
@@ -4937,4 +4937,172 @@ class AppLocalizationsDe extends AppLocalizations {
   String statsWeekLabel(String week) {
     return 'KW $week';
   }
+
+  @override
+  String get habitsEditTitle => 'Deine Gewohnheiten';
+
+  @override
+  String get habitsEditSub =>
+      'Ändere ein Ziel, wie oft, oder nimm eine Gewohnheit raus. Vergangene Tage bleiben so gezählt, wie sie gezählt wurden.';
+
+  @override
+  String get habitsEditRow => 'Gewohnheiten';
+
+  @override
+  String habitsEditRowSub(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Gewohnheiten',
+      one: '1 Gewohnheit',
+    );
+    return '$_temp0 — hinzufügen, ändern, rausnehmen';
+  }
+
+  @override
+  String habitsDaysPerWeek(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days Tage pro Woche',
+      one: '1 Tag pro Woche',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get habitsRemove => 'Rausnehmen';
+
+  @override
+  String habitsRemoveTitle(String habit) {
+    return '$habit rausnehmen?';
+  }
+
+  @override
+  String get habitsRemoveBody =>
+      'Ab morgen zählt sie nicht mehr. Die Tage, an denen sie dabei war, bleiben, wie sie waren.';
+
+  @override
+  String get habitsAdd => 'Gewohnheit hinzufügen';
+
+  @override
+  String get habitsAddCustom => 'Eigene …';
+
+  @override
+  String get habitsCustomName => 'Was ist es?';
+
+  @override
+  String get habitsSave => 'Änderungen speichern';
+
+  @override
+  String get habitsSaved => 'Gewohnheiten gespeichert.';
+
+  @override
+  String get habitsFromTomorrow =>
+      'Heute ist schon geschafft, darum zählt das ab morgen.';
+
+  @override
+  String get habitsTrainingNote =>
+      'Trainingstage richten sich nach deinem Trainingsplan.';
+
+  @override
+  String get habitsKeepOne => 'Mindestens eine Gewohnheit muss bleiben.';
+
+  @override
+  String setStreakModeConfirmTitle(String mode) {
+    return 'Auf $mode umstellen?';
+  }
+
+  @override
+  String get setStreakModeConfirmBody =>
+      'Ab morgen. Heute und alle Tage davor bleiben in dem Modus gezählt, in dem sie gezählt werden.';
+
+  @override
+  String get setStreakModeTomorrow => 'Ab morgen umstellen';
+
+  @override
+  String setStreakModePending(String mode) {
+    return 'Wechselt morgen auf $mode.';
+  }
+
+  @override
+  String get setAppSection => 'App';
+
+  @override
+  String get setTapToCheckIn => 'Tippen statt Halten';
+
+  @override
+  String get setTapToCheckInSub =>
+      'Ein Tippen hakt eine Gewohnheit ab. Für alle, die nicht lange drücken können oder wollen.';
+
+  @override
+  String get setSound => 'Töne';
+
+  @override
+  String get setSoundSub =>
+      'Knistern, Zünden und die Slot-Machine. Im Lautlos-Modus bleibt es still.';
+
+  @override
+  String get setRestart => 'Neu starten ab Tag 1';
+
+  @override
+  String get setRestartSub =>
+      'Gleiche Gewohnheiten, ein neuer Tag 1. Deine Historie bleibt in deinem Feed.';
+
+  @override
+  String get setRestartTitle => 'Ab Tag 1 neu starten?';
+
+  @override
+  String get setRestartBody =>
+      'Dein Streak, deine Flamme und das Board fangen heute neu an. Deine Freunde sehen den Neustart. Das lässt sich nicht rückgängig machen.';
+
+  @override
+  String get setRestartConfirm => 'Neu starten';
+
+  @override
+  String setServerInfo(String server) {
+    return 'Server: $server';
+  }
+
+  @override
+  String get habitsEveryDay => 'Jeden Tag';
+
+  @override
+  String get loginModeSignIn => 'Anmelden';
+
+  @override
+  String get loginModeRegister => 'Neues Konto';
+
+  @override
+  String get loginPasswordRepeat => 'Passwort wiederholen';
+
+  @override
+  String get loginPasswordMismatch =>
+      'Die beiden Passwörter sind nicht gleich.';
+
+  @override
+  String get loginShowPassword => 'Passwort zeigen';
+
+  @override
+  String get loginHidePassword => 'Passwort verbergen';
+
+  @override
+  String get loginForgot => 'Passwort vergessen?';
+
+  @override
+  String get loginForgotNeedsEmail => 'Gib zuerst deine E-Mail-Adresse ein.';
+
+  @override
+  String loginForgotSent(String email) {
+    return 'Wenn es ein Konto für $email gibt, ist ein Link zum Setzen eines neuen Passworts unterwegs.';
+  }
+
+  @override
+  String get loginNewPasswordTitle => 'Neues Passwort setzen';
+
+  @override
+  String get loginNewPasswordSave => 'Passwort speichern';
+
+  @override
+  String get loginNewPasswordSaved => 'Dein neues Passwort ist gesetzt.';
 }

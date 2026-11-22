@@ -670,7 +670,7 @@ abstract class AppLocalizations {
   /// No description provided for @coachBadgeLlm.
   ///
   /// In en, this message translates to:
-  /// **'on-device AI'**
+  /// **'AI'**
   String get coachBadgeLlm;
 
   /// No description provided for @coachBadgeRule.
@@ -8040,6 +8040,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'W{week}'**
   String statsWeekLabel(String week);
+
+  /// No description provided for @habitsEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your habits'**
+  String get habitsEditTitle;
+
+  /// No description provided for @habitsEditSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Change a target, how often, or take a habit out. Past days keep counting by the rules they were counted with.'**
+  String get habitsEditSub;
+
+  /// No description provided for @habitsEditRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Habits'**
+  String get habitsEditRow;
+
+  /// No description provided for @habitsEditRowSub.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 habit} other{{count} habits}} — add, change, take out'**
+  String habitsEditRowSub(int count);
+
+  /// No description provided for @habitsDaysPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day a week} other{{days} days a week}}'**
+  String habitsDaysPerWeek(int days);
+
+  /// No description provided for @habitsRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Take out'**
+  String get habitsRemove;
+
+  /// No description provided for @habitsRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Take {habit} out?'**
+  String habitsRemoveTitle(String habit);
+
+  /// No description provided for @habitsRemoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'From tomorrow it no longer counts. The days it was part of stay as they were.'**
+  String get habitsRemoveBody;
+
+  /// No description provided for @habitsAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a habit'**
+  String get habitsAdd;
+
+  /// No description provided for @habitsAddCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own…'**
+  String get habitsAddCustom;
+
+  /// No description provided for @habitsCustomName.
+  ///
+  /// In en, this message translates to:
+  /// **'What is it?'**
+  String get habitsCustomName;
+
+  /// No description provided for @habitsSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get habitsSave;
+
+  /// No description provided for @habitsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Habits saved.'**
+  String get habitsSaved;
+
+  /// No description provided for @habitsFromTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Today is done already, so this counts from tomorrow.'**
+  String get habitsFromTomorrow;
+
+  /// No description provided for @habitsTrainingNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Training days follow your training plan.'**
+  String get habitsTrainingNote;
+
+  /// No description provided for @habitsKeepOne.
+  ///
+  /// In en, this message translates to:
+  /// **'At least one habit has to stay.'**
+  String get habitsKeepOne;
+
+  /// No description provided for @setStreakModeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to {mode}?'**
+  String setStreakModeConfirmTitle(String mode);
+
+  /// No description provided for @setStreakModeConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'From tomorrow on. Today and every day before keep the mode they are counted in.'**
+  String get setStreakModeConfirmBody;
+
+  /// No description provided for @setStreakModeTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch from tomorrow'**
+  String get setStreakModeTomorrow;
+
+  /// No description provided for @setStreakModePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes to {mode} tomorrow.'**
+  String setStreakModePending(String mode);
+
+  /// No description provided for @setAppSection.
+  ///
+  /// In en, this message translates to:
+  /// **'App'**
+  String get setAppSection;
+
+  /// No description provided for @setTapToCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap instead of hold'**
+  String get setTapToCheckIn;
+
+  /// No description provided for @setTapToCheckInSub.
+  ///
+  /// In en, this message translates to:
+  /// **'A tap checks a habit in. For anyone who cannot or does not want to hold a press.'**
+  String get setTapToCheckInSub;
+
+  /// No description provided for @setSound.
+  ///
+  /// In en, this message translates to:
+  /// **'Sounds'**
+  String get setSound;
+
+  /// No description provided for @setSoundSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Crackle, ignition and the slot machine. Silent mode keeps them quiet.'**
+  String get setSoundSub;
+
+  /// No description provided for @setRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start again from day 1'**
+  String get setRestart;
+
+  /// No description provided for @setRestartSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Same habits, a new day 1. Your history stays in your feed.'**
+  String get setRestartSub;
+
+  /// No description provided for @setRestartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start again from day 1?'**
+  String get setRestartTitle;
+
+  /// No description provided for @setRestartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak, your flame and the board start over today. Friends see the new start. This cannot be undone.'**
+  String get setRestartBody;
+
+  /// No description provided for @setRestartConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Start again'**
+  String get setRestartConfirm;
+
+  /// No description provided for @setServerInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Server: {server}'**
+  String setServerInfo(String server);
+
+  /// No description provided for @habitsEveryDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get habitsEveryDay;
+
+  /// No description provided for @loginModeSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get loginModeSignIn;
+
+  /// No description provided for @loginModeRegister.
+  ///
+  /// In en, this message translates to:
+  /// **'New account'**
+  String get loginModeRegister;
+
+  /// No description provided for @loginPasswordRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Password again'**
+  String get loginPasswordRepeat;
+
+  /// No description provided for @loginPasswordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The two passwords are not the same.'**
+  String get loginPasswordMismatch;
+
+  /// No description provided for @loginShowPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get loginShowPassword;
+
+  /// No description provided for @loginHidePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get loginHidePassword;
+
+  /// No description provided for @loginForgot.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot your password?'**
+  String get loginForgot;
+
+  /// No description provided for @loginForgotNeedsEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your e-mail address first.'**
+  String get loginForgotNeedsEmail;
+
+  /// No description provided for @loginForgotSent.
+  ///
+  /// In en, this message translates to:
+  /// **'If there is an account for {email}, a link to set a new password is on its way.'**
+  String loginForgotSent(String email);
+
+  /// No description provided for @loginNewPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a new password'**
+  String get loginNewPasswordTitle;
+
+  /// No description provided for @loginNewPasswordSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save password'**
+  String get loginNewPasswordSave;
+
+  /// No description provided for @loginNewPasswordSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Your new password is set.'**
+  String get loginNewPasswordSaved;
 }
 
 class _AppLocalizationsDelegate

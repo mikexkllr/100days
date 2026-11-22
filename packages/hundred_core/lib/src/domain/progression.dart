@@ -36,9 +36,10 @@ int xpForCheckIn({
   if (checkIn.relapse) return 0;
   // Part of the target earns part of the XP: one page of a twenty-page
   // goal is a start, not the whole day's worth.
-  final share = habit.target <= 0
+  final num target = habit.targetOn(checkIn.day);
+  final share = target <= 0
       ? 1.0
-      : (checkIn.value / habit.target).clamp(0.0, 1.0).toDouble();
+      : (checkIn.value / target).clamp(0.0, 1.0).toDouble();
   if (share == 0) return 0;
   final base = habit.definition.difficulty * 10 * share;
   final streakMultiplier = 1 + math.min(streakBefore, 50) / 50.0;
@@ -80,7 +81,7 @@ int xpForDay({
   final allDone = required.isNotEmpty &&
       required.every((Habit h) {
         final e = log.entryFor(h.id);
-        return e != null && !e.relapse && e.value >= h.target;
+        return e != null && !e.relapse && e.value >= h.targetOn(day);
       });
   if (allDone) {
     total += kPerfectDayBonus + milestoneBonus(challenge.dayNumber(day));

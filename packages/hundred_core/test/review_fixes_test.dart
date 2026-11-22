@@ -304,4 +304,59 @@ void main() {
       expect(directive.template, CoachTemplate.recoverRelapse);
     });
   });
+
+  group('editing habits mid-challenge', () {
+    CheckIn read(DayKey day, num pages) => CheckIn(
+          habitId: reading.id,
+          category: reading.category,
+          day: day,
+          value: pages,
+          loggedAt: day.toDateTime(),
+        );
+
+    test('a higher target does not turn past days into misses', () {
+      final DayKey from = _start.addDays(2);
+      final Habit raised = reading.withTarget(30, from: from);
+      expect(raised.targetOn(_start), reading.target);
+      expect(raised.targetOn(from), 30);
+      final Challenge edited = Challenge(
+        id: 'c1',
+        goal: challenge.goal,
+        habits: <Habit>[raised],
+        startDay: _start,
+      );
+      final StreakStats stats = computeStreak(
+        challenge: edited,
+        logsByDay: <String, DayLog>{
+          for (int i = 0; i < 2; i++)
+            _start.addDays(i).toString(): DayLog(
+              day: _start.addDays(i),
+              entries: <CheckIn>[read(_start.addDays(i), 20)],
+            ),
+        },
+        frozenDays: const <String>{},
+        today: from,
+      );
+      expect(stats.current, 2);
+      expect(Habit.fromJson(raised.toJson()).targetOn(_start), reading.target);
+    });
+
+    test('a habit taken out stops counting from that day, not before', () {
+      final DayKey until = _start.addDays(3);
+      final Habit out = noSugar.retiredFrom(until);
+      expect(out.isActiveOn(_start), isTrue);
+      expect(out.isActiveOn(until), isFalse);
+      expect(out.isRetiredOn(until), isTrue);
+      final Challenge edited = Challenge(
+        id: 'c1',
+        goal: challenge.goal,
+        habits: <Habit>[out, reading],
+        startDay: _start,
+      );
+      expect(requiredHabitsOn(edited, _start), hasLength(2));
+      expect(requiredHabitsOn(edited, until).map((Habit h) => h.id),
+          <String>[reading.id]);
+      expect(Habit.fromJson(out.toJson()).activeUntil, until);
+    });
+  });
 }

@@ -375,7 +375,7 @@ Map<String, int> _computeXpByDay(
       final entry = log.entryFor(habit.id);
       if (entry != null && entry.relapse) {
         runningStreaks[habit.id] = 0;
-      } else if (entry != null && entry.value >= habit.target) {
+      } else if (entry != null && entry.value >= habit.targetOn(day)) {
         runningStreaks[habit.id] = (runningStreaks[habit.id] ?? 0) + 1;
       } else if (habit.kind == HabitKind.abstain) {
         runningStreaks[habit.id] = (runningStreaks[habit.id] ?? 0) + 1;

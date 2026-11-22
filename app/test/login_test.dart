@@ -39,6 +39,11 @@ class _FakeAuth implements AuthService {
   }
 
   @override
+  Future<void> sendPasswordReset(String email) async {
+    calls.add('reset $email');
+  }
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -73,6 +78,8 @@ void main() {
   Future<void> openSheet(
     WidgetTester tester, {
     String password = 'geheim123',
+    bool register = false,
+    String? repeat,
   }) async {
     // Below the fold: the login screen is a scrolling list.
     final Finder email = find.byKey(
@@ -83,6 +90,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(email);
     await tester.pumpAndSettle();
+    if (register) {
+      await tester.tap(find.text('Neues Konto'));
+      await tester.pumpAndSettle();
+    }
     await tester.enterText(
       find.byKey(const Key('login-email-address')),
       ' neu@example.com ',
@@ -91,6 +102,12 @@ void main() {
       find.byKey(const Key('login-email-password')),
       password,
     );
+    if (register) {
+      await tester.enterText(
+        find.byKey(const Key('login-email-repeat')),
+        repeat ?? password,
+      );
+    }
   }
 
   testWidgets('the email sheet offers to register', (
@@ -102,8 +119,37 @@ void main() {
       findsOneWidget,
     );
     await openSheet(tester);
-    expect(find.text('Anmelden'), findsOneWidget);
+    expect(find.byKey(const Key('login-email-submit')), findsOneWidget);
+    expect(find.text('Neues Konto'), findsOneWidget);
+    await tester.tap(find.text('Neues Konto'));
+    await tester.pumpAndSettle();
     expect(find.text('Mit E-Mail registrieren'), findsOneWidget);
+    expect(find.byKey(const Key('login-email-repeat')), findsOneWidget);
+  });
+
+  testWidgets('two different passwords are caught before the backend', (
+    WidgetTester tester,
+  ) async {
+    final _FakeAuth auth = _FakeAuth();
+    await pump(tester, auth);
+    await openSheet(tester, register: true, repeat: 'geheim124');
+    await tester.tap(find.byKey(const Key('login-email-register')));
+    await tester.pumpAndSettle();
+    expect(auth.calls, isEmpty);
+    expect(find.text('Die beiden Passwörter sind nicht gleich.'), findsOneWidget);
+  });
+
+  testWidgets('a forgotten password sends a reset link', (
+    WidgetTester tester,
+  ) async {
+    final _FakeAuth auth = _FakeAuth();
+    await pump(tester, auth);
+    await openSheet(tester);
+    await tester.tap(find.byKey(const Key('login-forgot')));
+    await tester.pumpAndSettle();
+    expect(auth.calls, <String>['reset neu@example.com']);
+    expect(find.textContaining('Link zum Setzen eines neuen Passworts'),
+        findsOneWidget);
   });
 
   testWidgets('registering asks to confirm the address when the backend does', (
@@ -111,7 +157,7 @@ void main() {
   ) async {
     final _FakeAuth auth = _FakeAuth();
     await pump(tester, auth);
-    await openSheet(tester);
+    await openSheet(tester, register: true);
     await tester.tap(find.byKey(const Key('login-email-register')));
     await tester.pumpAndSettle();
 
@@ -127,7 +173,7 @@ void main() {
     addTearDown(signIns.close);
     await pump(tester, _FakeAuth(), signIns: signIns.stream);
     signIns.add(null);
-    await openSheet(tester);
+    await openSheet(tester, register: true);
     await tester.tap(find.byKey(const Key('login-email-register')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('login-email-confirm')), findsOneWidget);
@@ -144,7 +190,7 @@ void main() {
   ) async {
     final _FakeAuth auth = _FakeAuth(signUpSignsIn: true);
     await pump(tester, auth);
-    await openSheet(tester);
+    await openSheet(tester, register: true);
     await tester.tap(find.byKey(const Key('login-email-register')));
     await tester.pumpAndSettle();
 
@@ -157,7 +203,7 @@ void main() {
   ) async {
     final _FakeAuth auth = _FakeAuth();
     await pump(tester, auth);
-    await openSheet(tester, password: 'kurz');
+    await openSheet(tester, password: 'kurz', register: true);
     await tester.tap(find.byKey(const Key('login-email-register')));
     await tester.pumpAndSettle();
 
@@ -176,6 +222,9 @@ void main() {
 
       expect(auth.calls, <String>['signIn neu@example.com']);
       expect(find.text('E-Mail oder Passwort stimmen nicht.'), findsOneWidget);
+      // The sheet stays open with what was typed: nothing to type twice.
+      expect(find.byKey(const Key('login-email-password')), findsOneWidget);
+      expect(find.text(' neu@example.com '), findsOneWidget);
     },
   );
 
@@ -183,7 +232,7 @@ void main() {
     WidgetTester tester,
   ) async {
     await pump(tester, _FakeAuth(problem: SignInProblem.emailTaken));
-    await openSheet(tester);
+    await openSheet(tester, register: true);
     await tester.tap(find.byKey(const Key('login-email-register')));
     await tester.pumpAndSettle();
 

@@ -20,6 +20,7 @@ import 'data/social_backend.dart';
 import 'l10n/l10n.dart';
 import 'state/providers.dart';
 import 'ai/dartantic_llm_client.dart';
+import 'ui/auth/login_screen.dart';
 import 'ui/mealplan/household_screen.dart';
 import 'ui/settings/ai_screen.dart';
 import 'ui/social/invite_flow.dart';
@@ -82,6 +83,7 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
   ProviderSubscription<Locale>? _locale;
   ProviderSubscription<AppPrefs>? _prefs;
   StreamSubscription<Uri>? _links;
+  StreamSubscription<void>? _recoveries;
   Timer? _periodicSync;
 
   /// An invite link that arrived before there was anyone to redeem it for:
@@ -167,6 +169,19 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
         if (context != null) unawaited(showPaywall(context));
       },
     );
+
+    // A password-reset link signed the user in: ask for the new password.
+    _recoveries = ref
+        .read(authServiceProvider)
+        .passwordRecoveries
+        .listen((void _) {
+      final BuildContext? context = appNavigatorKey.currentContext;
+      if (context == null || !context.mounted) return;
+      unawaited(showDialog<void>(
+        context: context,
+        builder: (BuildContext context) => const NewPasswordDialog(),
+      ));
+    }, onError: (Object _) {});
 
     final AppLinks links = AppLinks();
     unawaited(links.getInitialLink().then(_onLink, onError: (Object _) {}));
@@ -384,6 +399,7 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
     _locale?.close();
     _prefs?.close();
     unawaited(_links?.cancel());
+    unawaited(_recoveries?.cancel());
     _periodicSync?.cancel();
     super.dispose();
   }

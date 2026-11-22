@@ -70,12 +70,15 @@ class TodayState {
 /// progress, not a completed habit.
 bool isHabitDone(Habit habit, DayLog? log) {
   final CheckIn? entry = log?.entryFor(habit.id);
-  return entry != null && !entry.relapse && entry.value >= habit.target;
+  return entry != null &&
+      !entry.relapse &&
+      entry.value >= habit.targetOn(entry.day);
 }
 
 /// How far [habit] is towards its target in [log], 0 to 1.
 double habitProgress(Habit habit, DayLog? log) {
   final CheckIn? entry = log?.entryFor(habit.id);
-  if (entry == null || entry.relapse || habit.target <= 0) return 0;
-  return (entry.value / habit.target).clamp(0.0, 1.0).toDouble();
+  final num target = entry == null ? habit.target : habit.targetOn(entry.day);
+  if (entry == null || entry.relapse || target <= 0) return 0;
+  return (entry.value / target).clamp(0.0, 1.0).toDouble();
 }

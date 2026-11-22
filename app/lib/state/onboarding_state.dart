@@ -148,13 +148,19 @@ class OnboardingDraft {
     return goal.copyWith(training: currentTrainingSetup());
   }
 
+  /// The habit a logged workout checks in: training, else cardio. It is
+  /// the one that follows the plan's days.
+  HabitCategory? get planHabit => selectedHabits.contains(HabitCategory.gym)
+      ? HabitCategory.gym
+      : selectedHabits.contains(HabitCategory.cardio)
+          ? HabitCategory.cardio
+          : null;
+
   List<Habit> toHabits() => <Habit>[
         for (final HabitCategory category in selectedHabits)
           Habit.fromCategory(category).copyWith(
             target: habitTargets[category],
-            daysPerWeek: category == HabitCategory.gym
-                ? trainingDaysPerWeek
-                : null,
+            daysPerWeek: category == planHabit ? trainingDaysPerWeek : null,
           ),
       ];
 

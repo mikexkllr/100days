@@ -312,7 +312,7 @@
       }
     }
   },
-  "coachBadgeLlm": "on-device AI",
+  "coachBadgeLlm": "AI",
   "coachBadgeRule": "Coach",
   "coachCelebrateGeneric": "{day} days in a row. That is the evidence, not the feeling.",
   "@coachCelebrateGeneric": {
@@ -3480,5 +3480,98 @@
         "type": "String"
       }
     }
-  }
+  },
+  "habitsEditTitle": "Your habits",
+  "habitsEditSub": "Change a target, how often, or take a habit out. Past days keep counting by the rules they were counted with.",
+  "habitsEditRow": "Habits",
+  "habitsEditRowSub": "{count, plural, =1{1 habit} other{{count} habits}} — add, change, take out",
+  "@habitsEditRowSub": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "habitsDaysPerWeek": "{days, plural, =1{1 day a week} other{{days} days a week}}",
+  "@habitsDaysPerWeek": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "habitsRemove": "Take out",
+  "habitsRemoveTitle": "Take {habit} out?",
+  "@habitsRemoveTitle": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "habitsRemoveBody": "From tomorrow it no longer counts. The days it was part of stay as they were.",
+  "habitsAdd": "Add a habit",
+  "habitsAddCustom": "Your own…",
+  "habitsCustomName": "What is it?",
+  "habitsSave": "Save changes",
+  "habitsSaved": "Habits saved.",
+  "habitsFromTomorrow": "Today is done already, so this counts from tomorrow.",
+  "habitsTrainingNote": "Training days follow your training plan.",
+  "habitsKeepOne": "At least one habit has to stay.",
+  "setStreakModeConfirmTitle": "Switch to {mode}?",
+  "@setStreakModeConfirmTitle": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "setStreakModeConfirmBody": "From tomorrow on. Today and every day before keep the mode they are counted in.",
+  "setStreakModeTomorrow": "Switch from tomorrow",
+  "setStreakModePending": "Changes to {mode} tomorrow.",
+  "@setStreakModePending": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "setAppSection": "App",
+  "setTapToCheckIn": "Tap instead of hold",
+  "setTapToCheckInSub": "A tap checks a habit in. For anyone who cannot or does not want to hold a press.",
+  "setSound": "Sounds",
+  "setSoundSub": "Crackle, ignition and the slot machine. Silent mode keeps them quiet.",
+  "setRestart": "Start again from day 1",
+  "setRestartSub": "Same habits, a new day 1. Your history stays in your feed.",
+  "setRestartTitle": "Start again from day 1?",
+  "setRestartBody": "Your streak, your flame and the board start over today. Friends see the new start. This cannot be undone.",
+  "setRestartConfirm": "Start again",
+  "setServerInfo": "Server: {server}",
+  "@setServerInfo": {
+    "placeholders": {
+      "server": {
+        "type": "String"
+      }
+    }
+  },
+  "habitsEveryDay": "Every day",
+  "loginModeSignIn": "Sign in",
+  "loginModeRegister": "New account",
+  "loginPasswordRepeat": "Password again",
+  "loginPasswordMismatch": "The two passwords are not the same.",
+  "loginShowPassword": "Show password",
+  "loginHidePassword": "Hide password",
+  "loginForgot": "Forgot your password?",
+  "loginForgotNeedsEmail": "Enter your e-mail address first.",
+  "loginForgotSent": "If there is an account for {email}, a link to set a new password is on its way.",
+  "@loginForgotSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "loginNewPasswordTitle": "Set a new password",
+  "loginNewPasswordSave": "Save password",
+  "loginNewPasswordSaved": "Your new password is set."
 }

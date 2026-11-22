@@ -89,7 +89,7 @@ DayOutcome dayOutcome(
     final entry = log.entryFor(habit.id);
     if (entry != null && entry.relapse) {
       relapsed++;
-    } else if (entry != null && entry.value >= habit.target) {
+    } else if (entry != null && entry.value >= habit.targetOn(day)) {
       done++;
     } else {
       missing++;
@@ -211,7 +211,7 @@ int habitStreak({
         day = day.addDays(-1);
         continue;
       }
-      if (entry != null && entry.value >= habit.target) {
+      if (entry != null && entry.value >= habit.targetOn(day)) {
         streak++;
       } else if (day == now) {
         // Today has not happened yet.

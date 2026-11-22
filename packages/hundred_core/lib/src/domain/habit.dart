@@ -222,6 +222,26 @@ class ScheduleChange {
       };
 }
 
+/// A past target: [target] applied to every day before [until]. Raising
+/// "20 pages" to 30 must not turn every past day of 25 pages into a miss.
+@immutable
+class TargetChange {
+  const TargetChange({required this.until, required this.target});
+
+  factory TargetChange.fromJson(Map<String, dynamic> json) => TargetChange(
+        until: DayKey.parse(json['until'] as String),
+        target: json['target'] as num,
+      );
+
+  final DayKey until;
+  final num target;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'until': until.toString(),
+        'target': target,
+      };
+}
+
 /// A habit as this user configured it.
 @immutable
 class Habit {
@@ -233,7 +253,9 @@ class Habit {
     this.title,
     this.note,
     this.activeFrom,
+    this.activeUntil,
     this.scheduleHistory = const <ScheduleChange>[],
+    this.targetHistory = const <TargetChange>[],
   });
 
   factory Habit.fromJson(Map<String, dynamic> json) => Habit(
@@ -250,6 +272,14 @@ class Habit {
                 const <dynamic>[])
             .map((dynamic e) =>
                 ScheduleChange.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList(growable: false),
+        activeUntil: json['until'] == null
+            ? null
+            : DayKey.parse(json['until'] as String),
+        targetHistory: ((json['targets'] as List<dynamic>?) ??
+                const <dynamic>[])
+            .map((dynamic e) =>
+                TargetChange.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList(growable: false),
       );
 
@@ -280,8 +310,16 @@ class Habit {
   /// the days before it neither break nor build the streak.
   final DayKey? activeFrom;
 
+  /// First day this habit no longer counts — set when it is taken out of a
+  /// running challenge. The days before keep it, so taking a habit out
+  /// neither mends nor breaks the past.
+  final DayKey? activeUntil;
+
   /// Earlier weekly frequencies, oldest first.
   final List<ScheduleChange> scheduleHistory;
+
+  /// Earlier targets, oldest first.
+  final List<TargetChange> targetHistory;
 
   HabitDefinition get definition => habitDefinition(category);
 
@@ -293,8 +331,58 @@ class Habit {
 
   bool isActiveOn(DayKey day) {
     final from = activeFrom;
-    return from == null || !day.isBefore(from);
+    final until = activeUntil;
+    return (from == null || !day.isBefore(from)) &&
+        (until == null || day.isBefore(until));
   }
+
+  /// Taken out of the challenge (from [activeUntil] on).
+  bool isRetiredOn(DayKey day) {
+    final until = activeUntil;
+    return until != null && !day.isBefore(until);
+  }
+
+  /// The target that applied on [day].
+  num targetOn(DayKey day) {
+    for (final change in targetHistory) {
+      if (day.isBefore(change.until)) return change.target;
+    }
+    return target;
+  }
+
+  /// This habit with a new target from [from] on, the old one kept for
+  /// every day before.
+  Habit withTarget(num value, {required DayKey from}) {
+    if (value == target) return this;
+    return _copy(
+      target: value,
+      targetHistory: <TargetChange>[
+        ...targetHistory.where((TargetChange c) => c.until.isBefore(from)),
+        TargetChange(until: from, target: targetOn(from.addDays(-1))),
+      ],
+    );
+  }
+
+  /// This habit taken out of the challenge from [from] on.
+  Habit retiredFrom(DayKey from) => _copy(activeUntil: from);
+
+  Habit _copy({
+    num? target,
+    DayKey? activeUntil,
+    List<TargetChange>? targetHistory,
+  }) =>
+      Habit(
+        id: id,
+        category: category,
+        target: target ?? this.target,
+        daysPerWeek: daysPerWeek,
+        title: title,
+        note: note,
+        activeFrom: activeFrom,
+        activeUntil: activeUntil ?? this.activeUntil,
+        scheduleHistory: scheduleHistory,
+        targetHistory: targetHistory ?? this.targetHistory,
+      );
 
   /// The weekly frequency that applied on [day].
   int daysPerWeekOn(DayKey day) {
@@ -316,10 +404,12 @@ class Habit {
       title: title,
       note: note,
       activeFrom: activeFrom,
+      activeUntil: activeUntil,
       scheduleHistory: <ScheduleChange>[
         ...scheduleHistory.where((ScheduleChange c) => c.until.isBefore(from)),
         ScheduleChange(until: from, daysPerWeek: daysPerWeekOn(from.addDays(-1))),
       ],
+      targetHistory: targetHistory,
     );
   }
 
@@ -338,7 +428,9 @@ class Habit {
         title: title ?? this.title,
         note: note ?? this.note,
         activeFrom: activeFrom ?? this.activeFrom,
+        activeUntil: activeUntil,
         scheduleHistory: scheduleHistory,
+        targetHistory: targetHistory,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -352,5 +444,8 @@ class Habit {
         if (scheduleHistory.isNotEmpty)
           'history':
               scheduleHistory.map((ScheduleChange c) => c.toJson()).toList(),
+        if (activeUntil != null) 'until': activeUntil.toString(),
+        if (targetHistory.isNotEmpty)
+          'targets': targetHistory.map((TargetChange c) => c.toJson()).toList(),
       };
 }

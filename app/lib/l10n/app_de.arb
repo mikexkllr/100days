@@ -246,7 +246,7 @@
       }
     }
   },
-  "coachBadgeLlm": "on-device KI",
+  "coachBadgeLlm": "KI",
   "coachBadgeRule": "Coach",
   "coachCelebrateGeneric": "{day} Tage am Stück. Das ist der Beweis, nicht das Gefühl.",
   "@coachCelebrateGeneric": {
@@ -2644,5 +2644,98 @@
         "type": "String"
       }
     }
-  }
+  },
+  "habitsEditTitle": "Deine Gewohnheiten",
+  "habitsEditSub": "Ändere ein Ziel, wie oft, oder nimm eine Gewohnheit raus. Vergangene Tage bleiben so gezählt, wie sie gezählt wurden.",
+  "habitsEditRow": "Gewohnheiten",
+  "habitsEditRowSub": "{count, plural, =1{1 Gewohnheit} other{{count} Gewohnheiten}} — hinzufügen, ändern, rausnehmen",
+  "@habitsEditRowSub": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "habitsDaysPerWeek": "{days, plural, =1{1 Tag pro Woche} other{{days} Tage pro Woche}}",
+  "@habitsDaysPerWeek": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "habitsRemove": "Rausnehmen",
+  "habitsRemoveTitle": "{habit} rausnehmen?",
+  "@habitsRemoveTitle": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "habitsRemoveBody": "Ab morgen zählt sie nicht mehr. Die Tage, an denen sie dabei war, bleiben, wie sie waren.",
+  "habitsAdd": "Gewohnheit hinzufügen",
+  "habitsAddCustom": "Eigene …",
+  "habitsCustomName": "Was ist es?",
+  "habitsSave": "Änderungen speichern",
+  "habitsSaved": "Gewohnheiten gespeichert.",
+  "habitsFromTomorrow": "Heute ist schon geschafft, darum zählt das ab morgen.",
+  "habitsTrainingNote": "Trainingstage richten sich nach deinem Trainingsplan.",
+  "habitsKeepOne": "Mindestens eine Gewohnheit muss bleiben.",
+  "setStreakModeConfirmTitle": "Auf {mode} umstellen?",
+  "@setStreakModeConfirmTitle": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "setStreakModeConfirmBody": "Ab morgen. Heute und alle Tage davor bleiben in dem Modus gezählt, in dem sie gezählt werden.",
+  "setStreakModeTomorrow": "Ab morgen umstellen",
+  "setStreakModePending": "Wechselt morgen auf {mode}.",
+  "@setStreakModePending": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "setAppSection": "App",
+  "setTapToCheckIn": "Tippen statt Halten",
+  "setTapToCheckInSub": "Ein Tippen hakt eine Gewohnheit ab. Für alle, die nicht lange drücken können oder wollen.",
+  "setSound": "Töne",
+  "setSoundSub": "Knistern, Zünden und die Slot-Machine. Im Lautlos-Modus bleibt es still.",
+  "setRestart": "Neu starten ab Tag 1",
+  "setRestartSub": "Gleiche Gewohnheiten, ein neuer Tag 1. Deine Historie bleibt in deinem Feed.",
+  "setRestartTitle": "Ab Tag 1 neu starten?",
+  "setRestartBody": "Dein Streak, deine Flamme und das Board fangen heute neu an. Deine Freunde sehen den Neustart. Das lässt sich nicht rückgängig machen.",
+  "setRestartConfirm": "Neu starten",
+  "setServerInfo": "Server: {server}",
+  "@setServerInfo": {
+    "placeholders": {
+      "server": {
+        "type": "String"
+      }
+    }
+  },
+  "habitsEveryDay": "Jeden Tag",
+  "loginModeSignIn": "Anmelden",
+  "loginModeRegister": "Neues Konto",
+  "loginPasswordRepeat": "Passwort wiederholen",
+  "loginPasswordMismatch": "Die beiden Passwörter sind nicht gleich.",
+  "loginShowPassword": "Passwort zeigen",
+  "loginHidePassword": "Passwort verbergen",
+  "loginForgot": "Passwort vergessen?",
+  "loginForgotNeedsEmail": "Gib zuerst deine E-Mail-Adresse ein.",
+  "loginForgotSent": "Wenn es ein Konto für {email} gibt, ist ein Link zum Setzen eines neuen Passworts unterwegs.",
+  "@loginForgotSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "loginNewPasswordTitle": "Neues Passwort setzen",
+  "loginNewPasswordSave": "Passwort speichern",
+  "loginNewPasswordSaved": "Dein neues Passwort ist gesetzt."
 }
