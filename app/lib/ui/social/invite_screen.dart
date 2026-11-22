@@ -97,13 +97,19 @@ class InviteScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                FilledButton.icon(
-                  onPressed: () => Share.share(
-                    l10n.inviteShareText(link, code),
-                    subject: l10n.inviteShareSubject,
+                // A Builder for the button's own box: on an iPad the share
+                // sheet is a popover and needs to know where to point.
+                Builder(
+                  builder: (BuildContext buttonContext) => FilledButton.icon(
+                    key: const Key('invite-share'),
+                    onPressed: () => Share.share(
+                      l10n.inviteShareText(link, code),
+                      subject: l10n.inviteShareSubject,
+                      sharePositionOrigin: _originOf(buttonContext),
+                    ),
+                    icon: const Icon(Icons.ios_share, size: 19),
+                    label: Text(l10n.actionShare),
                   ),
-                  icon: const Icon(Icons.ios_share, size: 19),
-                  label: Text(l10n.actionShare),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 OutlinedButton.icon(
@@ -124,10 +130,20 @@ class InviteScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.md),
                 TextButton.icon(
                   onPressed: () async {
-                    await ref.read(repositoryProvider).social.revokeInviteCodes();
+                    final ScaffoldMessengerState messenger =
+                        ScaffoldMessenger.of(context);
+                    try {
+                      await ref
+                          .read(repositoryProvider)
+                          .social
+                          .revokeInviteCodes();
+                    } on Object {
+                      messenger.showSnackBar(
+                          SnackBar(content: Text(l10n.inviteErrorOffline)));
+                      return;
+                    }
                     ref.invalidate(myInviteCodeProvider);
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       SnackBar(content: Text(l10n.inviteRevoked)),
                     );
                   },
@@ -140,6 +156,13 @@ class InviteScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Where [context]'s widget sits on screen, for the share popover.
+  static Rect? _originOf(BuildContext context) {
+    final RenderObject? box = context.findRenderObject();
+    if (box is! RenderBox || !box.hasSize) return null;
+    return box.localToGlobal(Offset.zero) & box.size;
   }
 
   /// `ABCDE23456` → `ABCDE 23456`: easier to read aloud.

@@ -15,6 +15,9 @@ class TogetherCard extends StatelessWidget {
     required this.today,
   });
 
+  /// The user as their friends' phones see them
+  /// ([AppSnapshot.meAsFriendsSeeMe]): the friend's phone computes the same
+  /// card from the user's shared events only, and both must agree.
   final UserProjection me;
   final UserProjection friend;
   final DayKey today;
