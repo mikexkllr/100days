@@ -54,7 +54,25 @@ the form back: the flame is exactly as honest as the streak it is made of.
 different tomorrow. Lines with numbers fill them from the real day — "3 h
 left" is three hours, "42 days" is the streak. Every line is its own ARB key,
 the same rule the coach follows. Tap Funki and it jumps, throws sparks and
-answers; poke it five times in a row and it complains.
+answers; poke it five times in a row and it complains. Press and hold to pet
+him — he purrs in your hand and grins whatever his mood — and pull while
+pressing to stretch him like rubber until he snaps back with a burst.
+
+**It watches and eats.** While a habit row is held, Funki looks down at it
+and opens his mouth as it fills; when it fires, an ember arcs from the row
+into his mouth and he gulps. Scrolled out of sight, a small Funki peeks in
+at the top to catch it. In the last four hours of an open day with a streak
+at stake he trembles, harder towards midnight; once the day is done late in
+the evening he dozes off.
+
+**It changes in front of you.** A new form gets its own moment before the
+reels: the old form shakes and charges, a white flash, the new one and its
+name. Ascending after day 100 is a celebration of its own.
+
+**It is there the morning after.** A streak that broke and can no longer be
+rescued is not met with a bare 0: Funki, as an ember that still glows, says
+so once and points at the next 24 hours. While yesterday can still be saved
+— logged late, or held with a freeze — Today offers that instead.
 
 ## The home screen
 
@@ -83,14 +101,20 @@ you have to do, without scrolling. The title is the day itself — "Day 13 /
    (`app/lib/ui/widgets/habit_tile.dart`). Checking in is a **hold**: the row
    fills with fire, the phone ticks at every quarter, and when it is full it
    fires with a hard knock and logs the habit at its target. Let go early and
-   nothing is logged. Then sparks fly, the XP the check-in earned floats up
-   and the row stays lit. A quick tap is not a check-in; it opens what else
-   the habit can do — a different amount than the target, or an honest
-   relapse. Screen readers get a plain tap instead of the hold.
+   nothing is logged — the row says to hold on. Then sparks fly, the XP the
+   check-in earned floats up and the row stays lit. A quick tap is not a
+   check-in; it opens what else the habit can do: the same check-in as a
+   plain button, a different amount than the target, an honest relapse, and
+   once something is logged, an undo. A snackbar offers the undo for five
+   seconds, and friends hear about the check-in only after that window.
+   Screen readers get a plain tap instead of the hold, and a setting
+   replaces the hold with a tap for anyone who cannot hold a press.
 
-Below that: who of your friends was already active, the freeze as a way out
-(offered, not pushed), today's workout and macros, the coach, and the whole
-cycle as a strip of a hundred lamps.
+Below that: who of your friends was already active (unless the coach says
+it already), the freeze as a way out (offered, not pushed, and asked once
+more before it is spent), today's workout and macros, the coach, and the
+whole cycle as a strip of a hundred lamps. The day after a miss, a card on
+top offers to log yesterday late or to hold it with a freeze.
 
 ## The board
 
@@ -108,7 +132,11 @@ Completing the day — the last habit of the day ticked — rolls a machine
 
 - Three reels: **STREAK**, **XP TODAY**, **BONUS**. They spin with motion
   blur, a selection click for every symbol that passes, and stop one after
-  the other with a heavy thud and a bounce.
+  the other with a heavy thud and a bounce. An ordinary day spins for under
+  two seconds, a jackpot for more than three: the rare moment is the big
+  one.
+- It rolls however the day was completed — on Today, in the workout logger
+  or in the food diary (`celebrationProvider`).
 - The bonus reel lands on the loudest real highlight of the day
   (`rewardForDay` in `hundred_core`): cycle complete, milestone, evolution,
   record, level-up — or a perfect day, which every completed day is.
@@ -118,7 +146,16 @@ Completing the day — the last habit of the day ticked — rolls a machine
 - Then every highlight as its own chip, and **what is next**: the next form,
   the next milestone and the next level, each with the real distance to it.
   That is the goal-gradient effect, with true numbers.
-- Tap anywhere to skip the spin. "Brag about it" shares the streak.
+- Tap anywhere to skip the spin. "Brag about it" shares a picture: Funki in
+  his form, the streak and the day on the night sky, drawn by the same
+  painter (`share_card.dart`).
+
+## Sound
+
+A handful of sounds, synthesised in code (`app/tool/make_sounds.py`, so they
+are ours and tiny): ignition on a check-in, ticks while holding, Funki's poke
+and gulp, the reels clicking and landing, the jackpot. They mix with music,
+follow the silent switch and can be switched off in the settings.
 
 ## Motion and accessibility
 
