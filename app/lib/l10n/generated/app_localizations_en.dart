@@ -3417,7 +3417,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planProtein => 'Protein';
 
   @override
-  String get planTabAbstinence => 'Staying clean';
+  String get planTabAbstinence => 'Clean';
 
   @override
   String get planTabMeals => 'Meals';

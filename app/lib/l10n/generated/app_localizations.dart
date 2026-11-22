@@ -5661,7 +5661,7 @@ abstract class AppLocalizations {
   /// No description provided for @planTabAbstinence.
   ///
   /// In en, this message translates to:
-  /// **'Staying clean'**
+  /// **'Clean'**
   String get planTabAbstinence;
 
   /// No description provided for @planTabMeals.

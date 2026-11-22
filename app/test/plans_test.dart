@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hundred_core/hundred_core.dart';
 import 'package:hundred_days/data/app_repository.dart';
@@ -659,4 +662,104 @@ void main() {
     expect(asFriend.challenge!.goal.statement, isEmpty);
     expect(asFriend.profile.goalStatement, isNull);
   });
+
+  void phone(WidgetTester tester) {
+    tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+  }
+
+  testWidgets('the plan opens on the current week, not on week 1',
+      (WidgetTester tester) async {
+    await repository.startChallenge(
+        _fitChallenge().copyWith(startDay: DayKey.today().addDays(-21)));
+    phone(tester);
+    await tester.pumpWidget(
+        wrapForTest(repository: repository, child: const PlanScreen()));
+    await tester.pumpAndSettle();
+
+    const Rect screen = Rect.fromLTWH(0, 0, 390, 844);
+    expect(screen.contains(tester.getCenter(find.text('Woche 4'))), isTrue);
+    expect(screen.contains(tester.getCenter(find.text('AKTUELL'))), isTrue);
+    final Finder week1 = find.text('Woche 1');
+    expect(
+      week1.evaluate().isEmpty || !screen.contains(tester.getCenter(week1)),
+      isTrue,
+    );
+
+    // The earlier weeks and the plan's header are above: a scroll up
+    // brings week 3 in, all the way up the header and week 1.
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 300));
+    await tester.pumpAndSettle();
+    expect(find.text('Woche 3'), findsOneWidget);
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 20000));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('edit-training-plan')), findsOneWidget);
+    expect(find.text('Woche 1'), findsOneWidget);
+  });
+
+  // Last in the file: it loads the real text font, which the tests above
+  // do not expect.
+  testWidgets('every sub-tab fits a 390 px phone; large text scrolls',
+      (WidgetTester tester) async {
+    await _loadTextFont();
+    phone(tester);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    for (final Locale locale in const <Locale>[Locale('de'), Locale('en')]) {
+      final AppLocalizations l10n = await localizationsFor(locale);
+      // Every tab the plan can have at once.
+      final List<String> labels = <String>[
+        l10n.planTabTraining,
+        l10n.planTabNutrition,
+        l10n.planTabMeals,
+        l10n.planTabShopping,
+        l10n.planTabAbstinence,
+      ];
+      for (final double scale in const <double>[1.0, 1.3, 2.0]) {
+        tester.platformDispatcher.textScaleFactorTestValue = scale;
+        await tester.pumpWidget(MaterialApp(
+          theme: buildAppTheme(),
+          home: Scaffold(
+            body: DefaultTabController(
+              length: labels.length,
+              child: PlanTabBar(labels: labels),
+            ),
+          ),
+        ));
+        await tester.pumpAndSettle();
+        final Rect bar = tester.getRect(find.byType(TabBar));
+        bool whole(int i) {
+          final Rect tab = tester.getRect(find.byType(Tab).at(i));
+          return tab.left >= bar.left - 0.5 && tab.right <= bar.right + 0.5;
+        }
+
+        if (scale == 1.0) {
+          for (int i = 0; i < labels.length; i++) {
+            expect(whole(i), isTrue, reason: '$locale: ${labels[i]} is cut');
+          }
+        }
+        // Whatever the text size, the chosen tab is never cut.
+        for (int i = 0; i < labels.length; i++) {
+          DefaultTabController.of(tester.element(find.byType(TabBar)))
+              .animateTo(i);
+          await tester.pumpAndSettle();
+          expect(whole(i), isTrue, reason: '$locale ×$scale: ${labels[i]}');
+        }
+      }
+    }
+  });
+}
+
+/// The tab bar fits itself by measuring its labels, and the test font is
+/// one wide square per glyph; this loads the real one.
+Future<void> _loadTextFont() async {
+  final FontLoader loader = FontLoader(kTextFont);
+  for (final String weight in <String>['Bold', 'ExtraBold']) {
+    final Uint8List bytes =
+        File('assets/fonts/Manrope-$weight.ttf').readAsBytesSync();
+    loader.addFont(Future<ByteData>.value(ByteData.view(bytes.buffer)));
+  }
+  await loader.load();
 }

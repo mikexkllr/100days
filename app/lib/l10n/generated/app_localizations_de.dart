@@ -3432,7 +3432,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get planProtein => 'Protein';
 
   @override
-  String get planTabAbstinence => 'Clean bleiben';
+  String get planTabAbstinence => 'Clean';
 
   @override
   String get planTabMeals => 'Essen';
