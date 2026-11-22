@@ -373,6 +373,33 @@ void main() {
       expect(copy.source, FoodSource.barcode);
       expect(copy.barcode, '4001234567890');
     });
+
+    test('a corrected entry keeps its id and scales its macros', () {
+      final estimate = FoodEntry(
+        id: 'photo-1',
+        day: DayKey.parse('2026-11-02'),
+        meal: MealSlotKind.dinner,
+        name: 'Lasagne',
+        grams: 400,
+        nutrients: const Nutrients(kcal: 600, proteinG: 32, carbsG: 52, fatG: 28),
+        source: FoodSource.photo,
+      );
+      // Half of it, the calories as the amount says.
+      final half = estimate.corrected(grams: 200, kcal: 300);
+      expect(half.id, 'photo-1');
+      expect(half.source, FoodSource.photo);
+      expect(half.nutrients.proteinG, 16);
+      // The amount was right, the estimate too low.
+      final more = estimate.corrected(grams: 400, kcal: 750);
+      expect(more.nutrients.fatG, 35);
+      expect(more.grams, 400);
+      // A line without calories to go by follows its amount.
+      expect(
+          correctNutrients(const Nutrients(kcal: 0, proteinG: 10, carbsG: 0, fatG: 0),
+                  fromGrams: 100, toGrams: 200, kcal: 0)
+              .proteinG,
+          20);
+    });
   });
 
   group('nutrition assistant', () {
