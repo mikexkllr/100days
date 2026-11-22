@@ -1,13 +1,14 @@
 // Request handler of the LLM gateway, with its I/O injected (index.ts wires
 // production, handler_test.ts tests).
 
-import { type GuardedUser, type Purpose, purposeOf } from '../_shared/ai_guard.ts';
+import { type GuardedUser, type Purpose, purposeOf, type Reservation } from '../_shared/ai_guard.ts';
 import { corsHeaders, HttpError } from '../_shared/supabase.ts';
 import {
   assertModelAllowed,
   geminiError,
   MAX_BODY_BYTES,
   parseRoute,
+  reservationFor,
   sanitizeGenerateRequest,
   tapSseUsage,
   totalTokensOf,
@@ -16,8 +17,10 @@ import {
 export interface GatewayDeps {
   apiKey: string | undefined;
   authenticate: (req: Request) => Promise<GuardedUser>;
-  beginRequest: (user: GuardedUser, purpose: Purpose) => Promise<void>;
-  recordUsage: (user: GuardedUser, tokens: number) => Promise<void>;
+  /** Lets the request through and reserves [reserve] tokens, or throws. */
+  beginRequest: (user: GuardedUser, purpose: Purpose, reserve: number) => Promise<Reservation>;
+  /** Settles [reservation] at [tokens], 0 when the request failed. */
+  recordUsage: (user: GuardedUser, tokens: number, reservation: Reservation) => Promise<void>;
   runInBackground: (promise: Promise<unknown>) => void;
   fetch: typeof fetch;
   geminiBaseUrl?: string;
@@ -52,23 +55,38 @@ export function createGatewayHandler(deps: GatewayDeps): (req: Request) => Promi
       const purpose = purposeOf(req.headers.get('x-hundred-purpose'));
       const body = sanitizeGenerateRequest(await readJson(req));
 
-      await deps.beginRequest(user, purpose);
+      const reservation = await deps.beginRequest(user, purpose, reservationFor(body));
+      // Settles the reservation exactly once, whichever way the request ends.
+      let settled = false;
+      const settle = (tokens: number) => {
+        if (settled) return;
+        settled = true;
+        deps.runInBackground(deps.recordUsage(user, tokens, reservation));
+      };
+      // An answer whose usage cannot be read was still paid for: it keeps
+      // what was reserved.
+      const bill = (total: number) => settle(total > 0 ? total : reservation.tokens);
 
       const streaming = route.method === 'streamGenerateContent';
-      const upstream = await deps.fetch(
-        `${geminiBaseUrl}/models/${route.model}:${route.method}${streaming ? '?alt=sse' : ''}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': deps.apiKey },
-          body: JSON.stringify(body),
-        },
-      );
+      let upstream: Response;
+      try {
+        upstream = await deps.fetch(
+          `${geminiBaseUrl}/models/${route.model}:${route.method}${streaming ? '?alt=sse' : ''}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': deps.apiKey },
+            body: JSON.stringify(body),
+          },
+        );
+      } catch (err) {
+        settle(0);
+        throw err;
+      }
 
       const responseHeaders = {
         ...corsHeaders,
         'Content-Type': upstream.headers.get('Content-Type') ?? 'application/json',
       };
-      const bill = (total: number) => deps.runInBackground(deps.recordUsage(user, total));
 
       if (streaming && upstream.ok && upstream.body) {
         return new Response(tapSseUsage(upstream.body, bill), {
@@ -77,7 +95,10 @@ export function createGatewayHandler(deps: GatewayDeps): (req: Request) => Promi
         });
       }
 
-      const text = await upstream.text();
+      const text = await upstream.text().catch((err) => {
+        bill(0);
+        throw err;
+      });
       if (upstream.ok) {
         try {
           bill(totalTokensOf(JSON.parse(text)));
@@ -85,6 +106,8 @@ export function createGatewayHandler(deps: GatewayDeps): (req: Request) => Promi
           bill(0);
         }
       } else {
+        // Gemini refused: nothing was spent, the reservation goes back.
+        settle(0);
         console.error(`Gemini ${upstream.status} for ${route.model}:${route.method}`, text.slice(0, 500));
       }
       return new Response(text, { status: upstream.status, headers: responseHeaders });

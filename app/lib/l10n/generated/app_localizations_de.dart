@@ -1489,7 +1489,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get globalLeagueEmpty =>
-      'Deine Liga-Gruppe beginnt mit deinem ersten Check-in diese Woche: bis zu 30 Leute deiner Division, die Besten steigen am Montag auf.';
+      'Diese Woche noch keine Gruppe. Sobald dein Handy deine XP gemeldet hat, kommst du zu bis zu 30 Leuten deiner Division. Am Montag schließt die Woche: Die Besten steigen auf, ab fünf Leuten steigen die Letzten ab.';
 
   @override
   String get globalLeagueHonesty =>
@@ -1500,7 +1500,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String globalLeagueSub(int size, int up, int down) {
-    return '$size Leute · Top $up steigen auf, letzte $down ab';
+    return '$size Leute · am Montag steigen die Top $up auf, die letzten $down ab';
   }
 
   @override
@@ -2076,7 +2076,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get leagueFooter =>
-      'Hier treten nur Freunde an, die du selbst verbunden hast — keine Fremden. XP gibt es pro Check-in, skaliert mit Schwierigkeit und Streak; getrackte Trainings und Tagebuch-Tage zählen extra. Am Sonntag steigen die oberen Plätze auf, die unteren ab.';
+      'Hier treten nur Freunde an, die du selbst verbunden hast — keine Fremden. XP gibt es pro Check-in, skaliert mit Schwierigkeit und Streak; getrackte Trainings und Tagebuch-Tage zählen extra. Jeden Montag beginnt die Wertung von vorn. Unter Freunden steigt niemand auf oder ab: Die Farben markieren nur Spitze und Ende der Woche, deine Liga ergibt sich aus allen XP, die du je gesammelt hast.';
 
   @override
   String get leagueGold => 'Gold';
@@ -5397,4 +5397,144 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get editDiscard => 'Verwerfen';
+
+  @override
+  String get moderationReport => 'Melden';
+
+  @override
+  String get moderationBlock => 'Blockieren';
+
+  @override
+  String moderationBlockTitle(String name) {
+    return '$name blockieren?';
+  }
+
+  @override
+  String moderationBlockBody(String name) {
+    return 'Ihr seid dann keine Freunde mehr, offene Anfragen verfallen. Keiner von euch kann den anderen finden, hinzufügen oder einladen, und du siehst $name nicht mehr in der Liga. $name erfährt nichts davon.';
+  }
+
+  @override
+  String moderationBlocked(String name) {
+    return '$name ist blockiert.';
+  }
+
+  @override
+  String moderationReportTitle(String name) {
+    return '$name melden';
+  }
+
+  @override
+  String moderationReportBody(String name) {
+    return 'Meldungen liest nur das Team hinter 100 Days. $name erfährt nichts davon.';
+  }
+
+  @override
+  String get moderationReasonSpam => 'Spam oder Fake-Konto';
+
+  @override
+  String get moderationReasonHarassment => 'Belästigung oder Mobbing';
+
+  @override
+  String get moderationReasonInappropriate => 'Anstößiger Name oder Emoji';
+
+  @override
+  String get moderationReasonCheating => 'Schummeln in der Liga';
+
+  @override
+  String get moderationReasonOther => 'Etwas anderes';
+
+  @override
+  String get moderationReportDetails => 'Was ist passiert? (optional)';
+
+  @override
+  String get moderationAlsoBlock => 'Auch blockieren';
+
+  @override
+  String get moderationReportSend => 'Meldung senden';
+
+  @override
+  String get moderationReported => 'Danke. Deine Meldung ist angekommen.';
+
+  @override
+  String get blockedTitle => 'Blockiert';
+
+  @override
+  String get blockedSub =>
+      'Sie können dich nicht finden, hinzufügen oder einladen, und du siehst sie nicht in der Liga.';
+
+  @override
+  String get blockedNone => 'Niemand blockiert.';
+
+  @override
+  String get blockedUnblock => 'Freigeben';
+
+  @override
+  String blockedUnblocked(String name) {
+    return '$name ist freigegeben. Eine Freundschaft kommt nicht von selbst zurück.';
+  }
+
+  @override
+  String get friendsSentTitle => 'Gesendete Anfragen';
+
+  @override
+  String get friendsSentSub =>
+      'Geteilt wird erst, wenn die andere Seite annimmt.';
+
+  @override
+  String get friendsSentWithdraw => 'Zurückziehen';
+
+  @override
+  String friendsSentWithdrawn(String name) {
+    return 'Anfrage an $name zurückgezogen.';
+  }
+
+  @override
+  String get findRequestTooMany =>
+      'Für heute reicht\'s mit Anfragen. Morgen geht\'s weiter.';
+
+  @override
+  String get findRequestDeclined =>
+      'Die Person hat vor Kurzem abgelehnt. In ein paar Wochen kannst du wieder fragen, oder sie fragt dich.';
+
+  @override
+  String get findRequestUnavailable =>
+      'Diese Person kannst du nicht hinzufügen.';
+
+  @override
+  String get profileNudgedToday => 'Heute angestupst';
+
+  @override
+  String scanPasteHint(String link) {
+    return 'z. B. $link';
+  }
+
+  @override
+  String get scanNotAnInvite =>
+      'Dieser QR-Code ist keine Einladung für 100 Days.';
+
+  @override
+  String feedCheckIns(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Check-ins',
+      one: '1 Check-in',
+    );
+    return '$name: $_temp0';
+  }
+
+  @override
+  String get campfireTitle => 'Am Lagerfeuer';
+
+  @override
+  String friendFlameLabel(String name, int streak) {
+    String _temp0 = intl.Intl.pluralLogic(
+      streak,
+      locale: localeName,
+      other: '$streak Tage Streak',
+      one: '1 Tag Streak',
+    );
+    return '$name: $_temp0';
+  }
 }

@@ -10,13 +10,26 @@ Challenge _daily(String id) => Challenge(
       startDay: _start,
     );
 
-Future<UserProjection> _user(String id, Set<int> doneDays, {DayKey? today}) async {
+Future<UserProjection> _user(
+  String id,
+  Set<int> doneDays, {
+  DayKey? today,
+  Set<int> frozenDays = const <int>{},
+}) async {
   final store = MemoryFeedStore();
   final writer = FeedWriter(author: id, store: store);
   final challenge = _daily(id);
   await writer.append(FeedEventType.challengeStarted,
       <String, dynamic>{'challenge': challenge.toJson()},
       timestamp: _start.toDateTime());
+  for (final int d in frozenDays.toList()..sort()) {
+    final day = _start.addDays(d);
+    await writer.append(
+      FeedEventType.streakFreeze,
+      <String, dynamic>{'day': day.toString()},
+      timestamp: day.toDateTime().add(const Duration(hours: 21)),
+    );
+  }
   for (final int d in doneDays.toList()..sort()) {
     final day = _start.addDays(d);
     await writer.append(
@@ -54,6 +67,31 @@ void main() {
       final today = _start.addDays(9);
       final a = await _user('a', <int>{4, 5, 6, 7, 8}, today: today);
       final b = await _user('b', <int>{4, 5, 7, 8}, today: today);
+      expect(friendStreak(a: a, b: b, today: today), 2);
+    });
+
+    test('a day one of them froze holds the streak without counting', () async {
+      final today = _start.addDays(9);
+      final a = await _user('a', <int>{4, 5, 6, 7, 8}, today: today);
+      final b = await _user('b', <int>{4, 5, 7, 8}, today: today, frozenDays: <int>{6});
+      // 4, 5, (6 held), 7, 8.
+      expect(friendStreak(a: a, b: b, today: today), 4);
+      // The same number from either side.
+      expect(friendStreak(a: b, b: a, today: today), 4);
+    });
+
+    test('a day both froze holds it too', () async {
+      final today = _start.addDays(9);
+      final a = await _user('a', <int>{4, 5, 7, 8}, today: today, frozenDays: <int>{6});
+      final b = await _user('b', <int>{4, 5, 7, 8}, today: today, frozenDays: <int>{6});
+      expect(friendStreak(a: a, b: b, today: today), 4);
+    });
+
+    test('a freeze holds only its own day', () async {
+      final today = _start.addDays(9);
+      final a = await _user('a', <int>{4, 7, 8}, today: today, frozenDays: <int>{6});
+      final b = await _user('b', <int>{4, 5, 6, 7, 8}, today: today);
+      // a missed 5 without a freeze: the streak starts again at 6.
       expect(friendStreak(a: a, b: b, today: today), 2);
     });
   });

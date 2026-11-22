@@ -51,8 +51,20 @@ export async function authenticate(req: Request): Promise<GuardedUser> {
 
 export const limitFor = (user: GuardedUser) => (user.tier === 'premium' ? limits.premium : limits.free);
 
-/** Checks tier, allowance and rate window, and counts the request. */
-export async function beginRequest(user: GuardedUser, purpose: Purpose): Promise<void> {
+/**
+ * Tokens held against the allowance while a request runs, in the month they
+ * were taken from.
+ */
+export interface Reservation {
+  month: string;
+  tokens: number;
+}
+
+/**
+ * Checks tier, allowance and rate window, counts the request and reserves
+ * [reserve] tokens — the most it can cost — until [recordUsage] settles it.
+ */
+export async function beginRequest(user: GuardedUser, purpose: Purpose, reserve = 0): Promise<Reservation> {
   if (purpose === 'coach' && user.tier !== 'premium') {
     throw new HttpError(402, 'premium_only');
   }
@@ -60,6 +72,7 @@ export async function beginRequest(user: GuardedUser, purpose: Purpose): Promise
     p_user_id: user.userId,
     p_token_limit: limitFor(user),
     p_rpm: limits.requestsPerMinute,
+    p_reserve: Math.max(0, Math.ceil(reserve)),
   });
   if (error) throw new HttpError(500, 'quota_check_failed', error.message);
   if (!data?.allowed) {
@@ -67,16 +80,23 @@ export async function beginRequest(user: GuardedUser, purpose: Purpose): Promise
     // only hammer an exhausted allowance.
     throw new HttpError(402, data?.reason === 'rate_limited' ? 'rate_limited' : 'quota_exceeded');
   }
+  return { month: String(data.month), tokens: Number(data.reserved) || 0 };
 }
 
-/** Adds billed tokens to this month. Never throws. */
-export async function recordUsage(user: GuardedUser, tokens: number): Promise<void> {
-  if (!Number.isFinite(tokens) || tokens <= 0) return;
-  const { error } = await adminClient().rpc('ai_record_usage', {
+/**
+ * Replaces [reservation] with the tokens actually billed — 0 when the
+ * request failed. Never throws.
+ */
+export async function recordUsage(user: GuardedUser, tokens: number, reservation: Reservation): Promise<void> {
+  const billed = Number.isFinite(tokens) && tokens > 0 ? Math.ceil(tokens) : 0;
+  if (billed === 0 && reservation.tokens === 0) return;
+  const { error } = await adminClient().rpc('ai_settle_usage', {
     p_user_id: user.userId,
-    p_tokens: Math.ceil(tokens),
+    p_month: reservation.month,
+    p_reserved: reservation.tokens,
+    p_tokens: billed,
   });
-  if (error) console.error('ai_record_usage failed', error.message);
+  if (error) console.error('ai_settle_usage failed', error.message);
 }
 
 /** Keeps the isolate alive for work that finishes after the response. */

@@ -3,9 +3,12 @@ import { assertEquals, assertThrows } from 'jsr:@std/assert@1';
 import { HttpError } from '../_shared/supabase.ts';
 import {
   assertModelAllowed,
+  IMAGE_TOKEN_ESTIMATE,
   MAX_IMAGE_BYTES,
   MAX_OUTPUT_TOKENS,
+  MAX_TEXT_CHARS,
   parseRoute,
+  reservationFor,
   sanitizeGenerateRequest,
   tapSseUsage,
 } from './gateway.ts';
@@ -116,4 +119,37 @@ Deno.test('tapSseUsage passes bytes through and reports the last usage', async (
   const stream = tapSseUsage(new Response(sse).body!, (t) => (billed = t));
   assertEquals(await new Response(stream).text(), sse);
   assertEquals(billed, 42);
+});
+
+Deno.test('the text of a request is capped, tool traffic and system prompt included', () => {
+  const half = 'x'.repeat(MAX_TEXT_CHARS / 2);
+  sanitizeGenerateRequest({ contents: [userText(half)] });
+  assertHttp(
+    () =>
+      sanitizeGenerateRequest({
+        contents: [userText(half), { role: 'model', parts: [{ functionCall: { name: 'f', args: { a: half } } }] }],
+      }),
+    413,
+    'text_too_large',
+  );
+  assertHttp(
+    () =>
+      sanitizeGenerateRequest({
+        contents: [userText(half)],
+        systemInstruction: { parts: [{ text: half }, { text: 'more' }] },
+      }),
+    413,
+    'text_too_large',
+  );
+});
+
+Deno.test('a reservation covers the input, the images and the output cap', () => {
+  const clean = sanitizeGenerateRequest({
+    contents: [{ role: 'user', parts: [{ text: 'x'.repeat(300) }, image(1000)] }],
+    systemInstruction: { parts: [{ text: 'y'.repeat(30) }] },
+    generationConfig: { maxOutputTokens: 1000 },
+  });
+  assertEquals(reservationFor(clean), 110 + IMAGE_TOKEN_ESTIMATE + 1000);
+  // Without a cap of its own, a request may answer at the gateway's.
+  assertEquals(reservationFor(sanitizeGenerateRequest({ contents: [userText('abc')] })), 1 + MAX_OUTPUT_TOKENS);
 });

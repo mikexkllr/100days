@@ -25,6 +25,19 @@ export const MAX_BODY_BYTES = 6 * 1024 * 1024;
 export const MAX_OUTPUT_TOKENS = 8192;
 export const MAX_CONTENTS = 200;
 
+/**
+ * Text, tool declarations and tool traffic of one request, in characters:
+ * about 50,000 tokens, a whole free month. Far beyond a long planning chat,
+ * and it bounds what a single request can reserve.
+ */
+export const MAX_TEXT_CHARS = 200_000;
+
+/**
+ * What an image is reserved at: four 768-pixel tiles of 258 tokens, rounded
+ * up — a downscaled meal photo. The real count replaces it afterwards.
+ */
+export const IMAGE_TOKEN_ESTIMATE = 1_100;
+
 /** Meal photos: what the app sends after downscaling, with room to spare. */
 export const IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 export const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
@@ -83,7 +96,25 @@ function pick(source: Json, keys: string[]): Json {
 /** Approximate decoded size of base64 data. */
 const base64Bytes = (data: string) => Math.floor((data.length * 3) / 4);
 
-function checkParts(parts: Json, where: string, images: { count: number }): void {
+/** What a request carries, counted while it is checked. */
+interface Tally {
+  images: number;
+  chars: number;
+}
+
+/** Characters of a part's text, thoughts and tool traffic. */
+function charsOf(part: Json): number {
+  let chars = 0;
+  for (const key of ['text', 'thought', 'thoughtSignature']) {
+    if (typeof part?.[key] === 'string') chars += part[key].length;
+  }
+  for (const key of ['functionCall', 'functionResponse']) {
+    if (part?.[key] !== undefined) chars += JSON.stringify(part[key]).length;
+  }
+  return chars;
+}
+
+function checkParts(parts: Json, where: string, tally: Tally): void {
   if (!Array.isArray(parts)) throw new HttpError(400, 'invalid_request', `${where}.parts must be an array`);
   for (const part of parts) {
     for (const key of Object.keys(part ?? {})) {
@@ -97,12 +128,13 @@ function checkParts(parts: Json, where: string, images: { count: number }): void
       if (typeof data !== 'string' || base64Bytes(data) > MAX_IMAGE_BYTES) {
         throw new HttpError(413, 'image_too_large');
       }
-      if (++images.count > MAX_IMAGES) throw new HttpError(400, 'too_many_images');
+      if (++tally.images > MAX_IMAGES) throw new HttpError(400, 'too_many_images');
     }
+    tally.chars += charsOf(part);
   }
 }
 
-/** Whitelists a generateContent request and caps its output. */
+/** Whitelists a generateContent request and caps its output and its text. */
 export function sanitizeGenerateRequest(body: Json): Json {
   if (!body || !Array.isArray(body.contents) || body.contents.length === 0) {
     throw new HttpError(400, 'invalid_request', 'contents is required');
@@ -110,9 +142,9 @@ export function sanitizeGenerateRequest(body: Json): Json {
   if (body.contents.length > MAX_CONTENTS) {
     throw new HttpError(400, 'too_many_contents', `At most ${MAX_CONTENTS} contents`);
   }
-  const images = { count: 0 };
-  body.contents.forEach((c: Json, i: number) => checkParts(c?.parts, `contents[${i}]`, images));
-  if (body.systemInstruction) checkParts(body.systemInstruction.parts, 'systemInstruction', images);
+  const tally: Tally = { images: 0, chars: 0 };
+  body.contents.forEach((c: Json, i: number) => checkParts(c?.parts, `contents[${i}]`, tally));
+  if (body.systemInstruction) checkParts(body.systemInstruction.parts, 'systemInstruction', tally);
 
   const clean = pick(body, GENERATE_KEYS);
 
@@ -123,7 +155,9 @@ export function sanitizeGenerateRequest(body: Json): Json {
       .filter((t: Json) => Array.isArray(t?.functionDeclarations))
       .map((t: Json) => ({ functionDeclarations: t.functionDeclarations }));
     if (clean.tools.length === 0) delete clean.tools;
+    else tally.chars += JSON.stringify(clean.tools).length;
   }
+  if (tally.chars > MAX_TEXT_CHARS) throw new HttpError(413, 'text_too_large');
 
   const config = pick(body.generationConfig ?? {}, GENERATION_CONFIG_KEYS);
   const requested = Number(config.maxOutputTokens);
@@ -132,6 +166,28 @@ export function sanitizeGenerateRequest(body: Json): Json {
     : MAX_OUTPUT_TOKENS;
   clean.generationConfig = config;
   return clean;
+}
+
+/**
+ * The most a sanitized request can cost: its input, estimated generously
+ * (three characters a token, where English averages four), plus its output
+ * cap. It is reserved against the allowance before the request goes out, so
+ * parallel requests cannot all spend the same remainder.
+ */
+export function reservationFor(clean: Json): number {
+  let chars = 0;
+  let images = 0;
+  const parts: Json[] = [
+    ...(clean?.contents ?? []).flatMap((c: Json) => c?.parts ?? []),
+    ...(clean?.systemInstruction?.parts ?? []),
+  ];
+  for (const part of parts) {
+    chars += charsOf(part);
+    if (part?.inlineData !== undefined) images++;
+  }
+  if (clean?.tools !== undefined) chars += JSON.stringify(clean.tools).length;
+  const output = Number(clean?.generationConfig?.maxOutputTokens) || MAX_OUTPUT_TOKENS;
+  return Math.ceil(chars / 3) + images * IMAGE_TOKEN_ESTIMATE + output;
 }
 
 export function totalTokensOf(json: Json): number {

@@ -9,7 +9,9 @@ import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
 import 'find_friends_screen.dart';
 import 'friend_detail.dart';
+import 'friend_flame.dart';
 import 'invite_flow.dart';
+import 'moderation.dart';
 import 'scan_screen.dart';
 
 /// Your people, and the ready-made jabs to throw at them.
@@ -24,6 +26,7 @@ class FriendsTab extends ConsumerWidget {
     final AsyncValue<List<NudgeSuggestion>> nudges =
         ref.watch(nudgeSuggestionsProvider);
     final List<FriendLink> requests = snapshot.incomingRequests;
+    final List<FriendLink> sent = snapshot.outgoingRequests;
 
     return ListView(
       padding: EdgeInsets.fromLTRB(
@@ -34,6 +37,19 @@ class FriendsTab extends ConsumerWidget {
         AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
       ),
       children: <Widget>[
+        if (snapshot.friends.isNotEmpty) ...<Widget>[
+          Text(
+            l10n.campfireTitle.toUpperCase(),
+            style: labelStyle(),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Campfire(
+            people: <UserProjection>[snapshot.me, ...snapshot.friends],
+            today: snapshot.today,
+            onOpen: (String userId) => _openProfile(context, userId),
+          ),
+          const SizedBox(height: AppSpacing.md),
+        ],
         Row(
           children: <Widget>[
             Expanded(
@@ -77,33 +93,9 @@ class FriendsTab extends ConsumerWidget {
           for (final FriendLink request in requests)
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: AppCard(
-                child: Row(
-                  children: <Widget>[
-                    EmojiAvatar(request.emoji, size: 40),
-                    const SizedBox(width: AppSpacing.sm + 4),
-                    Expanded(
-                      child: Text(
-                        l10n.friendsRequestFrom(request.displayName),
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => ref
-                          .read(appStateProvider.notifier)
-                          .respondToRequest(request, accept: false),
-                      child: Text(l10n.friendsRequestDecline),
-                    ),
-                    FilledButton(
-                      style: FilledButton.styleFrom(
-                          minimumSize: const Size(90, 40)),
-                      onPressed: () => ref
-                          .read(appStateProvider.notifier)
-                          .respondToRequest(request, accept: true),
-                      child: Text(l10n.friendsRequestAccept),
-                    ),
-                  ],
-                ),
+              child: _IncomingRequestCard(
+                key: Key('request-${request.userId}'),
+                request: request,
               ),
             ),
         ],
@@ -133,6 +125,17 @@ class FriendsTab extends ConsumerWidget {
               ),
             ),
         ],
+        if (sent.isNotEmpty) ...<Widget>[
+          SectionHeader(l10n.friendsSentTitle, subtitle: l10n.friendsSentSub),
+          for (final FriendLink request in sent)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: _OutgoingRequestCard(
+                key: Key('sent-${request.userId}'),
+                request: request,
+              ),
+            ),
+        ],
         const SizedBox(height: AppSpacing.lg),
         AppCard(
           color: AppColors.surfaceHigh,
@@ -157,6 +160,13 @@ class FriendsTab extends ConsumerWidget {
     );
   }
 
+  void _openProfile(BuildContext context, String userId) =>
+      Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (BuildContext context) => FriendDetailScreen(userId: userId),
+        ),
+      );
+
   Future<void> _scan(BuildContext context, WidgetRef ref) async {
     final String? raw = await Navigator.of(context).push<String>(
       MaterialPageRoute<String>(
@@ -165,6 +175,199 @@ class FriendsTab extends ConsumerWidget {
     );
     if (raw == null || !context.mounted) return;
     await redeemInviteFlow(context, ref, raw);
+  }
+}
+
+/// Someone asking to be friends: accept, decline, or — for a stranger who
+/// should not be asking — report or block.
+class _IncomingRequestCard extends ConsumerStatefulWidget {
+  const _IncomingRequestCard({super.key, required this.request});
+
+  final FriendLink request;
+
+  @override
+  ConsumerState<_IncomingRequestCard> createState() =>
+      _IncomingRequestCardState();
+}
+
+class _IncomingRequestCardState extends ConsumerState<_IncomingRequestCard> {
+  bool _busy = false;
+
+  String get _name => widget.request.displayName.isEmpty
+      ? context.l10n.friendsFallbackName
+      : widget.request.displayName;
+
+  Future<void> _respond({required bool accept}) async {
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final String offline = context.l10n.inviteErrorOffline;
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await ref
+          .read(appStateProvider.notifier)
+          .respondToRequest(widget.request, accept: accept);
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(offline)));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _moderate(String choice) async {
+    if (choice == 'report') {
+      await reportPerson(context, ref,
+          userId: widget.request.userId, name: _name);
+    } else {
+      await confirmAndBlock(context, ref,
+          userId: widget.request.userId, name: _name);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    final FriendLink request = widget.request;
+    return AppCard(
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md, AppSpacing.sm, AppSpacing.xs, AppSpacing.sm),
+      child: Column(
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              EmojiAvatar(request.emoji, size: 40),
+              const SizedBox(width: AppSpacing.sm + 4),
+              Expanded(
+                child: Text(
+                  l10n.friendsRequestFrom(_name),
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              PopupMenuButton<String>(
+                key: Key('request-menu-${request.userId}'),
+                enabled: !_busy,
+                onSelected: _moderate,
+                itemBuilder: (BuildContext context) =>
+                    <PopupMenuEntry<String>>[
+                  PopupMenuItem<String>(
+                    value: 'report',
+                    child: Text(l10n.moderationReport),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'block',
+                    child: Text(l10n.moderationBlock),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
+            child: _busy
+                ? const Padding(
+                    padding: EdgeInsets.all(AppSpacing.sm + 2),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => _respond(accept: false),
+                          style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(40)),
+                          child: Text(l10n.friendsRequestDecline),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: FilledButton(
+                          style: FilledButton.styleFrom(
+                              minimumSize: const Size.fromHeight(40)),
+                          onPressed: () => _respond(accept: true),
+                          child: Text(l10n.friendsRequestAccept),
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A request the user sent and nobody answered yet — withdrawable.
+class _OutgoingRequestCard extends ConsumerStatefulWidget {
+  const _OutgoingRequestCard({super.key, required this.request});
+
+  final FriendLink request;
+
+  @override
+  ConsumerState<_OutgoingRequestCard> createState() =>
+      _OutgoingRequestCardState();
+}
+
+class _OutgoingRequestCardState extends ConsumerState<_OutgoingRequestCard> {
+  bool _busy = false;
+
+  Future<void> _withdraw(String name) async {
+    final AppLocalizations l10n = context.l10n;
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    setState(() => _busy = true);
+    try {
+      // remove_friend() also withdraws a pending request.
+      await ref
+          .read(appStateProvider.notifier)
+          .removeFriend(widget.request.userId);
+      messenger.showSnackBar(
+          SnackBar(content: Text(l10n.friendsSentWithdrawn(name))));
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.inviteErrorOffline)));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    final String name = widget.request.displayName.isEmpty
+        ? l10n.friendsFallbackName
+        : widget.request.displayName;
+    return AppCard(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      child: Row(
+        children: <Widget>[
+          EmojiAvatar(widget.request.emoji, size: 36, dimmed: true),
+          const SizedBox(width: AppSpacing.sm + 4),
+          Expanded(
+            child: Text(name,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleMedium),
+          ),
+          if (_busy)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          else
+            TextButton(
+              onPressed: () => _withdraw(name),
+              child: Text(l10n.friendsSentWithdraw),
+            ),
+        ],
+      ),
+    );
   }
 }
 
@@ -197,7 +400,7 @@ class _NudgeSection extends ConsumerWidget {
   }
 }
 
-class _NudgeCard extends ConsumerWidget {
+class _NudgeCard extends ConsumerStatefulWidget {
   const _NudgeCard({
     required this.suggestion,
     required this.alreadySent,
@@ -209,21 +412,51 @@ class _NudgeCard extends ConsumerWidget {
   final PeerProfile? profile;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_NudgeCard> createState() => _NudgeCardState();
+}
+
+class _NudgeCardState extends ConsumerState<_NudgeCard> {
+  /// A second tap while the first nudge is still being written would send
+  /// two: the feed only says "sent" once the first one is in it.
+  bool _sending = false;
+
+  Future<void> _send(String text) async {
+    // The button may not have rebuilt yet: ask the feed itself.
+    final bool sent = ref
+            .read(appStateProvider)
+            .valueOrNull
+            ?.nudgedToday
+            .contains(widget.suggestion.targetId) ??
+        false;
+    if (_sending || sent) return;
+    setState(() => _sending = true);
+    try {
+      puffAt(ref, widget.suggestion.targetId);
+      await ref
+          .read(appStateProvider.notifier)
+          .nudge(widget.suggestion.targetId, text);
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
-    final String text = l10n.nudgeText(suggestion);
+    final String text = l10n.nudgeText(widget.suggestion);
+    final bool sent = widget.alreadySent;
     return AppCard(
       border: AppColors.social.withValues(alpha: 0.35),
       child: Row(
         children: <Widget>[
-          EmojiAvatar(profile?.avatarEmoji ?? '🙂', size: 38),
+          EmojiAvatar(widget.profile?.avatarEmoji ?? '🙂', size: 38),
           const SizedBox(width: AppSpacing.sm + 4),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  profile?.displayName ?? l10n.friendsFallbackName,
+                  widget.profile?.displayName ?? l10n.friendsFallbackName,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Text(
@@ -237,12 +470,7 @@ class _NudgeCard extends ConsumerWidget {
             ),
           ),
           FilledButton(
-            onPressed: alreadySent
-                ? null
-                : () => ref.read(appStateProvider.notifier).nudge(
-                      suggestion.targetId,
-                      text,
-                    ),
+            onPressed: sent || _sending ? null : () => _send(text),
             style: FilledButton.styleFrom(
               minimumSize: const Size(86, 40),
               backgroundColor: AppColors.social,
@@ -251,7 +479,7 @@ class _NudgeCard extends ConsumerWidget {
                   AppColors.social.withValues(alpha: 0.25),
               disabledForegroundColor: Colors.white70,
             ),
-            child: Text(alreadySent ? l10n.actionSent : l10n.actionSend),
+            child: Text(sent ? l10n.actionSent : l10n.actionSend),
           ),
         ],
       ),
@@ -278,12 +506,9 @@ class _FriendRow extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          EmojiAvatar(
-            peer.profile.avatarEmoji,
-            size: 46,
-            ringColor: peer.activeToday ? AppColors.success : null,
-            dimmed: !peer.activeToday,
-          ),
+          // Still in a list: one ticker per row would cost more than it
+          // shows. The campfire above and the profile flicker.
+          FriendFlame(person: friend, today: today, size: 46, alive: false),
           const SizedBox(width: AppSpacing.sm + 4),
           Expanded(
             child: Column(

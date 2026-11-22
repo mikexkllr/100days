@@ -136,10 +136,24 @@ Deno.test({
           sp`insert into public.subscriptions (user_id, product_id, platform, expires_at)
              values (${alice}, 'hundred_days_premium', 'manual', now() + interval '1 year')`);
         await refused(tx, (sp) => sp`insert into public.ai_usage (user_id, month) values (${alice}, now())`);
-        await refused(tx, (sp) => sp`select public.ai_record_usage(${alice}, -1000000)`);
+        await refused(tx, (sp) => sp`select public.ai_settle_usage(${alice}, current_date, 1000000, 0)`);
+        await refused(tx, (sp) => sp`select public.ai_begin_request(${alice}, 1000000, 100, 0)`);
         const [{ my_ai_allowance: allowance }] = await tx`select public.my_ai_allowance()`;
         assertEquals(allowance.tier, 'free');
         assertEquals(allowance.used, 0);
+
+        // A request reserves its worst case as it starts, so the next one
+        // sees it; settling replaces the reservation with what it cost.
+        await as(tx, null);
+        const begin = async (reserve: number) =>
+          (await tx`select public.ai_begin_request(${bob}, 1000, 100, ${reserve}) as r`)[0].r;
+        const first = await begin(1200);
+        assert(first.allowed, 'a request with something left goes through');
+        assertEquals((await begin(10)).reason, 'quota_exceeded');
+        await tx`select public.ai_settle_usage(${bob}, ${first.month}::date, ${first.reserved}, 300)`;
+        const third = await begin(10);
+        assert(third.allowed, 'the settled request freed the rest');
+        assertEquals(third.used, 300);
 
         // A subscription the server granted counts; an expired one does not.
         await as(tx, null);
@@ -213,6 +227,8 @@ Deno.test({
         await tx`delete from public.household_members where household_id = ${home} and user_id = ${carol}`;
         await as(tx, carol);
         assertEquals((await tx`select id from public.recipes where household_id = ${home}`).length, 0);
+        // ...and the code she came in with no longer opens the door.
+        await refused(tx, (sp) => sp`select public.join_household(${homeCode})`);
 
         // The last member leaving takes the household with them, so a deleted
         // account leaves no plan or list behind.
@@ -221,6 +237,43 @@ Deno.test({
         await as(tx, null);
         assertEquals((await tx`select id from public.households where id = ${bobs}`).length, 0);
         assertEquals((await tx`select id from public.households where id = ${home}`).length, 1);
+
+        // An owner who leaves hands the household to whoever has been there
+        // longest; the last one out turns off the lights.
+        const dave = await createUser(tx, 'Dave');
+        const erin = await createUser(tx, 'Erin');
+        await as(tx, alice);
+        const [{ household_invite_code: freshCode }] = await tx`select public.household_invite_code(${home})`;
+        assert(freshCode !== homeCode, 'a fresh code after the old one was revoked');
+        for (const member of [dave, erin]) {
+          await as(tx, member);
+          await tx`select public.join_household(${freshCode})`;
+        }
+        await as(tx, null);
+        await tx`update public.household_members set joined_at = now() - interval '1 day'
+                 where household_id = ${home} and user_id = ${erin}`;
+        // Every change of membership reaches the household's own row, which
+        // is what the phones listen to now.
+        const [{ ctid: before }] = await tx`select ctid::text from public.households where id = ${home}`;
+        await as(tx, alice);
+        await refused(tx, (sp) => sp`select public.leave_household(${bobs})`);
+        await tx`select public.leave_household(${home})`;
+        await as(tx, null);
+        const [{ ctid: after }] = await tx`select ctid::text from public.households where id = ${home}`;
+        assert(before !== after, 'leaving touched the household row');
+        const owners = await tx`select user_id from public.household_members
+                                where household_id = ${home} and role = 'owner'`;
+        assertEquals(owners.map((r: { user_id: string }) => r.user_id), [erin]);
+        await as(tx, erin);
+        await tx`select public.revoke_household_invites(${home})`;
+        await as(tx, carol);
+        await refused(tx, (sp) => sp`select public.join_household(${freshCode})`);
+        for (const member of [erin, dave]) {
+          await as(tx, member);
+          await tx`select public.leave_household(${home})`;
+        }
+        await as(tx, null);
+        assertEquals((await tx`select id from public.households where id = ${home}`).length, 0);
 
         // --- Sign-up hook ------------------------------------------------------
         // Google, Apple and e-mail all pass; only Auth itself may call it.
@@ -269,10 +322,124 @@ Deno.test({
         assertEquals(standing[1].xp, 120);
         await refused(tx, (sp) => sp`select * from public.league_entries`);
         await refused(tx, (sp) => sp`select public.close_league_week(${week})`);
-        // An old week cannot be rewritten.
-        await tx`select public.report_week_xp('2020-W01', 50)`;
+        // An old week cannot be rewritten, and the phone hears so.
+        assertEquals((await tx`select public.report_week_xp('2020-W01', 50) as ok`)[0].ok, false);
+        assertEquals((await tx`select public.report_week_xp(${week}, 130) as ok`)[0].ok, true);
+        // The week some time zone is already (or still) in counts too.
+        const [{ ahead, behind }] = await tx`
+          select to_char((now() at time zone 'utc') + interval '14 hours', 'IYYY-"W"IW') as ahead,
+                 to_char((now() at time zone 'utc') - interval '12 hours', 'IYYY-"W"IW') as behind`;
+        assertEquals((await tx`select public.report_week_xp(${ahead}, 10) as ok`)[0].ok, true);
+        assertEquals((await tx`select public.report_week_xp(${behind}, 10) as ok`)[0].ok, true);
+        assertEquals((await tx`select public.report_week_xp(${week}, 120) as ok`)[0].ok, true);
         await as(tx, null);
         assertEquals((await tx`select * from public.league_entries where week = '2020-W01'`).length, 0);
+
+        // Who is friends with whom is nobody else's question.
+        await as(tx, carol);
+        await refused(tx, (sp) => sp`select public.are_friends(${alice}, ${bob})`);
+
+        // Realtime carries no pairs of people: friendships and memberships
+        // are out of the publication, and each user's ping is their own.
+        await as(tx, null);
+        const published = (await tx`
+          select tablename from pg_publication_tables
+          where pubname = 'supabase_realtime' and schemaname = 'public'`)
+          .map((r: { tablename: string }) => r.tablename);
+        assert(!published.includes('friendships'), 'friendships are not broadcast');
+        assert(!published.includes('household_members'), 'memberships are not broadcast');
+        assert(published.includes('social_pings') && published.includes('households'));
+        await as(tx, bob);
+        const pings = await tx`select user_id from public.social_pings`;
+        assertEquals(pings.map((r: { user_id: string }) => r.user_id), [bob]);
+
+        // --- Friend requests: a daily cap, and a no means no for a while ----
+        await as(tx, carol);
+        await tx`select public.send_friend_request(${dave})`;
+        await as(tx, dave);
+        await tx`select public.respond_friend_request(${carol}, false)`;
+        await as(tx, carol);
+        await refused(tx, (sp) => sp`select public.send_friend_request(${dave})`);
+        await refused(tx, (sp) => sp`select * from public.friend_request_declines`);
+        // Unless the one who said no asks.
+        await as(tx, dave);
+        await tx`select public.send_friend_request(${carol})`;
+        await as(tx, carol);
+        assertEquals((await tx`select public.send_friend_request(${dave}) as s`)[0].s, 'accepted');
+
+        const strangers: string[] = [];
+        for (let i = 0; i < 31; i++) strangers.push(await createUser(tx, `Stranger${i}`));
+        await as(tx, erin);
+        for (const stranger of strangers.slice(0, 30)) await tx`select public.send_friend_request(${stranger})`;
+        await refused(tx, (sp) => sp`select public.send_friend_request(${strangers[30]})`);
+
+        // Ending a friendship revokes the ender's codes: the old link cannot
+        // bring the other one back.
+        await as(tx, carol);
+        const [{ my_invite_code: carolsCode }] = await tx`select public.my_invite_code()`;
+        await tx`select public.remove_friend(${dave})`;
+        await as(tx, dave);
+        await refused(tx, (sp) => sp`select public.redeem_invite(${carolsCode})`);
+
+        // --- Blocking and reporting ------------------------------------------
+        // Alice and Bob are friends and share a league group.
+        await as(tx, alice);
+        const [{ my_invite_code: alicesCode }] = await tx`select public.my_invite_code()`;
+        await tx`select public.block_user(${bob})`;
+        assertEquals((await tx`select * from public.friendships where ${bob} in (requester, addressee)`).length, 0);
+        const blocks = await tx`select * from public.my_blocks()`;
+        assertEquals(blocks.map((r: { user_id: string }) => r.user_id), [bob]);
+        // Alice's own view of the league leaves Bob out; the ranks stay real.
+        const blockedStanding = await tx`select * from public.league_standing(${week})`;
+        assertEquals(blockedStanding.map((r: { user_id: string }) => r.user_id), [alice]);
+        assertEquals(blockedStanding[0].rank, 2);
+        assertEquals(blockedStanding[0].group_size, 2);
+
+        // To Bob, Alice is simply not there — and he cannot tell why.
+        await as(tx, bob);
+        assertEquals((await tx`select * from public.blocks`).length, 0);
+        assertEquals((await tx`select * from public.search_profiles('ali')`).length, 0);
+        await refused(tx, (sp) => sp`select public.send_friend_request(${alice})`);
+        assertEquals((await tx`select * from public.invite_preview(${alicesCode})`).length, 0);
+        await refused(tx, (sp) => sp`select public.redeem_invite(${alicesCode})`);
+        assertEquals((await tx`select * from public.friendships where ${alice} in (requester, addressee)`).length, 0);
+        await refused(tx, (sp) => sp`insert into public.blocks (blocker, blocked) values (${bob}, ${carol})`);
+
+        // Nor does the address book find her.
+        await as(tx, null);
+        await tx`insert into public.contact_identifiers (kind, hmac, user_id) values ('email', 'h-alice', ${alice})`;
+        const matchFor = async (user: string) =>
+          (await tx`select user_id from public.match_contact_hashes(${user}, array['h-alice'], null)`)
+            .map((r: { user_id: string }) => r.user_id);
+        assertEquals(await matchFor(carol), [alice]);
+        assertEquals(await matchFor(bob), []);
+        await as(tx, carol);
+        await refused(tx, (sp) => sp`select * from public.match_contact_hashes(${carol}, array['h-alice'], null)`);
+
+        // A report reaches the operator and nobody else.
+        await as(tx, bob);
+        await tx`select public.report_user(${alice}, 'harassment', 'Mean nudges')`;
+        await refused(tx, (sp) => sp`select * from public.reports`);
+        await refused(tx, (sp) => sp`select public.report_user(${alice}, 'because', '')`);
+        await refused(tx, (sp) => sp`select public.report_user(${bob}, 'spam', '')`);
+        await as(tx, alice);
+        await refused(tx, (sp) => sp`select * from public.reports`);
+        await as(tx, null);
+        const [report] = await tx`select * from public.reports where target = ${alice}`;
+        assertEquals([report.reporter, report.reason, report.target_username], [bob, 'harassment', 'alice_runs']);
+
+        // Unblocking lets them find each other again; nothing comes back by itself.
+        await as(tx, alice);
+        await tx`select public.unblock_user(${bob})`;
+        await as(tx, bob);
+        assertEquals((await tx`select * from public.search_profiles('ali')`).length, 1);
+        assertEquals((await tx`select * from public.friendships where ${alice} in (requester, addressee)`).length, 0);
+
+        // A deleted account takes the push log it caused with it.
+        await as(tx, null);
+        await tx`insert into public.push_log (recipient, kind, sender) values (${alice}, 'nudge', ${strangers[0]})`;
+        await tx`delete from auth.users where id = ${strangers[0]}`;
+        assertEquals((await tx`select * from public.push_log where sender = ${strangers[0]}`).length, 0);
 
         throw new Rollback();
       });

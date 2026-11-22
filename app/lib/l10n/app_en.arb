@@ -1083,10 +1083,10 @@
   "friendsRequestsTitle": "Friend requests",
   "friendsScan": "Scan",
   "friendsYourPeople": "Your people",
-  "globalLeagueEmpty": "Your league group starts with your first check-in this week: up to 30 people of your division, the best move up on Monday.",
+  "globalLeagueEmpty": "No group yet this week. Once your phone has reported your XP, you join up to 30 people of your division. The week closes on Monday: the best move up, and in groups of five or more the last move down.",
   "globalLeagueHonesty": "Strangers' XP is what their phones report, capped per day. Among friends every phone recomputes XP from the shared check-ins.",
   "globalLeagueSection": "This week's league",
-  "globalLeagueSub": "{size} people · top {up} up, bottom {down} down",
+  "globalLeagueSub": "{size} people · on Monday the top {up} move up, the bottom {down} down",
   "@globalLeagueSub": {
     "placeholders": {
       "size": {
@@ -1515,7 +1515,7 @@
   "leagueActiveToday": "Active today",
   "leagueBronze": "Bronze",
   "leagueDiamond": "Diamond",
-  "leagueFooter": "Only friends you connected yourself compete here — no strangers. XP comes per check-in, scaled by difficulty and streak, and tracked workouts and diary days count extra. On Sunday the top places move up and the bottom ones move down.",
+  "leagueFooter": "Only friends you connected yourself compete here — no strangers. XP comes per check-in, scaled by difficulty and streak; tracked workouts and diary days count extra. The ranking starts over every Monday. Nobody moves up or down among friends: the colours only mark the top and the bottom of the week, and your league comes from all the XP you have ever earned.",
   "leagueGold": "Gold",
   "leagueNothingToday": "Nothing yet today",
   "leagueObsidian": "Obsidian",
@@ -3764,5 +3764,115 @@
   "loggerEmptyBody": "This session has no exercises. Add some to it in the training plan, then log it.",
   "loggerEmptyTitle": "Nothing to log yet",
   "editDiscardTitle": "Discard your changes?",
-  "editDiscard": "Discard"
+  "editDiscard": "Discard",
+  "moderationReport": "Report",
+  "moderationBlock": "Block",
+  "moderationBlockTitle": "Block {name}?",
+  "@moderationBlockTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationBlockBody": "You stop being friends and open requests go. Neither of you can find, add or invite the other, and you no longer see {name} in the league. {name} is not told.",
+  "@moderationBlockBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationBlocked": "{name} is blocked.",
+  "@moderationBlocked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationReportTitle": "Report {name}",
+  "@moderationReportTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationReportBody": "Only the team behind 100 Days reads reports. {name} is not told.",
+  "@moderationReportBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationReasonSpam": "Spam or a fake account",
+  "moderationReasonHarassment": "Harassment or bullying",
+  "moderationReasonInappropriate": "Offensive name or emoji",
+  "moderationReasonCheating": "Cheating in the league",
+  "moderationReasonOther": "Something else",
+  "moderationReportDetails": "What happened? (optional)",
+  "moderationAlsoBlock": "Block them as well",
+  "moderationReportSend": "Send report",
+  "moderationReported": "Thanks. Your report is in.",
+  "blockedTitle": "Blocked",
+  "blockedSub": "They can't find, add or invite you, and you don't see them in the league.",
+  "blockedNone": "Nobody blocked.",
+  "blockedUnblock": "Unblock",
+  "blockedUnblocked": "{name} is unblocked. A friendship does not come back by itself.",
+  "@blockedUnblocked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsSentTitle": "Sent requests",
+  "friendsSentSub": "Nothing is shared until they accept.",
+  "friendsSentWithdraw": "Withdraw",
+  "friendsSentWithdrawn": "Request to {name} withdrawn.",
+  "@friendsSentWithdrawn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "findRequestTooMany": "That's enough requests for today. Try again tomorrow.",
+  "findRequestDeclined": "They said no not long ago. You can ask again in a few weeks, or they can ask you.",
+  "findRequestUnavailable": "You can't add this person.",
+  "profileNudgedToday": "Nudged today",
+  "scanPasteHint": "e.g. {link}",
+  "@scanPasteHint": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "scanNotAnInvite": "That QR code isn't a 100 Days invite.",
+  "feedCheckIns": "{name}: {count, plural, =1{1 check-in} other{{count} check-ins}}",
+  "@feedCheckIns": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "campfireTitle": "Around the fire",
+  "friendFlameLabel": "{name}: {streak, plural, =1{1-day streak} other{{streak}-day streak}}",
+  "@friendFlameLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "streak": {
+        "type": "int"
+      }
+    }
+  }
 }
