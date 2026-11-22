@@ -39,6 +39,8 @@ class SplitStep extends ConsumerWidget {
             setup: draft.currentTrainingSetup(),
             goal: goal,
             onChanged: notifier.setTrainingSetup,
+            // A session left without exercises is marked; "Next" waits.
+            flagEmpty: true,
           ),
         ],
       ),

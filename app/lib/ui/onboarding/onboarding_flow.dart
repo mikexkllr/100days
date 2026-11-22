@@ -61,7 +61,12 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
         if (draft.needsTrainingDetails)
           const _Step(id: 'training', child: TrainingStep(), canAdvance: true),
         if (draft.usesTrainingPlan)
-          const _Step(id: 'split', child: SplitStep(), canAdvance: true),
+          _Step(
+            id: 'split',
+            child: const SplitStep(),
+            // A plan with an empty session could never be logged.
+            canAdvance: draft.currentTrainingSetup().isTrainable,
+          ),
         if (draft.needsBodyStats) ...<_Step>[
           _Step(
             id: 'body',

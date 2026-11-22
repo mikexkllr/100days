@@ -18,6 +18,7 @@ import '../motion/motion.dart';
 import '../motion/particles.dart';
 import '../motion/rolling_number.dart';
 import '../widgets/juicy_button.dart';
+import '../motion/sounds.dart';
 import 'share_card.dart';
 
 /// Rolls the slot machine whenever [celebrationProvider] hands it a day just
@@ -190,11 +191,13 @@ class _DayCompleteCelebrationState extends State<DayCompleteCelebration>
         if (!_landed[i] && now.difference(_lastClick).inMilliseconds > 45) {
           _lastClick = now;
           HapticFeedback.selectionClick();
+          AppSounds.play(Sfx.tick, volume: 0.3);
         }
       }
       if (t >= 1 && !_landed[i]) {
         _landed[i] = true;
         HapticFeedback.heavyImpact();
+        AppSounds.play(Sfx.thud);
         if (i == 2) _onAllLanded();
         setState(() {});
       }
@@ -203,6 +206,7 @@ class _DayCompleteCelebrationState extends State<DayCompleteCelebration>
 
   Future<void> _onAllLanded() async {
     if (!widget.reward.isJackpot) return;
+    AppSounds.play(Sfx.jackpot);
     setState(() => _payout++);
     // Three hard knocks: the payout.
     for (int i = 0; i < 3; i++) {

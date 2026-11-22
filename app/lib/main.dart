@@ -18,10 +18,12 @@ import 'data/notifications.dart';
 import 'data/push_service.dart';
 import 'data/social_backend.dart';
 import 'l10n/l10n.dart';
+import 'state/household_providers.dart';
 import 'state/providers.dart';
 import 'ai/dartantic_llm_client.dart';
 import 'ui/auth/login_screen.dart';
 import 'ui/mealplan/household_screen.dart';
+import 'ui/motion/sounds.dart';
 import 'ui/settings/ai_screen.dart';
 import 'ui/social/invite_flow.dart';
 
@@ -50,6 +52,9 @@ Future<void> main() async {
   await SystemChrome.setPreferredOrientations(<DeviceOrientation>[
     DeviceOrientation.portraitUp,
   ]);
+
+  AppSounds.enabled = prefs.read().soundOn;
+  unawaited(AppSounds.start());
 
   runApp(ProviderScope(
     overrides: <Override>[
@@ -82,6 +87,7 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
   ProviderSubscription<AsyncValue<AppRepository?>>? _session;
   ProviderSubscription<Locale>? _locale;
   ProviderSubscription<AppPrefs>? _prefs;
+  ProviderSubscription<void>? _sharedTargets;
   StreamSubscription<Uri>? _links;
   StreamSubscription<void>? _recoveries;
   Timer? _periodicSync;
@@ -102,6 +108,15 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
         final AppSnapshot? snapshot = next.valueOrNull;
         if (snapshot == null) return;
         if (snapshot.hasChallenge) {
+          // The calorie target a household plans with follows the user's
+          // plan from the start — not only once a plan or diary screen was
+          // opened. Only for someone with a nutrition plan.
+          if (snapshot.plan?.nutrition != null) {
+            _sharedTargets ??= ref.listenManual<void>(
+              sharedTargetsSyncProvider,
+              (void _, void __) {},
+            );
+          }
           _redeemPendingInvite();
           unawaited(ref.read(repositoryProvider).reportLeagueXp(snapshot));
           unawaited(_scheduleReminders(snapshot));
@@ -145,6 +160,7 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
     _prefs = ref.listenManual<AppPrefs>(
       appPrefsProvider,
       (AppPrefs? previous, AppPrefs next) {
+        AppSounds.enabled = next.soundOn;
         _lastScheduledFor = null;
         _rescheduleFromState();
       },
@@ -398,6 +414,7 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
     _session?.close();
     _locale?.close();
     _prefs?.close();
+    _sharedTargets?.close();
     unawaited(_links?.cancel());
     unawaited(_recoveries?.cancel());
     _periodicSync?.cancel();

@@ -16,6 +16,7 @@ import '../home/week_strip.dart';
 import '../mascot/flame_painter.dart';
 import '../widgets/app_card.dart';
 import '../widgets/day_board.dart';
+import '../mascot/flame_mascot.dart';
 
 /// The receipts.
 class StatsScreen extends ConsumerWidget {
@@ -26,7 +27,7 @@ class StatsScreen extends ConsumerWidget {
     final AsyncValue<AppSnapshot> async = ref.watch(appStateProvider);
 
     return async.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const FunkiLoader(),
       error: (Object error, StackTrace _) => Center(child: Text('$error')),
       data: (AppSnapshot snapshot) {
         final AppLocalizations l10n = context.l10n;

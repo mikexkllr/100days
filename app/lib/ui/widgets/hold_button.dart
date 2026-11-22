@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../motion/sounds.dart';
+
 /// Press and hold to check in.
 ///
 /// A check-in should feel like something you do, not something you brush
@@ -81,6 +83,7 @@ class _HoldButtonState extends State<HoldButton>
         quarter > _quarter &&
         quarter < 4) {
       HapticFeedback.selectionClick();
+      AppSounds.play(Sfx.tick, volume: 0.35 + 0.15 * quarter);
     }
     _quarter = quarter;
   }

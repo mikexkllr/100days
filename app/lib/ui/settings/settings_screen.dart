@@ -22,6 +22,7 @@ import 'profile_edit_screen.dart';
 import 'privacy_screen.dart';
 import 'reminders_screen.dart';
 import 'social_settings_screen.dart';
+import '../mascot/flame_mascot.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -39,7 +40,7 @@ class SettingsScreen extends ConsumerWidget {
     final BackendConfig backend = ref.watch(backendConfigProvider);
 
     return async.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const FunkiLoader(),
       error: (Object error, StackTrace _) => Center(child: Text('$error')),
       data: (AppSnapshot snapshot) => ListView(
         padding: EdgeInsets.fromLTRB(

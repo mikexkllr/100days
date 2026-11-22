@@ -455,6 +455,10 @@ class AppController extends AsyncNotifier<AppSnapshot> {
   }) async {
     final snapshot = state.valueOrNull;
     final DayKey target = day ?? DayKey.today();
+    // Logged again — a corrected amount, a diary day counted on target
+    // after all: friends already heard about this habit today.
+    final bool already =
+        snapshot?.me.logsByDay[target.toString()]?.entryFor(habit.id) != null;
     final FeedEvent event = await _repository.checkIn(
       habit: habit,
       day: target,
@@ -464,7 +468,7 @@ class AppController extends AsyncNotifier<AppSnapshot> {
       tracked: tracked,
       challenge: snapshot?.challenge,
     );
-    _notifyLater(event, habit, target, notifyDelay);
+    if (!already) _notifyLater(event, habit, target, notifyDelay);
     await refresh();
     _celebrateIfCompleted(snapshot);
   }

@@ -10,6 +10,7 @@ import '../widgets/app_card.dart';
 import 'friend_detail.dart';
 import 'friends_tab.dart';
 import 'league_tab.dart';
+import '../mascot/flame_mascot.dart';
 
 /// Feed, league and friends — the part that turns a tracker into pressure.
 class SocialScreen extends ConsumerWidget {
@@ -20,7 +21,7 @@ class SocialScreen extends ConsumerWidget {
     final AsyncValue<AppSnapshot> async = ref.watch(appStateProvider);
 
     return async.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const FunkiLoader(),
       error: (Object error, StackTrace _) => Center(child: Text('$error')),
       data: (AppSnapshot snapshot) => DefaultTabController(
         length: 3,

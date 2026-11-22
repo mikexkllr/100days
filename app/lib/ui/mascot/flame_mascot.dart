@@ -8,6 +8,7 @@ import 'package:hundred_core/hundred_core.dart';
 
 import '../motion/motion.dart';
 import '../motion/particles.dart';
+import '../motion/sounds.dart';
 import 'flame_painter.dart';
 
 export 'mascot_mood.dart';
@@ -143,6 +144,7 @@ class _FlameMascotState extends State<FlameMascot>
         : 1;
     _lastPoke = now;
     HapticFeedback.lightImpact();
+    AppSounds.play(Sfx.poke, volume: 0.6);
     _poke.forward(from: 0);
     setState(() => _bursts++);
     widget.onPoke?.call(_combo);
@@ -221,4 +223,27 @@ class _FlameMascotState extends State<FlameMascot>
       ),
     );
   }
+}
+
+/// Waiting, Funki style: a small flame bobbing where a spinner would be.
+class FunkiLoader extends StatelessWidget {
+  const FunkiLoader({super.key, this.size = 72});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: AmbientClock(
+          builder: (BuildContext context, double seconds, Widget? child) =>
+              Transform.translate(
+            offset: Offset(0, math.sin(seconds * 3) * size * 0.06),
+            child: child,
+          ),
+          child: FlameMascot(
+            stage: FlameStage.spark,
+            mood: MascotMood.hopeful,
+            size: size,
+          ),
+        ),
+      );
 }

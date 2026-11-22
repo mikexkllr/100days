@@ -26,6 +26,7 @@ import '../mascot/speech_bubble.dart';
 import '../../data/app_prefs.dart';
 import 'coach_card.dart';
 import 'feeding.dart';
+import '../motion/sounds.dart';
 import 'reminder_card.dart';
 import 'day_sheet.dart';
 import 'streak_hero.dart';
@@ -43,7 +44,7 @@ class HomeScreen extends ConsumerWidget {
     final asyncSnapshot = ref.watch(appStateProvider);
 
     return asyncSnapshot.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const FunkiLoader(),
       error: (Object error, StackTrace _) => Center(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -338,6 +339,7 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
       to: to,
       fire: fire,
       onArrive: () {
+        AppSounds.play(Sfx.gulp, volume: 0.7);
         if (!mounted || ring == null) return;
         HapticFeedback.lightImpact();
         setState(() => _feeds++);
@@ -348,6 +350,7 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
   Future<void> _checkIn(Habit habit, num value) async {
     final AppSnapshot before = widget.snapshot;
     _holdFill.value = 0;
+    AppSounds.play(Sfx.ignite);
     _feed(habit, TodayState.of(before).fire,
         flameStageFor(before.me.streak.current));
     await ref

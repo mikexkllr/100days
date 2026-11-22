@@ -14,6 +14,7 @@ import '../nutrition/nutrition_goals_screen.dart';
 import '../widgets/app_card.dart';
 import 'training_editor.dart';
 import 'workout_detail.dart';
+import '../mascot/flame_mascot.dart';
 
 /// What lies ahead: the training plan, the week of meals with the nutrition
 /// target it is portioned for, the shopping list, the abstinence milestones.
@@ -29,7 +30,7 @@ class PlanScreen extends ConsumerWidget {
     final AsyncValue<AppSnapshot> async = ref.watch(appStateProvider);
 
     return async.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const FunkiLoader(),
       error: (Object error, StackTrace _) => Center(child: Text('$error')),
       data: (AppSnapshot snapshot) {
         final AppLocalizations l10n = context.l10n;
