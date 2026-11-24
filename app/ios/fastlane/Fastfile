@@ -23,9 +23,42 @@ platform :ios do
     )
   end
 
+  # Every fresh CI runner has an empty keychain, so for the archive Xcode
+  # creates a new "Apple Development" certificate through the API key — and
+  # its private key dies with the runner. They pile up until the account's
+  # limit is reached and every archive fails ("Choose a certificate to
+  # revoke"). Revoke the ones earlier runs left behind first. Only
+  # certificates the API created, and only those older than a few hours, so
+  # a run on the other branch keeps the one it is signing with. The App
+  # Store build itself is signed at export with the cloud-managed
+  # distribution certificate, which this does not touch.
+  def prune_ci_development_certificates
+    types = %w[DEVELOPMENT IOS_DEVELOPMENT]
+    certificates = Spaceship::ConnectAPI::Certificate.all(
+      filter: { certificateType: types.join(",") },
+    )
+    cutoff = Time.now - (3 * 60 * 60)
+    certificates.each do |cert|
+      label = [cert.name, cert.display_name].compact.join(" / ")
+      created = Time.parse(cert.expiration_date) - (365 * 24 * 60 * 60) rescue nil
+      from_ci = label.include?("Created via API")
+      if from_ci && created && created < cutoff
+        UI.message("Revoking CI development certificate #{label} (#{cert.serial_number}, created ~#{created.utc})")
+        cert.delete!
+      else
+        UI.message("Keeping development certificate #{label} (#{cert.serial_number})")
+      end
+    end
+  rescue StandardError => e
+    # Not fatal: with room left, the archive works anyway; without, it
+    # fails with Xcode's own message.
+    UI.important("Could not prune development certificates: #{e.message}")
+  end
+
   # Cloud signing: xcodebuild fetches the distribution certificate and the
   # profile with the API key; nothing to keep in the repository.
   def build_ipa
+    prune_ci_development_certificates
     key_path = asc_key_path
     build_app(
       workspace: "Runner.xcworkspace",
