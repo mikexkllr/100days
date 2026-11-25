@@ -1,5 +1,5 @@
 {
-  "alcoholTobaccoOrDrugUseOrReferences": "NONE",
+  "alcoholTobaccoOrDrugUseOrReferences": "INFREQUENT",
   "gamblingSimulated": "NONE",
   "gunsOrOtherWeapons": "NONE",
   "horrorOrFearThemes": "NONE",
@@ -16,10 +16,14 @@
   "contests": "NONE",
   "advertising": false,
   "ageAssurance": false,
+  "datingAndRelationships": false,
   "healthOrWellnessTopics": true,
   "messagingAndChat": false,
   "parentalControls": false,
+  "sharedLocation": false,
   "socialMedia": false,
+  "socialMediaAgeRestricted": false,
   "unrestrictedWebAccess": false,
-  "userGeneratedContent": true
+  "userGeneratedContent": true,
+  "ageRatingOverrideV2": "SIXTEEN_PLUS"
 }
