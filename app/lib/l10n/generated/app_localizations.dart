@@ -194,6 +194,18 @@ abstract class AppLocalizations {
   /// **'What is it?'**
   String get addMealTitle;
 
+  /// No description provided for @addMealTitleMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Give it a name — or tap one of the ideas.'**
+  String get addMealTitleMissing;
+
+  /// No description provided for @addMealToDiary.
+  ///
+  /// In en, this message translates to:
+  /// **'Already eaten? Into the diary — a photo will do'**
+  String get addMealToDiary;
+
   /// No description provided for @adviceCutScope.
   ///
   /// In en, this message translates to:
@@ -2088,11 +2100,29 @@ abstract class AppLocalizations {
   /// **'Calories (kcal)'**
   String get foodManualKcal;
 
+  /// No description provided for @foodManualKcalFromMacros.
+  ///
+  /// In en, this message translates to:
+  /// **'≈ {kcal} kcal from the macros below'**
+  String foodManualKcalFromMacros(int kcal);
+
+  /// No description provided for @foodManualKcalMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories are needed. Not sure? A photo or a sentence gets them estimated.'**
+  String get foodManualKcalMissing;
+
   /// No description provided for @foodManualName.
   ///
   /// In en, this message translates to:
   /// **'Name'**
   String get foodManualName;
+
+  /// No description provided for @foodManualNameMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'What was it?'**
+  String get foodManualNameMissing;
 
   /// No description provided for @foodManualProtein.
   ///
@@ -8004,6 +8034,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only yesterday can be logged late. Friends see that it was.'**
   String get dayLogLateNote;
+
+  /// No description provided for @dayOpenDiary.
+  ///
+  /// In en, this message translates to:
+  /// **'Meals'**
+  String get dayOpenDiary;
+
+  /// No description provided for @dayOverNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This day is over. Only yesterday can still be logged late.'**
+  String get dayOverNote;
 
   /// No description provided for @profileEditTitle.
   ///

@@ -57,6 +57,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get addMealTitle => 'Was gibt\'s?';
 
   @override
+  String get addMealTitleMissing =>
+      'Gib der Mahlzeit einen Namen — oder tipp eine der Ideen an.';
+
+  @override
+  String get addMealToDiary => 'Schon gegessen? Ins Tagebuch — ein Foto reicht';
+
+  @override
   String adviceCutScope(int percent) {
     return 'Du triffst nur $percent % deiner Tage. Nimm eine Gewohnheit raus statt weiter zu scheitern — drei sichere Tage schlagen fünf geplante.';
   }
@@ -1316,7 +1323,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get foodManualKcal => 'Kalorien (kcal)';
 
   @override
+  String foodManualKcalFromMacros(int kcal) {
+    return '≈ $kcal kcal aus den Makros unten';
+  }
+
+  @override
+  String get foodManualKcalMissing =>
+      'Ohne Kalorien geht es nicht. Nicht sicher? Ein Foto oder ein Satz, und sie werden geschätzt.';
+
+  @override
   String get foodManualName => 'Name';
+
+  @override
+  String get foodManualNameMissing => 'Was war es?';
 
   @override
   String get foodManualProtein => 'Eiweiß in g (optional)';
@@ -4931,6 +4950,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get dayLogLateNote =>
       'Nachtragen geht nur für gestern. Deine Freunde sehen, dass es nachgetragen ist.';
+
+  @override
+  String get dayOpenDiary => 'Mahlzeiten';
+
+  @override
+  String get dayOverNote =>
+      'Dieser Tag ist vorbei. Nachtragen geht nur für gestern.';
 
   @override
   String get profileEditTitle => 'Dein Profil';

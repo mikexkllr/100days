@@ -28,6 +28,9 @@ String newFoodEntryId() {
       .join();
 }
 
+/// The ways into the diary, in the order of their tabs.
+enum FoodEntryWay { search, photo, describe, barcode, manual }
+
 /// Five ways to log a meal: search the food table, take a photo (the
 /// language model estimates what is on the plate), describe it in a
 /// sentence, scan or type a barcode, or enter the numbers yourself.
@@ -37,6 +40,7 @@ class AddFoodScreen extends ConsumerStatefulWidget {
     required this.meal,
     required this.day,
     this.prefillText,
+    this.startOn = FoodEntryWay.search,
   });
 
   final MealSlotKind meal;
@@ -45,6 +49,9 @@ class AddFoodScreen extends ConsumerStatefulWidget {
   /// Opens on the describe tab with this text — what a tapped suggestion
   /// hands over.
   final String? prefillText;
+
+  /// The tab it opens on, unless [prefillText] asks for the describe tab.
+  final FoodEntryWay startOn;
 
   @override
   ConsumerState<AddFoodScreen> createState() => _AddFoodScreenState();
@@ -97,8 +104,10 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
     return DefaultTabController(
-      length: 5,
-      initialIndex: widget.prefillText == null ? 0 : 2,
+      length: FoodEntryWay.values.length,
+      initialIndex: widget.prefillText == null
+          ? widget.startOn.index
+          : FoodEntryWay.describe.index,
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.foodAddTo(l10n.mealName(widget.meal))),
@@ -1143,14 +1152,55 @@ class _ManualTabState extends State<_ManualTab>
     super.dispose();
   }
 
+  /// Add was pressed with something missing: the fields say what.
+  bool _tried = false;
+
   double _n(TextEditingController c) =>
       double.tryParse(c.text.trim().replaceAll(',', '.')) ?? 0;
+
+  Nutrients get _nutrients {
+    final Nutrients typed = Nutrients(
+      kcal: _n(_kcal),
+      proteinG: _n(_protein),
+      carbsG: _n(_carbs),
+      fatG: _n(_fat),
+    );
+    // Macros without calories, as on some labels: they add up to them.
+    return typed.kcal > 0
+        ? typed
+        : Nutrients(
+            kcal: typed.kcalFromMacros,
+            proteinG: typed.proteinG,
+            carbsG: typed.carbsG,
+            fatG: typed.fatG,
+          );
+  }
+
+  bool get _hasName => _name.text.trim().isNotEmpty;
+  bool get _hasKcal => _nutrients.kcal > 0;
+
+  /// A press always answers: logged, or the fields say what is missing.
+  void _add() {
+    if (!_hasName || !_hasKcal) {
+      setState(() => _tried = true);
+      return;
+    }
+    widget.onPick(<FoodEntry>[
+      widget.makeEntry(
+        name: _name.text.trim(),
+        grams: _n(_grams),
+        nutrients: _nutrients,
+        source: FoodSource.manual,
+      ),
+    ]);
+  }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
     final AppLocalizations l10n = context.l10n;
-    Widget number(TextEditingController c, String label, {Key? key}) =>
+    Widget number(TextEditingController c, String label,
+            {Key? key, String? error, String? helper}) =>
         Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.sm),
           child: TextField(
@@ -1160,12 +1210,18 @@ class _ManualTabState extends State<_ManualTab>
             inputFormatters: <TextInputFormatter>[
               FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
             ],
-            decoration: InputDecoration(labelText: label),
+            decoration: InputDecoration(
+              labelText: label,
+              errorText: error,
+              helperText: helper,
+            ),
             onChanged: (_) => setState(() {}),
           ),
         );
 
-    final bool valid = _name.text.trim().isNotEmpty && _n(_kcal) > 0;
+    final bool kcalMissing = _tried && !_hasKcal;
+    void open(FoodEntryWay way) =>
+        DefaultTabController.of(context).animateTo(way.index);
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: <Widget>[
@@ -1174,11 +1230,45 @@ class _ManualTabState extends State<_ManualTab>
           child: TextField(
             key: const Key('manual-name'),
             controller: _name,
-            decoration: InputDecoration(labelText: l10n.foodManualName),
+            decoration: InputDecoration(
+              labelText: l10n.foodManualName,
+              errorText:
+                  _tried && !_hasName ? l10n.foodManualNameMissing : null,
+            ),
             onChanged: (_) => setState(() {}),
           ),
         ),
-        number(_kcal, l10n.foodManualKcal, key: const Key('manual-kcal')),
+        number(
+          _kcal,
+          l10n.foodManualKcal,
+          key: const Key('manual-kcal'),
+          error: kcalMissing ? l10n.foodManualKcalMissing : null,
+          helper: _n(_kcal) == 0 && _hasKcal
+              ? l10n.foodManualKcalFromMacros(_nutrients.kcal.round())
+              : null,
+        ),
+        // Not known: the photo or a sentence gets them estimated.
+        if (kcalMissing)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: Wrap(
+              spacing: AppSpacing.sm,
+              children: <Widget>[
+                OutlinedButton.icon(
+                  key: const Key('manual-to-photo'),
+                  onPressed: () => open(FoodEntryWay.photo),
+                  icon: const Icon(Icons.photo_camera_outlined, size: 18),
+                  label: Text(l10n.foodTabPhoto),
+                ),
+                OutlinedButton.icon(
+                  key: const Key('manual-to-describe'),
+                  onPressed: () => open(FoodEntryWay.describe),
+                  icon: const Icon(Icons.edit_note, size: 18),
+                  label: Text(l10n.foodTabDescribe),
+                ),
+              ],
+            ),
+          ),
         number(_grams, l10n.foodManualGrams),
         number(_protein, l10n.foodManualProtein),
         number(_carbs, l10n.foodManualCarbs),
@@ -1187,21 +1277,7 @@ class _ManualTabState extends State<_ManualTab>
         FilledButton(
           key: const Key('manual-add'),
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-          onPressed: valid
-              ? () => widget.onPick(<FoodEntry>[
-                    widget.makeEntry(
-                      name: _name.text.trim(),
-                      grams: _n(_grams),
-                      nutrients: Nutrients(
-                        kcal: _n(_kcal),
-                        proteinG: _n(_protein),
-                        carbsG: _n(_carbs),
-                        fatG: _n(_fat),
-                      ),
-                      source: FoodSource.manual,
-                    ),
-                  ])
-              : null,
+          onPressed: _add,
           child: Text(l10n.foodManualAdd),
         ),
       ],
