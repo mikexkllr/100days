@@ -122,7 +122,13 @@ class GlobalLeagueCard extends ConsumerWidget {
                   children: <Widget>[
                     Text(l10n.leagueTitle(l10n.leagueName(division)),
                         style: text.titleLarge),
-                    Text(l10n.globalLeagueSub(size, up, down),
+                    Text(
+                        '${l10n.globalLeagueSize(size)} · '
+                        '${switch ((up, down)) {
+                          (0, _) => l10n.globalLeagueMovesNone,
+                          (_, 0) => l10n.globalLeagueMovesUp(up),
+                          _ => l10n.globalLeagueMoves(up, down),
+                        }}',
                         style: text.bodySmall
                             ?.copyWith(color: AppColors.textSecondary)),
                   ],

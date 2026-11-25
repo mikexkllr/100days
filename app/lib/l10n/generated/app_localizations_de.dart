@@ -1499,8 +1499,40 @@ class AppLocalizationsDe extends AppLocalizations {
   String get globalLeagueSection => 'Liga dieser Woche';
 
   @override
-  String globalLeagueSub(int size, int up, int down) {
-    return '$size Leute · am Montag steigen die Top $up auf, die letzten $down ab';
+  String globalLeagueSize(int size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      size,
+      locale: localeName,
+      other: '$size Leute',
+      one: 'Bisher nur du',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get globalLeagueMovesNone =>
+      'sobald jemand dazukommt, steigt am Montag die Nummer 1 auf';
+
+  @override
+  String globalLeagueMovesUp(int up) {
+    String _temp0 = intl.Intl.pluralLogic(
+      up,
+      locale: localeName,
+      other: 'steigen die Top $up auf',
+      one: 'steigt die Nummer 1 auf',
+    );
+    return 'am Montag $_temp0';
+  }
+
+  @override
+  String globalLeagueMoves(int up, int down) {
+    String _temp0 = intl.Intl.pluralLogic(
+      down,
+      locale: localeName,
+      other: 'die letzten $down steigen ab',
+      one: 'der letzte Platz steigt ab',
+    );
+    return 'am Montag steigen die Top $up auf, $_temp0';
   }
 
   @override

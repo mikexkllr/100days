@@ -219,6 +219,18 @@ void main() {
       expect(find.text('$xp XP'), findsWidgets);
     });
 
+    testWidgets('a group of one or two says what Monday does to it',
+        (WidgetTester tester) async {
+      await pump(tester);
+      await tester.tap(find.text('Liga'));
+      await tester.pumpAndSettle();
+      expect(
+          find.text('Bisher nur du · sobald jemand dazukommt, steigt am '
+              'Montag die Nummer 1 auf'),
+          findsOneWidget);
+      expect(find.textContaining('Top 0'), findsNothing);
+    });
+
     testWidgets('a stranger in the group can be reported',
         (WidgetTester tester) async {
       social.leagueOthers.add(const GlobalLeagueRow(

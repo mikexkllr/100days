@@ -1086,12 +1086,26 @@
   "globalLeagueEmpty": "No group yet this week. Once your phone has reported your XP, you join up to 30 people of your division. The week closes on Monday: the best move up, and in groups of five or more the last move down.",
   "globalLeagueHonesty": "Strangers' XP is what their phones report, capped per day. Among friends every phone recomputes XP from the shared check-ins.",
   "globalLeagueSection": "This week's league",
-  "globalLeagueSub": "{size} people · on Monday the top {up} move up, the bottom {down} down",
-  "@globalLeagueSub": {
+  "globalLeagueSize": "{size, plural, =1{Only you so far} other{{size} people}}",
+  "@globalLeagueSize": {
     "placeholders": {
       "size": {
         "type": "int"
-      },
+      }
+    }
+  },
+  "globalLeagueMovesNone": "the best moves up on Monday once someone joins",
+  "globalLeagueMovesUp": "on Monday {up, plural, =1{the best moves up} other{the top {up} move up}}",
+  "@globalLeagueMovesUp": {
+    "placeholders": {
+      "up": {
+        "type": "int"
+      }
+    }
+  },
+  "globalLeagueMoves": "on Monday the top {up} move up, {down, plural, =1{the last one moves down} other{the bottom {down} move down}}",
+  "@globalLeagueMoves": {
+    "placeholders": {
       "up": {
         "type": "int"
       },

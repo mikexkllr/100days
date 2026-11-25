@@ -2412,11 +2412,29 @@ abstract class AppLocalizations {
   /// **'This week\'s league'**
   String get globalLeagueSection;
 
-  /// No description provided for @globalLeagueSub.
+  /// No description provided for @globalLeagueSize.
   ///
   /// In en, this message translates to:
-  /// **'{size} people · on Monday the top {up} move up, the bottom {down} down'**
-  String globalLeagueSub(int size, int up, int down);
+  /// **'{size, plural, =1{Only you so far} other{{size} people}}'**
+  String globalLeagueSize(int size);
+
+  /// No description provided for @globalLeagueMovesNone.
+  ///
+  /// In en, this message translates to:
+  /// **'the best moves up on Monday once someone joins'**
+  String get globalLeagueMovesNone;
+
+  /// No description provided for @globalLeagueMovesUp.
+  ///
+  /// In en, this message translates to:
+  /// **'on Monday {up, plural, =1{the best moves up} other{the top {up} move up}}'**
+  String globalLeagueMovesUp(int up);
+
+  /// No description provided for @globalLeagueMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'on Monday the top {up} move up, {down, plural, =1{the last one moves down} other{the bottom {down} move down}}'**
+  String globalLeagueMoves(int up, int down);
 
   /// No description provided for @globalLeagueXp.
   ///
