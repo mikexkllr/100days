@@ -94,6 +94,13 @@ class AppSnapshot {
       );
 }
 
+/// What asks for the signed-in user's repository throws this while nobody
+/// is signed in. Screens below the sign-in gate never see it; listeners set
+/// up at start, before anyone has signed in, do — and that is expected.
+class NotSignedIn extends StateError {
+  NotSignedIn() : super('Nobody is signed in');
+}
+
 /// The single place the UI talks to.
 ///
 /// Everything a user does becomes an event on their own feed; nothing is

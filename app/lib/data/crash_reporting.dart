@@ -6,11 +6,14 @@ import 'package:http/http.dart' as http;
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'app_repository.dart';
+
 /// Whether [error] is the world failing rather than the app: no
 /// connection, a timeout, a server out of reach, or a sign-in the server
-/// refused. The screens tell the user about those; they are not bugs, and
-/// reporting them would bury the real ones.
+/// refused — or simply nobody signed in yet. The screens tell the user about
+/// those; they are not bugs, and reporting them would bury the real ones.
 bool isExpectedFailure(Object error) =>
+    error is NotSignedIn ||
     error is SocketException ||
     error is TimeoutException ||
     error is HandshakeException ||

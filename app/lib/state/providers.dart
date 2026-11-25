@@ -120,7 +120,7 @@ final Provider<AppRepository> repositoryProvider = Provider<AppRepository>(
   (Ref ref) {
     final AppRepository? repository =
         ref.watch(sessionRepositoryProvider).valueOrNull;
-    if (repository == null) throw StateError('Nobody is signed in');
+    if (repository == null) throw NotSignedIn();
     return repository;
   },
 );
