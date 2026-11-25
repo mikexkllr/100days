@@ -17,6 +17,7 @@ import 'data/household_backend.dart';
 import 'data/locale_store.dart';
 import 'data/notifications.dart';
 import 'demo/demo_data.dart';
+import 'demo/demo_subscriptions.dart';
 import 'state/household_providers.dart';
 import 'state/providers.dart';
 import 'package:hundred_core/hundred_core.dart';
@@ -48,6 +49,8 @@ Future<void> main() async {
       sessionRepositoryProvider.overrideWith((Ref ref) async => repository),
       householdBackendProvider.overrideWithValue(household),
       llmClientProvider.overrideWithValue(const UnavailableLlmClient()),
+      subscriptionServiceProvider.overrideWithValue(
+          DemoSubscriptionService(Supabase.instance.client, locale)),
     ],
     child: const HundredDaysApp(),
   ));

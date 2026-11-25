@@ -64,6 +64,9 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # tool/store_screenshots.sh walks the demo through the store screens.
+  integration_test:
+    sdk: flutter
   flutter_lints: ^4.0.0
 
 flutter:

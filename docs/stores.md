@@ -77,8 +77,8 @@ Redirect URLs (Authentication → URL Configuration).
 
 - App Review information in App Store Connect: the demo account and a note
   ("Sign in with email" on the first screen).
-- A review screenshot per App Store subscription, taken from a TestFlight
-  build with a sandbox account (the purchase sheet must be visible).
+- A review screenshot per App Store subscription: the AI & subscription
+  screen with both plans (`tool/store_screenshots.sh`, see *Screenshots*).
 - Closed testing on Google Play: the track (`alpha`) uses the email list
   "Tester", all countries, feedback to info@my-diary.app. Production access
   can be requested after 14 days with at least 12 opted-in testers.
@@ -124,10 +124,21 @@ flutter run -t lib/main_demo.dart --dart-define=DEMO_LOCALE=en
 ```
 
 The store screenshots are taken from it on an iPhone 17 Pro Max simulator
-(1320×2868) with the status bar set to 9:41
-(`xcrun simctl status_bar <device> override --time 9:41 …`); the Play ones
-are the same images padded to 9:16 and scaled to 1080×1920. Play's default
-listing language is en-GB, so `en-GB` is a copy of `en-US`.
+(1320×2868) with the status bar set to 9:41; the Play ones are the same
+images padded to 9:16 and scaled to 1080×1920. Play's default listing
+language is en-GB, so `en-GB` is a copy of `en-US`. One command does all
+of it, for both languages:
+
+```bash
+cd app
+./tool/store_screenshots.sh <simulator-udid>      # or: … <udid> en
+```
+
+`integration_test/store_screenshots_test.dart` opens each screen and the
+script takes the simulator's screenshot, so the status bar is real. The
+same run leaves the subscription review screenshot (the AI & subscription
+screen with both plans, which the demo prices without a store) in
+`build/store_screenshots/`. Commit the images; `main` uploads them.
 
 ## Review accounts
 
