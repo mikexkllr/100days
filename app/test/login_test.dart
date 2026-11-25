@@ -7,6 +7,7 @@ import 'package:hundred_days/data/auth_service.dart';
 import 'package:hundred_days/data/locale_store.dart';
 import 'package:hundred_days/l10n/l10n.dart';
 import 'package:hundred_days/state/providers.dart';
+import 'package:hundred_days/theme/theme.dart';
 import 'package:hundred_days/ui/auth/login_screen.dart';
 
 import 'helpers.dart';
@@ -52,6 +53,7 @@ void main() {
     WidgetTester tester,
     _FakeAuth auth, {
     Stream<String?>? signIns,
+    ThemeData? theme,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -63,12 +65,13 @@ void main() {
           ),
           ...platformFreeOverrides(),
         ],
-        child: const MaterialApp(
+        child: MaterialApp(
+          theme: theme,
           builder: reducedMotion,
-          locale: Locale('de'),
+          locale: const Locale('de'),
           supportedLocales: kSupportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
-          home: LoginScreen(),
+          home: const LoginScreen(),
         ),
       ),
     );
@@ -242,5 +245,24 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('the own-server sheet lays out with the app theme', (
+    WidgetTester tester,
+  ) async {
+    // The theme makes filled buttons as wide as they may be; next to a
+    // spacer in a row that is infinitely wide and fails to lay out.
+    await pump(tester, _FakeAuth(), theme: buildAppTheme());
+    final Finder ownServer = find.byKey(
+      const Key('login-own-server'),
+      skipOffstage: false,
+    );
+    await tester.ensureVisible(ownServer);
+    await tester.pumpAndSettle();
+    await tester.tap(ownServer);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.widgetWithText(FilledButton, 'Speichern'), findsOneWidget);
   });
 }

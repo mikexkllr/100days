@@ -628,6 +628,9 @@ class _OwnServerSheetState extends State<_OwnServerSheet> {
                 ),
               const Spacer(),
               FilledButton(
+                // Next to the spacer it cannot be as wide as the row, which
+                // the theme's full-width minimum would ask for.
+                style: FilledButton.styleFrom(minimumSize: const Size(0, 54)),
                 onPressed: !_valid
                     ? null
                     : () async {

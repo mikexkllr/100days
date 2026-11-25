@@ -443,6 +443,9 @@ class _OwnKeyCardState extends ConsumerState<_OwnKeyCard> {
                 ),
               const Spacer(),
               FilledButton(
+                // Next to the spacer it cannot be as wide as the row, which
+                // the theme's full-width minimum would ask for.
+                style: FilledButton.styleFrom(minimumSize: const Size(0, 54)),
                 onPressed: _testing ? null : _save,
                 child: _testing
                     ? const SizedBox(
