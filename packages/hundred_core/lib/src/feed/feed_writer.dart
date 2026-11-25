@@ -3,6 +3,10 @@ import 'dart:async';
 import 'event.dart';
 import 'feed_store.dart';
 
+/// How far ahead of the real time a device's last timestamp may be before
+/// the writer stops counting on from it. The server accepts ten minutes.
+const Duration kClockTolerance = Duration(minutes: 5);
+
 /// Writes the user's own events into the local store, where they wait as
 /// pending until the sync sends them.
 ///
@@ -41,9 +45,16 @@ class FeedWriter {
     try {
       if (previous != null) await previous;
 
-      var ts = (timestamp ?? DateTime.now()).toUtc();
+      final now = DateTime.now().toUtc();
+      var ts = (timestamp ?? now).toUtc();
       final last = _last ?? await _lastTimestamp();
-      if (last != null && !ts.isAfter(last)) {
+      // A clock that once ran ahead must not drag every later event into the
+      // future with it: the server refuses those, and the whole outbox would
+      // wait behind them. Past that tolerance, the order of this device's
+      // writes yields to the real time.
+      final lastIsSane =
+          last != null && !last.isAfter(now.add(kClockTolerance));
+      if (lastIsSane && !ts.isAfter(last)) {
         ts = last.add(const Duration(microseconds: 1));
       }
       final event = FeedEvent.create(

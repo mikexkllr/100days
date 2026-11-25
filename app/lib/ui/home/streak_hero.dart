@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hundred_core/hundred_core.dart';
 
@@ -30,9 +31,21 @@ class StreakHero extends StatefulWidget {
     super.key,
     required this.snapshot,
     this.onTapDay,
+    this.holdFill,
+    this.ringKey,
+    this.feeds = 0,
   });
 
+  /// Marks the ring, so an ember can find its way to Funki.
+  final Key? ringKey;
+
+  /// Bumped when an ember lands: Funki gulps.
+  final int feeds;
+
   final AppSnapshot snapshot;
+
+  /// How full the habit row being held is; Funki watches it.
+  final ValueListenable<double>? holdFill;
 
   /// A day of the week strip was tapped.
   final ValueChanged<DayKey>? onTapDay;
@@ -107,10 +120,20 @@ class _StreakHeroState extends State<StreakHero> {
           hoursLeft: left.inHours,
         );
     final bool worried = status == HeroStatus.open && mood == MascotMood.worried;
+    // The last four hours of an open day with a streak at stake: he trembles,
+    // harder as midnight comes.
+    final double urgency = status == HeroStatus.open && streak.current > 0
+        ? (1 - left.inMinutes / (4 * 60)).clamp(0.0, 1.0)
+        : 0;
     // Safe until tomorrow: done, held by a freeze, or nothing scheduled.
     final bool safe = streak.current > 0 && !(streak.atRisk && !state.frozen);
 
-    return Column(
+    // The hero is a composition — number, ring and clock side by side.
+    // Past a point, larger system text would push it apart; the rest of the
+    // screen still follows the setting in full.
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.3,
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         Align(
@@ -174,6 +197,8 @@ class _StreakHeroState extends State<StreakHero> {
             ),
             const SizedBox(width: 8),
             TodayRing(
+              key: widget.ringKey,
+              feeds: widget.feeds,
               parts: state.parts,
               fire: fire,
               stage: stage,
@@ -181,6 +206,8 @@ class _StreakHeroState extends State<StreakHero> {
               held: state.frozen && !state.complete,
               onPoke: _onPoke,
               mascotLabel: l10n.mascotSemantics,
+              holdFill: widget.holdFill,
+              urgency: urgency,
             ),
           ],
         ),
@@ -201,6 +228,7 @@ class _StreakHeroState extends State<StreakHero> {
         const SizedBox(height: 14),
         _NextForm(streak: streak.current, fire: fire),
       ],
+    ),
     );
   }
 }

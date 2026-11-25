@@ -1,5 +1,5 @@
 {
-  "alcoholTobaccoOrDrugUseOrReferences": "NONE",
+  "alcoholTobaccoOrDrugUseOrReferences": "INFREQUENT",
   "gamblingSimulated": "NONE",
   "gunsOrOtherWeapons": "NONE",
   "horrorOrFearThemes": "NONE",
@@ -12,5 +12,18 @@
   "violenceRealistic": "NONE",
   "violenceRealisticProlongedGraphicOrSadistic": "NONE",
   "gambling": false,
-  "lootBox": false
+  "lootBox": false,
+  "contests": "NONE",
+  "advertising": false,
+  "ageAssurance": false,
+  "datingAndRelationships": false,
+  "healthOrWellnessTopics": true,
+  "messagingAndChat": false,
+  "parentalControls": false,
+  "sharedLocation": false,
+  "socialMedia": false,
+  "socialMediaAgeRestricted": false,
+  "unrestrictedWebAccess": false,
+  "userGeneratedContent": true,
+  "ageRatingOverrideV2": "SIXTEEN_PLUS"
 }

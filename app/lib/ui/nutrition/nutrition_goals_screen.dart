@@ -8,8 +8,8 @@ import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
 import '../widgets/body_form.dart';
 
-/// The nutrition plan, adjustable by hand — and by the on-device model, which
-/// proposes and never applies.
+/// The nutrition plan, adjustable by hand — and by the model in the cloud,
+/// which proposes and never applies.
 ///
 /// Also the way into the plan for someone who started without it: switching
 /// it on asks for the body stats the calorie formula needs.
@@ -30,7 +30,10 @@ class _NutritionGoalsScreenState extends ConsumerState<NutritionGoalsScreen> {
   late final bool _askBody = widget.challenge.goal.body == null;
   final TextEditingController _wish = TextEditingController();
   bool _asking = false;
-  bool _aiFailed = false;
+
+  /// Why the last ask gave nothing: offline or out of allowance, or no
+  /// usable proposal.
+  String? _problem;
   TargetProposal? _proposal;
 
   @override
@@ -46,20 +49,28 @@ class _NutritionGoalsScreenState extends ConsumerState<NutritionGoalsScreen> {
       );
 
   Future<void> _ask(NutritionAssistant assistant) async {
+    if (_asking) return;
+    final AppLocalizations l10n = context.l10n;
     setState(() {
       _asking = true;
-      _aiFailed = false;
+      _problem = null;
       _proposal = null;
     });
+    Object? failure;
     final TargetProposal? proposal = await assistant.adjustTargets(
       plan: buildNutritionPlan(_goal),
       wish: _wish.text,
+      onError: (Object error) => failure = error,
     );
     if (!mounted) return;
     setState(() {
       _asking = false;
       _proposal = proposal;
-      _aiFailed = proposal == null;
+      _problem = proposal != null
+          ? null
+          : failure != null
+              ? l10n.aiErrorMessage(failure!)
+              : l10n.goalsAiFailed;
     });
   }
 
@@ -161,11 +172,11 @@ class _NutritionGoalsScreenState extends ConsumerState<NutritionGoalsScreen> {
                   : const Icon(Icons.auto_awesome, size: 18),
               label: Text(l10n.goalsAiAsk),
             ),
-            if (_aiFailed)
+            if (_problem != null)
               Padding(
                 padding: const EdgeInsets.only(top: AppSpacing.sm),
                 child: Text(
-                  l10n.goalsAiFailed,
+                  _problem!,
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium
@@ -192,7 +203,9 @@ class _NutritionGoalsScreenState extends ConsumerState<NutritionGoalsScreen> {
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
-                        Pill(l10n.coachBadgeLlm, color: AppColors.social),
+                        // The proposal comes from a cloud model, gateway
+                        // or own key — never from the phone.
+                        Pill(l10n.aiBadgeCloud, color: AppColors.social),
                       ],
                     ),
                     if (_proposal!.reason != null) ...<Widget>[

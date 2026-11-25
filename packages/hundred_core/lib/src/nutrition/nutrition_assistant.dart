@@ -136,13 +136,40 @@ Answer with JSON only, exactly in this form:
 ''';
 }
 
+/// Told why a model call failed before it had an answer: no network, a
+/// timeout, an allowance used up. Not called when the model answered with
+/// something unusable — that is a different thing to tell the user.
+typedef AiErrorCallback = void Function(Object error);
+
+/// The model's raw answer, or null when [call] failed or took longer than
+/// [timeout] — which [onError] hears about. A failing callback cannot turn
+/// the null into an exception.
+Future<String?> askModel(
+  Future<String> Function() call, {
+  required Duration timeout,
+  AiErrorCallback? onError,
+}) async {
+  try {
+    return await call().timeout(timeout);
+  } on Object catch (error) {
+    try {
+      onError?.call(error);
+    } on Object {
+      // The callback is the caller's; the answer is still null.
+    }
+    return null;
+  }
+}
+
 /// Nutrition features that need the language model: estimating a meal
 /// from free text, suggesting meals, proposing new targets.
 ///
 /// Every method returns null on any failure — no model, timeout, output that
 /// does not parse, numbers that make no sense — so the caller falls back to
 /// the food table and the manual editor. A diary must never show a model's
-/// garbage as if it were a measurement.
+/// garbage as if it were a measurement. Where the caller passes `onError`,
+/// it also learns when the call itself failed, so "offline" does not read
+/// as "nothing recognised".
 class NutritionAssistant {
   NutritionAssistant({
     required this.llm,
@@ -158,21 +185,22 @@ class NutritionAssistant {
 
   bool get isAvailable => llm.isReady;
 
-  Future<List<FoodEstimate>?> estimateFoods(String text) async {
+  Future<List<FoodEstimate>?> estimateFoods(
+    String text, {
+    AiErrorCallback? onError,
+  }) async {
     if (!llm.isReady || text.trim().isEmpty) return null;
-    try {
-      final raw = await llm
-          .generate(prompts.estimateFoods(text.trim()),
-              purpose: LlmPurpose.food,
-              maxTokens: 400,
-              temperature: 0.2,
-              json: true,
-              timeout: timeout)
-          .timeout(timeout);
-      return _parseEstimates(raw);
-    } on Object {
-      return null;
-    }
+    final raw = await askModel(
+      () => llm.generate(prompts.estimateFoods(text.trim()),
+          purpose: LlmPurpose.food,
+          maxTokens: 400,
+          temperature: 0.2,
+          json: true,
+          timeout: timeout),
+      timeout: timeout,
+      onError: onError,
+    );
+    return raw == null ? null : _parseEstimates(raw);
   }
 
   /// What is on the plate in [photo] — the same checks as for a typed
@@ -181,22 +209,21 @@ class NutritionAssistant {
   Future<List<FoodEstimate>?> estimateFoodsFromPhoto(
     LlmImage photo, {
     String? hint,
+    AiErrorCallback? onError,
   }) async {
     if (!llm.isReady || photo.bytes.isEmpty) return null;
-    try {
-      final raw = await llm
-          .generate(prompts.estimateFoodsFromPhoto(hint),
-              images: <LlmImage>[photo],
-              purpose: LlmPurpose.food,
-              maxTokens: 600,
-              temperature: 0.2,
-              json: true,
-              timeout: timeout)
-          .timeout(timeout);
-      return _parseEstimates(raw);
-    } on Object {
-      return null;
-    }
+    final raw = await askModel(
+      () => llm.generate(prompts.estimateFoodsFromPhoto(hint),
+          images: <LlmImage>[photo],
+          purpose: LlmPurpose.food,
+          maxTokens: 600,
+          temperature: 0.2,
+          json: true,
+          timeout: timeout),
+      timeout: timeout,
+      onError: onError,
+    );
+    return raw == null ? null : _parseEstimates(raw);
   }
 
   List<FoodEstimate>? _parseEstimates(String raw) {
@@ -264,14 +291,21 @@ class NutritionAssistant {
   Future<TargetProposal?> adjustTargets({
     required NutritionPlan plan,
     required String wish,
+    AiErrorCallback? onError,
   }) async {
     if (!llm.isReady || wish.trim().isEmpty) return null;
+    final raw = await askModel(
+      () => llm.generate(prompts.adjustTargets(plan: plan, wish: wish.trim()),
+          purpose: LlmPurpose.food,
+          maxTokens: 160,
+          temperature: 0.3,
+          json: true,
+          timeout: timeout),
+      timeout: timeout,
+      onError: onError,
+    );
+    if (raw == null) return null;
     try {
-      final raw = await llm
-          .generate(prompts.adjustTargets(plan: plan, wish: wish.trim()),
-              purpose: LlmPurpose.food,
-              maxTokens: 160, temperature: 0.3, json: true, timeout: timeout)
-          .timeout(timeout);
       final decoded = _decode(raw, '{', '}');
       if (decoded is! Map) return null;
       final kcal = _num(decoded['kcal'])?.round();

@@ -56,9 +56,16 @@ dependencies:
   # The streak on the home screen: hands the native widget its data and the
   # flame, drawn by the same painter as in the app.
   home_widget: ^0.10.0
+  # Crackle, ignition and the slot machine (assets/sounds, made by
+  # tool/make_sounds.py). Switchable, and quiet in silent mode.
+  audioplayers: ^6.1.0
+  sentry_flutter: ^9.30.1
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  # tool/store_screenshots.sh walks the demo through the store screens.
+  integration_test:
     sdk: flutter
   flutter_lints: ^4.0.0
 
@@ -72,6 +79,7 @@ flutter:
   generate: true
   assets:
     - assets/fonts/OFL.txt
+    - assets/sounds/
   # Unbounded for numbers, headlines and buttons; Manrope for everything
   # else (both SIL OFL 1.1, see assets/fonts/OFL.txt).
   fonts:

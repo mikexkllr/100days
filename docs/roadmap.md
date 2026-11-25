@@ -84,7 +84,8 @@ data model supports it, the UI does not.
 
 **The widget on iOS.** The WidgetKit code is in `app/ios/StreakWidget/`; the
 extension target and the App Group still have to be added in Xcode
-([`docs/home-screen-widget.md`](home-screen-widget.md#ios)).
+([`docs/home-screen-widget.md`](home-screen-widget.md#ios)). Until then the
+App Store listing does not mention a widget.
 
 **Wearables.** A complication with the streak and the countdown.
 

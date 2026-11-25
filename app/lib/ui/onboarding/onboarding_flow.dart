@@ -61,7 +61,12 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
         if (draft.needsTrainingDetails)
           const _Step(id: 'training', child: TrainingStep(), canAdvance: true),
         if (draft.usesTrainingPlan)
-          const _Step(id: 'split', child: SplitStep(), canAdvance: true),
+          _Step(
+            id: 'split',
+            child: const SplitStep(),
+            // A plan with an empty session could never be logged.
+            canAdvance: draft.currentTrainingSetup().isTrainable,
+          ),
         if (draft.needsBodyStats) ...<_Step>[
           _Step(
             id: 'body',
@@ -75,7 +80,10 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
           ),
         ],
         const _Step(id: 'privacy', child: PrivacyStep(), canAdvance: true),
-        const _Step(id: 'ai', child: AiStep(), canAdvance: true),
+        // What the AI does matters where it does something: photos of
+        // meals and meal plans. Everyone else skips the page.
+        if (draft.usesNutritionPlan)
+          const _Step(id: 'ai', child: AiStep(), canAdvance: true),
         _Step(
           id: 'identity',
           child: const ProfileStep(),
@@ -137,7 +145,18 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     final safeIndex = _index.clamp(0, steps.length - 1);
     final current = steps[safeIndex];
 
-    return Scaffold(
+    // Android's back goes one step back, not out of the app.
+    return PopScope(
+      canPop: safeIndex == 0,
+      onPopInvokedWithResult: (bool didPop, Object? _) {
+        if (didPop || _submitting) return;
+        FocusScope.of(context).unfocus();
+        _controller.previousPage(
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeOut,
+        );
+      },
+      child: Scaffold(
       body: SafeArea(
         child: Column(
           children: <Widget>[
@@ -200,6 +219,7 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
           ],
         ),
       ),
+    ),
     );
   }
 }

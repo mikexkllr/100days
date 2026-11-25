@@ -87,6 +87,12 @@ android {
         release {
             signingConfig = signingConfigs.findByName("upload")
                 ?: signingConfigs.getByName("debug")
+            // Flutter shrinks release builds with R8; the notification
+            // plugin's Gson needs its own keep rules (see the file).
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }

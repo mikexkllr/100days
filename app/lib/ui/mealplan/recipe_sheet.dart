@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
@@ -8,7 +9,9 @@ import '../../l10n/l10n.dart';
 import '../../state/household_providers.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
+import '../nutrition/add_food_screen.dart';
 import '../widgets/app_card.dart';
+import 'household_load_error.dart';
 
 /// A planned meal: what is in it, who eats how much, and — for someone who
 /// keeps a diary — "eaten as planned", one tap into it with their own
@@ -31,7 +34,7 @@ Future<void> showRecipeSheet(
       ),
     );
 
-class _RecipeSheet extends ConsumerWidget {
+class _RecipeSheet extends ConsumerStatefulWidget {
   const _RecipeSheet({
     required this.entry,
     required this.recipe,
@@ -43,7 +46,66 @@ class _RecipeSheet extends ConsumerWidget {
   final ScrollController scroll;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_RecipeSheet> createState() => _RecipeSheetState();
+}
+
+class _RecipeSheetState extends ConsumerState<_RecipeSheet> {
+  /// One write at a time: a second tap on "eaten" would log the meal twice
+  /// and pop the screen under the sheet.
+  bool _busy = false;
+
+  Future<void> _guard(Future<void> Function() action) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await action();
+    } on Object {
+      if (mounted) showHouseholdSaveFailed(context);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _eaten() => _guard(() async {
+        final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+        final String done = context.l10n.recipeLogged;
+        await ref
+            .read(householdActionsProvider)
+            .eatAsPlanned(widget.entry, widget.recipe);
+        if (!mounted) return;
+        Navigator.of(context).pop();
+        messenger.showSnackBar(SnackBar(content: Text(done)));
+      });
+
+  /// Off the plan at once, with the way back in the snackbar.
+  Future<void> _remove() => _guard(() async {
+        final AppLocalizations l10n = context.l10n;
+        final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+        final HouseholdActions actions = ref.read(householdActionsProvider);
+        final PlanEntry entry = widget.entry;
+        await actions.removeEntry(entry.id);
+        if (!mounted) return;
+        Navigator.of(context).pop();
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(
+            content: Text(l10n.planMealRemoved(widget.recipe.title)),
+            // An undo is offered for a moment; with an action a snackbar
+            // would otherwise stay until dismissed.
+            persist: false,
+            action: SnackBarAction(
+              label: l10n.actionUndo,
+              onPressed: () => actions.restoreEntry(entry).catchError(
+                  (Object _) => messenger.showSnackBar(
+                      SnackBar(content: Text(l10n.householdSaveFailed)))),
+            ),
+          ));
+      });
+
+  @override
+  Widget build(BuildContext context) {
+    final PlanEntry entry = widget.entry;
+    final Recipe recipe = widget.recipe;
     final AppLocalizations l10n = context.l10n;
     final TextTheme text = Theme.of(context).textTheme;
     final Household? household = ref.watch(householdProvider).valueOrNull;
@@ -60,7 +122,7 @@ class _RecipeSheet extends ConsumerWidget {
         eatenAsPlanned(snapshot.me.intakeOn(entry.day), entry, recipe);
 
     return ListView(
-      controller: scroll,
+      controller: widget.scroll,
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: <Widget>[
         Text(recipe.title, style: text.headlineSmall),
@@ -106,16 +168,7 @@ class _RecipeSheet extends ConsumerWidget {
           else
             FilledButton.icon(
               key: const Key('eaten-as-planned'),
-              onPressed: () async {
-                await ref
-                    .read(householdActionsProvider)
-                    .eatAsPlanned(entry, recipe);
-                if (!context.mounted) return;
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.recipeLogged)),
-                );
-              },
+              onPressed: _busy ? null : _eaten,
               icon: const Icon(Icons.check, size: 18),
               label: Text(l10n.recipeEatenAsPlanned),
             ),
@@ -160,10 +213,8 @@ class _RecipeSheet extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         TextButton.icon(
-          onPressed: () async {
-            await ref.read(householdActionsProvider).removeEntry(entry.id);
-            if (context.mounted) Navigator.of(context).pop();
-          },
+          key: const Key('recipe-remove'),
+          onPressed: _busy ? null : _remove,
           style: TextButton.styleFrom(foregroundColor: AppColors.danger),
           icon: const Icon(Icons.delete_outline, size: 18),
           label: Text(l10n.recipeRemove),
@@ -176,19 +227,19 @@ class _RecipeSheet extends ConsumerWidget {
 /// Adds a meal to a slot by hand: one of the app's meal ideas in a tap, or
 /// a title and, if known, the calories of a portion. The planner and the
 /// chat fill recipes in full; this is for "pizza on Friday".
+///
+/// A meal of today or a day gone by may already have been eaten: for
+/// someone with a diary the sheet also leads there, where a photo of the
+/// plate is enough.
 Future<void> showAddMealSheet(
   BuildContext context,
   WidgetRef ref,
   DayKey day,
   MealSlotKind slot,
 ) async {
+  final AppSnapshot? snapshot = ref.read(appStateProvider).valueOrNull;
   // Ranked against the user's own target for the slot when they have one.
-  final MealSlot? target = ref
-      .read(appStateProvider)
-      .valueOrNull
-      ?.plan
-      ?.nutrition
-      ?.meals
+  final MealSlot? target = snapshot?.plan?.nutrition?.meals
       .where((MealSlot m) => m.kind == slot)
       .firstOrNull;
   final List<MealIdea> ideas = target == null
@@ -199,14 +250,41 @@ Future<void> showAddMealSheet(
           targetProteinG: target.proteinG.toDouble(),
           count: 4,
         );
-  final Recipe? chosen = await showModalBottomSheet<Recipe>(
+  final bool canLogEaten = snapshot?.plan?.nutrition != null &&
+      !day.isAfter(snapshot!.today);
+  // The row that opened the sheet may be rebuilt away while it is open — a
+  // realtime tick is enough — and its ref with it: take what is needed now.
+  final HouseholdActions actions = ref.read(householdActionsProvider);
+  final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+  final NavigatorState navigator = Navigator.of(context);
+  final String failed = context.l10n.householdSaveFailed;
+  final Object? chosen = await showModalBottomSheet<Object>(
     context: context,
     isScrollControlled: true,
-    builder: (BuildContext context) =>
-        _AddMealSheet(day: day, slot: slot, ideas: ideas),
+    // Tall with the keyboard up: it stops below the status bar.
+    useSafeArea: true,
+    builder: (BuildContext context) => _AddMealSheet(
+      day: day,
+      slot: slot,
+      ideas: ideas,
+      canLogEaten: canLogEaten,
+    ),
   );
-  if (chosen != null) {
-    await ref.read(householdActionsProvider).setMeal(day, slot, chosen);
+  if (identical(chosen, _AddMealSheet.toDiary)) {
+    await navigator.push<void>(MaterialPageRoute<void>(
+      builder: (BuildContext context) => AddFoodScreen(
+        meal: slot,
+        day: day,
+        startOn: FoodEntryWay.photo,
+      ),
+    ));
+    return;
+  }
+  if (chosen is! Recipe) return;
+  try {
+    await actions.setMeal(day, slot, chosen);
+  } on Object {
+    messenger.showSnackBar(SnackBar(content: Text(failed)));
   }
 }
 
@@ -215,11 +293,18 @@ class _AddMealSheet extends StatefulWidget {
     required this.day,
     required this.slot,
     required this.ideas,
+    required this.canLogEaten,
   });
+
+  /// What the sheet hands back for "already eaten — into the diary".
+  static const Object toDiary = Object();
 
   final DayKey day;
   final MealSlotKind slot;
   final List<MealIdea> ideas;
+
+  /// The user keeps a diary and the day has come.
+  final bool canLogEaten;
 
   @override
   State<_AddMealSheet> createState() => _AddMealSheetState();
@@ -229,6 +314,12 @@ class _AddMealSheetState extends State<_AddMealSheet> {
   final TextEditingController _title = TextEditingController();
   final TextEditingController _kcal = TextEditingController();
 
+  /// A second tap while the sheet closes would pop the screen beneath it.
+  bool _closing = false;
+
+  /// Save was pressed without a title: the field says so.
+  bool _titleMissing = false;
+
   @override
   void dispose() {
     _title.dispose();
@@ -236,8 +327,14 @@ class _AddMealSheetState extends State<_AddMealSheet> {
     super.dispose();
   }
 
+  void _close([Object? result]) {
+    if (_closing) return;
+    _closing = true;
+    Navigator.of(context).pop(result);
+  }
+
   void _pick(String name, {double kcal = 0, double proteinG = 0}) =>
-      Navigator.of(context).pop(Recipe(
+      _close(Recipe(
         id: newEventId(),
         title: name,
         servings: 1,
@@ -246,86 +343,145 @@ class _AddMealSheetState extends State<_AddMealSheet> {
             Nutrients(kcal: kcal, proteinG: proteinG, carbsG: 0, fatG: 0),
       ));
 
+  /// The calories stay optional; the name does not — a save without one
+  /// says so instead of closing on nothing.
+  void _save() {
+    final String title = _title.text.trim();
+    if (title.isEmpty) {
+      setState(() => _titleMissing = true);
+      return;
+    }
+    // A German keyboard types "650,5".
+    _pick(title,
+        kcal: double.tryParse(_kcal.text.trim().replaceAll(',', '.')) ?? 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
+    // The fields scroll and Save stays put above the keyboard: on a phone
+    // the keyboard takes half the screen, and a button pushed under it
+    // cannot be pressed.
     return Padding(
-      padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg,
-          MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Text('${l10n.mealName(widget.slot)} · ${l10n.formatDay(widget.day)}',
-              style: Theme.of(context).textTheme.titleLarge),
-          if (widget.ideas.isNotEmpty) ...<Widget>[
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              l10n.addMealIdeas,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelSmall
-                  ?.copyWith(color: AppColors.textTertiary),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            for (final MealIdea idea in widget.ideas)
-              InkWell(
-                key: Key('meal-idea-${idea.id}'),
-                borderRadius: AppRadius.cardAll,
-                onTap: () => _pick(
-                  l10n.mealIdeaName(idea),
-                  kcal: idea.kcal.toDouble(),
-                  proteinG: idea.proteinG.toDouble(),
-                ),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: AppSpacing.xs + 2),
-                  child: Row(
-                    children: <Widget>[
-                      const Icon(Icons.lightbulb_outline,
-                          size: 18, color: AppColors.textTertiary),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Text(l10n.mealIdeaName(idea),
-                            style: Theme.of(context).textTheme.bodyMedium),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Text(
-                        '~${l10n.diaryEntryKcal(idea.kcal)}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: AppColors.textSecondary),
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Text(
+                        '${l10n.mealName(widget.slot)} · ${l10n.formatDay(widget.day)}',
+                        style: Theme.of(context).textTheme.titleLarge),
+                    if (widget.canLogEaten) ...<Widget>[
+                      const SizedBox(height: AppSpacing.sm),
+                      OutlinedButton.icon(
+                        key: const Key('add-meal-to-diary'),
+                        onPressed: () => _close(_AddMealSheet.toDiary),
+                        icon: const Icon(Icons.photo_camera_outlined, size: 18),
+                        label: Text(l10n.addMealToDiary),
                       ),
                     ],
-                  ),
+                    if (widget.ideas.isNotEmpty) ...<Widget>[
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        l10n.addMealIdeas,
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelSmall
+                            ?.copyWith(color: AppColors.textTertiary),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      for (final MealIdea idea in widget.ideas)
+                        InkWell(
+                          key: Key('meal-idea-${idea.id}'),
+                          borderRadius: AppRadius.cardAll,
+                          onTap: () => _pick(
+                            l10n.mealIdeaName(idea),
+                            kcal: idea.kcal.toDouble(),
+                            proteinG: idea.proteinG.toDouble(),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: AppSpacing.xs + 2),
+                            child: Row(
+                              children: <Widget>[
+                                const Icon(Icons.lightbulb_outline,
+                                    size: 18, color: AppColors.textTertiary),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                  child: Text(l10n.mealIdeaName(idea),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium),
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Text(
+                                  '~${l10n.diaryEntryKcal(idea.kcal)}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                          color: AppColors.textSecondary),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                    const SizedBox(height: AppSpacing.md),
+                    TextField(
+                      key: const Key('add-meal-title'),
+                      controller: _title,
+                      autofocus: true,
+                      textCapitalization: TextCapitalization.sentences,
+                      textInputAction: TextInputAction.next,
+                      onChanged: (_) {
+                        if (_titleMissing) {
+                          setState(() => _titleMissing = false);
+                        }
+                      },
+                      decoration: InputDecoration(
+                        labelText: l10n.addMealTitle,
+                        errorText:
+                            _titleMissing ? l10n.addMealTitleMissing : null,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    TextField(
+                      key: const Key('add-meal-kcal'),
+                      controller: _kcal,
+                      keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true),
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+                      ],
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _save(),
+                      decoration: InputDecoration(labelText: l10n.addMealKcal),
+                    ),
+                  ],
                 ),
               ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.lg),
+              child: FilledButton(
+                key: const Key('add-meal-save'),
+                onPressed: _save,
+                child: Text(l10n.actionSave),
+              ),
+            ),
           ],
-          const SizedBox(height: AppSpacing.md),
-          TextField(
-            key: const Key('add-meal-title'),
-            controller: _title,
-            autofocus: true,
-            textCapitalization: TextCapitalization.sentences,
-            decoration: InputDecoration(labelText: l10n.addMealTitle),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          TextField(
-            controller: _kcal,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(labelText: l10n.addMealKcal),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          FilledButton(
-            key: const Key('add-meal-save'),
-            onPressed: () => _title.text.trim().isEmpty
-                ? Navigator.of(context).pop()
-                : _pick(_title.text.trim(),
-                    kcal: double.tryParse(_kcal.text.trim()) ?? 0),
-            child: Text(l10n.actionSave),
-          ),
-        ],
+        ),
       ),
     );
   }

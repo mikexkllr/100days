@@ -13,7 +13,7 @@
 // makes everyone re-register).
 
 import { adminClient, corsHeaders, errorResponse, HttpError, json, requireUser } from '../_shared/supabase.ts';
-import { hmac, identifiersOf, type Kind, normalizeEmail, normalizePhone } from './contacts.ts';
+import { hashByKind, hmac, identifiersOf, type Kind, normalizeEmail, normalizePhone } from './contacts.ts';
 
 const MAX_PER_REQUEST = 2000;
 
@@ -64,32 +64,25 @@ Deno.serve(async (req) => {
     if (limitError) throw limitError;
     if (!allowed) throw new HttpError(429, 'rate_limited');
 
-    const hashes = await Promise.all(identifiers.map(({ kind, value }) => hmac(pepper, kind, value)));
-    const { data: found, error } = await db
-      .from('contact_identifiers')
-      .select('user_id')
-      .in('hmac', hashes);
+    const { emails, phones } = await hashByKind(pepper, identifiers);
+    // One call with the hashes in the body: a filter in the URL would not
+    // fit 2000 of them. The database also leaves out who is not findable
+    // and anyone with a block between the two.
+    const { data: found, error } = await db.rpc('match_contact_hashes', {
+      p_user: user.id,
+      p_emails: emails,
+      p_phones: phones,
+    });
     if (error) throw error;
-    const ids = [...new Set((found ?? []).map((r) => r.user_id as string))].filter((id) => id !== user.id);
-    if (ids.length === 0) return json({ matches: [] });
-
-    const { data: settings } = await db.from('user_settings').select('user_id').in('user_id', ids).eq(
-      'discoverable',
-      true,
-    );
-    const findable = new Set((settings ?? []).map((s) => s.user_id as string));
-    const { data: profiles } = await db
-      .from('profiles')
-      .select('id, display_name, emoji, username')
-      .in('id', ids.filter((id) => findable.has(id)));
 
     return json({
-      matches: (profiles ?? []).map((p) => ({
-        userId: p.id,
-        displayName: p.display_name,
-        emoji: p.emoji,
-        username: p.username,
-      })),
+      matches: ((found ?? []) as { user_id: string; display_name: string; emoji: string; username: string | null }[])
+        .map((p) => ({
+          userId: p.user_id,
+          displayName: p.display_name,
+          emoji: p.emoji,
+          username: p.username,
+        })),
     });
   } catch (err) {
     return errorResponse(err);

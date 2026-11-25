@@ -6,24 +6,59 @@ import 'package:flutter/services.dart';
 import 'package:app_links/app_links.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import 'app.dart';
 import 'config/backend_config.dart';
+import 'data/app_prefs.dart';
 import 'data/app_repository.dart';
+import 'data/crash_reporting.dart';
 import 'data/feed_sync.dart';
 import 'data/locale_store.dart';
 import 'data/notifications.dart';
 import 'data/push_service.dart';
 import 'data/social_backend.dart';
 import 'l10n/l10n.dart';
+import 'state/household_providers.dart';
 import 'state/providers.dart';
 import 'ai/dartantic_llm_client.dart';
+import 'ui/auth/login_screen.dart';
 import 'ui/mealplan/household_screen.dart';
+import 'ui/motion/sounds.dart';
 import 'ui/settings/ai_screen.dart';
 import 'ui/social/invite_flow.dart';
 
+/// Crash reports go to Sentry only in the official builds: the release
+/// workflows pass the DSN. A build without one — a self-hosted build, a
+/// local run, the tests — reports nothing.
+const String _sentryDsn = String.fromEnvironment('SENTRY_DSN');
+const String _sentryEnvironment =
+    String.fromEnvironment('SENTRY_ENVIRONMENT', defaultValue: 'production');
+
 Future<void> main() async {
+  if (_sentryDsn.isEmpty) return _run();
+  await SentryFlutter.init(
+    (SentryFlutterOptions options) {
+      options
+        ..dsn = _sentryDsn
+        ..environment = _sentryEnvironment
+        // Errors and crashes only: no tracing, no screenshots (nor the
+        // view hierarchy, off by default), and nothing that names the
+        // user — no user id, no e-mail, no IP address (also scrubbed in
+        // the Sentry project).
+        ..tracesSampleRate = null
+        ..sendDefaultPii = false
+        ..attachScreenshot = false
+        // Log lines can carry names and goals; the breadcrumbs of
+        // navigation and app state are enough to follow a crash.
+        ..enablePrintBreadcrumbs = false;
+    },
+    appRunner: _run,
+  );
+}
+
+Future<void> _run() async {
   WidgetsFlutterBinding.ensureInitialized();
   LicenseRegistry.addLicense(() async* {
     yield LicenseEntryWithLineBreaks(
@@ -42,12 +77,23 @@ Future<void> main() async {
   await notifications.initialize();
 
   final LocaleStore localeStore = await LocaleStore.open();
+  final SharedPrefsStore prefs = await SharedPrefsStore.open();
+
+  // The app is laid out for a phone held upright.
+  await SystemChrome.setPreferredOrientations(<DeviceOrientation>[
+    DeviceOrientation.portraitUp,
+  ]);
+
+  AppSounds.enabled = prefs.read().soundOn;
+  unawaited(AppSounds.start());
 
   runApp(ProviderScope(
+    observers: const <ProviderObserver>[CrashReportingObserver()],
     overrides: <Override>[
       backendConfigProvider.overrideWithValue(backend),
       notificationsProvider.overrideWithValue(notifications),
       localeStoreProvider.overrideWithValue(localeStore),
+      appPrefsStoreProvider.overrideWithValue(prefs),
     ],
     child: const _Bootstrap(child: HundredDaysApp()),
   ));
@@ -71,7 +117,11 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
   ProviderSubscription<AsyncValue<SyncReport>>? _syncSubscription;
   ProviderSubscription<AiFailure?>? _aiFailures;
   ProviderSubscription<AsyncValue<AppRepository?>>? _session;
+  ProviderSubscription<Locale>? _locale;
+  ProviderSubscription<AppPrefs>? _prefs;
+  ProviderSubscription<void>? _sharedTargets;
   StreamSubscription<Uri>? _links;
+  StreamSubscription<void>? _recoveries;
   Timer? _periodicSync;
 
   /// An invite link that arrived before there was anyone to redeem it for:
@@ -90,6 +140,15 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
         final AppSnapshot? snapshot = next.valueOrNull;
         if (snapshot == null) return;
         if (snapshot.hasChallenge) {
+          // The calorie target a household plans with follows the user's
+          // plan from the start — not only once a plan or diary screen was
+          // opened. Only for someone with a nutrition plan.
+          if (snapshot.plan?.nutrition != null) {
+            _sharedTargets ??= ref.listenManual<void>(
+              sharedTargetsSyncProvider,
+              (void _, void __) {},
+            );
+          }
           _redeemPendingInvite();
           unawaited(ref.read(repositoryProvider).reportLeagueXp(snapshot));
           unawaited(_scheduleReminders(snapshot));
@@ -108,8 +167,35 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
         if (repository == null) return;
         unawaited(PushService.start(repository.social));
         unawaited(_saveLanguage(repository));
+        // Listening from the start of every session is what picks up
+        // renewals and purchases that finished while the app was closed.
+        unawaited(ref.read(subscriptionServiceProvider).refreshRenewals());
       },
       fireImmediately: true,
+    );
+
+    // Pushes are written by the server in the language the user reads;
+    // a language switch in the app has to reach it too.
+    _locale = ref.listenManual<Locale>(
+      effectiveLocaleProvider,
+      (Locale? previous, Locale next) {
+        if (previous?.languageCode == next.languageCode) return;
+        final AppRepository? repository =
+            ref.read(sessionRepositoryProvider).valueOrNull;
+        if (repository != null) unawaited(_saveLanguage(repository));
+        _lastScheduledFor = null;
+        _rescheduleFromState();
+      },
+    );
+
+    // A new reminder time or a switch turned off takes effect at once.
+    _prefs = ref.listenManual<AppPrefs>(
+      appPrefsProvider,
+      (AppPrefs? previous, AppPrefs next) {
+        AppSounds.enabled = next.soundOn;
+        _lastScheduledFor = null;
+        _rescheduleFromState();
+      },
     );
 
     _syncSubscription = ref.listenManual<AsyncValue<SyncReport>>(
@@ -131,6 +217,19 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
         if (context != null) unawaited(showPaywall(context));
       },
     );
+
+    // A password-reset link signed the user in: ask for the new password.
+    _recoveries = ref
+        .read(authServiceProvider)
+        .passwordRecoveries
+        .listen((void _) {
+      final BuildContext? context = appNavigatorKey.currentContext;
+      if (context == null || !context.mounted) return;
+      unawaited(showDialog<void>(
+        context: context,
+        builder: (BuildContext context) => const NewPasswordDialog(),
+      ));
+    }, onError: (Object _) {});
 
     final AppLinks links = AppLinks();
     unawaited(links.getInitialLink().then(_onLink, onError: (Object _) {}));
@@ -181,8 +280,16 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Coming back into the app: the user is holding the phone, probably
-      // online, and wants to see what friends did meanwhile.
+      // Coming back into the app — maybe the next morning. Today first,
+      // from the phone's own store, so nothing waits on the network; then
+      // the user is holding the phone, probably online, and wants to see
+      // what friends did meanwhile.
+      if (ref.read(sessionRepositoryProvider).valueOrNull != null) {
+        unawaited(ref
+            .read(appStateProvider.notifier)
+            .refresh()
+            .then((void _) {}, onError: (Object _) {}));
+      }
       _sync();
     }
   }
@@ -201,17 +308,37 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
         streakRiskTitle: l10n.notifStreakRiskTitle,
       );
 
+  void _rescheduleFromState() {
+    final AppSnapshot? snapshot = ref.read(appStateProvider).valueOrNull;
+    if (snapshot != null && snapshot.hasChallenge) {
+      unawaited(_scheduleReminders(snapshot));
+    }
+  }
+
+  /// Friends already announced today, so each one is announced once — not
+  /// again with every sync while the user has not checked in.
+  final Set<String> _announced = <String>{};
+  String? _announcedOn;
+
   Future<void> _onSyncReport(SyncReport report) async {
     if (!report.broughtSomething) return;
     await ref.read(appStateProvider.notifier).refresh();
 
     final AppSnapshot? snapshot = ref.read(appStateProvider).valueOrNull;
     if (snapshot == null || snapshot.me.streak.doneToday) return;
+    if (!ref.read(appPrefsProvider).remindersOn) return;
 
+    if (_announcedOn != snapshot.today.toString()) {
+      _announcedOn = snapshot.today.toString();
+      _announced.clear();
+    }
     final List<PeerState> active = snapshot.peerStates
         .where((PeerState p) => p.activeToday)
         .toList();
-    if (active.isEmpty) return;
+    final bool anyNew =
+        active.any((PeerState p) => !_announced.contains(p.userId));
+    if (!anyNew) return;
+    _announced.addAll(active.map((PeerState p) => p.userId));
 
     final AppLocalizations l10n = await _strings();
     await ref.read(notificationsProvider).showNow(
@@ -234,41 +361,79 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
   /// Cheap enough to do eagerly, and it keeps the text honest: a reminder
   /// written today knows today's streak, so it can say "Tag 41" instead of
   /// something generic.
+  ///
+  /// Each day's text comes from the outlook — the streak as it stands on
+  /// that day if nothing more is logged — which is exactly the case in which
+  /// a reminder fires: someone who opens the app reschedules them all.
   Future<void> _scheduleReminders(AppSnapshot snapshot) async {
+    final AppPrefs prefs = ref.read(appPrefsProvider);
     final String signature = '${snapshot.today}-${snapshot.me.streak.current}-'
-        '${snapshot.me.streak.doneToday}-'
-        '${ref.read(effectiveLocaleProvider).languageCode}';
+        '${snapshot.me.streak.doneToday}-${snapshot.me.frozenDays.length}-'
+        '${ref.read(effectiveLocaleProvider).languageCode}-'
+        '${prefs.remindersOn}-${prefs.streakWarningOn}-'
+        '${prefs.reminderTime.hour}:${prefs.reminderTime.minute}';
     if (_lastScheduledFor == signature) return;
     _lastScheduledFor = signature;
 
     final NotificationService notifications = ref.read(notificationsProvider);
     final Challenge challenge = snapshot.challenge!;
-    final int streak = snapshot.me.streak.current;
     final AppLocalizations l10n = await _strings();
     final NotificationCopy copy = _copy(l10n);
-
-    await notifications.scheduleDailyReminders(
-      copy: copy,
-      hour: 18,
-      minute: 30,
-      messageBuilder: (int offset) {
-        final int day = challenge.dayNumber(snapshot.today.addDays(offset));
-        if (offset == 0 && snapshot.me.streak.doneToday) {
-          return l10n.notifDayDone(day);
-        }
-        return streak > 0
-            ? l10n.notifDayOpenWithStreak(day, challenge.lengthDays, streak)
-            : l10n.notifDayOpenNoStreak(day, challenge.lengthDays);
-      },
+    final List<StreakOutlook> outlook = projectOutlook(
+      challenge: challenge,
+      streak: snapshot.me.streak,
+      today: snapshot.today,
+      logsByDay: snapshot.me.logsByDay,
+      frozenDays: snapshot.me.frozenDays,
     );
 
-    if (streak >= 3) {
+    if (prefs.remindersOn) {
+      await notifications.scheduleDailyReminders(
+        copy: copy,
+        hour: prefs.reminderTime.hour,
+        minute: prefs.reminderTime.minute,
+        messageBuilder: (int offset) {
+          if (offset >= outlook.length) return null;
+          final StreakOutlook day = outlook[offset];
+          final int number = challenge.dayNumber(day.day);
+          return switch (day.state) {
+            // Done already: no reminder — a "well done" at 18:30 is noise.
+            OutlookState.done || OutlookState.rest || OutlookState.frozen =>
+              null,
+            OutlookState.open => day.streak > 0
+                ? l10n.notifDayOpenWithStreak(
+                    number, challenge.lengthDays, day.streak)
+                : l10n.notifDayOpenNoStreak(number, challenge.lengthDays),
+            OutlookState.cold =>
+              l10n.notifDayOpenNoStreak(number, challenge.lengthDays),
+          };
+        },
+      );
+    } else {
+      await notifications.cancelDailyReminders();
+    }
+
+    if (prefs.streakWarningOn) {
+      // Late enough to be a warning, and after the reminder.
+      final int reminderMinute =
+          prefs.reminderTime.hour * 60 + prefs.reminderTime.minute;
+      final int warnMinute =
+          reminderMinute >= 21 * 60 + 30 ? 22 * 60 + 45 : 21 * 60 + 30;
       await notifications.scheduleStreakRisk(
         copy: copy,
-        hour: 21,
-        minute: 30,
-        body: l10n.notifStreakRiskBody(streak),
+        hour: warnMinute ~/ 60,
+        minute: warnMinute % 60,
+        bodyBuilder: (int offset) {
+          if (offset >= outlook.length) return null;
+          final StreakOutlook day = outlook[offset];
+          // Only an open day with a streak worth losing; never a day that is
+          // done, resting or held by a freeze.
+          if (day.state != OutlookState.open || day.streak < 3) return null;
+          return l10n.notifStreakRiskBody(day.streak);
+        },
       );
+    } else {
+      await notifications.cancelStreakRisk();
     }
   }
 
@@ -279,7 +444,11 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
     _syncSubscription?.close();
     _aiFailures?.close();
     _session?.close();
+    _locale?.close();
+    _prefs?.close();
+    _sharedTargets?.close();
     unawaited(_links?.cancel());
+    unawaited(_recoveries?.cancel());
     _periodicSync?.cancel();
     super.dispose();
   }

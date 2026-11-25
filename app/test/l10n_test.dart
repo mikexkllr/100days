@@ -264,6 +264,50 @@ void main() {
       }
     });
 
+    test('a compound is not its first word, a plural is its food', () {
+      final FoodIndex de = FoodIndex(const Locale('de'));
+      // Buttermilk is not 200 g of butter, a tuna pizza not tuna, a
+      // cheesecake not cheese: unknown, so the model gets asked.
+      for (final String compound in <String>[
+        'buttermilch',
+        'Thunfischpizza',
+        'Käsekuchen',
+        'Erdnussflips',
+      ]) {
+        expect(de.lookup(compound), isNull, reason: compound);
+      }
+      for (final (String typed, String id) in <(String, String)>[
+        ('Bananen', 'banana'),
+        ('Hähnchenbrustfilet', 'chicken_breast'),
+        ('Joghurts', 'natural_yogurt'),
+        ('Äpfeln', 'apple'),
+        ('erdbeer', 'strawberries'),
+        ('Brote', 'wholegrain_bread'),
+      ]) {
+        expect(de.lookup(typed)?.id, id, reason: typed);
+      }
+
+      List<ParsedFood> parse(String text) => parseFoodText(
+            text,
+            vocabulary: foodVocabularyFor(const Locale('de')),
+            lookup: de.lookup,
+          );
+      final ParsedFood buttermilk = parse('ein Glas Buttermilch').single;
+      expect(buttermilk.isRecognised, isFalse);
+      expect(buttermilk.original, 'ein glas buttermilch');
+
+      final List<ParsedFood> morning = parse('2 Eier. Danach eine Banane');
+      expect(morning.map((ParsedFood p) => p.food?.id), <String>['egg', 'banana']);
+      expect(morning.map((ParsedFood p) => p.amount), <double>[2, 1]);
+      expect(parse('2 Eier und dann eine Banane').map((ParsedFood p) => p.food?.id),
+          <String>['egg', 'banana']);
+
+      expect(parse('eine halbe Pizza').single.grams, 175);
+      expect(parse('1/2 Avocado').single.grams, 75);
+      expect(parse('12 Sushi').single.grams, 360);
+      expect(parse('ein paar Datteln').single.amount, 2);
+    });
+
     test('nutrition identifiers', () {
       for (final MacroPreset preset in MacroPreset.values) {
         bothLanguages(preset.name, (AppLocalizations l) =>

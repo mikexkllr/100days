@@ -146,6 +146,34 @@ class _PremiumCardState extends ConsumerState<_PremiumCard> {
       ref.read(subscriptionServiceProvider).products();
   StreamSubscription<PurchaseOutcome>? _outcomes;
   bool _busy = false;
+  bool _restoring = false;
+
+  /// Restores and says what came of it — "nothing found" included, which
+  /// the store itself never reports.
+  Future<void> _restore() async {
+    setState(() {
+      _busy = true;
+      _restoring = true;
+    });
+    final RestoreResult result =
+        await ref.read(subscriptionServiceProvider).restore();
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      _restoring = false;
+    });
+    final AppLocalizations l10n = context.l10n;
+    // A found subscription is announced by the purchase listener already.
+    final String? message = switch (result) {
+      RestoreResult.premium => null,
+      RestoreResult.nothing => l10n.aiRestoreNothing,
+      RestoreResult.failed => l10n.aiRestoreFailed,
+    };
+    if (message != null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
 
   @override
   void initState() {
@@ -161,6 +189,7 @@ class _PremiumCardState extends ConsumerState<_PremiumCard> {
         PurchaseOutcome.premium => l10n.aiPurchaseDone,
         PurchaseOutcome.notVerified => l10n.aiPurchaseNotVerified,
         PurchaseOutcome.failed => l10n.aiPurchaseFailed,
+        PurchaseOutcome.retryLater => l10n.aiPurchaseRetryLater,
         PurchaseOutcome.pending || PurchaseOutcome.cancelled => null,
       };
       if (message != null) {
@@ -258,10 +287,9 @@ class _PremiumCardState extends ConsumerState<_PremiumCard> {
             },
           ),
           TextButton(
-            onPressed: _busy
-                ? null
-                : () => ref.read(subscriptionServiceProvider).restore(),
-            child: Text(l10n.aiPremiumRestore),
+            key: const Key('restore-purchase'),
+            onPressed: _busy ? null : _restore,
+            child: Text(_restoring ? l10n.aiRestoring : l10n.aiPremiumRestore),
           ),
           const LegalLinks(),
         ],
@@ -415,6 +443,9 @@ class _OwnKeyCardState extends ConsumerState<_OwnKeyCard> {
                 ),
               const Spacer(),
               FilledButton(
+                // Next to the spacer it cannot be as wide as the row, which
+                // the theme's full-width minimum would ask for.
+                style: FilledButton.styleFrom(minimumSize: const Size(0, 54)),
                 onPressed: _testing ? null : _save,
                 child: _testing
                     ? const SizedBox(

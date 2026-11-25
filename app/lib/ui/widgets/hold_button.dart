@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../motion/sounds.dart';
+
 /// Press and hold to check in.
 ///
 /// A check-in should feel like something you do, not something you brush
@@ -18,6 +20,9 @@ class HoldButton extends StatefulWidget {
     required this.onConfirmed,
     required this.builder,
     this.onTap,
+    this.onShortHold,
+    this.onFill,
+    this.tapConfirms = false,
     this.holdFor = const Duration(milliseconds: 620),
   });
 
@@ -29,6 +34,17 @@ class HoldButton extends StatefulWidget {
 
   /// Pressed and let go at once.
   final VoidCallback? onTap;
+
+  /// Held for a while but let go before the fill was full — nothing was
+  /// logged, and the user should be told why.
+  final VoidCallback? onShortHold;
+
+  /// How full the press is, 0 → 1, as it changes — so something else (Funki)
+  /// can watch the hold.
+  final ValueChanged<double>? onFill;
+
+  /// A plain tap confirms, for people who cannot hold a press.
+  final bool tapConfirms;
   final Duration holdFor;
 
   /// Draws the surface; [fill] runs 0 → 1 while it is held.
@@ -61,11 +77,13 @@ class _HoldButtonState extends State<HoldButton>
   bool get _enabled => widget.onConfirmed != null;
 
   void _onFill() {
+    widget.onFill?.call(_fill.value);
     final int quarter = (_fill.value * 4).floor();
     if (_fill.status == AnimationStatus.forward &&
         quarter > _quarter &&
         quarter < 4) {
       HapticFeedback.selectionClick();
+      AppSounds.play(Sfx.tick, volume: 0.35 + 0.15 * quarter);
     }
     _quarter = quarter;
   }
@@ -86,18 +104,28 @@ class _HoldButtonState extends State<HoldButton>
   }
 
   void _down() {
-    if (!_enabled) return;
+    // Reset first: after a check-in the button is disabled, and a press
+    // that kept the old "fired" flag swallowed every tap that followed.
     _fired = false;
     _quarter = 0;
+    if (!_enabled || widget.tapConfirms) return;
     _fill.forward();
   }
 
   void _up() {
     if (_fired) return;
+    if (_enabled && widget.tapConfirms) {
+      _fire();
+      return;
+    }
     // With nothing to hold for, every press is a tap.
     final bool tapped = !_enabled || _fill.value < _tap;
     _fill.reverse();
-    if (tapped) widget.onTap?.call();
+    if (tapped) {
+      widget.onTap?.call();
+    } else {
+      widget.onShortHold?.call();
+    }
   }
 
   void _cancel() {

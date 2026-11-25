@@ -194,6 +194,18 @@ abstract class AppLocalizations {
   /// **'What is it?'**
   String get addMealTitle;
 
+  /// No description provided for @addMealTitleMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Give it a name — or tap one of the ideas.'**
+  String get addMealTitleMissing;
+
+  /// No description provided for @addMealToDiary.
+  ///
+  /// In en, this message translates to:
+  /// **'Already eaten? Into the diary — a photo will do'**
+  String get addMealToDiary;
+
   /// No description provided for @adviceCutScope.
   ///
   /// In en, this message translates to:
@@ -670,7 +682,7 @@ abstract class AppLocalizations {
   /// No description provided for @coachBadgeLlm.
   ///
   /// In en, this message translates to:
-  /// **'on-device AI'**
+  /// **'AI'**
   String get coachBadgeLlm;
 
   /// No description provided for @coachBadgeRule.
@@ -2088,11 +2100,29 @@ abstract class AppLocalizations {
   /// **'Calories (kcal)'**
   String get foodManualKcal;
 
+  /// No description provided for @foodManualKcalFromMacros.
+  ///
+  /// In en, this message translates to:
+  /// **'≈ {kcal} kcal from the macros below'**
+  String foodManualKcalFromMacros(int kcal);
+
+  /// No description provided for @foodManualKcalMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories are needed. Not sure? A photo or a sentence gets them estimated.'**
+  String get foodManualKcalMissing;
+
   /// No description provided for @foodManualName.
   ///
   /// In en, this message translates to:
   /// **'Name'**
   String get foodManualName;
+
+  /// No description provided for @foodManualNameMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'What was it?'**
+  String get foodManualNameMissing;
 
   /// No description provided for @foodManualProtein.
   ///
@@ -2397,7 +2427,7 @@ abstract class AppLocalizations {
   /// No description provided for @globalLeagueEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Your league group starts with your first check-in this week: up to 30 people of your division, the best move up on Monday.'**
+  /// **'No group yet this week. Once your phone has reported your XP, you join up to 30 people of your division. The week closes on Monday: the best move up, and in groups of five or more the last move down.'**
   String get globalLeagueEmpty;
 
   /// No description provided for @globalLeagueHonesty.
@@ -2412,11 +2442,29 @@ abstract class AppLocalizations {
   /// **'This week\'s league'**
   String get globalLeagueSection;
 
-  /// No description provided for @globalLeagueSub.
+  /// No description provided for @globalLeagueSize.
   ///
   /// In en, this message translates to:
-  /// **'{size} people · top {up} up, bottom {down} down'**
-  String globalLeagueSub(int size, int up, int down);
+  /// **'{size, plural, =1{Only you so far} other{{size} people}}'**
+  String globalLeagueSize(int size);
+
+  /// No description provided for @globalLeagueMovesNone.
+  ///
+  /// In en, this message translates to:
+  /// **'the best moves up on Monday once someone joins'**
+  String get globalLeagueMovesNone;
+
+  /// No description provided for @globalLeagueMovesUp.
+  ///
+  /// In en, this message translates to:
+  /// **'on Monday {up, plural, =1{the best moves up} other{the top {up} move up}}'**
+  String globalLeagueMovesUp(int up);
+
+  /// No description provided for @globalLeagueMoves.
+  ///
+  /// In en, this message translates to:
+  /// **'on Monday the top {up} move up, {down, plural, =1{the last one moves down} other{the bottom {down} move down}}'**
+  String globalLeagueMoves(int up, int down);
 
   /// No description provided for @globalLeagueXp.
   ///
@@ -3351,7 +3399,7 @@ abstract class AppLocalizations {
   /// No description provided for @leagueFooter.
   ///
   /// In en, this message translates to:
-  /// **'Only friends you connected yourself compete here — no strangers. XP comes per check-in, scaled by difficulty and streak, and tracked workouts and diary days count extra. On Sunday the top places move up and the bottom ones move down.'**
+  /// **'Only friends you connected yourself compete here — no strangers. XP comes per check-in, scaled by difficulty and streak; tracked workouts and diary days count extra. The ranking starts over every Monday. Nobody moves up or down among friends: the colours only mark the top and the bottom of the week, and your league comes from all the XP you have ever earned.'**
   String get leagueFooter;
 
   /// No description provided for @leagueGold.
@@ -3479,18 +3527,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Discard'**
   String get loggerDiscard;
-
-  /// No description provided for @loggerDiscardBody.
-  ///
-  /// In en, this message translates to:
-  /// **'The sets you entered will be lost.'**
-  String get loggerDiscardBody;
-
-  /// No description provided for @loggerDiscardTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard this workout?'**
-  String get loggerDiscardTitle;
 
   /// No description provided for @loggerFinish.
   ///
@@ -4557,7 +4593,7 @@ abstract class AppLocalizations {
   /// No description provided for @navMore.
   ///
   /// In en, this message translates to:
-  /// **'More'**
+  /// **'Profile'**
   String get navMore;
 
   /// No description provided for @navPlan.
@@ -4569,7 +4605,7 @@ abstract class AppLocalizations {
   /// No description provided for @navSettingsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Settings'**
+  /// **'Profile & settings'**
   String get navSettingsTitle;
 
   /// No description provided for @navStats.
@@ -5703,7 +5739,7 @@ abstract class AppLocalizations {
   /// No description provided for @planTabAbstinence.
   ///
   /// In en, this message translates to:
-  /// **'Staying clean'**
+  /// **'Clean'**
   String get planTabAbstinence;
 
   /// No description provided for @planTabMeals.
@@ -6646,7 +6682,7 @@ abstract class AppLocalizations {
   /// No description provided for @setStreakModeNote.
   ///
   /// In en, this message translates to:
-  /// **'Applies from today. Days behind you stay counted the way they were. Your friends count your streak by the same mode.'**
+  /// **'A change applies from tomorrow. Today and the days behind you stay counted the way they were. Your friends count your streak by the same mode.'**
   String get setStreakModeNote;
 
   /// No description provided for @setStreakModeSection.
@@ -7752,6 +7788,1200 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Working sets'**
   String get workoutWorkingSets;
+
+  /// No description provided for @gateLoadingAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching your challenge…'**
+  String get gateLoadingAccount;
+
+  /// No description provided for @gateLoadingAccountSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'This is taking a while. Without a connection your challenge cannot be loaded onto this phone yet.'**
+  String get gateLoadingAccountSlow;
+
+  /// No description provided for @gateErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Funki tripped over something.'**
+  String get gateErrorTitle;
+
+  /// No description provided for @setSignOutUnsentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not everything is sent yet'**
+  String get setSignOutUnsentTitle;
+
+  /// No description provided for @setSignOutUnsentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 entry from this phone has not reached the server yet.} other{{count} entries from this phone have not reached the server yet.}} Signed out now, it is lost. Go online and try again, or sign out anyway.'**
+  String setSignOutUnsentBody(int count);
+
+  /// No description provided for @setSignOutAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out anyway'**
+  String get setSignOutAnyway;
+
+  /// No description provided for @setDeletingAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting your account…'**
+  String get setDeletingAccount;
+
+  /// No description provided for @setDeleteAccountAppleNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple asks you to confirm once more, so the app\'s access to your Apple ID can be revoked.'**
+  String get setDeleteAccountAppleNote;
+
+  /// No description provided for @remindCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Should Funki remind you?'**
+  String get remindCardTitle;
+
+  /// No description provided for @remindCardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'One reminder in the evening while today is open, a warning when your streak is on the line, and a ping when a friend nudges you. Nothing else.'**
+  String get remindCardBody;
+
+  /// No description provided for @remindCardYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, remind me'**
+  String get remindCardYes;
+
+  /// No description provided for @remindCardLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get remindCardLater;
+
+  /// No description provided for @remindTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get remindTitle;
+
+  /// No description provided for @remindRowSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily at {time}'**
+  String remindRowSub(String time);
+
+  /// No description provided for @remindRowOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get remindRowOff;
+
+  /// No description provided for @remindDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily reminder'**
+  String get remindDaily;
+
+  /// No description provided for @remindDailySub.
+  ///
+  /// In en, this message translates to:
+  /// **'Only on days that are still open — never once you are done.'**
+  String get remindDailySub;
+
+  /// No description provided for @remindTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get remindTime;
+
+  /// No description provided for @remindWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak warning'**
+  String get remindWarning;
+
+  /// No description provided for @remindWarningSub.
+  ///
+  /// In en, this message translates to:
+  /// **'In the late evening, when a streak of three days or more would end at midnight.'**
+  String get remindWarningSub;
+
+  /// No description provided for @remindBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are switched off for this app.'**
+  String get remindBlocked;
+
+  /// No description provided for @remindAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow notifications'**
+  String get remindAllow;
+
+  /// No description provided for @remindBlockedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'If nothing happens, switch them on in your phone\'s settings under 100 Days.'**
+  String get remindBlockedHint;
+
+  /// No description provided for @aiPurchaseRetryLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid, but the server could not confirm it yet. The app tries again at its next start — or tap \"Restore purchase\" once you are online.'**
+  String get aiPurchaseRetryLater;
+
+  /// No description provided for @aiRestoreNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No subscription found to restore on this store account.'**
+  String get aiRestoreNothing;
+
+  /// No description provided for @aiRestoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring did not work. Check your connection and try again.'**
+  String get aiRestoreFailed;
+
+  /// No description provided for @aiRestoring.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking your purchases…'**
+  String get aiRestoring;
+
+  /// No description provided for @tileHoldLonger.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold on until it is full'**
+  String get tileHoldLonger;
+
+  /// No description provided for @tileHoldTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip: holding the row is quicker.'**
+  String get tileHoldTip;
+
+  /// No description provided for @tileUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get tileUndo;
+
+  /// No description provided for @tileMoreSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'More for {habit}'**
+  String tileMoreSemantics(String habit);
+
+  /// No description provided for @tileUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken back.'**
+  String get tileUndone;
+
+  /// No description provided for @homeFreezeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Freeze today?'**
+  String get homeFreezeConfirmTitle;
+
+  /// No description provided for @homeFreezeConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak survives today without growing. {left, plural, =1{This is your last freeze in this cycle.} other{{left} freezes left in this cycle after this one.}} It cannot be taken back.'**
+  String homeFreezeConfirmBody(int left);
+
+  /// No description provided for @homeYesterdayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday slipped through'**
+  String get homeYesterdayTitle;
+
+  /// No description provided for @homeYesterdayBodyFreeze.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {streak}-day streak broke at midnight. Done it but forgot to tick it? Log it now. Or save the streak with a freeze ({left} left).'**
+  String homeYesterdayBodyFreeze(int streak, int left);
+
+  /// No description provided for @homeYesterdayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {streak}-day streak broke at midnight. Done it but forgot to tick it? Log it now — it shows as logged late.'**
+  String homeYesterdayBody(int streak);
+
+  /// No description provided for @homeYesterdayLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Log yesterday'**
+  String get homeYesterdayLog;
+
+  /// No description provided for @homeYesterdayFreeze.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a freeze'**
+  String get homeYesterdayFreeze;
+
+  /// No description provided for @dayLogLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Log'**
+  String get dayLogLate;
+
+  /// No description provided for @dayLogLateNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Only yesterday can be logged late. Friends see that it was.'**
+  String get dayLogLateNote;
+
+  /// No description provided for @dayOpenDiary.
+  ///
+  /// In en, this message translates to:
+  /// **'Meals'**
+  String get dayOpenDiary;
+
+  /// No description provided for @dayOverNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This day is over. Only yesterday can still be logged late.'**
+  String get dayOverNote;
+
+  /// No description provided for @profileEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile'**
+  String get profileEditTitle;
+
+  /// No description provided for @profileEditSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Name and face — what friends see in requests, the feed and the league.'**
+  String get profileEditSub;
+
+  /// No description provided for @profileSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get profileSave;
+
+  /// No description provided for @profileSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile saved.'**
+  String get profileSaved;
+
+  /// No description provided for @profileStatement.
+  ///
+  /// In en, this message translates to:
+  /// **'Your goal in one sentence'**
+  String get profileStatement;
+
+  /// No description provided for @stageDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 more day} other{{days} more days}}'**
+  String stageDaysLeft(int days);
+
+  /// No description provided for @statsWeekLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'W{week}'**
+  String statsWeekLabel(String week);
+
+  /// No description provided for @habitsEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your habits'**
+  String get habitsEditTitle;
+
+  /// No description provided for @habitsEditSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Change a target, how often, or take a habit out. Past days keep counting by the rules they were counted with.'**
+  String get habitsEditSub;
+
+  /// No description provided for @habitsEditRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Habits'**
+  String get habitsEditRow;
+
+  /// No description provided for @habitsEditRowSub.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 habit} other{{count} habits}} — add, change, take out'**
+  String habitsEditRowSub(int count);
+
+  /// No description provided for @habitsDaysPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day a week} other{{days} days a week}}'**
+  String habitsDaysPerWeek(int days);
+
+  /// No description provided for @habitsRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Take out'**
+  String get habitsRemove;
+
+  /// No description provided for @habitsRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Take {habit} out?'**
+  String habitsRemoveTitle(String habit);
+
+  /// No description provided for @habitsRemoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'From tomorrow it no longer counts. The days it was part of stay as they were.'**
+  String get habitsRemoveBody;
+
+  /// No description provided for @habitsAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a habit'**
+  String get habitsAdd;
+
+  /// No description provided for @habitsAddCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own…'**
+  String get habitsAddCustom;
+
+  /// No description provided for @habitsCustomName.
+  ///
+  /// In en, this message translates to:
+  /// **'What is it?'**
+  String get habitsCustomName;
+
+  /// No description provided for @habitsSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get habitsSave;
+
+  /// No description provided for @habitsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Habits saved.'**
+  String get habitsSaved;
+
+  /// No description provided for @habitsFromTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Today is done already, so this counts from tomorrow.'**
+  String get habitsFromTomorrow;
+
+  /// No description provided for @habitsTrainingNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Training days follow your training plan.'**
+  String get habitsTrainingNote;
+
+  /// No description provided for @habitsKeepOne.
+  ///
+  /// In en, this message translates to:
+  /// **'At least one habit has to stay.'**
+  String get habitsKeepOne;
+
+  /// No description provided for @setStreakModeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to {mode}?'**
+  String setStreakModeConfirmTitle(String mode);
+
+  /// No description provided for @setStreakModeConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'From tomorrow on. Today and every day before keep the mode they are counted in.'**
+  String get setStreakModeConfirmBody;
+
+  /// No description provided for @setStreakModeTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch from tomorrow'**
+  String get setStreakModeTomorrow;
+
+  /// No description provided for @setStreakModePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes to {mode} tomorrow.'**
+  String setStreakModePending(String mode);
+
+  /// No description provided for @setAppSection.
+  ///
+  /// In en, this message translates to:
+  /// **'App'**
+  String get setAppSection;
+
+  /// No description provided for @setTapToCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap instead of hold'**
+  String get setTapToCheckIn;
+
+  /// No description provided for @setTapToCheckInSub.
+  ///
+  /// In en, this message translates to:
+  /// **'A tap checks a habit in. For anyone who cannot or does not want to hold a press.'**
+  String get setTapToCheckInSub;
+
+  /// No description provided for @setSound.
+  ///
+  /// In en, this message translates to:
+  /// **'Sounds'**
+  String get setSound;
+
+  /// No description provided for @setSoundSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Crackle, ignition and the slot machine. Silent mode keeps them quiet.'**
+  String get setSoundSub;
+
+  /// No description provided for @setRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start again from day 1'**
+  String get setRestart;
+
+  /// No description provided for @setRestartSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Same habits, a new day 1. Your history stays in your feed.'**
+  String get setRestartSub;
+
+  /// No description provided for @setRestartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start again from day 1?'**
+  String get setRestartTitle;
+
+  /// No description provided for @setRestartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak, your flame and the board start over today. Friends see the new start. This cannot be undone.'**
+  String get setRestartBody;
+
+  /// No description provided for @setRestartConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Start again'**
+  String get setRestartConfirm;
+
+  /// No description provided for @setServerInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Server: {server}'**
+  String setServerInfo(String server);
+
+  /// No description provided for @habitsEveryDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get habitsEveryDay;
+
+  /// No description provided for @loginModeSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get loginModeSignIn;
+
+  /// No description provided for @loginModeRegister.
+  ///
+  /// In en, this message translates to:
+  /// **'New account'**
+  String get loginModeRegister;
+
+  /// No description provided for @loginPasswordRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Password again'**
+  String get loginPasswordRepeat;
+
+  /// No description provided for @loginPasswordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The two passwords are not the same.'**
+  String get loginPasswordMismatch;
+
+  /// No description provided for @loginShowPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get loginShowPassword;
+
+  /// No description provided for @loginHidePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get loginHidePassword;
+
+  /// No description provided for @loginForgot.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot your password?'**
+  String get loginForgot;
+
+  /// No description provided for @loginForgotNeedsEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your e-mail address first.'**
+  String get loginForgotNeedsEmail;
+
+  /// No description provided for @loginForgotSent.
+  ///
+  /// In en, this message translates to:
+  /// **'If there is an account for {email}, a link to set a new password is on its way.'**
+  String loginForgotSent(String email);
+
+  /// No description provided for @loginNewPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a new password'**
+  String get loginNewPasswordTitle;
+
+  /// No description provided for @loginNewPasswordSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save password'**
+  String get loginNewPasswordSave;
+
+  /// No description provided for @loginNewPasswordSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Your new password is set.'**
+  String get loginNewPasswordSaved;
+
+  /// No description provided for @celebrateEvolving.
+  ///
+  /// In en, this message translates to:
+  /// **'Funki is changing…'**
+  String get celebrateEvolving;
+
+  /// No description provided for @celebrateEvolved.
+  ///
+  /// In en, this message translates to:
+  /// **'{stage}!'**
+  String celebrateEvolved(String stage);
+
+  /// No description provided for @shareCardStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{streak, plural, =1{day streak} other{days streak}}'**
+  String shareCardStreak(int streak);
+
+  /// No description provided for @shareCardDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day} of my challenge'**
+  String shareCardDay(int day);
+
+  /// No description provided for @ascendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cycle complete'**
+  String get ascendTitle;
+
+  /// No description provided for @ascendNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to {tier}'**
+  String ascendNext(String tier);
+
+  /// No description provided for @ascendBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak, flame and history come along. The next hundred days start now.'**
+  String get ascendBody;
+
+  /// No description provided for @ascendGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Into the next cycle'**
+  String get ascendGo;
+
+  /// No description provided for @lossTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {streak}-day streak went out.'**
+  String lossTitle(int streak);
+
+  /// No description provided for @lossFunki.
+  ///
+  /// In en, this message translates to:
+  /// **'I am still glowing. Blow on me.'**
+  String get lossFunki;
+
+  /// No description provided for @lossBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {stars, plural, =1{star stays} other{{stars} stars stay}} in your sky — none of it is lost. The difference between a slip and quitting is what you do in the next 24 hours.'**
+  String lossBody(int stars);
+
+  /// No description provided for @lossRelight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light me again'**
+  String get lossRelight;
+
+  /// No description provided for @actionUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get actionUndo;
+
+  /// No description provided for @aiAllowanceUsedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'This month\'s AI allowance is used up. With Premium or your own API key it goes on right away.'**
+  String get aiAllowanceUsedUp;
+
+  /// No description provided for @aiBadgeCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud AI'**
+  String get aiBadgeCloud;
+
+  /// No description provided for @aiRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many AI requests at once. Wait a minute, then try again.'**
+  String get aiRateLimited;
+
+  /// No description provided for @aiUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI could not be reached — you seem to be offline, or it took too long. Try again in a moment.'**
+  String get aiUnreachable;
+
+  /// No description provided for @diaryCountOnTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'On target now — count it with the plan bonus'**
+  String get diaryCountOnTarget;
+
+  /// No description provided for @diaryEntryRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} taken out of the diary'**
+  String diaryEntryRemoved(String name);
+
+  /// No description provided for @diaryOffTargetOver.
+  ///
+  /// In en, this message translates to:
+  /// **'You are {kcal} kcal over your target. You can still tick the day off — just without the plan bonus.'**
+  String diaryOffTargetOver(int kcal);
+
+  /// No description provided for @diaryOffTargetUnder.
+  ///
+  /// In en, this message translates to:
+  /// **'You are {kcal} kcal under your target. You can still tick the day off — just without the plan bonus.'**
+  String diaryOffTargetUnder(int kcal);
+
+  /// No description provided for @foodEditHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A new amount scales the calories. If the estimate is off, correct the calories.'**
+  String get foodEditHint;
+
+  /// No description provided for @foodEditTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Change amount or calories'**
+  String get foodEditTooltip;
+
+  /// No description provided for @foodPhotoNoCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'No access to the camera. Allow it for 100 Days in your phone\'s settings, or pick a photo from the gallery.'**
+  String get foodPhotoNoCamera;
+
+  /// No description provided for @foodPhotoNoGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'No access to your photos. Allow it for 100 Days in your phone\'s settings, or take a new photo.'**
+  String get foodPhotoNoGallery;
+
+  /// No description provided for @foodPhotoPickFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera or the gallery could not be opened. Try again, or describe the meal.'**
+  String get foodPhotoPickFailed;
+
+  /// No description provided for @foodPhotoUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'This photo cannot be read — some HEIC photos cannot. Take a new one, or pick a JPEG.'**
+  String get foodPhotoUnreadable;
+
+  /// No description provided for @householdJoinWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'You are switching households: your current plan and list stay where they are, and you will see the new household\'s instead. You can leave it again later.'**
+  String get householdJoinWarning;
+
+  /// No description provided for @householdLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave household'**
+  String get householdLeave;
+
+  /// No description provided for @householdLeaveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan, the recipes and the lists stay with the others. You start over with a household of your own and can be invited back any time.'**
+  String get householdLeaveBody;
+
+  /// No description provided for @householdLeaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not leave the household. Check your connection and try again.'**
+  String get householdLeaveFailed;
+
+  /// No description provided for @householdLeaveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave the household?'**
+  String get householdLeaveTitle;
+
+  /// No description provided for @householdLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'You left the household.'**
+  String get householdLeft;
+
+  /// No description provided for @householdLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The household could not be loaded.'**
+  String get householdLoadFailed;
+
+  /// No description provided for @householdRemoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They will no longer see the plan and the list. With an invite they can join again.'**
+  String get householdRemoveBody;
+
+  /// No description provided for @householdRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name} from the household?'**
+  String householdRemoveTitle(String name);
+
+  /// No description provided for @householdSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not saved — check your connection and try again.'**
+  String get householdSaveFailed;
+
+  /// No description provided for @planMealRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} taken off the plan'**
+  String planMealRemoved(String title);
+
+  /// No description provided for @planSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan could not be saved. Your draft is still here — try again.'**
+  String get planSaveFailed;
+
+  /// No description provided for @plannerListToppedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Topped up the shopping list from the plan'**
+  String get plannerListToppedUp;
+
+  /// No description provided for @plannerQuotaUsedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'This month\'s AI allowance is used up, so I cannot plan with you right now. With Premium or your own API key it goes on straight away — or plan by hand until the 1st.'**
+  String get plannerQuotaUsedUp;
+
+  /// No description provided for @shopCloseEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Close this list'**
+  String get shopCloseEmpty;
+
+  /// No description provided for @shopItemRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} taken off the list'**
+  String shopItemRemoved(String name);
+
+  /// No description provided for @shopTopUp.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{The open list already has everything for these days} =1{1 line added to the open list} other{{count} lines added to the open list}}'**
+  String shopTopUp(int count);
+
+  /// No description provided for @loggerAddedLoadHint.
+  ///
+  /// In en, this message translates to:
+  /// **'+ kg'**
+  String get loggerAddedLoadHint;
+
+  /// No description provided for @loggerAdviceAddRepsBodyweight.
+  ///
+  /// In en, this message translates to:
+  /// **'One more rep per set'**
+  String get loggerAdviceAddRepsBodyweight;
+
+  /// No description provided for @loggerAdviceBeyondRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Top of the range on every set: one more rep each — or carry some weight and enter it under + kg'**
+  String get loggerAdviceBeyondRange;
+
+  /// No description provided for @loggerAdviceDeload.
+  ///
+  /// In en, this message translates to:
+  /// **'Deload: lighter at {weight} kg, and stop well short of failure'**
+  String loggerAdviceDeload(String weight);
+
+  /// No description provided for @loggerAdviceDeloadBodyweight.
+  ///
+  /// In en, this message translates to:
+  /// **'Deload: easy reps, and stop well short of failure'**
+  String get loggerAdviceDeloadBodyweight;
+
+  /// No description provided for @loggerAdviceReduceBodyweight.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed twice — drop the added weight and build back up'**
+  String get loggerAdviceReduceBodyweight;
+
+  /// No description provided for @loggerDeloadBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer sets and lighter weights this week — on purpose. Your body catches up on three weeks of building; next week the numbers go up again.'**
+  String get loggerDeloadBody;
+
+  /// No description provided for @loggerDeloadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deload week'**
+  String get loggerDeloadTitle;
+
+  /// No description provided for @loggerKeepForLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep for later'**
+  String get loggerKeepForLater;
+
+  /// No description provided for @loggerLeaveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What you entered stays on this phone until you finish. Open the workout again today to pick up where you left off.'**
+  String get loggerLeaveBody;
+
+  /// No description provided for @loggerLeaveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave the workout?'**
+  String get loggerLeaveTitle;
+
+  /// No description provided for @loggerResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get loggerResume;
+
+  /// No description provided for @loggerResumeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You started this workout at {time}. {sets, plural, =0{No set ticked off yet.} =1{One set is ticked off.} other{{sets} sets are ticked off.}}'**
+  String loggerResumeBody(String time, int sets);
+
+  /// No description provided for @loggerResumeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick up where you left off?'**
+  String get loggerResumeTitle;
+
+  /// No description provided for @loggerStartOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Start over'**
+  String get loggerStartOver;
+
+  /// No description provided for @editorDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get editorDiscard;
+
+  /// No description provided for @editorDiscardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your changes to the training plan are not saved yet.'**
+  String get editorDiscardBody;
+
+  /// No description provided for @editorDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard your changes?'**
+  String get editorDiscardTitle;
+
+  /// No description provided for @editorPlanOffBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: your training habit is a plain tick again, without the +{percent} % XP of a logged workout. The workouts you logged stay in your history, and your split and exercises wait here for when you switch it back on.'**
+  String editorPlanOffBody(int percent);
+
+  /// No description provided for @editorPlanOnBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Log every set: each logged workout earns +{percent} % XP.'**
+  String editorPlanOnBody(int percent);
+
+  /// No description provided for @editorPlanSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Training plan'**
+  String get editorPlanSwitch;
+
+  /// No description provided for @editorPlanSwitchedOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Training plan switched off — your workouts stay logged'**
+  String get editorPlanSwitchedOff;
+
+  /// No description provided for @editorEmptySession.
+  ///
+  /// In en, this message translates to:
+  /// **'Every session needs at least one exercise — add one where it is marked.'**
+  String get editorEmptySession;
+
+  /// No description provided for @loggerEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This session has no exercises. Add some to it in the training plan, then log it.'**
+  String get loggerEmptyBody;
+
+  /// No description provided for @loggerEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to log yet'**
+  String get loggerEmptyTitle;
+
+  /// No description provided for @editDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard your changes?'**
+  String get editDiscardTitle;
+
+  /// No description provided for @editDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get editDiscard;
+
+  /// No description provided for @moderationReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get moderationReport;
+
+  /// No description provided for @moderationBlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get moderationBlock;
+
+  /// No description provided for @moderationBlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Block {name}?'**
+  String moderationBlockTitle(String name);
+
+  /// No description provided for @moderationBlockBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You stop being friends and open requests go. Neither of you can find, add or invite the other, and you no longer see {name} in the league. {name} is not told.'**
+  String moderationBlockBody(String name);
+
+  /// No description provided for @moderationBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is blocked.'**
+  String moderationBlocked(String name);
+
+  /// No description provided for @moderationReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report {name}'**
+  String moderationReportTitle(String name);
+
+  /// No description provided for @moderationReportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the team behind 100 Days reads reports. {name} is not told.'**
+  String moderationReportBody(String name);
+
+  /// No description provided for @moderationReasonSpam.
+  ///
+  /// In en, this message translates to:
+  /// **'Spam or a fake account'**
+  String get moderationReasonSpam;
+
+  /// No description provided for @moderationReasonHarassment.
+  ///
+  /// In en, this message translates to:
+  /// **'Harassment or bullying'**
+  String get moderationReasonHarassment;
+
+  /// No description provided for @moderationReasonInappropriate.
+  ///
+  /// In en, this message translates to:
+  /// **'Offensive name or emoji'**
+  String get moderationReasonInappropriate;
+
+  /// No description provided for @moderationReasonCheating.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheating in the league'**
+  String get moderationReasonCheating;
+
+  /// No description provided for @moderationReasonOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get moderationReasonOther;
+
+  /// No description provided for @moderationReportDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened? (optional)'**
+  String get moderationReportDetails;
+
+  /// No description provided for @moderationAlsoBlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Block them as well'**
+  String get moderationAlsoBlock;
+
+  /// No description provided for @moderationReportSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send report'**
+  String get moderationReportSend;
+
+  /// No description provided for @moderationReported.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks. Your report is in.'**
+  String get moderationReported;
+
+  /// No description provided for @blockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked'**
+  String get blockedTitle;
+
+  /// No description provided for @blockedSub.
+  ///
+  /// In en, this message translates to:
+  /// **'They can\'t find, add or invite you, and you don\'t see them in the league.'**
+  String get blockedSub;
+
+  /// No description provided for @blockedNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody blocked.'**
+  String get blockedNone;
+
+  /// No description provided for @blockedUnblock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get blockedUnblock;
+
+  /// No description provided for @blockedUnblocked.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is unblocked. A friendship does not come back by itself.'**
+  String blockedUnblocked(String name);
+
+  /// No description provided for @friendsSentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent requests'**
+  String get friendsSentTitle;
+
+  /// No description provided for @friendsSentSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is shared until they accept.'**
+  String get friendsSentSub;
+
+  /// No description provided for @friendsSentWithdraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw'**
+  String get friendsSentWithdraw;
+
+  /// No description provided for @friendsSentWithdrawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Request to {name} withdrawn.'**
+  String friendsSentWithdrawn(String name);
+
+  /// No description provided for @findRequestTooMany.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s enough requests for today. Try again tomorrow.'**
+  String get findRequestTooMany;
+
+  /// No description provided for @findRequestDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'They said no not long ago. You can ask again in a few weeks, or they can ask you.'**
+  String get findRequestDeclined;
+
+  /// No description provided for @findRequestUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t add this person.'**
+  String get findRequestUnavailable;
+
+  /// No description provided for @profileNudgedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Nudged today'**
+  String get profileNudgedToday;
+
+  /// No description provided for @scanPasteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. {link}'**
+  String scanPasteHint(String link);
+
+  /// No description provided for @scanNotAnInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'That QR code isn\'t a 100 Days invite.'**
+  String get scanNotAnInvite;
+
+  /// No description provided for @feedCheckIns.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {count, plural, =1{1 check-in} other{{count} check-ins}}'**
+  String feedCheckIns(String name, int count);
+
+  /// No description provided for @campfireTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Around the fire'**
+  String get campfireTitle;
+
+  /// No description provided for @friendFlameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {streak, plural, =1{1-day streak} other{{streak}-day streak}}'**
+  String friendFlameLabel(String name, int streak);
 }
 
 class _AppLocalizationsDelegate

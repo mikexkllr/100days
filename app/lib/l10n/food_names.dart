@@ -545,6 +545,10 @@ const FoodVocabulary _german = FoodVocabulary(
     'halbe': 0.5,
     'halben': 0.5,
     'halbes': 0.5,
+    'viertel': 0.25,
+    'dreiviertel': 0.75,
+    'anderthalb': 1.5,
+    'eineinhalb': 1.5,
     'paar': 2,
   },
   unitWords: <String, FoodUnit>{
@@ -574,7 +578,20 @@ const FoodVocabulary _german = FoodVocabulary(
     'gläser': FoodUnit.glass,
     'handvoll': FoodUnit.handful,
   },
-  separators: <String>['und', 'mit', 'dazu', 'sowie'],
+  // Words that start the next thing eaten split like "und" does: "2 Eier,
+  // danach eine Banane" is two items.
+  separators: <String>[
+    'und',
+    'mit',
+    'dazu',
+    'sowie',
+    'danach',
+    'dann',
+    'anschließend',
+    'später',
+    'nachher',
+    'außerdem',
+  ],
   fillerWords: <String>{
     'ich',
     'hatte',
@@ -607,6 +624,7 @@ const FoodVocabulary _english = FoodVocabulary(
     'five': 5,
     'six': 6,
     'half': 0.5,
+    'quarter': 0.25,
     'couple': 2,
   },
   unitWords: <String, FoodUnit>{
@@ -641,7 +659,15 @@ const FoodVocabulary _english = FoodVocabulary(
     'glasses': FoodUnit.glass,
     'handful': FoodUnit.handful,
   },
-  separators: <String>['and', 'with', 'plus'],
+  separators: <String>[
+    'and',
+    'with',
+    'plus',
+    'then',
+    'afterwards',
+    'after that',
+    'later',
+  ],
   fillerWords: <String>{
     'i',
     'had',
@@ -697,17 +723,40 @@ class FoodIndex {
     for (final String name in _names) {
       if (padded.contains(' $name ')) return kFoodById[_byName[name]!];
     }
-    // A word that starts a known name: "hähnchenbrustfilet", "bananen".
+    // A known name with an inflection ending ("joghurts", "äpfeln"), or
+    // one cut short by a letter or three ("erdbeer"). Not a compound:
+    // "Buttermilch" is no butter and "Käsekuchen" no cheese — those come
+    // back unknown, so the model is asked instead of the table guessing.
     for (final String word in wanted.split(' ')) {
       if (word.length < 4) continue;
       for (final String name in _names) {
-        if (name.startsWith(word) ||
-            (word.startsWith(name) && name.length >= 4)) {
+        if (name.length >= 4 && _inflects(word, name)) {
           return kFoodById[_byName[name]!];
         }
       }
     }
     return null;
+  }
+
+  /// German and English plural and case endings.
+  static const Set<String> _endings = <String>{
+    'e',
+    'n',
+    'en',
+    'er',
+    'ern',
+    'es',
+    'ns',
+    's',
+  };
+
+  static bool _inflects(String word, String name) {
+    if (word.startsWith(name)) {
+      return _endings.contains(word.substring(name.length));
+    }
+    return name.startsWith(word) &&
+        !name.contains(' ') &&
+        name.length - word.length <= 3;
   }
 
   /// Foods whose name matches [query], best first.

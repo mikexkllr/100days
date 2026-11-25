@@ -12,6 +12,7 @@ import 'package:hundred_days/ui/home/today.dart';
 import 'package:hundred_days/ui/home/week_strip.dart';
 import 'package:hundred_days/ui/mascot/flame_mascot.dart';
 import 'package:hundred_days/ui/motion/rolling_number.dart';
+import 'package:hundred_days/ui/nutrition/diary_view.dart';
 import 'package:hundred_days/ui/widgets/day_board.dart';
 import 'package:hundred_days/ui/widgets/habit_tile.dart';
 import 'package:hundred_days/ui/widgets/hold_button.dart';
@@ -528,5 +529,217 @@ void main() {
     expect(done.glow, 1);
     // One finished day, one star.
     expect((await repository.snapshot()).me.streak.completedDays, 1);
+  });
+
+  testWidgets('a done row still answers a tap, and the tick can be taken back',
+      (WidgetTester tester) async {
+    await startChallenge();
+    await pump(tester);
+
+    await holdToIgnite(tester, 'Heute clean');
+    expect(find.widgetWithText(DoneBadge, 'Erledigt'), findsOneWidget);
+
+    // Before the fix the row swallowed every tap after a hold.
+    await tester.tap(find.text('Kein Zucker'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('tile-undo-noSugar')));
+    await tester.pumpAndSettle();
+
+    final AppSnapshot snapshot = await repository.snapshot();
+    expect(snapshot.me.logsByDay[snapshot.today.toString()], isNull);
+    expect(find.widgetWithText(DoneBadge, 'Erledigt'), findsNothing);
+  });
+
+  testWidgets('every habit can be checked in without holding',
+      (WidgetTester tester) async {
+    await startChallenge();
+    await pump(tester);
+
+    await tester.tap(find.text('Kein Zucker'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('tile-plain-noSugar')));
+    await tester.pumpAndSettle();
+
+    final AppSnapshot snapshot = await repository.snapshot();
+    expect(
+      snapshot.me.logsByDay[snapshot.today.toString()]!.entryFor('noSugar'),
+      isNotNull,
+    );
+  });
+
+  testWidgets('a freeze asks first and holds the day only when confirmed',
+      (WidgetTester tester) async {
+    final Challenge challenge = testChallenge(
+      startDay: DayKey.today().addDays(-2),
+      habits: const <HabitCategory>[HabitCategory.reading],
+    );
+    await repository.saveProfile(displayName: 'Mike', avatarEmoji: '🐺');
+    await repository.startChallenge(challenge);
+    for (int i = 2; i >= 1; i--) {
+      await repository.checkIn(
+        habit: challenge.habits.first,
+        day: DayKey.today().addDays(-i),
+      );
+    }
+    await pump(tester);
+
+    await tester.tap(find.byKey(const Key('freeze-use')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Abbrechen'));
+    await tester.pumpAndSettle();
+    expect((await repository.snapshot()).me.frozenDays, isEmpty);
+
+    await tester.tap(find.byKey(const Key('freeze-use')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('freeze-confirm')));
+    await tester.pumpAndSettle();
+    expect((await repository.snapshot()).me.frozenDays,
+        <String>{DayKey.today().toString()});
+  });
+
+  testWidgets('a missed yesterday can be logged late', (WidgetTester tester) async {
+    final Challenge challenge = testChallenge(
+      startDay: DayKey.today().addDays(-3),
+      habits: const <HabitCategory>[HabitCategory.reading],
+    );
+    await repository.saveProfile(displayName: 'Mike', avatarEmoji: '🐺');
+    await repository.startChallenge(challenge);
+    for (int i = 3; i >= 2; i--) {
+      await repository.checkIn(
+        habit: challenge.habits.first,
+        day: DayKey.today().addDays(-i),
+      );
+    }
+    await pump(tester);
+
+    expect(find.text('Gestern ist durchgerutscht'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('yesterday-log')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('log-late-reading')));
+    await tester.pumpAndSettle();
+
+    final AppSnapshot snapshot = await repository.snapshot();
+    expect(snapshot.me.streak.current, 3);
+  });
+
+  group('the day sheet', () {
+    const BodyProfile body = BodyProfile(
+      sex: BiologicalSex.female,
+      ageYears: 29,
+      heightCm: 170,
+      weightKg: 66,
+      activityLevel: ActivityLevel.moderate,
+    );
+
+    Future<Challenge> start({bool diary = false}) async {
+      final Challenge challenge = Challenge(
+        id: 'sheet',
+        goal: Goal(
+          archetype: GoalArchetype.discipline,
+          statement: 'Jeden Tag',
+          body: diary ? body : null,
+          nutritionPlanEnabled: diary,
+        ),
+        habits: <Habit>[
+          Habit.fromCategory(HabitCategory.journaling),
+          Habit.fromCategory(HabitCategory.nutrition),
+        ],
+        startDay: DayKey.today().addDays(-4),
+      );
+      await repository.saveProfile(displayName: 'Mike', avatarEmoji: '🐺');
+      await repository.startChallenge(challenge);
+      return challenge;
+    }
+
+    /// Opens the sheet of [day] from a button, as the week strip and the
+    /// board do.
+    Future<void> openDay(WidgetTester tester, DayKey day) async {
+      tester.view.physicalSize = const Size(1080, 4200);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final AppSnapshot snapshot = await repository.snapshot();
+      await tester.pumpWidget(wrapForTest(
+        repository: repository,
+        child: Builder(
+          builder: (BuildContext context) => TextButton(
+            onPressed: () =>
+                showDaySheet(context, snapshot: snapshot, day: day),
+            child: const Text('open'),
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('today, every open habit can be checked in from it',
+        (WidgetTester tester) async {
+      await start();
+      await openDay(tester, DayKey.today());
+
+      await tester.tap(find.byKey(const Key('day-check-in-journaling')));
+      await tester.pumpAndSettle();
+
+      final AppSnapshot after = await repository.snapshot();
+      expect(after.me.logsByDay[DayKey.today().toString()]
+          ?.entryFor('journaling'), isNotNull);
+      // Done now: the row shows it and offers nothing more.
+      expect(find.byKey(const Key('day-check-in-journaling')), findsNothing);
+      expect(find.descendant(
+              of: find.byType(DaySheet), matching: find.text('Erledigt')),
+          findsOneWidget);
+    });
+
+    testWidgets('a day long gone says it is over instead of ignoring taps',
+        (WidgetTester tester) async {
+      await start();
+      await openDay(tester, DayKey.today().addDays(-3));
+
+      expect(find.byKey(const Key('day-check-in-journaling')), findsNothing);
+      expect(find.byKey(const Key('log-late-journaling')), findsNothing);
+      expect(find.text('Dieser Tag ist vorbei. Nachtragen geht nur für gestern.'),
+          findsOneWidget);
+    });
+
+    testWidgets('nutrition opens the diary of that day',
+        (WidgetTester tester) async {
+      await start(diary: true);
+      final DayKey day = DayKey.today().addDays(-3);
+      await openDay(tester, day);
+
+      await tester.tap(find.byKey(const Key('day-diary-nutrition')));
+      await tester.pumpAndSettle();
+
+      final DiaryScreen diary =
+          tester.widget<DiaryScreen>(find.byType(DiaryScreen));
+      expect(diary.day, day);
+      expect(find.text('Ernährungstagebuch'), findsOneWidget);
+    });
+
+    testWidgets('without a diary, nutrition yesterday is logged late like any',
+        (WidgetTester tester) async {
+      await start();
+      final DayKey yesterday = DayKey.today().addDays(-1);
+      await openDay(tester, yesterday);
+
+      expect(find.byKey(const Key('day-diary-nutrition')), findsNothing);
+      await tester.tap(find.byKey(const Key('log-late-nutrition')));
+      await tester.pumpAndSettle();
+      expect((await repository.snapshot()).me.logsByDay[yesterday.toString()]
+          ?.entryFor('nutrition'), isNotNull);
+    });
+
+    testWidgets('with a diary, today offers both the tick and the meals',
+        (WidgetTester tester) async {
+      await start(diary: true);
+      await openDay(tester, DayKey.today());
+
+      expect(find.byKey(const Key('day-check-in-nutrition')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('day-diary-nutrition')));
+      await tester.pumpAndSettle();
+      expect(find.byType(DiaryScreen), findsOneWidget);
+    });
   });
 }

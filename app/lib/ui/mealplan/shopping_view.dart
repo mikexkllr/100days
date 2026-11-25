@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
@@ -5,8 +7,10 @@ import 'package:hundred_core/hundred_core.dart';
 import '../../data/household_backend.dart';
 import '../../l10n/l10n.dart';
 import '../../state/household_providers.dart';
+import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
+import 'household_load_error.dart';
 
 /// The household's shopping list, by aisle, ticked off live by everyone.
 class ShoppingView extends ConsumerStatefulWidget {
@@ -31,6 +35,8 @@ class _ShoppingViewState extends ConsumerState<ShoppingView> {
     setState(() => _working = true);
     try {
       await action();
+    } on Object {
+      if (mounted) showHouseholdSaveFailed(context);
     } finally {
       if (mounted) setState(() => _working = false);
     }
@@ -39,13 +45,16 @@ class _ShoppingViewState extends ConsumerState<ShoppingView> {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
+    ref.watch(sharedTargetsSyncProvider);
     final AsyncValue<List<ShoppingListInfo>> lists = ref.watch(openListsProvider);
     final Household? household = ref.watch(householdProvider).valueOrNull;
 
+    // Every realtime tick reloads the lists; the old ones stay on screen
+    // meanwhile, so the scroll position and the typed line survive it.
     return lists.when(
+      skipLoadingOnReload: true,
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (Object error, StackTrace _) =>
-          Center(child: Text(l10n.planLoadFailed)),
+      error: (Object error, StackTrace _) => const HouseholdLoadError(),
       data: (List<ShoppingListInfo> open) {
         final ShoppingListInfo? list = open.isEmpty
             ? null
@@ -72,10 +81,20 @@ class _ShoppingViewState extends ConsumerState<ShoppingView> {
                     onPressed: _working
                         ? null
                         : () => _run(() async {
-                              final ShoppingListInfo made = await ref
+                              final ScaffoldMessengerState messenger =
+                                  ScaffoldMessenger.of(context);
+                              final ListFromPlan made = await ref
                                   .read(householdActionsProvider)
                                   .listFromPlan();
-                              setState(() => _selected = made.id);
+                              if (!mounted) return;
+                              setState(() => _selected = made.list.id);
+                              // Made again for the same trip: say what it
+                              // did, since no new list appeared.
+                              if (!made.created) {
+                                messenger.showSnackBar(SnackBar(
+                                    content:
+                                        Text(l10n.shopTopUp(made.added.length))));
+                              }
                             }),
                     icon: const Icon(Icons.playlist_add, size: 18),
                     label: Text(l10n.shopFromPlan),
@@ -91,7 +110,7 @@ class _ShoppingViewState extends ConsumerState<ShoppingView> {
                               final ShoppingListInfo made = await ref
                                   .read(householdActionsProvider)
                                   .emptyList();
-                              setState(() => _selected = made.id);
+                              if (mounted) setState(() => _selected = made.id);
                             }),
                     icon: const Icon(Icons.add_shopping_cart, size: 18),
                     label: Text(l10n.shopExtraList),
@@ -122,8 +141,10 @@ class _ShoppingViewState extends ConsumerState<ShoppingView> {
               )
             else
               _ListBody(
+                key: ValueKey<String>(list.id),
                 list: list,
                 addController: _add,
+                working: _working,
                 onFinish: () => _run(
                     () => ref.read(householdActionsProvider).finishList(list)),
               ),
@@ -134,25 +155,210 @@ class _ShoppingViewState extends ConsumerState<ShoppingView> {
   }
 }
 
-class _ListBody extends ConsumerWidget {
+/// One list, changed optimistically: a tick, a swipe or a new line shows at
+/// once and goes to the server behind it. In a shop with bad reception the
+/// checkbox must move when tapped; if the write fails it moves back and
+/// the user is told.
+class _ListBody extends ConsumerStatefulWidget {
   const _ListBody({
+    super.key,
     required this.list,
     required this.addController,
+    required this.working,
     required this.onFinish,
   });
 
   final ShoppingListInfo list;
   final TextEditingController addController;
+  final bool working;
   final VoidCallback onFinish;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ListBody> createState() => _ListBodyState();
+}
+
+class _ListBodyState extends ConsumerState<_ListBody> {
+  /// Ticks shown before a load confirms them: line id → shown value.
+  final Map<String, bool> _ticks = <String, bool>{};
+
+  /// Lines swiped away, hidden until a load no longer has them.
+  final Set<String> _removed = <String>{};
+
+  /// Lines typed in (or put back), shown until a load has them.
+  final List<ShoppingLine> _adding = <ShoppingLine>[];
+
+  final List<Timer> _timers = <Timer>[];
+  int _pendingIds = 0;
+
+  @override
+  void dispose() {
+    for (final Timer timer in _timers) {
+      timer.cancel();
+    }
+    super.dispose();
+  }
+
+  /// After a write went through, its stand-in goes as soon as a load shows
+  /// the result — or after a while at the latest, so a change someone else
+  /// made in between is not hidden for good.
+  void _settleLater(void Function() forget) {
+    _timers.add(Timer(const Duration(seconds: 3), () {
+      if (mounted) setState(forget);
+    }));
+  }
+
+  void _reconcile(List<ShoppingLine> server) {
+    final Map<String, ShoppingLine> byId = <String, ShoppingLine>{
+      for (final ShoppingLine l in server) l.id: l,
+    };
+    _ticks.removeWhere((String id, bool on) => byId[id]?.checked == on);
+    _removed.removeWhere((String id) => !byId.containsKey(id));
+    _adding.removeWhere((ShoppingLine l) => byId.containsKey(l.id));
+  }
+
+  HouseholdActions get _actions => ref.read(householdActionsProvider);
+
+  Future<void> _tick(ShoppingLine line, bool on) async {
+    setState(() => _ticks[line.id] = on);
+    try {
+      await _actions.setChecked(line, on);
+    } on Object {
+      if (!mounted) return;
+      setState(() {
+        if (_ticks[line.id] == on) _ticks.remove(line.id);
+      });
+      showHouseholdSaveFailed(context);
+      return;
+    }
+    _settleLater(() {
+      if (_ticks[line.id] == on) _ticks.remove(line.id);
+    });
+  }
+
+  /// Shows [shown] at once and stores it with [write]; [onFailed] runs when
+  /// the write does not go through.
+  Future<void> _addLine(
+    ShoppingLine shown,
+    Future<List<ShoppingLine>> Function() write, {
+    VoidCallback? onFailed,
+  }) async {
+    setState(() => _adding.add(shown));
+    final List<ShoppingLine> stored;
+    try {
+      stored = await write();
+    } on Object {
+      if (!mounted) return;
+      setState(() => _adding.remove(shown));
+      onFailed?.call();
+      showHouseholdSaveFailed(context);
+      return;
+    }
+    if (!mounted) return;
+    final List<ShoppingLine> server =
+        ref.read(listItemsProvider(widget.list.id)).valueOrNull ??
+            const <ShoppingLine>[];
+    setState(() {
+      _adding
+        ..remove(shown)
+        ..addAll(stored.where((ShoppingLine s) =>
+            !server.any((ShoppingLine l) => l.id == s.id)));
+    });
+    _settleLater(() => _adding.removeWhere(
+        (ShoppingLine p) => stored.any((ShoppingLine s) => s.id == p.id)));
+  }
+
+  void _submit() {
+    final String text = widget.addController.text.trim();
+    if (text.isEmpty) return;
+    widget.addController.clear();
+    final HouseholdActions actions = _actions;
+    unawaited(_addLine(
+      ShoppingLine(
+        id: 'pending-${_pendingIds++}',
+        listId: widget.list.id,
+        name: text,
+        category: guessCategory(text),
+      ),
+      () => actions.addItem(widget.list.id, text),
+      // Typed in vain: give the words back.
+      onFailed: () {
+        if (widget.addController.text.isEmpty) widget.addController.text = text;
+      },
+    ));
+  }
+
+  void _remove(ShoppingLine line) {
+    final AppLocalizations l10n = context.l10n;
+    final HouseholdActions actions = _actions;
+    setState(() => _removed.add(line.id));
+    final Future<bool> deleted = () async {
+      try {
+        await actions.removeItem(line);
+      } on Object {
+        if (mounted) {
+          setState(() => _removed.remove(line.id));
+          showHouseholdSaveFailed(context);
+        }
+        return false;
+      }
+      _settleLater(() => _removed.remove(line.id));
+      return true;
+    }();
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text(l10n.shopItemRemoved(line.name)),
+        // An undo is offered for a moment; with an action a snackbar
+        // would otherwise stay until dismissed.
+        persist: false,
+        action: SnackBarAction(
+          label: l10n.actionUndo,
+          onPressed: () async {
+            // Only once the deletion is through: a failed one already put
+            // the line back, and a second copy would be one too many.
+            if (!await deleted || !mounted) return;
+            await _addLine(
+              ShoppingLine(
+                id: 'pending-${_pendingIds++}',
+                listId: line.listId,
+                name: line.name,
+                category: line.category,
+                quantity: line.quantity,
+                checked: line.checked,
+                checkedBy: line.checkedBy,
+                recipeIds: line.recipeIds,
+              ),
+              () async {
+                final ShoppingLine? back = await actions.restoreItem(line);
+                return back == null ? const <ShoppingLine>[] : <ShoppingLine>[back];
+              },
+            );
+          },
+        ),
+      ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
     final TextTheme text = Theme.of(context).textTheme;
-    final List<ShoppingLine> lines =
-        ref.watch(listItemsProvider(list.id)).valueOrNull ?? const <ShoppingLine>[];
+    ref.listen<AsyncValue<List<ShoppingLine>>>(listItemsProvider(widget.list.id),
+        (AsyncValue<List<ShoppingLine>>? _, AsyncValue<List<ShoppingLine>> next) {
+      final List<ShoppingLine>? server = next.valueOrNull;
+      if (server != null && !next.isLoading) setState(() => _reconcile(server));
+    });
+    final List<ShoppingLine> server =
+        ref.watch(listItemsProvider(widget.list.id)).valueOrNull ??
+            const <ShoppingLine>[];
+    final String me = ref.watch(repositoryProvider).userId;
+    final List<ShoppingLine> lines = <ShoppingLine>[
+      for (final ShoppingLine l in server)
+        if (!_removed.contains(l.id))
+          if (_ticks[l.id] case final bool on) l.ticked(on, by: me) else l,
+      for (final ShoppingLine l in _adding)
+        if (!server.any((ShoppingLine s) => s.id == l.id)) l,
+    ];
     final Household? household = ref.watch(householdProvider).valueOrNull;
-    final HouseholdActions actions = ref.read(householdActionsProvider);
     final int done = lines.where((ShoppingLine l) => l.checked).length;
 
     final Map<ShopCategory, List<ShoppingLine>> byAisle =
@@ -163,12 +369,6 @@ class _ListBody extends ConsumerWidget {
     final List<ShopCategory> aisles = byAisle.keys.toList()
       ..sort((ShopCategory a, ShopCategory b) => a.index.compareTo(b.index));
 
-    void submit() {
-      final String text = addController.text;
-      addController.clear();
-      actions.addItem(list.id, text);
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
@@ -176,7 +376,9 @@ class _ListBody extends ConsumerWidget {
           children: <Widget>[
             Expanded(
               child: Text(
-                list.title.isNotEmpty ? list.title : l10n.periodLabel(list.period),
+                widget.list.title.isNotEmpty
+                    ? widget.list.title
+                    : l10n.periodLabel(widget.list.period),
                 style: text.titleMedium,
               ),
             ),
@@ -187,12 +389,12 @@ class _ListBody extends ConsumerWidget {
         const SizedBox(height: AppSpacing.sm),
         TextField(
           key: const Key('shop-add'),
-          controller: addController,
+          controller: widget.addController,
           textInputAction: TextInputAction.done,
-          onSubmitted: (_) => submit(),
+          onSubmitted: (_) => _submit(),
           decoration: InputDecoration(
             hintText: l10n.shopAddHint,
-            suffixIcon: IconButton(onPressed: submit, icon: const Icon(Icons.add)),
+            suffixIcon: IconButton(onPressed: _submit, icon: const Icon(Icons.add)),
           ),
         ),
         const SizedBox(height: AppSpacing.md),
@@ -212,56 +414,72 @@ class _ListBody extends ConsumerWidget {
                     if (a.checked != b.checked) return a.checked ? 1 : -1;
                     return a.name.toLowerCase().compareTo(b.name.toLowerCase());
                   }))
-                  Dismissible(
-                    key: ValueKey<String>(line.id),
-                    direction: DismissDirection.endToStart,
-                    onDismissed: (_) => actions.removeItem(line),
-                    background: Container(
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.only(right: AppSpacing.md),
-                      child: const Icon(Icons.delete_outline, color: AppColors.danger),
-                    ),
-                    child: CheckboxListTile(
-                      key: Key('shop-item-${line.name}'),
-                      dense: true,
-                      value: line.checked,
-                      onChanged: (bool? on) => actions.setChecked(line, on ?? false),
-                      controlAffinity: ListTileControlAffinity.leading,
-                      title: Text(
-                        line.name,
-                        style: line.checked
-                            ? text.bodyMedium?.copyWith(
-                                decoration: TextDecoration.lineThrough,
-                                color: AppColors.textTertiary)
-                            : text.bodyMedium,
-                      ),
-                      subtitle: line.checked && line.checkedBy != null && household != null
-                          ? Text(l10n.shopCheckedBy(
-                              household.member(line.checkedBy!)?.displayName ?? ''))
-                          : null,
-                      secondary: line.quantity == null
-                          ? null
-                          : Text(l10n.quantityLabel(line.quantity!),
-                              style: text.bodySmall
-                                  ?.copyWith(color: AppColors.textSecondary)),
-                    ),
-                  ),
+                  _line(context, line, household,
+                      stored: !line.id.startsWith('pending-')),
               ],
             ),
           ),
         ],
-        if (lines.isNotEmpty) ...<Widget>[
-          const SizedBox(height: AppSpacing.lg),
-          OutlinedButton.icon(
-            key: const Key('shop-finish'),
-            onPressed: onFinish,
-            icon: const Icon(Icons.done_all, size: 18),
-            label: Text(done == lines.length
-                ? l10n.shopFinish
-                : l10n.shopFinishMoving(lines.length - done)),
-          ),
-        ],
+        const SizedBox(height: AppSpacing.lg),
+        // An empty list can be closed too — an extra list made by mistake
+        // would otherwise stay for good.
+        OutlinedButton.icon(
+          key: const Key('shop-finish'),
+          onPressed: widget.working ? null : widget.onFinish,
+          icon: const Icon(Icons.done_all, size: 18),
+          label: Text(lines.isEmpty
+              ? l10n.shopCloseEmpty
+              : done == lines.length
+                  ? l10n.shopFinish
+                  : l10n.shopFinishMoving(lines.length - done)),
+        ),
       ],
+    );
+  }
+
+  /// A line not [stored] yet is shown faded and cannot be ticked or swiped:
+  /// the server has no row for it to change.
+  Widget _line(BuildContext context, ShoppingLine line, Household? household,
+      {required bool stored}) {
+    final AppLocalizations l10n = context.l10n;
+    final TextTheme text = Theme.of(context).textTheme;
+    return Opacity(
+      key: ValueKey<String>('row-${line.id}'),
+      opacity: stored ? 1 : 0.55,
+      child: Dismissible(
+        key: ValueKey<String>(line.id),
+        direction:
+            stored ? DismissDirection.endToStart : DismissDirection.none,
+        onDismissed: (_) => _remove(line),
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: AppSpacing.md),
+          child: const Icon(Icons.delete_outline, color: AppColors.danger),
+        ),
+        child: CheckboxListTile(
+          key: Key('shop-item-${line.name}'),
+          dense: true,
+          value: line.checked,
+          onChanged: stored ? (bool? on) => _tick(line, on ?? false) : null,
+          controlAffinity: ListTileControlAffinity.leading,
+          title: Text(
+            line.name,
+            style: line.checked
+                ? text.bodyMedium?.copyWith(
+                    decoration: TextDecoration.lineThrough,
+                    color: AppColors.textTertiary)
+                : text.bodyMedium,
+          ),
+          subtitle: line.checked && line.checkedBy != null && household != null
+              ? Text(l10n.shopCheckedBy(
+                  household.member(line.checkedBy!)?.displayName ?? ''))
+              : null,
+          secondary: line.quantity == null
+              ? null
+              : Text(l10n.quantityLabel(line.quantity!),
+                  style: text.bodySmall?.copyWith(color: AppColors.textSecondary)),
+        ),
+      ),
     );
   }
 }

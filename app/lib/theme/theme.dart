@@ -430,6 +430,8 @@ ThemeData buildAppTheme() {
       backgroundColor: AppColors.surfaceHigh,
       contentTextStyle: TextStyle(
           color: AppColors.textPrimary, fontFamily: kTextFont),
+      // "Undo" has to be seen at a glance, not found.
+      actionTextColor: AppColors.primary,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: AppRadius.cardAll),
     ),

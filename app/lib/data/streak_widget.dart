@@ -103,6 +103,23 @@ class StreakWidgetSync {
     await HomeWidget.scheduleWidgetUpdates(times, androidName: androidProvider);
   }
 
+  /// Empties the widget, e.g. on sign-out: the next person on this phone
+  /// must not see the last one's streak on the home screen.
+  Future<void> clear() async {
+    _lastSignature = null;
+    if (!_supported) return;
+    try {
+      if (Platform.isIOS) await HomeWidget.setAppGroupId(appGroup);
+      await HomeWidget.saveWidgetData<String>(outlookKey, null);
+      await HomeWidget.updateWidget(
+        androidName: androidProvider,
+        iOSName: iosKind,
+      );
+    } on Object catch (error) {
+      debugPrint('Streak widget not cleared: $error');
+    }
+  }
+
   /// Whether the system can put the widget on the home screen for the user.
   Future<bool> canPin() async {
     if (!_supported || !Platform.isAndroid) return false;

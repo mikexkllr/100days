@@ -81,8 +81,7 @@ void main() {
         statement: 'x',
         body: _body,
       ));
-      final fromMacros =
-          plan.proteinG * 4 + plan.carbsG * 4 + plan.fatG * 9;
+      final fromMacros = plan.proteinG * 4 + plan.carbsG * 4 + plan.fatG * 9;
 
       expect((fromMacros - plan.kcal).abs(), lessThan(20));
     });
@@ -206,6 +205,58 @@ void main() {
       expect(plan.workoutFor(start, start), isNotNull);
       expect(plan.workoutFor(start, start.addDays(1)), isNull); // Tuesday
       expect(plan.workoutFor(start, start.addDays(2)), isNotNull); // Wednesday
+    });
+
+    test('the periodisation runs on past day 100 instead of wrapping', () {
+      final start = DayKey(2026, 3, 4); // Wednesday
+      final plan = buildTrainingPlan(
+        const Goal(
+          archetype: GoalArchetype.buildMuscle,
+          statement: 'x',
+          trainingDaysPerWeek: 4,
+        ),
+        startWeekday: DateTime.wednesday,
+      );
+
+      // Day 106 is in week 16: a deload, where wrapping gave week 1.
+      final week16 = plan.weekFor(start, start.addDays(105));
+      expect(week16.weekNumber, 16);
+      expect(week16.isDeload, isTrue);
+      expect(week16.blockNumber, 4);
+      expect(week16.workouts.every((Workout w) => w.isDeload), isTrue);
+      final week17 = plan.weekFor(start, start.addDays(112));
+      expect(week17.weekNumber, 17);
+      expect((week17.blockNumber, week17.weekInBlock), (5, 1));
+
+      // Into the third cycle and beyond, every fourth week still deloads.
+      for (var day = 0; day < 400; day++) {
+        final week = plan.weekFor(start, start.addDays(day));
+        expect(week.weekNumber, day ~/ 7 + 1);
+        expect(week.isDeload, week.weekNumber % 4 == 0, reason: 'day $day');
+      }
+      expect(plan.week(15).weekNumber, 15);
+      expect(plan.weeksBetween(15, 29).map((TrainingWeek w) => w.weekNumber),
+          <int>[for (var n = 15; n <= 29; n++) n]);
+    });
+
+    test('a deload week carries the flag on every workout', () {
+      final plan = buildTrainingPlan(const Goal(
+        archetype: GoalArchetype.buildMuscle,
+        statement: 'x',
+      ));
+      expect(plan.weeks[3].workouts.every((Workout w) => w.isDeload), isTrue);
+      expect(plan.weeks[2].workouts.any((Workout w) => w.isDeload), isFalse);
+    });
+  });
+
+  group('training habit', () {
+    test('the plan checks in the gym habit, else cardio', () {
+      final gym = Habit.fromCategory(HabitCategory.gym);
+      final cardio = Habit.fromCategory(HabitCategory.cardio);
+      final reading = Habit.fromCategory(HabitCategory.reading);
+      expect(trainingHabitOf(<Habit>[cardio, reading, gym]), gym);
+      expect(trainingHabitOf(<Habit>[reading, cardio]), cardio);
+      expect(trainingHabitOf(<Habit>[reading]), isNull);
     });
   });
 

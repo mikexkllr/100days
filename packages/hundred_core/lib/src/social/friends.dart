@@ -12,6 +12,11 @@ import 'projection.dart';
 /// it, had it held by their streak mode, or had nothing scheduled — and at
 /// least one of them completed it. Today counts once that holds; until then
 /// it is open and breaks nothing.
+///
+/// A streak freeze works here as it does alone: a day either of them froze
+/// holds the shared streak without counting for it. Both phones compute this
+/// from what friends can see — pass each side's public projection, never the
+/// owner's full one, or the two would disagree.
 int friendStreak({
   required UserProjection a,
   required UserProjection b,
@@ -21,18 +26,25 @@ int friendStreak({
   final challengeB = b.challenge;
   if (challengeA == null || challengeB == null) return 0;
 
-  // 0: broken, 1: counts, 2: nobody had anything — neither counts nor breaks.
+  // 0: broken, 1: counts, 2: held — nobody had anything, or a freeze
+  // covered a miss — neither counts nor breaks.
   int status(DayKey day) {
+    final key = day.toString();
     final requiredA = requiredHabitsOn(challengeA, day).isNotEmpty;
     final requiredB = requiredHabitsOn(challengeB, day).isNotEmpty;
     if (!requiredA && !requiredB) return 2;
-    final outA = requiredA
-        ? dayOutcome(challengeA, day, a.logsByDay[day.toString()])
-        : null;
-    final outB = requiredB
-        ? dayOutcome(challengeB, day, b.logsByDay[day.toString()])
-        : null;
-    if (outA == DayOutcome.broken || outB == DayOutcome.broken) return 0;
+    final outA =
+        requiredA ? dayOutcome(challengeA, day, a.logsByDay[key]) : null;
+    final outB =
+        requiredB ? dayOutcome(challengeB, day, b.logsByDay[key]) : null;
+    final brokenA = outA == DayOutcome.broken;
+    final brokenB = outB == DayOutcome.broken;
+    if ((brokenA && !a.frozenDays.contains(key)) ||
+        (brokenB && !b.frozenDays.contains(key))) {
+      return 0;
+    }
+    // A miss covered by a freeze holds the shared streak, never counts.
+    if (brokenA || brokenB) return 2;
     if (outA == DayOutcome.complete || outB == DayOutcome.complete) return 1;
     return 2;
   }

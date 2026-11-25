@@ -33,6 +33,11 @@ enum SignInProblem {
   failed,
 }
 
+/// The user closed Apple's confirmation sheet while deleting the account.
+class AccountDeletionCancelled implements Exception {
+  const AccountDeletionCancelled();
+}
+
 class SignInException implements Exception {
   const SignInException(this.problem, [this.cause]);
 
@@ -214,6 +219,44 @@ class AuthService {
     };
   }
 
+  /// Sends a link to set a new password. Says nothing about whether the
+  /// address has an account — that is nobody's business but its owner's.
+  Future<void> sendPasswordReset(String email) async {
+    try {
+      await _client.auth.resetPasswordForEmail(
+        email.trim(),
+        redirectTo: emailRedirect,
+      );
+    } on AuthException catch (error) {
+      if (error.statusCode == '429') {
+        throw const SignInException(SignInProblem.failed);
+      }
+      // Unknown addresses and the like: the same answer as success.
+    }
+  }
+
+  /// Sets a new password for the signed-in account — after the link from
+  /// [sendPasswordReset] opened the app.
+  Future<void> updatePassword(String password) async {
+    try {
+      await _client.auth.updateUser(UserAttributes(password: password));
+    } on AuthException catch (error) {
+      throw SignInException(_emailProblem(error));
+    }
+  }
+
+  /// Fires when a password-reset link has signed the user in, so the app
+  /// can ask for the new password.
+  Stream<void> get passwordRecoveries => _client.auth.onAuthStateChange
+      .where((AuthState s) => s.event == AuthChangeEvent.passwordRecovery)
+      .map((AuthState _) {});
+
+  /// Whether the session came from Sign in with Apple — deleting it asks
+  /// Apple once more.
+  bool get signedInWithApple =>
+      _client.auth.currentUser?.appMetadata['provider'] == 'apple' &&
+      canUseApple;
+
   Future<void> signOut() async {
     try {
       if (_googleReady) await GoogleSignIn.instance.signOut();
@@ -239,6 +282,11 @@ class AuthService {
           scopes: const <AppleIDAuthorizationScopes>[],
         );
         appleCode = credential.authorizationCode;
+      } on SignInWithAppleAuthorizationException catch (error) {
+        // Closing Apple's sheet means "not now", not "delete anyway".
+        if (error.code == AuthorizationErrorCode.canceled) {
+          throw const AccountDeletionCancelled();
+        }
       } on Object {
         // Without the code the account is still deleted; only the
         // revocation at Apple is skipped, and the function logs it.
@@ -253,7 +301,8 @@ class AuthService {
     if (response.status != 200) {
       throw StateError('delete-account failed: ${response.status}');
     }
-    await signOut();
+    // The caller signs out once it has forgotten everything on this phone:
+    // signing out here would close the local store under its feet.
   }
 
   static String _randomNonce([int length = 32]) {

@@ -9,6 +9,7 @@ import 'package:hundred_days/l10n/l10n.dart';
 import 'package:hundred_days/state/household_providers.dart';
 import 'package:hundred_days/state/providers.dart';
 import 'package:hundred_days/theme/theme.dart';
+import 'package:hundred_days/ui/celebration/day_complete.dart';
 
 /// Builds a repository backed entirely by memory, so widget tests never touch
 /// sqflite or the network.
@@ -149,7 +150,9 @@ Widget wrapForTest({
       locale: locale,
       supportedLocales: kSupportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      home: Scaffold(body: child),
+      // The app shell rolls the celebration for a completed day; screens
+      // tested on their own get the same host.
+      home: CelebrationHost(child: Scaffold(body: child)),
     ),
   );
 }

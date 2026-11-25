@@ -19,7 +19,7 @@
 </header>
 
 <h1>Privacy Policy</h1>
-<p class="meta">Last updated: 18 November 2026 · Effective: 18 November 2026</p>
+<p class="meta">Last updated: 25 November 2026 · Effective: 25 November 2026</p>
 
 <h2>1. Who is responsible</h2>
 <p>The app <strong>100 Days &amp; Beyond</strong> (“the App”) for iOS and Android and its backend are operated by the data controller:</p>
@@ -56,7 +56,8 @@ instance we run, which the App uses unless you point it at your own server.</p>
 <ul>
   <li><strong>Friends:</strong> friend requests, friendships and invite codes.</li>
   <li><strong>Public league:</strong> unless you switch it off in the settings, your name, emoji and weekly XP are shown to the up to 30 people in your weekly league group.</li>
-  <li><strong>Address book matching (optional):</strong> only if you allow access to your contacts and start a search. The App sends the email addresses and phone numbers in your address book to our server. The server turns each into a keyed hash (HMAC-SHA256 with a secret key), compares the hashes with those of users who chose to be findable, returns the matches and discards what you sent. It does not store your address book. To keep this from being abused, the server counts how many searches you made per day.</li>
+  <li><strong>Address book matching (optional):</strong> only if you allow access to your contacts and start a search. The App sends the email addresses in your address book to our server (phone numbers stay on your phone). The server turns each into a keyed hash (HMAC-SHA256 with a secret key), compares the hashes with those of users who chose to be findable, returns the matches and discards what you sent. It does not store your address book. To keep this from being abused, the server counts how many searches you made per day.</li>
+  <li><strong>Blocking and reporting:</strong> if you block someone, we store whom you blocked, so that neither of you can find or add the other; the other person is not told. If you report someone, we store your report — the reason, the text you add, the name and username the person showed at the time, and when — so that we can review it. Only we can read reports.</li>
   <li><strong>Being findable (optional):</strong> if you switch it on, a keyed hash of the email address your sign-in provider verified is stored so friends can find you. Switching it off deletes it.</li>
 </ul>
 
@@ -82,10 +83,13 @@ instance we run, which the App uses unless you point it at your own server.</p>
 <h3>2.8 Purchases</h3>
 <p>Premium is bought through the App Store or Google Play. The App passes the store's proof of purchase to our server, which checks it with Apple or Google and stores the product, the store's transaction reference and the expiry date. We never see your payment details.</p>
 
-<h3>2.9 What we do not do</h3>
+<h3>2.9 Crash reports</h3>
+<p>When the App crashes or runs into an error it did not expect, it sends a crash report to Sentry, a service for finding and fixing such errors. A report contains the error and where in the App it happened (stack trace), the App version, the device model, the operating system and its version, the language, app and device events shortly before the error (such as going to the background or losing the network), and a random installation ID that Sentry generates. It contains no name, email address, user ID or content you entered, and Sentry discards your IP address. We use the reports only to fix errors.</p>
+
+<h3>2.10 What we do not do</h3>
 <ul>
   <li>No advertising, no advertising IDs, no tracking across apps or websites.</li>
-  <li>No analytics or crash reporting SDKs.</li>
+  <li>No analytics SDKs.</li>
   <li>No selling or renting of data.</li>
   <li>No location, microphone or browsing history.</li>
 </ul>
@@ -100,6 +104,8 @@ instance we run, which the App uses unless you point it at your own server.</p>
   <tr><td>AI requests, token count</td><td>AI features and the free allowance</td><td>Art. 6(1)(b) – contract; Art. 9(2)(a) for health data</td></tr>
   <tr><td>Purchase records</td><td>Premium, legal retention</td><td>Art. 6(1)(b) and (c)</td></tr>
   <tr><td>Rate-limit counters</td><td>Preventing abuse</td><td>Art. 6(1)(f) – legitimate interest</td></tr>
+  <tr><td>Blocks and reports</td><td>Protecting users from abuse, handling reports</td><td>Art. 6(1)(b) – contract; Art. 6(1)(f) – legitimate interest</td></tr>
+  <tr><td>Crash reports</td><td>Finding and fixing errors</td><td>Art. 6(1)(f) – legitimate interest in a working App</td></tr>
 </table>
 </div>
 
@@ -112,6 +118,7 @@ instance we run, which the App uses unless you point it at your own server.</p>
   <tr><td>Google (Sign-In, Firebase Cloud Messaging)</td><td>sign-in tokens; device token and notification text</td><td>signing in, delivering notifications</td><td>USA, as above</td></tr>
   <tr><td>Apple</td><td>sign-in tokens; notifications on iOS; purchase checks</td><td>Sign in with Apple, APNs, App Store</td><td>USA, under Apple's terms</td></tr>
   <tr><td>Open Food Facts</td><td>barcode numbers</td><td>product lookup</td><td>France</td></tr>
+  <tr><td>Functional Software, Inc. (Sentry)</td><td>crash reports (section 2.9)</td><td>finding and fixing errors</td><td>EU (Germany); provider in the USA, under a data processing agreement with standard contractual clauses</td></tr>
   <tr><td>IONOS SE</td><td>your email address and the confirmation mail, if you sign up with email</td><td>hosting the server our mail is sent from</td><td>Germany</td></tr>
 </table>
 </div>
@@ -122,6 +129,8 @@ instance we run, which the App uses unless you point it at your own server.</p>
   <li>Account, feed, friends and household data: until you delete it or your account.</li>
   <li>AI token counts: per month, until you delete your account.</li>
   <li>Purchase records: as long as the subscription runs and as required by German tax law (up to 10 years).</li>
+  <li>Blocks: until you lift them or delete your account. Reports: as long as we need them to handle the report and to prevent repeated abuse; if an account is deleted, the report keeps the name and username shown in it, but not the link to the account.</li>
+  <li>Crash reports: deleted by Sentry after at most 90 days.</li>
 </ul>
 <p><strong>Deleting your account</strong> (Settings → Account → Delete account) removes your account and everything linked to it from our database immediately. Details: <a href="delete-account.html">Delete your account</a>.</p>
 

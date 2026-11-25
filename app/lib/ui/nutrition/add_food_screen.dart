@@ -28,6 +28,9 @@ String newFoodEntryId() {
       .join();
 }
 
+/// The ways into the diary, in the order of their tabs.
+enum FoodEntryWay { search, photo, describe, barcode, manual }
+
 /// Five ways to log a meal: search the food table, take a photo (the
 /// language model estimates what is on the plate), describe it in a
 /// sentence, scan or type a barcode, or enter the numbers yourself.
@@ -37,6 +40,7 @@ class AddFoodScreen extends ConsumerStatefulWidget {
     required this.meal,
     required this.day,
     this.prefillText,
+    this.startOn = FoodEntryWay.search,
   });
 
   final MealSlotKind meal;
@@ -46,14 +50,27 @@ class AddFoodScreen extends ConsumerStatefulWidget {
   /// hands over.
   final String? prefillText;
 
+  /// The tab it opens on, unless [prefillText] asks for the describe tab.
+  final FoodEntryWay startOn;
+
   @override
   ConsumerState<AddFoodScreen> createState() => _AddFoodScreenState();
 }
 
 class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
+  /// Set while entries are being written: a second tap on "Add 5 entries"
+  /// would log ten of them and pop the diary as well.
+  bool _saving = false;
+
   Future<void> _log(List<FoodEntry> entries) async {
-    for (final FoodEntry entry in entries) {
-      await ref.read(appStateProvider.notifier).logFood(entry);
+    if (_saving || entries.isEmpty) return;
+    setState(() => _saving = true);
+    try {
+      for (final FoodEntry entry in entries) {
+        await ref.read(appStateProvider.notifier).logFood(entry);
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -87,8 +104,10 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
     return DefaultTabController(
-      length: 5,
-      initialIndex: widget.prefillText == null ? 0 : 2,
+      length: FoodEntryWay.values.length,
+      initialIndex: widget.prefillText == null
+          ? widget.startOn.index
+          : FoodEntryWay.describe.index,
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.foodAddTo(l10n.mealName(widget.meal))),
@@ -104,17 +123,152 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
             ],
           ),
         ),
-        body: TabBarView(
+        body: Column(
           children: <Widget>[
-            _SearchTab(onPick: _log, makeEntry: _entry),
-            _PhotoTab(onPick: _log, makeEntry: _entry),
-            _DescribeTab(
-              initialText: widget.prefillText,
-              onPick: _log,
-              makeEntry: _entry,
+            if (_saving) const LinearProgressIndicator(minHeight: 2),
+            Expanded(
+              child: AbsorbPointer(
+                absorbing: _saving,
+                child: TabBarView(
+                  children: <Widget>[
+                    _SearchTab(onPick: _log, makeEntry: _entry),
+                    _PhotoTab(onPick: _log, makeEntry: _entry),
+                    _DescribeTab(
+                      initialText: widget.prefillText,
+                      onPick: _log,
+                      makeEntry: _entry,
+                    ),
+                    _BarcodeTab(onPick: _log, makeEntry: _entry),
+                    _ManualTab(onPick: _log, makeEntry: _entry),
+                  ],
+                ),
+              ),
             ),
-            _BarcodeTab(onPick: _log, makeEntry: _entry),
-            _ManualTab(onPick: _log, makeEntry: _entry),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A corrected amount and calorie count for a line.
+typedef FoodCorrection = ({double grams, double kcal});
+
+/// Lets the user put an estimate right: the amount, which takes the
+/// calories along, and the calories themselves. For a draft before it is
+/// added and for a line already in the diary.
+Future<FoodCorrection?> showFoodEditSheet(
+  BuildContext context, {
+  required String name,
+  required double grams,
+  required Nutrients nutrients,
+}) =>
+    showModalBottomSheet<FoodCorrection>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      builder: (BuildContext context) =>
+          _FoodEditSheet(name: name, grams: grams, nutrients: nutrients),
+    );
+
+class _FoodEditSheet extends StatefulWidget {
+  const _FoodEditSheet({
+    required this.name,
+    required this.grams,
+    required this.nutrients,
+  });
+
+  final String name;
+  final double grams;
+  final Nutrients nutrients;
+
+  @override
+  State<_FoodEditSheet> createState() => _FoodEditSheetState();
+}
+
+class _FoodEditSheetState extends State<_FoodEditSheet> {
+  late final TextEditingController _grams = TextEditingController(
+      text: widget.grams > 0 ? '${widget.grams.round()}' : '');
+  late final TextEditingController _kcal =
+      TextEditingController(text: '${widget.nutrients.kcal.round()}');
+
+  /// Once the user typed calories themselves, a new amount leaves them be.
+  bool _kcalTyped = false;
+
+  @override
+  void dispose() {
+    _grams.dispose();
+    _kcal.dispose();
+    super.dispose();
+  }
+
+  static double? _read(TextEditingController c) =>
+      double.tryParse(c.text.trim().replaceAll(',', '.'));
+
+  void _gramsChanged(String _) {
+    final double? grams = _read(_grams);
+    setState(() {
+      if (!_kcalTyped && grams != null && widget.grams > 0) {
+        _kcal.text = '${(widget.nutrients.kcal * grams / widget.grams).round()}';
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    final double? grams = _grams.text.trim().isEmpty ? widget.grams : _read(_grams);
+    final double? kcal = _read(_kcal);
+    final bool valid = grams != null && grams >= 0 && kcal != null && kcal >= 0;
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: AppSpacing.md,
+          right: AppSpacing.md,
+          top: AppSpacing.md,
+          bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.md,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Text(widget.name, style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              key: const Key('edit-grams'),
+              controller: _grams,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: l10n.foodAmountLabel,
+                suffixText: 'g',
+              ),
+              onChanged: _gramsChanged,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              key: const Key('edit-kcal'),
+              controller: _kcal,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(labelText: l10n.foodManualKcal),
+              onChanged: (_) => setState(() => _kcalTyped = true),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.foodEditHint,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: AppColors.textTertiary),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            FilledButton(
+              key: const Key('edit-save'),
+              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+              onPressed: valid
+                  ? () => Navigator.of(context).pop((grams: grams, kcal: kcal))
+                  : null,
+              child: Text(l10n.actionSave),
+            ),
           ],
         ),
       ),
@@ -143,11 +297,18 @@ class _SearchTab extends ConsumerStatefulWidget {
   ConsumerState<_SearchTab> createState() => _SearchTabState();
 }
 
-class _SearchTabState extends ConsumerState<_SearchTab> {
+/// Every tab keeps its state while another is shown: a typed query, a
+/// paid estimate, a half-filled form are not thrown away by a swipe.
+class _SearchTabState extends ConsumerState<_SearchTab>
+    with AutomaticKeepAliveClientMixin<_SearchTab> {
   String _query = '';
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     final AppLocalizations l10n = context.l10n;
     final Locale locale = Localizations.localeOf(context);
     final FoodIndex index = FoodIndex(locale);
@@ -246,7 +407,7 @@ class _SearchTabState extends ConsumerState<_SearchTab> {
   }
 }
 
-/// One line of a parsed description, before it is logged.
+/// One line of a parsed description or a photo, before it is logged.
 class _Draft {
   _Draft({
     required this.name,
@@ -262,8 +423,67 @@ class _Draft {
   FoodSource source;
   String? foodId;
   bool include = true;
+}
 
-  bool get isKnown => nutrients.kcal > 0 || grams > 0;
+/// A draft: in or out with the checkbox, amount and calories put right
+/// with the pencil — "check the amounts" has to be something one can do.
+class _DraftTile extends StatelessWidget {
+  const _DraftTile({
+    required this.draft,
+    required this.editKey,
+    required this.onChanged,
+  });
+
+  final _Draft draft;
+  final Key editKey;
+  final VoidCallback onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    return CheckboxListTile(
+      contentPadding: EdgeInsets.zero,
+      controlAffinity: ListTileControlAffinity.leading,
+      value: draft.include,
+      onChanged: (bool? v) {
+        draft.include = v ?? false;
+        onChanged();
+      },
+      title: Text(draft.name),
+      subtitle: Text(
+        '${draft.grams.round()} g · '
+        '${l10n.diaryEntryKcal(draft.nutrients.kcal.round())} · '
+        '${l10n.foodSourceLabel(draft.source)}',
+      ),
+      secondary: IconButton(
+        key: editKey,
+        tooltip: l10n.foodEditTooltip,
+        icon: const Icon(Icons.edit_outlined, size: 20),
+        onPressed: () async {
+          final FoodCorrection? fix = await showFoodEditSheet(
+            context,
+            name: draft.name,
+            grams: draft.grams,
+            nutrients: draft.nutrients,
+          );
+          if (fix == null) return;
+          draft
+            ..nutrients = correctNutrients(draft.nutrients,
+                fromGrams: draft.grams, toGrams: fix.grams, kcal: fix.kcal)
+            ..grams = fix.grams;
+          onChanged();
+        },
+      ),
+    );
+  }
+}
+
+/// What the model estimated, and for which unknown pieces of the text.
+class _Estimate {
+  _Estimate(this.basis, this.drafts);
+
+  final Set<String> basis;
+  final List<_Draft> drafts;
 }
 
 class _DescribeTab extends ConsumerStatefulWidget {
@@ -281,13 +501,26 @@ class _DescribeTab extends ConsumerStatefulWidget {
   ConsumerState<_DescribeTab> createState() => _DescribeTabState();
 }
 
-class _DescribeTabState extends ConsumerState<_DescribeTab> {
+class _DescribeTabState extends ConsumerState<_DescribeTab>
+    with AutomaticKeepAliveClientMixin<_DescribeTab> {
   late final TextEditingController _text =
       TextEditingController(text: widget.initialText ?? '');
-  List<_Draft> _drafts = <_Draft>[];
+
+  /// What the food table recognised, as of the last "recognise".
+  List<_Draft> _known = <_Draft>[];
+
+  /// What the model estimated. Kept while the text still holds what it
+  /// was asked about: an estimate costs allowance, and swiping to another
+  /// tab or re-reading the text must not throw it away.
+  final List<_Estimate> _estimates = <_Estimate>[];
   List<String> _unknown = <String>[];
   bool _estimating = false;
-  bool _aiFailed = false;
+  String? _problem;
+  FoodIndex? _index;
+  Locale? _indexLocale;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -303,17 +536,30 @@ class _DescribeTabState extends ConsumerState<_DescribeTab> {
     super.dispose();
   }
 
-  void _parse() {
+  List<_Draft> get _drafts => <_Draft>[
+        ..._known,
+        for (final _Estimate e in _estimates) ...e.drafts,
+      ];
+
+  Set<String> get _estimated => <String>{
+        for (final _Estimate e in _estimates) ...e.basis,
+      };
+
+  /// The text as it is now, read against the table: the drafts it knows,
+  /// and the pieces it does not.
+  (List<_Draft>, List<String>) _read() {
     final Locale locale = Localizations.localeOf(context);
-    final FoodIndex index = FoodIndex(locale);
+    if (_indexLocale != locale) {
+      _index = FoodIndex(locale);
+      _indexLocale = locale;
+    }
     final List<ParsedFood> parsed = parseFoodText(
       _text.text,
       vocabulary: foodVocabularyFor(locale),
-      lookup: index.lookup,
+      lookup: _index!.lookup,
     );
-    setState(() {
-      _aiFailed = false;
-      _drafts = <_Draft>[
+    return (
+      <_Draft>[
         for (final ParsedFood p in parsed.where((ParsedFood p) => p.isRecognised))
           _Draft(
             name: foodName(p.food!.id, locale),
@@ -322,34 +568,50 @@ class _DescribeTabState extends ConsumerState<_DescribeTab> {
             source: FoodSource.parsed,
             foodId: p.food!.id,
           ),
-      ];
-      _unknown = <String>[
+      ],
+      <String>[
         for (final ParsedFood p in parsed.where((ParsedFood p) => !p.isRecognised))
           p.original,
-      ];
+      ],
+    );
+  }
+
+  void _parse() {
+    final (List<_Draft> known, List<String> unknown) = _read();
+    setState(() {
+      _problem = null;
+      _known = known;
+      _estimates.removeWhere((_Estimate e) => !e.basis.any(unknown.contains));
+      _unknown = unknown.where((String u) => !_estimated.contains(u)).toList();
     });
   }
 
   Future<void> _estimate(NutritionAssistant assistant) async {
-    setState(() {
-      _estimating = true;
-      _aiFailed = false;
-    });
-    // Ask about everything when nothing was recognised, otherwise only
-    // about what the table could not place.
-    final String question =
-        _drafts.isEmpty ? _text.text : _unknown.join(', ');
-    final List<FoodEstimate>? estimates =
-        await assistant.estimateFoods(question);
+    if (_estimating) return;
+    // Asked about the text as it reads now — not about what it said when
+    // "recognise" was last tapped.
+    _parse();
+    final List<String> pending = _unknown;
+    if (pending.isEmpty) return;
+    final AppLocalizations l10n = context.l10n;
+    setState(() => _estimating = true);
+    // Everything when the table knew nothing — the model reads the whole
+    // sentence better — otherwise only what the table could not place.
+    final String question = _known.isEmpty ? _text.text : pending.join(', ');
+    Object? failure;
+    final List<FoodEstimate>? estimates = await assistant.estimateFoods(
+      question,
+      onError: (Object error) => failure = error,
+    );
     if (!mounted) return;
     setState(() {
       _estimating = false;
       if (estimates == null) {
-        _aiFailed = true;
+        _problem =
+            failure != null ? l10n.aiErrorMessage(failure!) : l10n.foodAiFailed;
         return;
       }
-      _drafts = <_Draft>[
-        ..._drafts,
+      _estimates.add(_Estimate(pending.toSet(), <_Draft>[
         for (final FoodEstimate e in estimates)
           _Draft(
             name: e.name,
@@ -357,20 +619,26 @@ class _DescribeTabState extends ConsumerState<_DescribeTab> {
             nutrients: e.nutrients,
             source: FoodSource.ai,
           ),
-      ];
+      ]));
       _unknown = <String>[];
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final AppLocalizations l10n = context.l10n;
     final NutritionAssistant? assistant =
         ref.watch(nutritionAssistantProvider).valueOrNull;
+    final List<_Draft> drafts = _drafts;
     final List<_Draft> included =
-        _drafts.where((_Draft d) => d.include).toList();
+        drafts.where((_Draft d) => d.include).toList();
     final double total = included.fold(
         0.0, (double sum, _Draft d) => sum + d.nutrients.kcal);
+    // Only worth asking while the text holds something neither the table
+    // nor an earlier estimate has placed.
+    final Set<String> estimated = _estimated;
+    final bool askable = _read().$2.any((String u) => !estimated.contains(u));
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -382,6 +650,7 @@ class _DescribeTabState extends ConsumerState<_DescribeTab> {
           maxLines: 5,
           textInputAction: TextInputAction.done,
           decoration: InputDecoration(hintText: l10n.foodDescribeHint),
+          onChanged: (_) => setState(() {}),
           onSubmitted: (_) => _parse(),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -399,7 +668,8 @@ class _DescribeTabState extends ConsumerState<_DescribeTab> {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: FilledButton.icon(
-                  onPressed: _estimating || _text.text.trim().isEmpty
+                  key: const Key('food-estimate'),
+                  onPressed: _estimating || !askable
                       ? null
                       : () => _estimate(assistant),
                   icon: _estimating
@@ -424,25 +694,20 @@ class _DescribeTabState extends ConsumerState<_DescribeTab> {
                   fontSize: 12,
                 ),
           ),
-        if (_aiFailed)
+        if (_problem != null)
           Text(
-            l10n.foodAiFailed,
+            _problem!,
+            key: const Key('food-describe-problem'),
             style: Theme.of(context)
                 .textTheme
                 .bodyMedium
                 ?.copyWith(color: AppColors.danger, fontSize: 12.5),
           ),
-        for (final _Draft draft in _drafts)
-          CheckboxListTile(
-            contentPadding: EdgeInsets.zero,
-            value: draft.include,
-            onChanged: (bool? v) => setState(() => draft.include = v ?? false),
-            title: Text(draft.name),
-            subtitle: Text(
-              '${draft.grams.round()} g · '
-              '${l10n.diaryEntryKcal(draft.nutrients.kcal.round())} · '
-              '${l10n.foodSourceLabel(draft.source)}',
-            ),
+        for (int i = 0; i < drafts.length; i++)
+          _DraftTile(
+            draft: drafts[i],
+            editKey: Key('draft-edit-$i'),
+            onChanged: () => setState(() {}),
           ),
         if (_unknown.isNotEmpty) ...<Widget>[
           const SizedBox(height: AppSpacing.sm),
@@ -493,12 +758,20 @@ class _PhotoTab extends ConsumerStatefulWidget {
   ConsumerState<_PhotoTab> createState() => _PhotoTabState();
 }
 
-class _PhotoTabState extends ConsumerState<_PhotoTab> {
+class _PhotoTabState extends ConsumerState<_PhotoTab>
+    with AutomaticKeepAliveClientMixin<_PhotoTab> {
   final TextEditingController _hint = TextEditingController();
   Uint8List? _preview;
   List<_Draft> _drafts = <_Draft>[];
   bool _working = false;
-  bool _failed = false;
+
+  /// What went wrong, in words that say what to do: no permission, a photo
+  /// that cannot be read, no connection, or really nothing recognised.
+  String? _problem;
+
+  /// A paid estimate survives swiping to another tab and back.
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void dispose() {
@@ -507,49 +780,75 @@ class _PhotoTabState extends ConsumerState<_PhotoTab> {
   }
 
   Future<void> _take(ImageSource source, NutritionAssistant assistant) async {
+    final AppLocalizations l10n = context.l10n;
     final XFile? file;
     try {
-      file = await ImagePicker().pickImage(source: source);
-    } on Object {
-      if (mounted) setState(() => _failed = true);
+      file = await ImagePicker().pickImage(
+        source: source,
+        maxWidth: kMealPhotoPickSide,
+        maxHeight: kMealPhotoPickSide,
+      );
+    } on Object catch (error) {
+      if (mounted) {
+        setState(() => _problem = switch (pickProblem(error)) {
+              MealPhotoProblem.noPermission => source == ImageSource.camera
+                  ? l10n.foodPhotoNoCamera
+                  : l10n.foodPhotoNoGallery,
+              _ => l10n.foodPhotoPickFailed,
+            });
+      }
       return;
     }
     if (file == null || !mounted) return;
     setState(() {
       _working = true;
-      _failed = false;
+      _problem = null;
       _drafts = <_Draft>[];
     });
-    final LlmImage? photo = await prepareMealPhoto(await file.readAsBytes());
-    if (!mounted) return;
-    if (photo == null) {
+    try {
+      LlmImage? photo;
+      try {
+        photo = await prepareMealPhoto(await file.readAsBytes());
+      } on Object {
+        photo = null;
+      }
+      if (!mounted) return;
+      if (photo == null) {
+        setState(() => _problem = l10n.foodPhotoUnreadable);
+        return;
+      }
+      setState(() => _preview = photo!.bytes);
+      Object? failure;
+      final List<FoodEstimate>? estimates = await assistant.estimateFoodsFromPhoto(
+        photo,
+        hint: _hint.text,
+        onError: (Object error) => failure = error,
+      );
+      if (!mounted) return;
       setState(() {
-        _working = false;
-        _failed = true;
+        _problem = estimates != null
+            ? null
+            : failure != null
+                ? l10n.aiErrorMessage(failure!)
+                : l10n.foodPhotoFailed;
+        _drafts = <_Draft>[
+          for (final FoodEstimate e in estimates ?? const <FoodEstimate>[])
+            _Draft(
+              name: e.name,
+              grams: e.grams,
+              nutrients: e.nutrients,
+              source: FoodSource.photo,
+            ),
+        ];
       });
-      return;
+    } finally {
+      if (mounted) setState(() => _working = false);
     }
-    setState(() => _preview = photo.bytes);
-    final List<FoodEstimate>? estimates = await assistant
-        .estimateFoodsFromPhoto(photo, hint: _hint.text);
-    if (!mounted) return;
-    setState(() {
-      _working = false;
-      _failed = estimates == null;
-      _drafts = <_Draft>[
-        for (final FoodEstimate e in estimates ?? const <FoodEstimate>[])
-          _Draft(
-            name: e.name,
-            grams: e.grams,
-            nutrients: e.nutrients,
-            source: FoodSource.photo,
-          ),
-      ];
-    });
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final AppLocalizations l10n = context.l10n;
     final NutritionAssistant? assistant =
         ref.watch(nutritionAssistantProvider).valueOrNull;
@@ -636,28 +935,23 @@ class _PhotoTabState extends ConsumerState<_PhotoTab> {
                     ?.copyWith(color: AppColors.textSecondary)),
           ),
         ],
-        if (_failed)
+        if (_problem != null)
           Padding(
             padding: const EdgeInsets.only(top: AppSpacing.sm),
             child: Text(
-              l10n.foodPhotoFailed,
+              _problem!,
+              key: const Key('food-photo-problem'),
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
                   ?.copyWith(color: AppColors.danger, fontSize: 12.5),
             ),
           ),
-        for (final _Draft draft in _drafts)
-          CheckboxListTile(
-            contentPadding: EdgeInsets.zero,
-            value: draft.include,
-            onChanged: (bool? v) => setState(() => draft.include = v ?? false),
-            title: Text(draft.name),
-            subtitle: Text(
-              '${draft.grams.round()} g · '
-              '${l10n.diaryEntryKcal(draft.nutrients.kcal.round())} · '
-              '${l10n.foodSourceLabel(draft.source)}',
-            ),
+        for (int i = 0; i < _drafts.length; i++)
+          _DraftTile(
+            draft: _drafts[i],
+            editKey: Key('photo-edit-$i'),
+            onChanged: () => setState(() {}),
           ),
         if (included.isNotEmpty) ...<Widget>[
           const SizedBox(height: AppSpacing.sm),
@@ -698,10 +992,14 @@ class _BarcodeTab extends ConsumerStatefulWidget {
   ConsumerState<_BarcodeTab> createState() => _BarcodeTabState();
 }
 
-class _BarcodeTabState extends ConsumerState<_BarcodeTab> {
+class _BarcodeTabState extends ConsumerState<_BarcodeTab>
+    with AutomaticKeepAliveClientMixin<_BarcodeTab> {
   final TextEditingController _code = TextEditingController();
   bool _loading = false;
   BarcodeProblem? _problem;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void dispose() {
@@ -748,6 +1046,7 @@ class _BarcodeTabState extends ConsumerState<_BarcodeTab> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final AppLocalizations l10n = context.l10n;
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -826,7 +1125,11 @@ class _ManualTab extends StatefulWidget {
   State<_ManualTab> createState() => _ManualTabState();
 }
 
-class _ManualTabState extends State<_ManualTab> {
+class _ManualTabState extends State<_ManualTab>
+    with AutomaticKeepAliveClientMixin<_ManualTab> {
+  @override
+  bool get wantKeepAlive => true;
+
   final TextEditingController _name = TextEditingController();
   final TextEditingController _grams = TextEditingController();
   final TextEditingController _kcal = TextEditingController();
@@ -849,13 +1152,55 @@ class _ManualTabState extends State<_ManualTab> {
     super.dispose();
   }
 
+  /// Add was pressed with something missing: the fields say what.
+  bool _tried = false;
+
   double _n(TextEditingController c) =>
       double.tryParse(c.text.trim().replaceAll(',', '.')) ?? 0;
 
+  Nutrients get _nutrients {
+    final Nutrients typed = Nutrients(
+      kcal: _n(_kcal),
+      proteinG: _n(_protein),
+      carbsG: _n(_carbs),
+      fatG: _n(_fat),
+    );
+    // Macros without calories, as on some labels: they add up to them.
+    return typed.kcal > 0
+        ? typed
+        : Nutrients(
+            kcal: typed.kcalFromMacros,
+            proteinG: typed.proteinG,
+            carbsG: typed.carbsG,
+            fatG: typed.fatG,
+          );
+  }
+
+  bool get _hasName => _name.text.trim().isNotEmpty;
+  bool get _hasKcal => _nutrients.kcal > 0;
+
+  /// A press always answers: logged, or the fields say what is missing.
+  void _add() {
+    if (!_hasName || !_hasKcal) {
+      setState(() => _tried = true);
+      return;
+    }
+    widget.onPick(<FoodEntry>[
+      widget.makeEntry(
+        name: _name.text.trim(),
+        grams: _n(_grams),
+        nutrients: _nutrients,
+        source: FoodSource.manual,
+      ),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final AppLocalizations l10n = context.l10n;
-    Widget number(TextEditingController c, String label, {Key? key}) =>
+    Widget number(TextEditingController c, String label,
+            {Key? key, String? error, String? helper}) =>
         Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.sm),
           child: TextField(
@@ -865,12 +1210,18 @@ class _ManualTabState extends State<_ManualTab> {
             inputFormatters: <TextInputFormatter>[
               FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
             ],
-            decoration: InputDecoration(labelText: label),
+            decoration: InputDecoration(
+              labelText: label,
+              errorText: error,
+              helperText: helper,
+            ),
             onChanged: (_) => setState(() {}),
           ),
         );
 
-    final bool valid = _name.text.trim().isNotEmpty && _n(_kcal) > 0;
+    final bool kcalMissing = _tried && !_hasKcal;
+    void open(FoodEntryWay way) =>
+        DefaultTabController.of(context).animateTo(way.index);
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: <Widget>[
@@ -879,11 +1230,45 @@ class _ManualTabState extends State<_ManualTab> {
           child: TextField(
             key: const Key('manual-name'),
             controller: _name,
-            decoration: InputDecoration(labelText: l10n.foodManualName),
+            decoration: InputDecoration(
+              labelText: l10n.foodManualName,
+              errorText:
+                  _tried && !_hasName ? l10n.foodManualNameMissing : null,
+            ),
             onChanged: (_) => setState(() {}),
           ),
         ),
-        number(_kcal, l10n.foodManualKcal, key: const Key('manual-kcal')),
+        number(
+          _kcal,
+          l10n.foodManualKcal,
+          key: const Key('manual-kcal'),
+          error: kcalMissing ? l10n.foodManualKcalMissing : null,
+          helper: _n(_kcal) == 0 && _hasKcal
+              ? l10n.foodManualKcalFromMacros(_nutrients.kcal.round())
+              : null,
+        ),
+        // Not known: the photo or a sentence gets them estimated.
+        if (kcalMissing)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: Wrap(
+              spacing: AppSpacing.sm,
+              children: <Widget>[
+                OutlinedButton.icon(
+                  key: const Key('manual-to-photo'),
+                  onPressed: () => open(FoodEntryWay.photo),
+                  icon: const Icon(Icons.photo_camera_outlined, size: 18),
+                  label: Text(l10n.foodTabPhoto),
+                ),
+                OutlinedButton.icon(
+                  key: const Key('manual-to-describe'),
+                  onPressed: () => open(FoodEntryWay.describe),
+                  icon: const Icon(Icons.edit_note, size: 18),
+                  label: Text(l10n.foodTabDescribe),
+                ),
+              ],
+            ),
+          ),
         number(_grams, l10n.foodManualGrams),
         number(_protein, l10n.foodManualProtein),
         number(_carbs, l10n.foodManualCarbs),
@@ -892,21 +1277,7 @@ class _ManualTabState extends State<_ManualTab> {
         FilledButton(
           key: const Key('manual-add'),
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-          onPressed: valid
-              ? () => widget.onPick(<FoodEntry>[
-                    widget.makeEntry(
-                      name: _name.text.trim(),
-                      grams: _n(_grams),
-                      nutrients: Nutrients(
-                        kcal: _n(_kcal),
-                        proteinG: _n(_protein),
-                        carbsG: _n(_carbs),
-                        fatG: _n(_fat),
-                      ),
-                      source: FoodSource.manual,
-                    ),
-                  ])
-              : null,
+          onPressed: _add,
           child: Text(l10n.foodManualAdd),
         ),
       ],

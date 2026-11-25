@@ -110,6 +110,15 @@ which is exactly what a streak means to a person. That is what `DayKey` is for;
 
 Events carry two times: the claimed day (`payload.day`) and the moment of
 writing (`timestamp`). When they differ it was a backfill, and the feed says so.
+A check-in also carries the writer's UTC offset (`payload.tz`): whether it was
+logged on its day is judged by the writer's clock, and a friend's streak is
+folded with the friend's today (`authorTodayOf`) — a friend eight hours
+behind still has the evening that is already tomorrow here.
+
+The fold never trusts a payload: an event it cannot read — written by a newer
+app version, or malformed — is skipped, not fatal. A second plain
+`challenge.started` keeps the running challenge's start day and cycle; only a
+start marked `restart` begins at day one again.
 
 ## Streak rules
 
@@ -139,9 +148,15 @@ writing (`timestamp`). When they differ it was a backfill, and the feed says so.
 - **Abstinence counts differently.** A forgotten tap does not reset an
   abstinence streak — only an admitted relapse does. Otherwise people quit, and
   that is the worse failure mode.
-- **Streak freezes are scarce** (three per cycle) and hold the streak without
-  counting as a completed day. If a missed day were free, the whole point of
-  the app would collapse.
+- **Streak freezes are scarce** (three per cycle, counted per cycle) and hold
+  the streak without counting as a completed day. If a missed day were free,
+  the whole point of the app would collapse. A frozen today is not at risk.
+- **Corrections are events.** An undo is a check-in marked `undo` that takes
+  the entry back out of the day; the timeline shows neither.
+- **Editing a running challenge never rewrites the past.** A habit's target
+  and weekly frequency keep their history (`targetOn`, `daysPerWeekOn`), a
+  habit taken out keeps counting for the days before (`activeUntil`), and a
+  new one counts from the day it was added (`activeFrom`).
 
 ## Private data in the same feed
 
@@ -157,7 +172,8 @@ private past does not look like misses.
 
 ## XP, levels, league
 
-XP per check-in scales with difficulty (1–5 from the catalogue), streak length
+XP per check-in scales with the share of the target reached, difficulty
+(1–5 from the catalogue), streak length
 (up to 2× at 50 days), a ×1.5 bonus for **tracked** check-ins — a workout
 logged set by set, a diary day closed on target — and a bonus for logging on
 the day itself. On top of that comes a bonus for a complete day and for

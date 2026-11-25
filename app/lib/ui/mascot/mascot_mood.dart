@@ -33,7 +33,10 @@ MascotMood moodForToday({
   required DateTime now,
 }) {
   if (relapseToday) return MascotMood.sad;
-  if (doneToday) return MascotMood.happy;
+  // Fed and late: he dozes off until the morning.
+  if (doneToday) {
+    return now.hour >= 22 || now.hour < 5 ? MascotMood.sleepy : MascotMood.happy;
+  }
   if (restDay || frozenToday) return MascotMood.sleepy;
   if (streak == 0) return MascotMood.hopeful;
   // From eight in the evening the day is visibly running out.

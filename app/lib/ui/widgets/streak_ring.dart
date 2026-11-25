@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hundred_core/hundred_core.dart';
 
@@ -26,7 +27,20 @@ class TodayRing extends StatelessWidget {
     this.size = 168,
     this.onPoke,
     this.mascotLabel,
+    this.holdFill,
+    this.urgency = 0,
+    this.feeds = 0,
   });
+
+  /// Bumped when an ember lands in Funki's mouth.
+  final int feeds;
+
+  /// 0 … 1, how close midnight is on an open day.
+  final double urgency;
+
+  /// How full a habit row is while it is held — Funki looks at it and
+  /// opens his mouth as it fills.
+  final ValueListenable<double>? holdFill;
 
   /// How far each of today's habits is, 0 to 1. Empty on a rest day.
   final List<double> parts;
@@ -113,6 +127,9 @@ class TodayRing extends StatelessWidget {
               size: size * 0.74,
               onPoke: onPoke,
               semanticLabel: mascotLabel,
+              anticipation: holdFill,
+              urgency: urgency,
+              gulps: feeds,
             ),
           ),
         ],

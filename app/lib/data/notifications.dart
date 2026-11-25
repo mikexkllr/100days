@@ -29,10 +29,9 @@ class NotificationCopy {
 
 /// Local, on-device notifications.
 ///
-/// There is no push server anywhere in this app — there is no server at all —
-/// so "your friend just trained" reaches you the moment a peer sync brings
-/// their signed event onto your device, and everything else is a locally
-/// scheduled reminder.
+/// Pushes from friends come through `PushService`; this is everything the
+/// phone schedules or shows by itself: the daily reminder, the evening
+/// warning and "a friend was already active" while the app is open.
 class NotificationService {
   NotificationService({FlutterLocalNotificationsPlugin? plugin})
       : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
@@ -80,23 +79,59 @@ class NotificationService {
         requestSoundPermission: false,
       ),
     );
-    _ready = await _plugin.initialize(settings) ?? false;
+    try {
+      // On iOS the plugin answers `false` whenever it was told not to ask for
+      // permission yet — which is what we tell it. It is initialised all the
+      // same; treating that `false` as failure silenced every notification.
+      await _plugin.initialize(settings);
+      _ready = true;
+    } on Object {
+      _ready = false;
+    }
     return _ready;
   }
 
+  /// Asks the system for permission — once the user has said yes to being
+  /// reminded in the app's own words.
   Future<bool> requestPermission() async {
-    if (Platform.isIOS) {
+    if (!_ready) return false;
+    try {
+      if (Platform.isIOS) {
+        return await _plugin
+                .resolvePlatformSpecificImplementation<
+                    IOSFlutterLocalNotificationsPlugin>()
+                ?.requestPermissions(alert: true, badge: true, sound: true) ??
+            false;
+      }
       return await _plugin
               .resolvePlatformSpecificImplementation<
-                  IOSFlutterLocalNotificationsPlugin>()
-              ?.requestPermissions(alert: true, badge: true, sound: true) ??
+                  AndroidFlutterLocalNotificationsPlugin>()
+              ?.requestNotificationsPermission() ??
           false;
+    } on Object {
+      return false;
     }
-    return await _plugin
+  }
+
+  /// Whether notifications can reach the user right now.
+  Future<bool> isPermitted() async {
+    if (!_ready) return false;
+    try {
+      if (Platform.isIOS) {
+        final NotificationsEnabledOptions? options = await _plugin
             .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin>()
-            ?.requestNotificationsPermission() ??
-        false;
+                IOSFlutterLocalNotificationsPlugin>()
+            ?.checkPermissions();
+        return options?.isEnabled ?? false;
+      }
+      return await _plugin
+              .resolvePlatformSpecificImplementation<
+                  AndroidFlutterLocalNotificationsPlugin>()
+              ?.areNotificationsEnabled() ??
+          false;
+    } on Object {
+      return false;
+    }
   }
 
   /// Schedules the next [days] daily reminders at [hour]:[minute].
@@ -109,45 +144,47 @@ class NotificationService {
     required NotificationCopy copy,
     required int hour,
     required int minute,
-    required String Function(int dayOffset) messageBuilder,
+    required String? Function(int dayOffset) messageBuilder,
     int days = 14,
   }) async {
     if (!_ready) return;
-    for (var i = 0; i < days; i++) {
-      await _plugin.cancel(_dailyIdBase + i);
-    }
+    await cancelDailyReminders(days: days);
 
     final now = DateTime.now();
     for (var i = 0; i < days; i++) {
       final target = DateTime(now.year, now.month, now.day + i, hour, minute);
       if (target.isBefore(now)) continue;
+      // Null: nothing to remind of that day (a rest day, a frozen day).
+      final String? body = messageBuilder(i);
+      if (body == null) continue;
       await _schedule(
         id: _dailyIdBase + i,
         title: copy.appTitle,
-        body: messageBuilder(i),
+        body: body,
         when: target,
         android: _reminderChannel(copy),
       );
     }
   }
 
-  /// The evening "your streak dies at midnight" warning.
+  /// The evening "your streak dies at midnight" warning, for the days on
+  /// which [bodyBuilder] says there is a streak on the line (null: none).
   Future<void> scheduleStreakRisk({
     required NotificationCopy copy,
     required int hour,
     required int minute,
-    required String body,
+    required String? Function(int dayOffset) bodyBuilder,
     int days = 7,
   }) async {
     if (!_ready) return;
-    for (var i = 0; i < days; i++) {
-      await _plugin.cancel(_riskIdBase + i);
-    }
+    await cancelStreakRisk(days: days);
 
     final now = DateTime.now();
     for (var i = 0; i < days; i++) {
       final target = DateTime(now.year, now.month, now.day + i, hour, minute);
       if (target.isBefore(now)) continue;
+      final String? body = bodyBuilder(i);
+      if (body == null) continue;
       await _schedule(
         id: _riskIdBase + i,
         title: copy.streakRiskTitle,
@@ -155,6 +192,20 @@ class NotificationService {
         when: target,
         android: _pressureChannel(copy),
       );
+    }
+  }
+
+  Future<void> cancelDailyReminders({int days = 14}) async {
+    if (!_ready) return;
+    for (var i = 0; i < days; i++) {
+      await _plugin.cancel(_dailyIdBase + i);
+    }
+  }
+
+  Future<void> cancelStreakRisk({int days = 7}) async {
+    if (!_ready) return;
+    for (var i = 0; i < days; i++) {
+      await _plugin.cancel(_riskIdBase + i);
     }
   }
 
@@ -178,7 +229,9 @@ class NotificationService {
     );
   }
 
-  Future<void> cancelAll() => _plugin.cancelAll();
+  Future<void> cancelAll() async {
+    if (_ready) await _plugin.cancelAll();
+  }
 
   Future<void> _schedule({
     required int id,

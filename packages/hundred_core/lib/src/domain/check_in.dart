@@ -20,6 +20,7 @@ class CheckIn {
     this.relapse = false,
     this.tracked = false,
     this.eventId,
+    this.utcOffsetMinutes,
   });
 
   factory CheckIn.fromPayload(
@@ -37,6 +38,7 @@ class CheckIn {
         relapse: payload['relapse'] as bool? ?? false,
         tracked: payload['tracked'] as bool? ?? false,
         eventId: eventId,
+        utcOffsetMinutes: (payload['tz'] as num?)?.toInt(),
       );
 
   final String habitId;
@@ -55,9 +57,22 @@ class CheckIn {
 
   final String? eventId;
 
+  /// The writer's offset from UTC when they logged it. Lets every device
+  /// judge [isLive] by the writer's clock rather than its own: a check-in at
+  /// 22:00 in Los Angeles is live, even to a friend for whom it is already
+  /// tomorrow. Null for entries written before the offset was recorded.
+  final int? utcOffsetMinutes;
+
   /// True when the entry was logged on the day it claims. Backfilling
   /// yesterday is allowed but never gets the verified badge.
-  bool get isLive => DayKey.fromDateTime(loggedAt) == day;
+  bool get isLive => _writerDay(loggedAt) == day;
+
+  DayKey _writerDay(DateTime at) {
+    final offset = utcOffsetMinutes;
+    if (offset == null) return DayKey.fromDateTime(at);
+    final shifted = at.toUtc().add(Duration(minutes: offset));
+    return DayKey(shifted.year, shifted.month, shifted.day);
+  }
 
   Map<String, dynamic> toPayload() => <String, dynamic>{
         'habitId': habitId,
@@ -67,6 +82,7 @@ class CheckIn {
         if (note != null) 'note': note,
         if (relapse) 'relapse': true,
         if (tracked) 'tracked': true,
+        if (utcOffsetMinutes != null) 'tz': utcOffsetMinutes,
       };
 }
 

@@ -13,17 +13,20 @@ function setup(overrides: Partial<GatewayDeps> = {}) {
   const calls = {
     upstream: [] as { url: string; headers: Headers; body: unknown }[],
     begun: [] as Purpose[],
+    reserved: [] as number[],
     billed: [] as number[],
   };
   const deps: GatewayDeps = {
     apiKey: 'server-key',
     authenticate: () => Promise.resolve(user),
-    beginRequest: (_u, purpose) => {
+    beginRequest: (_u, purpose, reserve) => {
       calls.begun.push(purpose);
-      return Promise.resolve();
+      calls.reserved.push(reserve);
+      return Promise.resolve({ month: '2026-11-01', tokens: reserve });
     },
-    recordUsage: (_u, tokens) => {
+    recordUsage: (_u, tokens, reservation) => {
       calls.billed.push(tokens);
+      assertEquals(reservation.month, '2026-11-01');
       return Promise.resolve();
     },
     runInBackground: () => {},
@@ -104,7 +107,33 @@ Deno.test('Gemini errors pass through and are not billed', async () => {
   });
   const res = await handler(post(url(MODEL, 'generateContent'), chatBody));
   assertEquals(res.status, 400);
-  assertEquals(calls.billed.length, 0);
+  // Settled at nothing: the reservation goes back, no token is billed.
+  assertEquals(calls.billed, [0]);
+});
+
+Deno.test('a request reserves its worst case up front and settles at what it cost', async () => {
+  const { handler, calls } = setup();
+  const body = JSON.stringify({
+    contents: [{ role: 'user', parts: [{ text: 'x'.repeat(3000) }] }],
+    generationConfig: { maxOutputTokens: 500 },
+  });
+  await handler(post(url(MODEL, 'generateContent'), body));
+  // 3000 characters at three a token, plus the output cap.
+  assertEquals(calls.reserved, [1000 + 500]);
+  assertEquals(calls.billed, [100]);
+});
+
+Deno.test('a network failure on the way to Gemini releases the reservation', async () => {
+  const { handler, calls } = setup({ fetch: () => Promise.reject(new TypeError('network down')) });
+  const res = await handler(post(url(MODEL, 'generateContent'), chatBody));
+  assertEquals(res.status, 500);
+  assertEquals(calls.billed, [0]);
+});
+
+Deno.test('an answer without usage keeps what was reserved', async () => {
+  const { handler, calls } = setup({ fetch: () => Promise.resolve(Response.json({ candidates: [] })) });
+  await handler(post(url(MODEL, 'generateContent'), chatBody));
+  assertEquals(calls.billed, calls.reserved);
 });
 
 Deno.test('without a key the gateway says so instead of calling out', async () => {

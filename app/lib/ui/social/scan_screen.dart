@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../config/backend_config.dart';
+import '../../data/social_backend.dart';
 import '../../l10n/l10n.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
@@ -25,6 +26,10 @@ class _ScanInviteScreenState extends State<ScanInviteScreen> {
   );
   bool _handled = false;
 
+  /// The last code that was not an invite, so it is pointed out once rather
+  /// than on every frame the camera sees it.
+  String? _foreign;
+
   @override
   void dispose() {
     _controller.dispose();
@@ -33,13 +38,25 @@ class _ScanInviteScreenState extends State<ScanInviteScreen> {
 
   void _onDetect(BarcodeCapture capture) {
     if (_handled) return;
+    String? foreign;
     for (final Barcode barcode in capture.barcodes) {
       final String? raw = barcode.rawValue;
       if (raw == null) continue;
-      if (!raw.startsWith('$kInviteScheme://')) continue;
+      if (!isFriendInviteLink(raw)) {
+        foreign = raw;
+        continue;
+      }
       _handled = true;
       Navigator.of(context).pop(raw);
       return;
+    }
+    // Some other QR code — a menu, a household invite, a website. Say so
+    // instead of staring at it in silence.
+    if (foreign != null && foreign != _foreign) {
+      _foreign = foreign;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(context.l10n.scanNotAnInvite)));
     }
   }
 
@@ -148,8 +165,9 @@ class _PasteDialogState extends State<_PasteDialog> {
         controller: _controller,
         autofocus: true,
         maxLines: 3,
-        decoration: const InputDecoration(
-          hintText: 'hundreddays://invite?d=…',
+        decoration: InputDecoration(
+          // The form the parser reads, with a made-up code.
+          hintText: l10n.scanPasteHint(inviteLink('ABCDE23456').toString()),
         ),
       ),
       actions: <Widget>[
@@ -166,6 +184,16 @@ class _PasteDialogState extends State<_PasteDialog> {
       ],
     );
   }
+}
+
+/// True for the links a friend's QR code carries:
+/// `hundreddays://invite/CODE`.
+bool isFriendInviteLink(String raw) {
+  final Uri? uri = Uri.tryParse(raw.trim());
+  return uri != null &&
+      uri.scheme == kInviteScheme &&
+      uri.host == 'invite' &&
+      uri.pathSegments.isNotEmpty;
 }
 
 class _CameraUnavailable extends StatelessWidget {

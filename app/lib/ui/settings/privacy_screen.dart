@@ -121,7 +121,22 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
 
   Future<void> _save(AppSnapshot snapshot) async {
     final Challenge challenge = snapshot.challenge!;
-    final SharingPrefs next = _value!;
+    SharingPrefs next = _value!;
+    // Today's entry for a habit that was private sits in a private event
+    // friends never receive. Counted from today, it would read to them as a
+    // miss and break the streak they see at midnight — so a habit already
+    // logged today is shared from tomorrow.
+    final DayLog? todayLog = snapshot.me.logsByDay[snapshot.today.toString()];
+    for (final Habit habit in challenge.habits) {
+      final bool newlyShared = !challenge.sharing.isHabitShared(habit.id) &&
+          next.isHabitShared(habit.id);
+      if (newlyShared && todayLog?.entryFor(habit.id) != null) {
+        next = next.copyWith(sharedSince: <String, DayKey>{
+          ...next.sharedSince,
+          habit.id: snapshot.today.addDays(1),
+        });
+      }
+    }
     final AppController controller = ref.read(appStateProvider.notifier);
     // A habit made visible today is counted by friends from today on —
     // SharingPrefs records that, so its sealed past is not read as misses.

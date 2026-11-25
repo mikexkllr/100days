@@ -16,6 +16,8 @@
   "addMealIdeas": "IDEAS",
   "addMealKcal": "kcal per portion (optional)",
   "addMealTitle": "What is it?",
+  "addMealTitleMissing": "Give it a name — or tap one of the ideas.",
+  "addMealToDiary": "Already eaten? Into the diary — a photo will do",
   "adviceCutScope": "You only hit {percent}% of your days. Take a habit out instead of carrying on failing — three certain days beat five planned ones.",
   "@adviceCutScope": {
     "placeholders": {
@@ -312,7 +314,7 @@
       }
     }
   },
-  "coachBadgeLlm": "on-device AI",
+  "coachBadgeLlm": "AI",
   "coachBadgeRule": "Coach",
   "coachCelebrateGeneric": "{day} days in a row. That is the evidence, not the feeling.",
   "@coachCelebrateGeneric": {
@@ -988,7 +990,17 @@
   "foodManualFat": "Fat in g (optional)",
   "foodManualGrams": "Amount in g (optional)",
   "foodManualKcal": "Calories (kcal)",
+  "foodManualKcalFromMacros": "≈ {kcal} kcal from the macros below",
+  "@foodManualKcalFromMacros": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "foodManualKcalMissing": "Calories are needed. Not sure? A photo or a sentence gets them estimated.",
   "foodManualName": "Name",
+  "foodManualNameMissing": "What was it?",
   "foodManualProtein": "Protein in g (optional)",
   "foodNotRecognised": "Not recognised: {items}. Estimate them with AI, search for them, or enter them manually.",
   "@foodNotRecognised": {
@@ -1083,15 +1095,29 @@
   "friendsRequestsTitle": "Friend requests",
   "friendsScan": "Scan",
   "friendsYourPeople": "Your people",
-  "globalLeagueEmpty": "Your league group starts with your first check-in this week: up to 30 people of your division, the best move up on Monday.",
+  "globalLeagueEmpty": "No group yet this week. Once your phone has reported your XP, you join up to 30 people of your division. The week closes on Monday: the best move up, and in groups of five or more the last move down.",
   "globalLeagueHonesty": "Strangers' XP is what their phones report, capped per day. Among friends every phone recomputes XP from the shared check-ins.",
   "globalLeagueSection": "This week's league",
-  "globalLeagueSub": "{size} people · top {up} up, bottom {down} down",
-  "@globalLeagueSub": {
+  "globalLeagueSize": "{size, plural, =1{Only you so far} other{{size} people}}",
+  "@globalLeagueSize": {
     "placeholders": {
       "size": {
         "type": "int"
-      },
+      }
+    }
+  },
+  "globalLeagueMovesNone": "the best moves up on Monday once someone joins",
+  "globalLeagueMovesUp": "on Monday {up, plural, =1{the best moves up} other{the top {up} move up}}",
+  "@globalLeagueMovesUp": {
+    "placeholders": {
+      "up": {
+        "type": "int"
+      }
+    }
+  },
+  "globalLeagueMoves": "on Monday the top {up} move up, {down, plural, =1{the last one moves down} other{the bottom {down} move down}}",
+  "@globalLeagueMoves": {
+    "placeholders": {
       "up": {
         "type": "int"
       },
@@ -1515,7 +1541,7 @@
   "leagueActiveToday": "Active today",
   "leagueBronze": "Bronze",
   "leagueDiamond": "Diamond",
-  "leagueFooter": "Only friends you connected yourself compete here — no strangers. XP comes per check-in, scaled by difficulty and streak, and tracked workouts and diary days count extra. On Sunday the top places move up and the bottom ones move down.",
+  "leagueFooter": "Only friends you connected yourself compete here — no strangers. XP comes per check-in, scaled by difficulty and streak; tracked workouts and diary days count extra. The ranking starts over every Monday. Nobody moves up or down among friends: the colours only mark the top and the bottom of the week, and your league comes from all the XP you have ever earned.",
   "leagueGold": "Gold",
   "leagueNothingToday": "Nothing yet today",
   "leagueObsidian": "Obsidian",
@@ -1582,8 +1608,6 @@
     }
   },
   "loggerDiscard": "Discard",
-  "loggerDiscardBody": "The sets you entered will be lost.",
-  "loggerDiscardTitle": "Discard this workout?",
   "loggerFinish": "Finish workout",
   "loggerFinishNoSets": "Tick off at least one set first.",
   "loggerIntro": "Log every set. Next time the app tells you what to beat: more reps at the same weight, then more weight.",
@@ -1834,9 +1858,9 @@
   "muscleShoulders": "Shoulders",
   "muscleTriceps": "Triceps",
   "navFriends": "Friends",
-  "navMore": "More",
+  "navMore": "Profile",
   "navPlan": "Plan",
-  "navSettingsTitle": "Settings",
+  "navSettingsTitle": "Profile & settings",
   "navStats": "Numbers",
   "navToday": "Today",
   "notifChannelPressure": "Friends & streak warnings",
@@ -2295,7 +2319,7 @@
     }
   },
   "planProtein": "Protein",
-  "planTabAbstinence": "Staying clean",
+  "planTabAbstinence": "Clean",
   "planTabMeals": "Meal plan",
   "planTabShopping": "Shopping",
   "planTabTraining": "Training",
@@ -2949,7 +2973,7 @@
   "setSignOutBody": "Everything is saved in your account; it is back as soon as you sign in again. This phone forgets it until then.",
   "setSignOutSub": "Your data stays in your account.",
   "setStreakMode": "How strict is your streak?",
-  "setStreakModeNote": "Applies from today. Days behind you stay counted the way they were. Your friends count your streak by the same mode.",
+  "setStreakModeNote": "A change applies from tomorrow. Today and the days behind you stay counted the way they were. Your friends count your streak by the same mode.",
   "setStreakModeSection": "Streak",
   "setSyncDone": "Up to date · {sent} sent, {received} received",
   "@setSyncDone": {
@@ -3373,5 +3397,510 @@
   "workoutStart": "Start workout",
   "workoutUpper": "Upper body",
   "workoutUpperFocus": "Push and pull",
-  "workoutWorkingSets": "Working sets"
+  "workoutWorkingSets": "Working sets",
+  "gateLoadingAccount": "Fetching your challenge…",
+  "gateLoadingAccountSlow": "This is taking a while. Without a connection your challenge cannot be loaded onto this phone yet.",
+  "gateErrorTitle": "Funki tripped over something.",
+  "setSignOutUnsentTitle": "Not everything is sent yet",
+  "setSignOutUnsentBody": "{count, plural, =1{1 entry from this phone has not reached the server yet.} other{{count} entries from this phone have not reached the server yet.}} Signed out now, it is lost. Go online and try again, or sign out anyway.",
+  "@setSignOutUnsentBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "setSignOutAnyway": "Sign out anyway",
+  "setDeletingAccount": "Deleting your account…",
+  "setDeleteAccountAppleNote": "Apple asks you to confirm once more, so the app's access to your Apple ID can be revoked.",
+  "remindCardTitle": "Should Funki remind you?",
+  "remindCardBody": "One reminder in the evening while today is open, a warning when your streak is on the line, and a ping when a friend nudges you. Nothing else.",
+  "remindCardYes": "Yes, remind me",
+  "remindCardLater": "Not now",
+  "remindTitle": "Reminders",
+  "remindRowSub": "Daily at {time}",
+  "@remindRowSub": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "remindRowOff": "Off",
+  "remindDaily": "Daily reminder",
+  "remindDailySub": "Only on days that are still open — never once you are done.",
+  "remindTime": "Time",
+  "remindWarning": "Streak warning",
+  "remindWarningSub": "In the late evening, when a streak of three days or more would end at midnight.",
+  "remindBlocked": "Notifications are switched off for this app.",
+  "remindAllow": "Allow notifications",
+  "remindBlockedHint": "If nothing happens, switch them on in your phone's settings under 100 Days.",
+  "aiPurchaseRetryLater": "Paid, but the server could not confirm it yet. The app tries again at its next start — or tap \"Restore purchase\" once you are online.",
+  "aiRestoreNothing": "No subscription found to restore on this store account.",
+  "aiRestoreFailed": "Restoring did not work. Check your connection and try again.",
+  "aiRestoring": "Checking your purchases…",
+  "tileHoldLonger": "Hold on until it is full",
+  "tileHoldTip": "Tip: holding the row is quicker.",
+  "tileUndo": "Undo",
+  "tileMoreSemantics": "More for {habit}",
+  "@tileMoreSemantics": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "tileUndone": "Taken back.",
+  "homeFreezeConfirmTitle": "Freeze today?",
+  "homeFreezeConfirmBody": "Your streak survives today without growing. {left, plural, =1{This is your last freeze in this cycle.} other{{left} freezes left in this cycle after this one.}} It cannot be taken back.",
+  "@homeFreezeConfirmBody": {
+    "placeholders": {
+      "left": {
+        "type": "int"
+      }
+    }
+  },
+  "homeYesterdayTitle": "Yesterday slipped through",
+  "homeYesterdayBodyFreeze": "Your {streak}-day streak broke at midnight. Done it but forgot to tick it? Log it now. Or save the streak with a freeze ({left} left).",
+  "@homeYesterdayBodyFreeze": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      },
+      "left": {
+        "type": "int"
+      }
+    }
+  },
+  "homeYesterdayBody": "Your {streak}-day streak broke at midnight. Done it but forgot to tick it? Log it now — it shows as logged late.",
+  "@homeYesterdayBody": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "homeYesterdayLog": "Log yesterday",
+  "homeYesterdayFreeze": "Use a freeze",
+  "dayLogLate": "Log",
+  "dayLogLateNote": "Only yesterday can be logged late. Friends see that it was.",
+  "dayOpenDiary": "Meals",
+  "dayOverNote": "This day is over. Only yesterday can still be logged late.",
+  "profileEditTitle": "Your profile",
+  "profileEditSub": "Name and face — what friends see in requests, the feed and the league.",
+  "profileSave": "Save",
+  "profileSaved": "Profile saved.",
+  "profileStatement": "Your goal in one sentence",
+  "stageDaysLeft": "{days, plural, =1{1 more day} other{{days} more days}}",
+  "@stageDaysLeft": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "statsWeekLabel": "W{week}",
+  "@statsWeekLabel": {
+    "placeholders": {
+      "week": {
+        "type": "String"
+      }
+    }
+  },
+  "habitsEditTitle": "Your habits",
+  "habitsEditSub": "Change a target, how often, or take a habit out. Past days keep counting by the rules they were counted with.",
+  "habitsEditRow": "Habits",
+  "habitsEditRowSub": "{count, plural, =1{1 habit} other{{count} habits}} — add, change, take out",
+  "@habitsEditRowSub": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "habitsDaysPerWeek": "{days, plural, =1{1 day a week} other{{days} days a week}}",
+  "@habitsDaysPerWeek": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "habitsRemove": "Take out",
+  "habitsRemoveTitle": "Take {habit} out?",
+  "@habitsRemoveTitle": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "habitsRemoveBody": "From tomorrow it no longer counts. The days it was part of stay as they were.",
+  "habitsAdd": "Add a habit",
+  "habitsAddCustom": "Your own…",
+  "habitsCustomName": "What is it?",
+  "habitsSave": "Save changes",
+  "habitsSaved": "Habits saved.",
+  "habitsFromTomorrow": "Today is done already, so this counts from tomorrow.",
+  "habitsTrainingNote": "Training days follow your training plan.",
+  "habitsKeepOne": "At least one habit has to stay.",
+  "setStreakModeConfirmTitle": "Switch to {mode}?",
+  "@setStreakModeConfirmTitle": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "setStreakModeConfirmBody": "From tomorrow on. Today and every day before keep the mode they are counted in.",
+  "setStreakModeTomorrow": "Switch from tomorrow",
+  "setStreakModePending": "Changes to {mode} tomorrow.",
+  "@setStreakModePending": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "setAppSection": "App",
+  "setTapToCheckIn": "Tap instead of hold",
+  "setTapToCheckInSub": "A tap checks a habit in. For anyone who cannot or does not want to hold a press.",
+  "setSound": "Sounds",
+  "setSoundSub": "Crackle, ignition and the slot machine. Silent mode keeps them quiet.",
+  "setRestart": "Start again from day 1",
+  "setRestartSub": "Same habits, a new day 1. Your history stays in your feed.",
+  "setRestartTitle": "Start again from day 1?",
+  "setRestartBody": "Your streak, your flame and the board start over today. Friends see the new start. This cannot be undone.",
+  "setRestartConfirm": "Start again",
+  "setServerInfo": "Server: {server}",
+  "@setServerInfo": {
+    "placeholders": {
+      "server": {
+        "type": "String"
+      }
+    }
+  },
+  "habitsEveryDay": "Every day",
+  "loginModeSignIn": "Sign in",
+  "loginModeRegister": "New account",
+  "loginPasswordRepeat": "Password again",
+  "loginPasswordMismatch": "The two passwords are not the same.",
+  "loginShowPassword": "Show password",
+  "loginHidePassword": "Hide password",
+  "loginForgot": "Forgot your password?",
+  "loginForgotNeedsEmail": "Enter your e-mail address first.",
+  "loginForgotSent": "If there is an account for {email}, a link to set a new password is on its way.",
+  "@loginForgotSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "loginNewPasswordTitle": "Set a new password",
+  "loginNewPasswordSave": "Save password",
+  "loginNewPasswordSaved": "Your new password is set.",
+  "celebrateEvolving": "Funki is changing…",
+  "celebrateEvolved": "{stage}!",
+  "@celebrateEvolved": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "shareCardStreak": "{streak, plural, =1{day streak} other{days streak}}",
+  "@shareCardStreak": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "shareCardDay": "Day {day} of my challenge",
+  "@shareCardDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "ascendTitle": "Cycle complete",
+  "ascendNext": "Welcome to {tier}",
+  "@ascendNext": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "ascendBody": "Streak, flame and history come along. The next hundred days start now.",
+  "ascendGo": "Into the next cycle",
+  "lossTitle": "Your {streak}-day streak went out.",
+  "@lossTitle": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "lossFunki": "I am still glowing. Blow on me.",
+  "lossBody": "Your {stars, plural, =1{star stays} other{{stars} stars stay}} in your sky — none of it is lost. The difference between a slip and quitting is what you do in the next 24 hours.",
+  "@lossBody": {
+    "placeholders": {
+      "stars": {
+        "type": "int"
+      }
+    }
+  },
+  "lossRelight": "Light me again",
+  "actionUndo": "Undo",
+  "aiAllowanceUsedUp": "This month's AI allowance is used up. With Premium or your own API key it goes on right away.",
+  "aiBadgeCloud": "Cloud AI",
+  "aiRateLimited": "Too many AI requests at once. Wait a minute, then try again.",
+  "aiUnreachable": "The AI could not be reached — you seem to be offline, or it took too long. Try again in a moment.",
+  "diaryCountOnTarget": "On target now — count it with the plan bonus",
+  "diaryEntryRemoved": "{name} taken out of the diary",
+  "@diaryEntryRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryOffTargetOver": "You are {kcal} kcal over your target. You can still tick the day off — just without the plan bonus.",
+  "@diaryOffTargetOver": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryOffTargetUnder": "You are {kcal} kcal under your target. You can still tick the day off — just without the plan bonus.",
+  "@diaryOffTargetUnder": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "foodEditHint": "A new amount scales the calories. If the estimate is off, correct the calories.",
+  "foodEditTooltip": "Change amount or calories",
+  "foodPhotoNoCamera": "No access to the camera. Allow it for 100 Days in your phone's settings, or pick a photo from the gallery.",
+  "foodPhotoNoGallery": "No access to your photos. Allow it for 100 Days in your phone's settings, or take a new photo.",
+  "foodPhotoPickFailed": "The camera or the gallery could not be opened. Try again, or describe the meal.",
+  "foodPhotoUnreadable": "This photo cannot be read — some HEIC photos cannot. Take a new one, or pick a JPEG.",
+  "householdJoinWarning": "You are switching households: your current plan and list stay where they are, and you will see the new household's instead. You can leave it again later.",
+  "householdLeave": "Leave household",
+  "householdLeaveBody": "The plan, the recipes and the lists stay with the others. You start over with a household of your own and can be invited back any time.",
+  "householdLeaveFailed": "Could not leave the household. Check your connection and try again.",
+  "householdLeaveTitle": "Leave the household?",
+  "householdLeft": "You left the household.",
+  "householdLoadFailed": "The household could not be loaded.",
+  "householdRemoveBody": "They will no longer see the plan and the list. With an invite they can join again.",
+  "householdRemoveTitle": "Remove {name} from the household?",
+  "@householdRemoveTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "householdSaveFailed": "Not saved — check your connection and try again.",
+  "planMealRemoved": "{title} taken off the plan",
+  "@planMealRemoved": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "planSaveFailed": "The plan could not be saved. Your draft is still here — try again.",
+  "plannerListToppedUp": "Topped up the shopping list from the plan",
+  "plannerQuotaUsedUp": "This month's AI allowance is used up, so I cannot plan with you right now. With Premium or your own API key it goes on straight away — or plan by hand until the 1st.",
+  "shopCloseEmpty": "Close this list",
+  "shopItemRemoved": "{name} taken off the list",
+  "@shopItemRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shopTopUp": "{count, plural, =0{The open list already has everything for these days} =1{1 line added to the open list} other{{count} lines added to the open list}}",
+  "@shopTopUp": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loggerAddedLoadHint": "+ kg",
+  "loggerAdviceAddRepsBodyweight": "One more rep per set",
+  "loggerAdviceBeyondRange": "Top of the range on every set: one more rep each — or carry some weight and enter it under + kg",
+  "loggerAdviceDeload": "Deload: lighter at {weight} kg, and stop well short of failure",
+  "@loggerAdviceDeload": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "loggerAdviceDeloadBodyweight": "Deload: easy reps, and stop well short of failure",
+  "loggerAdviceReduceBodyweight": "Missed twice — drop the added weight and build back up",
+  "loggerDeloadBody": "Fewer sets and lighter weights this week — on purpose. Your body catches up on three weeks of building; next week the numbers go up again.",
+  "loggerDeloadTitle": "Deload week",
+  "loggerKeepForLater": "Keep for later",
+  "loggerLeaveBody": "What you entered stays on this phone until you finish. Open the workout again today to pick up where you left off.",
+  "loggerLeaveTitle": "Leave the workout?",
+  "loggerResume": "Resume",
+  "loggerResumeBody": "You started this workout at {time}. {sets, plural, =0{No set ticked off yet.} =1{One set is ticked off.} other{{sets} sets are ticked off.}}",
+  "@loggerResumeBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "sets": {
+        "type": "int"
+      }
+    }
+  },
+  "loggerResumeTitle": "Pick up where you left off?",
+  "loggerStartOver": "Start over",
+  "editorDiscard": "Discard",
+  "editorDiscardBody": "Your changes to the training plan are not saved yet.",
+  "editorDiscardTitle": "Discard your changes?",
+  "editorPlanOffBody": "Off: your training habit is a plain tick again, without the +{percent} % XP of a logged workout. The workouts you logged stay in your history, and your split and exercises wait here for when you switch it back on.",
+  "@editorPlanOffBody": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "editorPlanOnBody": "Log every set: each logged workout earns +{percent} % XP.",
+  "@editorPlanOnBody": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "editorPlanSwitch": "Training plan",
+  "editorPlanSwitchedOff": "Training plan switched off — your workouts stay logged",
+  "editorEmptySession": "Every session needs at least one exercise — add one where it is marked.",
+  "loggerEmptyBody": "This session has no exercises. Add some to it in the training plan, then log it.",
+  "loggerEmptyTitle": "Nothing to log yet",
+  "editDiscardTitle": "Discard your changes?",
+  "editDiscard": "Discard",
+  "moderationReport": "Report",
+  "moderationBlock": "Block",
+  "moderationBlockTitle": "Block {name}?",
+  "@moderationBlockTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationBlockBody": "You stop being friends and open requests go. Neither of you can find, add or invite the other, and you no longer see {name} in the league. {name} is not told.",
+  "@moderationBlockBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationBlocked": "{name} is blocked.",
+  "@moderationBlocked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationReportTitle": "Report {name}",
+  "@moderationReportTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationReportBody": "Only the team behind 100 Days reads reports. {name} is not told.",
+  "@moderationReportBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationReasonSpam": "Spam or a fake account",
+  "moderationReasonHarassment": "Harassment or bullying",
+  "moderationReasonInappropriate": "Offensive name or emoji",
+  "moderationReasonCheating": "Cheating in the league",
+  "moderationReasonOther": "Something else",
+  "moderationReportDetails": "What happened? (optional)",
+  "moderationAlsoBlock": "Block them as well",
+  "moderationReportSend": "Send report",
+  "moderationReported": "Thanks. Your report is in.",
+  "blockedTitle": "Blocked",
+  "blockedSub": "They can't find, add or invite you, and you don't see them in the league.",
+  "blockedNone": "Nobody blocked.",
+  "blockedUnblock": "Unblock",
+  "blockedUnblocked": "{name} is unblocked. A friendship does not come back by itself.",
+  "@blockedUnblocked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsSentTitle": "Sent requests",
+  "friendsSentSub": "Nothing is shared until they accept.",
+  "friendsSentWithdraw": "Withdraw",
+  "friendsSentWithdrawn": "Request to {name} withdrawn.",
+  "@friendsSentWithdrawn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "findRequestTooMany": "That's enough requests for today. Try again tomorrow.",
+  "findRequestDeclined": "They said no not long ago. You can ask again in a few weeks, or they can ask you.",
+  "findRequestUnavailable": "You can't add this person.",
+  "profileNudgedToday": "Nudged today",
+  "scanPasteHint": "e.g. {link}",
+  "@scanPasteHint": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "scanNotAnInvite": "That QR code isn't a 100 Days invite.",
+  "feedCheckIns": "{name}: {count, plural, =1{1 check-in} other{{count} check-ins}}",
+  "@feedCheckIns": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "campfireTitle": "Around the fire",
+  "friendFlameLabel": "{name}: {streak, plural, =1{1-day streak} other{{streak}-day streak}}",
+  "@friendFlameLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "streak": {
+        "type": "int"
+      }
+    }
+  }
 }

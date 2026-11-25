@@ -7,8 +7,10 @@ import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
-import 'together_card.dart';
 import '../widgets/heatmap.dart';
+import 'friend_flame.dart';
+import 'moderation.dart';
+import 'together_card.dart';
 
 /// One friend, in detail — and the two buttons that make the app social.
 class FriendDetailScreen extends ConsumerWidget {
@@ -20,9 +22,33 @@ class FriendDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations l10n = context.l10n;
     final AsyncValue<AppSnapshot> async = ref.watch(appStateProvider);
+    final AppSnapshot? loaded = async.valueOrNull;
+    final UserProjection? shown = loaded?.friends
+        .where((UserProjection f) => f.userId == userId)
+        .firstOrNull;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.profileTitle)),
+      appBar: AppBar(
+        title: Text(l10n.profileTitle),
+        actions: <Widget>[
+          if (shown != null)
+            PopupMenuButton<String>(
+              key: const Key('profile-menu'),
+              onSelected: (String choice) =>
+                  _moderate(context, ref, choice, shown.profile.displayName),
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                PopupMenuItem<String>(
+                  value: 'report',
+                  child: Text(l10n.moderationReport),
+                ),
+                PopupMenuItem<String>(
+                  value: 'block',
+                  child: Text(l10n.moderationBlock),
+                ),
+              ],
+            ),
+        ],
+      ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (Object error, StackTrace _) => Center(child: Text('$error')),
@@ -65,11 +91,11 @@ class FriendDetailScreen extends ConsumerWidget {
                   children: <Widget>[
                     Row(
                       children: <Widget>[
-                        EmojiAvatar(
-                          peer.profile.avatarEmoji,
-                          size: 58,
-                          ringColor:
-                              peer.activeToday ? AppColors.success : null,
+                        FriendFlame(
+                          key: const Key('profile-flame'),
+                          person: friend,
+                          today: snapshot.today,
+                          size: 64,
                         ),
                         const SizedBox(width: AppSpacing.md),
                         Expanded(
@@ -148,49 +174,18 @@ class FriendDetailScreen extends ConsumerWidget {
               ),
               if (!isMe) ...<Widget>[
                 const SizedBox(height: AppSpacing.md),
+                // Both phones compute this from what friends can see of
+                // each of them, so they show the same numbers.
                 TogetherCard(
-                  me: snapshot.me,
+                  me: snapshot.meAsFriendsSeeMe,
                   friend: friend,
                   today: snapshot.today,
                 ),
                 const SizedBox(height: AppSpacing.md),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: () => _send(
-                          context,
-                          ref,
-                          nudge: true,
-                          text: peer.activeToday
-                              ? l10n.nudgeStrongToday
-                              : l10n.nudgeDefaultPoke,
-                        ),
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(48),
-                          backgroundColor: AppColors.social,
-                          foregroundColor: Colors.white,
-                        ),
-                        icon: const Icon(Icons.visibility_outlined, size: 18),
-                        label: Text(l10n.profileNudge),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _send(
-                          context,
-                          ref,
-                          nudge: false,
-                          text: l10n.cheerRespectStreak(peer.currentStreak),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(48)),
-                        icon: const Icon(Icons.whatshot_outlined, size: 18),
-                        label: Text(l10n.profileCheer),
-                      ),
-                    ),
-                  ],
+                _ProfileActions(
+                  snapshot: snapshot,
+                  friendId: friend.userId,
+                  peer: peer,
                 ),
               ],
               if (friend.challenge != null) ...<Widget>[
@@ -250,6 +245,7 @@ class FriendDetailScreen extends ConsumerWidget {
               if (!isMe) ...<Widget>[
                 const SizedBox(height: AppSpacing.lg),
                 TextButton.icon(
+                  key: const Key('profile-disconnect'),
                   onPressed: () => _confirmRemove(context, ref, peer),
                   style: TextButton.styleFrom(
                       foregroundColor: AppColors.danger),
@@ -264,26 +260,17 @@ class FriendDetailScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _send(
+  Future<void> _moderate(
     BuildContext context,
-    WidgetRef ref, {
-    required bool nudge,
-    required String text,
-  }) async {
-    final controller = ref.read(appStateProvider.notifier);
-    if (nudge) {
-      await controller.nudge(userId, text);
-    } else {
-      await controller.cheer(userId, text);
-    }
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(nudge
-            ? context.l10n.profileNudgeSent
-            : context.l10n.profileCheerSent),
-      ),
-    );
+    WidgetRef ref,
+    String choice,
+    String name,
+  ) async {
+    final bool blocked = choice == 'report'
+        ? await reportPerson(context, ref, userId: userId, name: name)
+        : await confirmAndBlock(context, ref, userId: userId, name: name);
+    // Nothing of theirs is left to show.
+    if (blocked && context.mounted) Navigator.of(context).pop();
   }
 
   Future<void> _confirmRemove(
@@ -292,6 +279,7 @@ class FriendDetailScreen extends ConsumerWidget {
     PeerState peer,
   ) async {
     final AppLocalizations l10n = context.l10n;
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
@@ -315,7 +303,127 @@ class FriendDetailScreen extends ConsumerWidget {
       ),
     );
     if (confirmed != true || !context.mounted) return;
-    await ref.read(appStateProvider.notifier).removeFriend(peer.userId);
+    try {
+      await ref.read(appStateProvider.notifier).removeFriend(peer.userId);
+    } on Object {
+      // Nothing changed on the server; say so rather than closing as if it
+      // had worked.
+      messenger.showSnackBar(SnackBar(content: Text(l10n.inviteErrorOffline)));
+      return;
+    }
     if (context.mounted) Navigator.of(context).pop();
+  }
+}
+
+/// Nudge and cheer, by the same rules as everywhere else: one nudge a day
+/// per friend, one cheer per check-in — and never two for one tap.
+class _ProfileActions extends ConsumerStatefulWidget {
+  const _ProfileActions({
+    required this.snapshot,
+    required this.friendId,
+    required this.peer,
+  });
+
+  final AppSnapshot snapshot;
+  final String friendId;
+  final PeerState peer;
+
+  @override
+  ConsumerState<_ProfileActions> createState() => _ProfileActionsState();
+}
+
+class _ProfileActionsState extends ConsumerState<_ProfileActions> {
+  bool _sending = false;
+
+  /// Their newest check-in or workout: what a cheer from here is for, so it
+  /// counts against the same once-per-check-in rule as the feed's.
+  ActivityItem? get _cheerable => widget.snapshot.activity
+      .where((ActivityItem item) =>
+          item.author == widget.friendId &&
+          (item.kind == ActivityKind.checkIn ||
+              item.kind == ActivityKind.workout))
+      .firstOrNull;
+
+  Future<void> _send({required bool nudge, required String text}) async {
+    final AppLocalizations l10n = context.l10n;
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final AppController controller = ref.read(appStateProvider.notifier);
+    // The buttons may not have rebuilt since the last tap: ask the feed.
+    final AppSnapshot? latest = ref.read(appStateProvider).valueOrNull;
+    final String? cheerFor = _cheerable?.eventId;
+    final bool done = nudge
+        ? latest?.nudgedToday.contains(widget.friendId) ?? false
+        : cheerFor == null || (latest?.cheeredEvents.contains(cheerFor) ?? false);
+    if (_sending || done) return;
+    setState(() => _sending = true);
+    try {
+      if (nudge) {
+        puffAt(ref, widget.friendId);
+        await controller.nudge(widget.friendId, text);
+      } else {
+        await controller.cheer(widget.friendId, text, eventId: cheerFor);
+      }
+      messenger.showSnackBar(SnackBar(
+        content: Text(nudge ? l10n.profileNudgeSent : l10n.profileCheerSent),
+      ));
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    final bool nudged = widget.snapshot.nudgedToday.contains(widget.friendId);
+    final ActivityItem? cheerable = _cheerable;
+    final bool cheered = cheerable != null &&
+        widget.snapshot.cheeredEvents.contains(cheerable.eventId);
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: FilledButton.icon(
+            key: const Key('profile-nudge'),
+            onPressed: nudged || _sending
+                ? null
+                : () => _send(
+                      nudge: true,
+                      text: widget.peer.activeToday
+                          ? l10n.nudgeStrongToday
+                          : l10n.nudgeDefaultPoke,
+                    ),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+              backgroundColor: AppColors.social,
+              foregroundColor: Colors.white,
+              disabledBackgroundColor:
+                  AppColors.social.withValues(alpha: 0.25),
+              disabledForegroundColor: Colors.white70,
+            ),
+            icon: const Icon(Icons.visibility_outlined, size: 18),
+            label: Text(nudged ? l10n.profileNudgedToday : l10n.profileNudge),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: OutlinedButton.icon(
+            key: const Key('profile-cheer'),
+            // Nothing to cheer yet, or this check-in already got one.
+            onPressed: cheerable == null || cheered || _sending
+                ? null
+                : () => _send(
+                      nudge: false,
+                      text: l10n.cheerRespectStreak(widget.peer.currentStreak),
+                    ),
+            style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(48)),
+            icon: Icon(
+              cheered ? Icons.local_fire_department : Icons.whatshot_outlined,
+              size: 18,
+            ),
+            label: Text(cheered ? l10n.feedCheered : l10n.profileCheer),
+          ),
+        ),
+      ],
+    );
   }
 }

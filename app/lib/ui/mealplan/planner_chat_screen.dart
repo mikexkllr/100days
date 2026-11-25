@@ -11,7 +11,9 @@ import '../../l10n/l10n.dart';
 import '../../state/household_providers.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
+import '../settings/ai_screen.dart' show showPaywall;
 import '../widgets/app_card.dart';
+import 'household_load_error.dart';
 
 /// A change the planner made, shown in the chat with a way back.
 class _Change {
@@ -20,14 +22,22 @@ class _Change {
   final String label;
   final Future<void> Function() undo;
   bool undone = false;
+
+  /// While its undo runs: a second tap must not undo it twice.
+  bool undoing = false;
 }
 
 class _Turn {
-  _Turn.user(this.text) : fromUser = true;
-  _Turn.model(this.text) : fromUser = false;
+  _Turn.user(this.text)
+      : fromUser = true,
+        offersPaywall = false;
+  _Turn.model(this.text, {this.offersPaywall = false}) : fromUser = false;
 
   final String text;
   final bool fromUser;
+
+  /// The allowance ran out: the answer carries the way on.
+  final bool offersPaywall;
   final List<_Change> changes = <_Change>[];
 }
 
@@ -86,6 +96,7 @@ class _PlannerChatScreenState extends ConsumerState<PlannerChatScreen> {
     }
 
     String answer;
+    bool paywall = false;
     try {
       final ChatResult<String> result = await llm
           .agent(LlmPurpose.chat, tools: _tools(l10n))
@@ -96,15 +107,37 @@ class _PlannerChatScreenState extends ConsumerState<PlannerChatScreen> {
       _history.addAll(result.messages);
       answer = result.output.trim().isEmpty ? l10n.plannerDone : result.output.trim();
     } on Object catch (error) {
-      final AiFailure failure = classifyAiError(error);
-      answer = failure == AiFailure.quotaExceeded ? l10n.aiPaywallTitle : l10n.plannerFailed;
+      // The chat talks to the agent directly, past the client's paywall
+      // hook: it says what happened itself, in a sentence, with the way on.
+      switch (classifyAiError(error)) {
+        case AiFailure.quotaExceeded || AiFailure.premiumOnly:
+          answer = l10n.plannerQuotaUsedUp;
+          paywall = true;
+        case AiFailure.rateLimited:
+          answer = l10n.aiRateLimited;
+        case AiFailure.other:
+          answer = l10n.plannerFailed;
+      }
     }
     if (!mounted) return;
     setState(() {
       _thinking = false;
-      _turns.add(_Turn.model(answer)..changes.addAll(_pending));
+      _turns.add(_Turn.model(answer, offersPaywall: paywall)..changes.addAll(_pending));
     });
     _scrollDown();
+  }
+
+  Future<void> _undo(_Change change) async {
+    if (change.undone || change.undoing) return;
+    setState(() => change.undoing = true);
+    try {
+      await change.undo();
+      if (mounted) setState(() => change.undone = true);
+    } on Object {
+      if (mounted) showHouseholdSaveFailed(context);
+    } finally {
+      if (mounted) setState(() => change.undoing = false);
+    }
   }
 
   void _scrollDown() => WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -198,9 +231,21 @@ class _PlannerChatScreenState extends ConsumerState<PlannerChatScreen> {
           description: 'Makes a new shopping list for the next trip from the '
               'planned meals.',
           onCall: (_) async {
-            final ShoppingListInfo list = await _actions.listFromPlan();
-            _pending.add(_Change(l10n.plannerListMade, () => _backend.closeList(list.id)));
-            return 'Made a list for ${list.period}.';
+            final ListFromPlan made = await _actions.listFromPlan();
+            if (made.created) {
+              _pending.add(_Change(
+                  l10n.plannerListMade, () => _backend.closeList(made.list.id)));
+              return 'Made a list for ${made.list.period}.';
+            }
+            // The trip's list was open already and got what it lacked:
+            // undo takes exactly that back off.
+            _pending.add(_Change(l10n.plannerListToppedUp, () async {
+              for (final ShoppingLine line in made.added) {
+                await _backend.removeItem(line.id);
+              }
+            }));
+            return 'The list for ${made.list.period} was open already; '
+                'added ${made.added.length} missing lines to it.';
           },
         ),
       ];
@@ -312,10 +357,11 @@ class _PlannerChatScreenState extends ConsumerState<PlannerChatScreen> {
     final String name = (input['name'] as String? ?? '').trim();
     final ShoppingListInfo list = await _currentList() ?? await _actions.emptyList();
     if (name.isEmpty) return 'No name given.';
-    await _actions.addItem(list.id, name);
+    final List<ShoppingLine> added = await _actions.addItem(list.id, name);
+    // Only the line this added: a "Milch" that was on the list before stays.
     _pending.add(_Change(l10n.plannerAdded(name), () async {
-      for (final ShoppingLine l in await _backend.items(list.id)) {
-        if (l.name == name) await _backend.removeItem(l.id);
+      for (final ShoppingLine line in added) {
+        await _backend.removeItem(line.id);
       }
     }));
     return 'Added $name.';
@@ -376,7 +422,22 @@ class _PlannerChatScreenState extends ConsumerState<PlannerChatScreen> {
                         color: turn.fromUser ? AppColors.social.withValues(alpha: 0.2) : AppColors.surfaceHigh,
                         borderRadius: AppRadius.cardAll,
                       ),
-                      child: Text(turn.text, style: text.bodyMedium),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Text(turn.text, style: text.bodyMedium),
+                          if (turn.offersPaywall)
+                            Padding(
+                              padding: const EdgeInsets.only(top: AppSpacing.sm),
+                              child: FilledButton(
+                                key: const Key('planner-paywall'),
+                                onPressed: () => showPaywall(context),
+                                child: Text(l10n.aiPaywallAction),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                   for (final _Change change in turn.changes)
@@ -401,10 +462,8 @@ class _PlannerChatScreenState extends ConsumerState<PlannerChatScreen> {
                             ),
                             if (!change.undone)
                               TextButton(
-                                onPressed: () async {
-                                  await change.undo();
-                                  setState(() => change.undone = true);
-                                },
+                                onPressed:
+                                    change.undoing ? null : () => _undo(change),
                                 child: Text(l10n.plannerUndo),
                               ),
                           ],

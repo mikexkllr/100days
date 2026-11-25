@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:hundred_core/hundred_core.dart';
 
@@ -13,6 +14,7 @@ class AppSnapshot {
   const AppSnapshot({
     required this.userId,
     required this.me,
+    required this.meAsFriendsSeeMe,
     required this.friends,
     required this.activity,
     required this.league,
@@ -22,11 +24,17 @@ class AppSnapshot {
     this.incomingRequests = const <FriendLink>[],
     this.outgoingRequests = const <FriendLink>[],
     this.plan,
+    this.accountLoaded = true,
   });
 
   /// The signed-in account.
   final String userId;
   final UserProjection me;
+
+  /// The user folded from their shared events only — what a friend's phone
+  /// computes. Whatever two phones show as one shared number (a friend
+  /// streak, a quest) is computed from this, not from [me].
+  final UserProjection meAsFriendsSeeMe;
   final List<UserProjection> friends;
   final List<ActivityItem> activity;
   final LeagueStanding league;
@@ -46,12 +54,18 @@ class AppSnapshot {
   /// Ids of the check-in events already cheered.
   final Set<String> cheeredEvents;
 
+  /// Whether this phone has seen the account's feed at least once. On a new
+  /// phone the cache starts empty; until the first pull lands, "no
+  /// challenge" means "not loaded yet", not "never started one".
+  final bool accountLoaded;
+
   bool get hasChallenge => me.challenge != null;
 
   Challenge? get challenge => me.challenge;
 
+  /// Each friend as of *their* today (see [UserProjection.projectedFor]).
   List<PeerState> get peerStates =>
-      friends.map((UserProjection f) => f.toPeerState(today: today)).toList();
+      friends.map((UserProjection f) => f.toPeerState()).toList();
 
   Map<String, PeerProfile> get profiles => <String, PeerProfile>{
         me.userId: me.profile,
@@ -74,7 +88,17 @@ class AppSnapshot {
         now: now ?? DateTime.now(),
         habitStreaks: me.habitStreaks,
         lastRelapseDay: me.lastRelapseDay,
+        lastRelapseLog: me.lastRelapseDay == null
+            ? null
+            : me.logsByDay[me.lastRelapseDay.toString()],
       );
+}
+
+/// What asks for the signed-in user's repository throws this while nobody
+/// is signed in. Screens below the sign-in gate never see it; listeners set
+/// up at start, before anyone has signed in, do — and that is expected.
+class NotSignedIn extends StateError {
+  NotSignedIn() : super('Nobody is signed in');
 }
 
 /// The single place the UI talks to.
@@ -90,6 +114,7 @@ class AppRepository {
     required this.store,
     SocialBackend? social,
     FeedSync? sync,
+    this.requiresFirstPull = false,
   })  : social = social ?? MemorySocialBackend(userId: userId),
         sync = sync ?? OfflineFeedSync() {
     writer = FeedWriter(
@@ -105,6 +130,10 @@ class AppRepository {
   final SocialBackend social;
   final FeedSync sync;
   late final FeedWriter writer;
+
+  /// Whether an empty cache has to wait for a pull before it can say "no
+  /// challenge" — true against a server, false offline and in tests.
+  final bool requiresFirstPull;
 
   List<FriendLink> _links = const <FriendLink>[];
   ChallengePlan? _cachedPlan;
@@ -126,7 +155,76 @@ class AppRepository {
     } on Object {
       return;
     }
+    await _saveFriends();
     await sync.setAuthors(<String>{userId, ...follows});
+  }
+
+  static const String _ownerMeta = 'owner';
+  static const String _friendsMeta = 'friends';
+
+  /// Makes the cache this account's before anything reads it: a cache that
+  /// belongs to someone else on this phone — or to nobody known — is
+  /// emptied, and the last known friend list comes back, so an offline
+  /// start still shows friends and their streaks.
+  Future<void> open() async {
+    final String? owner = await store.meta(_ownerMeta);
+    final Set<String> authors = await store.authors();
+    final bool foreign = owner == null
+        ? authors.isNotEmpty && !authors.contains(userId)
+        : owner != userId;
+    if (foreign) await store.clear();
+    await store.setMeta(_ownerMeta, userId);
+    await _restoreFriends();
+  }
+
+  Future<void> _saveFriends() async {
+    try {
+      await store.setMeta(
+        _friendsMeta,
+        jsonEncode(<Map<String, Object?>>[
+          for (final FriendLink l in _links)
+            <String, Object?>{
+              'id': l.userId,
+              'name': l.displayName,
+              'emoji': l.emoji,
+              'status': l.status.name,
+              'since': l.since?.toIso8601String(),
+            },
+        ]),
+      );
+    } on Object {
+      // Remembering friends is a convenience; losing it costs nothing.
+    }
+  }
+
+  Future<void> _restoreFriends() async {
+    try {
+      final String? raw = await store.meta(_friendsMeta);
+      if (raw == null) return;
+      _links = <FriendLink>[
+        for (final dynamic item in jsonDecode(raw) as List<dynamic>)
+          if (item is Map<String, dynamic>)
+            FriendLink(
+              userId: item['id'] as String,
+              displayName: item['name'] as String? ?? '',
+              emoji: item['emoji'] as String? ?? '🙂',
+              status: FriendStatus.values.byName(item['status'] as String),
+              since: item['since'] == null
+                  ? null
+                  : DateTime.tryParse(item['since'] as String),
+            ),
+      ];
+      await sync.setAuthors(<String>{userId, ...follows});
+    } on Object {
+      _links = const <FriendLink>[];
+    }
+  }
+
+  /// Whether the account's feed has been seen on this phone (see
+  /// [AppSnapshot.accountLoaded]).
+  Future<bool> _accountLoaded(UserProjection me) async {
+    if (!requiresFirstPull || me.challenge != null) return true;
+    return await store.meta(kPulledOnceMeta) == '1';
   }
 
   /// Friends first, then the feeds: a friend accepted a minute ago must be
@@ -154,10 +252,13 @@ class AppRepository {
 
     final friends = <UserProjection>[];
     for (final friendId in follows) {
+      final List<FeedEvent> events = await store.eventsOf(friendId);
+      // Folded with their today: a friend a few time zones behind still has
+      // the evening that is already tomorrow here.
       friends.add(projectUser(
         friendId,
-        await store.eventsOf(friendId),
-        today: day,
+        events,
+        today: today == null ? authorTodayOf(events) : day,
       ));
     }
     friends.sort((UserProjection a, UserProjection b) =>
@@ -181,7 +282,7 @@ class AppRepository {
               checkInsThisWeek: meAsFriendsSeeMe.checkInsInWeek(weekKey),
             ),
         for (final UserProjection f in friends)
-          f.toPeerState(today: day).toLeagueEntry(
+          f.toPeerState().toLeagueEntry(
                 checkInsThisWeek: f.checkInsInWeek(weekKey),
               ),
       ],
@@ -205,6 +306,7 @@ class AppRepository {
     return AppSnapshot(
       userId: userId,
       me: me,
+      meAsFriendsSeeMe: meAsFriendsSeeMe,
       friends: friends,
       activity: activity,
       league: league,
@@ -220,6 +322,7 @@ class AppRepository {
           if (l.status == FriendStatus.outgoing) l,
       ],
       plan: me.challenge == null ? null : _planFor(me.challenge!),
+      accountLoaded: await _accountLoaded(me),
     );
   }
 
@@ -274,21 +377,37 @@ class AppRepository {
   /// Two events: what friends may see, then the full challenge, private. The
   /// owner's projection folds both in order, so the full one wins at home
   /// while friends only ever get the public view.
-  Future<void> _publishChallenge(String type, Challenge challenge) async {
+  Future<void> _publishChallenge(
+    String type,
+    Challenge challenge, {
+    bool restart = false,
+  }) async {
     final public = publicViewOf(challenge);
     await writer.append(type, <String, dynamic>{
       'challenge': public.toJson(),
       if (public.goal.statement.isNotEmpty) 'statement': public.goal.statement,
+      if (restart) 'restart': true,
     });
     await _append(
       type,
-      <String, dynamic>{'challenge': challenge.toJson()},
+      <String, dynamic>{
+        'challenge': challenge.toJson(),
+        if (restart) 'restart': true,
+      },
       private: true,
     );
   }
 
   Future<void> startChallenge(Challenge challenge) =>
       _publishChallenge(FeedEventType.challengeStarted, challenge);
+
+  /// Begins again from day one. Only this — never a second plain start —
+  /// resets the start day (see `projectUser`).
+  Future<void> restartChallenge(Challenge challenge) => _publishChallenge(
+        FeedEventType.challengeStarted,
+        challenge,
+        restart: true,
+      );
 
   /// A new split, own nutrition targets, a sharing change. History stays.
   Future<void> updateChallenge(Challenge challenge) =>
@@ -323,6 +442,7 @@ class AppRepository {
             loggedAt: DateTime.now(),
             note: note,
             tracked: tracked,
+            utcOffsetMinutes: _utcOffset(),
           ).toPayload(),
           if (streak != null) 'streak': streak,
         },
@@ -345,9 +465,36 @@ class AppRepository {
           loggedAt: DateTime.now(),
           note: note,
           relapse: true,
+          utcOffsetMinutes: _utcOffset(),
         ).toPayload(),
         private: _isPrivate(habit, challenge ?? await _currentChallenge()),
       );
+
+  /// Takes back what was logged for [habit] on [day]: a correction event
+  /// rather than a deletion — the feed only ever grows — that friends'
+  /// devices fold the same way.
+  Future<FeedEvent> undoCheckIn({
+    required Habit habit,
+    required DayKey day,
+    Challenge? challenge,
+  }) async =>
+      _append(
+        FeedEventType.checkIn,
+        <String, dynamic>{
+          ...CheckIn(
+            habitId: habit.id,
+            category: habit.category,
+            day: day,
+            value: 0,
+            loggedAt: DateTime.now(),
+            utcOffsetMinutes: _utcOffset(),
+          ).toPayload(),
+          'undo': true,
+        },
+        private: _isPrivate(habit, challenge ?? await _currentChallenge()),
+      );
+
+  static int _utcOffset() => DateTime.now().timeZoneOffset.inMinutes;
 
   /// A finished session: the log (shared or private, as the user chose), then
   /// the gym check-in it backs — marked tracked, which is what earns the
@@ -392,8 +539,8 @@ class AppRepository {
 
   /// Day 100 is not the end. Ascending starts the next cycle without resetting
   /// anything the user built.
-  Future<void> ascend(Challenge challenge) {
-    final next = challenge.cycle + 1;
+  Future<void> ascend(Challenge challenge, {DayKey? today}) {
+    final next = challenge.ascentTarget(today ?? DayKey.today());
     // Only the cycle index goes on the wire: a friend's device renders the
     // tier name in *their* language, so a localized string in the payload
     // would show up untranslated on the other side.
@@ -475,7 +622,9 @@ class AppRepository {
         0;
     if (week == _reportedWeek && xp == _reportedXp) return;
     try {
-      await social.reportWeekXp(week, xp);
+      // Only a report the server counted is done; a refused one is tried
+      // again with the next snapshot.
+      if (!await social.reportWeekXp(week, xp)) return;
       _reportedWeek = week;
       _reportedXp = xp;
     } on Object {
@@ -493,9 +642,14 @@ class AppRepository {
   Future<void> removeFriend(String friendId) async {
     await social.removeFriend(friendId);
     _links = _links.where((FriendLink l) => l.userId != friendId).toList();
+    await _saveFriends();
     await store.removeAuthor(friendId);
     await sync.setAuthors(<String>{userId, ...follows});
   }
+
+  /// Events written on this phone that the server has not confirmed yet —
+  /// what signing out would throw away.
+  Future<int> unsentCount() async => (await store.pending(userId)).length;
 
   /// Forgets everything on this device, e.g. on sign-out. The account and
   /// its feed stay on the server.

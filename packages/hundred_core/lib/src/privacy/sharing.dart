@@ -1,6 +1,7 @@
 import 'package:meta/meta.dart';
 
 import '../domain/challenge.dart';
+import '../domain/goal.dart';
 import '../domain/habit.dart';
 import '../util/dates.dart';
 
@@ -109,6 +110,11 @@ Challenge publicViewOf(Challenge challenge) {
       clearBody: true,
       statement: sharing.shareStatement ? goal.statement : '',
       clearNutrition: true,
+      // With the sentence hidden, the kind of goal stays hidden too: "sober"
+      // says as much as the sentence would. The exercises only travel when
+      // workouts are shared.
+      archetype: sharing.shareStatement ? null : GoalArchetype.custom,
+      clearTraining: !sharing.shareWorkouts,
     ),
     habits: <Habit>[
       for (final Habit h in challenge.habits)

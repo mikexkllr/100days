@@ -76,6 +76,22 @@ class FoodEntry {
   final String? foodId;
   final String? barcode;
 
+  /// This entry with a corrected amount and calorie count, under the same
+  /// id: logged again, it replaces the line it came from.
+  FoodEntry corrected({required double grams, required double kcal}) =>
+      FoodEntry(
+        id: id,
+        day: day,
+        meal: meal,
+        name: name,
+        grams: grams,
+        nutrients: correctNutrients(nutrients,
+            fromGrams: this.grams, toGrams: grams, kcal: kcal),
+        source: source,
+        foodId: foodId,
+        barcode: barcode,
+      );
+
   Map<String, dynamic> toPayload() => <String, dynamic>{
         'id': id,
         'day': day.toString(),
@@ -90,6 +106,29 @@ class FoodEntry {
         if (foodId != null) 'food': foodId,
         if (barcode != null) 'ean': barcode,
       };
+}
+
+/// [original] after the user corrected an estimate to [kcal] for [toGrams].
+///
+/// The macros follow the calories — a corrected estimate is the same food,
+/// more or less of it — or, with no calories to go by, the amount.
+Nutrients correctNutrients(
+  Nutrients original, {
+  required double fromGrams,
+  required double toGrams,
+  required double kcal,
+}) {
+  final double factor = original.kcal > 0
+      ? kcal / original.kcal
+      : fromGrams > 0
+          ? toGrams / fromGrams
+          : 1;
+  return Nutrients(
+    kcal: kcal,
+    proteinG: original.proteinG * factor,
+    carbsG: original.carbsG * factor,
+    fatG: original.fatG * factor,
+  );
 }
 
 num _round1(double value) {

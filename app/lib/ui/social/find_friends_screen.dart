@@ -15,9 +15,11 @@ import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
 import 'invite_flow.dart';
 import 'invite_screen.dart';
+import 'moderation.dart';
 
-/// Reads the address book: every e-mail address and phone number (in
-/// E.164, read in the phone's own region). Overridable in tests.
+/// Reads the address book: every e-mail address and — once phone numbers
+/// can be matched ([kMatchPhoneNumbers]) — every phone number, in E.164 for
+/// the phone's own region. Overridable in tests.
 final Provider<Future<({List<String> emails, List<String> phones})?> Function()>
     addressBookProvider = Provider<
         Future<({List<String> emails, List<String> phones})?> Function()>(
@@ -28,7 +30,10 @@ final Provider<Future<({List<String> emails, List<String> phones})?> Function()>
       return null;
     }
     final List<Contact> contacts = await FlutterContacts.getAll(
-      properties: <ContactProperty>{ContactProperty.phone, ContactProperty.email},
+      properties: <ContactProperty>{
+        if (kMatchPhoneNumbers) ContactProperty.phone,
+        ContactProperty.email,
+      },
     );
     final String region =
         PlatformDispatcher.instance.locale.countryCode ?? 'DE';
@@ -63,7 +68,9 @@ class _FindFriendsScreenState extends ConsumerState<FindFriendsScreen> {
   List<PersonResult> _results = const <PersonResult>[];
   List<PersonResult>? _contacts;
   bool _searchingContacts = false;
-  bool _alsoFindMe = true;
+  /// Off until the user ticks it: being findable is their choice to make,
+  /// not one to make for them.
+  bool _alsoFindMe = false;
   final Set<String> _requested = <String>{};
 
   @override
@@ -108,8 +115,44 @@ class _FindFriendsScreenState extends ConsumerState<FindFriendsScreen> {
   }
 
   Future<void> _add(PersonResult person) async {
+    final AppLocalizations l10n = context.l10n;
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
     setState(() => _requested.add(person.userId));
-    await ref.read(appStateProvider.notifier).sendFriendRequest(person.userId);
+    try {
+      await ref.read(appStateProvider.notifier).sendFriendRequest(person.userId);
+    } on Object catch (error) {
+      // Nothing was sent: the button comes back, and the reason says why.
+      if (mounted) setState(() => _requested.remove(person.userId));
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(SnackBar(
+        content: Text(switch (error) {
+          FriendRequestRejection(problem: FriendRequestProblem.tooMany) =>
+            l10n.findRequestTooMany,
+          FriendRequestRejection(
+            problem: FriendRequestProblem.declinedRecently
+          ) =>
+            l10n.findRequestDeclined,
+          FriendRequestRejection(problem: FriendRequestProblem.unavailable) =>
+            l10n.findRequestUnavailable,
+          _ => l10n.inviteErrorOffline,
+        }),
+      ));
+    }
+  }
+
+  Future<void> _moderate(PersonResult person) async {
+    final bool blocked = await showPersonActions(context, ref,
+        userId: person.userId, name: person.displayName);
+    if (!blocked || !mounted) return;
+    // Gone from both lists, as from the server's.
+    setState(() {
+      _results = _results
+          .where((PersonResult p) => p.userId != person.userId)
+          .toList();
+      _contacts = _contacts
+          ?.where((PersonResult p) => p.userId != person.userId)
+          .toList();
+    });
   }
 
   @override
@@ -134,6 +177,7 @@ class _FindFriendsScreenState extends ConsumerState<FindFriendsScreen> {
                   ? _Relation.requested
                   : _Relation.none,
           onAdd: () => _add(p),
+          onMore: () => _moderate(p),
         );
 
     return Scaffold(
@@ -237,11 +281,15 @@ class _PersonRow extends StatelessWidget {
     required this.person,
     required this.state,
     required this.onAdd,
+    required this.onMore,
   });
 
   final PersonResult person;
   final _Relation state;
   final VoidCallback onAdd;
+
+  /// Report or block: these are strangers' names.
+  final VoidCallback onMore;
 
   @override
   Widget build(BuildContext context) {
@@ -252,17 +300,29 @@ class _PersonRow extends StatelessWidget {
       leading: EmojiAvatar(person.emoji, size: 40),
       title: Text(person.displayName),
       subtitle: person.username == null ? null : Text('@${person.username}'),
-      trailing: switch (state) {
-        _Relation.friends => Text(l10n.findAlreadyFriends,
-            style: const TextStyle(color: AppColors.success)),
-        _Relation.requested => Text(l10n.findRequested,
-            style: const TextStyle(color: AppColors.textSecondary)),
-        _Relation.none => FilledButton(
-            onPressed: onAdd,
-            style: FilledButton.styleFrom(minimumSize: const Size(80, 36)),
-            child: Text(l10n.findAdd),
+      onLongPress: onMore,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          switch (state) {
+            _Relation.friends => Text(l10n.findAlreadyFriends,
+                style: const TextStyle(color: AppColors.success)),
+            _Relation.requested => Text(l10n.findRequested,
+                style: const TextStyle(color: AppColors.textSecondary)),
+            _Relation.none => FilledButton(
+                onPressed: onAdd,
+                style: FilledButton.styleFrom(minimumSize: const Size(80, 36)),
+                child: Text(l10n.findAdd),
+              ),
+          },
+          IconButton(
+            key: Key('person-more-${person.userId}'),
+            onPressed: onMore,
+            tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
+            icon: const Icon(Icons.more_vert, size: 20),
           ),
-      },
+        ],
+      ),
     );
   }
 }

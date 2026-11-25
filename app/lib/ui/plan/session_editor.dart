@@ -5,8 +5,9 @@ import '../../l10n/l10n.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
 
-/// Every split, the recommended one marked. Picking one replaces the
-/// sessions with a fresh suggestion for that split.
+/// Every split, the recommended one marked. Picking another one replaces
+/// the sessions with a fresh suggestion for that split; tapping the one
+/// already chosen does nothing, or it would throw the user's edits away.
 class SplitPicker extends StatelessWidget {
   const SplitPicker({
     super.key,
@@ -30,7 +31,9 @@ class SplitPicker extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child: AppCard(
               key: Key('split-${split.name}'),
-              onTap: () => onSelected(split),
+              onTap: () {
+                if (split != selected) onSelected(split);
+              },
               border: split == selected ? AppColors.primary : null,
               color: split == selected
                   ? AppColors.primary.withValues(alpha: 0.08)
@@ -96,6 +99,7 @@ class SessionEditorList extends StatelessWidget {
     required this.setup,
     required this.goal,
     required this.onChanged,
+    this.flagEmpty = false,
   });
 
   final TrainingSetup setup;
@@ -103,6 +107,11 @@ class SessionEditorList extends StatelessWidget {
   /// For the equipment filter and the default prescription of new slots.
   final Goal goal;
   final ValueChanged<TrainingSetup> onChanged;
+
+  /// Marks sessions with nothing to train as errors — after a save was
+  /// refused for them. Before that, an empty session is just work in
+  /// progress.
+  final bool flagEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +124,7 @@ class SessionEditorList extends StatelessWidget {
               index: i,
               session: setup.sessions[i],
               goal: goal,
+              flagEmpty: flagEmpty,
               onChanged: (SessionPlan session) =>
                   onChanged(setup.withSession(i, session)),
             ),
@@ -129,12 +139,14 @@ class _SessionCard extends StatelessWidget {
     required this.index,
     required this.session,
     required this.goal,
+    required this.flagEmpty,
     required this.onChanged,
   });
 
   final int index;
   final SessionPlan session;
   final Goal goal;
+  final bool flagEmpty;
   final ValueChanged<SessionPlan> onChanged;
 
   void _replace(int slotIndex, ExerciseSlot? slot) {
@@ -147,12 +159,14 @@ class _SessionCard extends StatelessWidget {
     onChanged(session.copyWith(exercises: next));
   }
 
-  void _move(int slotIndex, int delta) {
+  /// Moves the exercise at [slotIndex] by [delta], as [edited] when the
+  /// sheet carried changes — moving must not undo what was just set.
+  void _move(int slotIndex, int delta, ExerciseSlot? edited) {
     final int target = slotIndex + delta;
     if (target < 0 || target >= session.exercises.length) return;
     final List<ExerciseSlot> next = session.exercises.toList();
     final ExerciseSlot moved = next.removeAt(slotIndex);
-    next.insert(target, moved);
+    next.insert(target, edited ?? moved);
     onChanged(session.copyWith(exercises: next));
   }
 
@@ -172,7 +186,10 @@ class _SessionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
+    final bool flagged = flagEmpty && !session.isTrainable;
     return AppCard(
+      key: Key('session-$index'),
+      border: flagged ? AppColors.danger : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -208,10 +225,9 @@ class _SessionCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
               child: Text(
                 l10n.editorSessionEmpty,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: AppColors.textTertiary),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color:
+                        flagged ? AppColors.danger : AppColors.textTertiary),
               ),
             ),
           for (int i = 0; i < session.exercises.length; i++)
@@ -236,9 +252,9 @@ class _SessionCard extends StatelessWidget {
                   case _SlotAction.remove:
                     _replace(i, null);
                   case _SlotAction.moveUp:
-                    _move(i, -1);
+                    _move(i, -1, edit.slot);
                   case _SlotAction.moveDown:
-                    _move(i, 1);
+                    _move(i, 1, edit.slot);
                 }
               },
             ),
@@ -434,36 +450,50 @@ class _SlotSheetState extends State<_SlotSheet> {
               Row(
                 children: <Widget>[
                   IconButton(
+                    key: const Key('slot-move-up'),
                     tooltip: l10n.editorMoveUp,
                     onPressed: widget.canMoveUp
                         ? () => Navigator.of(context)
-                            .pop(const _SlotEdit(_SlotAction.moveUp))
+                            .pop(_SlotEdit(_SlotAction.moveUp, _slot))
                         : null,
                     icon: const Icon(Icons.arrow_upward),
                   ),
                   IconButton(
+                    key: const Key('slot-move-down'),
                     tooltip: l10n.editorMoveDown,
                     onPressed: widget.canMoveDown
                         ? () => Navigator.of(context)
-                            .pop(const _SlotEdit(_SlotAction.moveDown))
+                            .pop(_SlotEdit(_SlotAction.moveDown, _slot))
                         : null,
                     icon: const Icon(Icons.arrow_downward),
                   ),
-                  const Spacer(),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                        foregroundColor: AppColors.danger),
-                    onPressed: () => Navigator.of(context)
-                        .pop(const _SlotEdit(_SlotAction.remove)),
-                    child: Text(l10n.actionRemove),
-                  ),
                   const SizedBox(width: AppSpacing.sm),
-                  FilledButton(
-                    style: FilledButton.styleFrom(
-                        minimumSize: const Size(100, 44)),
-                    onPressed: () => Navigator.of(context)
-                        .pop(_SlotEdit(_SlotAction.update, _slot)),
-                    child: Text(l10n.actionSave),
+                  // Stacks the two buttons when large text leaves no room
+                  // for them beside the arrows.
+                  Expanded(
+                    child: OverflowBar(
+                      alignment: MainAxisAlignment.end,
+                      overflowAlignment: OverflowBarAlignment.end,
+                      spacing: AppSpacing.sm,
+                      overflowSpacing: AppSpacing.xs,
+                      children: <Widget>[
+                        TextButton(
+                          style: TextButton.styleFrom(
+                              foregroundColor: AppColors.danger),
+                          onPressed: () => Navigator.of(context)
+                              .pop(const _SlotEdit(_SlotAction.remove)),
+                          child: Text(l10n.actionRemove),
+                        ),
+                        FilledButton(
+                          key: const Key('slot-save'),
+                          style: FilledButton.styleFrom(
+                              minimumSize: const Size(100, 44)),
+                          onPressed: () => Navigator.of(context)
+                              .pop(_SlotEdit(_SlotAction.update, _slot)),
+                          child: Text(l10n.actionSave),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

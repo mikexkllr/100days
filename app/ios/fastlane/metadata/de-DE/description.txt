@@ -6,7 +6,6 @@ TÄGLICHE CHECK-INS
 • Deine Gewohnheiten für heute auf einem Bildschirm, abgehakt mit Gedrückthalten
 • Streak, XP und Level, Meilensteine an Tag 1, 3, 7, 14, 30 …
 • Pausentage und Freezes, damit ein schlechter Tag nicht alles beendet
-• Ein Widget mit deinem Streak für den Homescreen
 
 MIT FREUNDEN
 • Finde Freunde über deine Kontakte, per Benutzername, Link oder QR-Code

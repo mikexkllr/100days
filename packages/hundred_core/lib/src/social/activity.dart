@@ -106,112 +106,145 @@ List<ActivityItem> buildActivityFeed(
 }) {
   final items = <ActivityItem>[];
 
+  // A check-in taken back with an undo is a correction, not news: neither
+  // the tick nor its correction belongs on the timeline.
+  final undoneUntil = <String, DateTime>{};
   for (final event in events) {
-    if (event.visibility == EventVisibility.private) continue;
-    final profile = profiles[event.author];
-    final name = profile?.displayName ?? '';
-    final emoji = profile?.avatarEmoji ?? '🙂';
-    final isOwn = event.author == selfId;
-
-    switch (event.type) {
-      case FeedEventType.checkIn:
-        final checkIn = CheckIn.fromPayload(
-          event.payload,
-          loggedAt: event.loggedAt,
-          eventId: event.id,
-        );
-        items.add(ActivityItem(
-          eventId: event.id,
-          author: event.author,
-          authorName: name,
-          authorEmoji: emoji,
-          timestamp: event.timestamp,
-          emoji: habitDefinition(checkIn.category).emoji,
-          kind: checkIn.relapse ? ActivityKind.relapse : ActivityKind.checkIn,
-          category: checkIn.category,
-          claimedDay: checkIn.day,
-          streakAtTime: (event.payload['streak'] as num?)?.toInt(),
-          note: checkIn.note,
-          isVerifiedLive: checkIn.isLive,
-          isOwn: isOwn,
-        ));
-
-      case FeedEventType.challengeStarted:
-        items.add(ActivityItem(
-          eventId: event.id,
-          author: event.author,
-          authorName: name,
-          authorEmoji: emoji,
-          timestamp: event.timestamp,
-          emoji: '🚀',
-          kind: ActivityKind.start,
-          statement: event.payload['statement'] as String?,
-          isVerifiedLive: true,
-          isOwn: isOwn,
-        ));
-
-      case FeedEventType.challengeAscended:
-        items.add(ActivityItem(
-          eventId: event.id,
-          author: event.author,
-          authorName: name,
-          authorEmoji: emoji,
-          timestamp: event.timestamp,
-          emoji: '👑',
-          kind: ActivityKind.ascend,
-          tierIndex: (event.payload['cycle'] as num?)?.toInt(),
-          isVerifiedLive: true,
-          isOwn: isOwn,
-        ));
-
-      case FeedEventType.nudge:
-      case FeedEventType.cheer:
-        final target = event.payload['target'] as String?;
-        if (target != selfId && !isOwn) continue;
-        final isNudge = event.type == FeedEventType.nudge;
-        items.add(ActivityItem(
-          eventId: event.id,
-          author: event.author,
-          authorName: name,
-          authorEmoji: emoji,
-          timestamp: event.timestamp,
-          emoji: isNudge ? '👀' : '🔥',
-          kind: isNudge ? ActivityKind.nudge : ActivityKind.cheer,
-          message: event.payload['text'] as String?,
-          targetName: profiles[target]?.displayName,
-          isVerifiedLive: true,
-          isOwn: isOwn,
-        ));
-
-      case FeedEventType.workoutLogged:
-        final log = WorkoutLog.fromPayload(
-          event.payload,
-          loggedAt: event.timestamp,
-        );
-        items.add(ActivityItem(
-          eventId: event.id,
-          author: event.author,
-          authorName: name,
-          authorEmoji: emoji,
-          timestamp: event.timestamp,
-          emoji: '🏋️',
-          kind: ActivityKind.workout,
-          claimedDay: log.day,
-          workoutKind: log.kind,
-          workoutSets: log.totalSets,
-          workoutVolumeKg: log.volumeKg,
-          isVerifiedLive: DayKey.fromDateTime(event.loggedAt) == log.day,
-          isOwn: isOwn,
-        ));
-
-      // Not timeline material: settings, edits and the food diary (which a
-      // friend's device never receives anyway: it is private).
-      default:
-        continue;
+    if (event.type != FeedEventType.checkIn) continue;
+    if (event.payload['undo'] != true) continue;
+    final key = '${event.author}|${event.payload['habitId']}|'
+        '${event.payload['day']}';
+    final previous = undoneUntil[key];
+    if (previous == null || event.timestamp.isAfter(previous)) {
+      undoneUntil[key] = event.timestamp;
     }
   }
 
-  items.sort((ActivityItem a, ActivityItem b) =>
-      b.timestamp.compareTo(a.timestamp));
+  for (final event in events) {
+    if (event.visibility == EventVisibility.private) continue;
+    try {
+      _addActivity(items, event, profiles, selfId, undoneUntil);
+    } on Object {
+      // Written by a newer app version, or malformed: skipped, not fatal.
+      continue;
+    }
+  }
+
+  items.sort(
+      (ActivityItem a, ActivityItem b) => b.timestamp.compareTo(a.timestamp));
   return items.take(limit).toList();
+}
+
+void _addActivity(
+  List<ActivityItem> items,
+  FeedEvent event,
+  Map<String, PeerProfile> profiles,
+  String selfId,
+  Map<String, DateTime> undoneUntil,
+) {
+  final profile = profiles[event.author];
+  final name = profile?.displayName ?? '';
+  final emoji = profile?.avatarEmoji ?? '🙂';
+  final isOwn = event.author == selfId;
+
+  switch (event.type) {
+    case FeedEventType.checkIn:
+      if (event.payload['undo'] == true) return;
+      final checkIn = CheckIn.fromPayload(
+        event.payload,
+        loggedAt: event.loggedAt,
+        eventId: event.id,
+      );
+      final undoneAt =
+          undoneUntil['${event.author}|${checkIn.habitId}|${checkIn.day}'];
+      if (undoneAt != null && !event.timestamp.isAfter(undoneAt)) return;
+      items.add(ActivityItem(
+        eventId: event.id,
+        author: event.author,
+        authorName: name,
+        authorEmoji: emoji,
+        timestamp: event.timestamp,
+        emoji: habitDefinition(checkIn.category).emoji,
+        kind: checkIn.relapse ? ActivityKind.relapse : ActivityKind.checkIn,
+        category: checkIn.category,
+        claimedDay: checkIn.day,
+        streakAtTime: (event.payload['streak'] as num?)?.toInt(),
+        note: checkIn.note,
+        isVerifiedLive: checkIn.isLive,
+        isOwn: isOwn,
+      ));
+
+    case FeedEventType.challengeStarted:
+      items.add(ActivityItem(
+        eventId: event.id,
+        author: event.author,
+        authorName: name,
+        authorEmoji: emoji,
+        timestamp: event.timestamp,
+        emoji: '🚀',
+        kind: ActivityKind.start,
+        statement: event.payload['statement'] as String?,
+        isVerifiedLive: true,
+        isOwn: isOwn,
+      ));
+
+    case FeedEventType.challengeAscended:
+      items.add(ActivityItem(
+        eventId: event.id,
+        author: event.author,
+        authorName: name,
+        authorEmoji: emoji,
+        timestamp: event.timestamp,
+        emoji: '👑',
+        kind: ActivityKind.ascend,
+        tierIndex: (event.payload['cycle'] as num?)?.toInt(),
+        isVerifiedLive: true,
+        isOwn: isOwn,
+      ));
+
+    case FeedEventType.nudge:
+    case FeedEventType.cheer:
+      final target = event.payload['target'] as String?;
+      if (target != selfId && !isOwn) return;
+      final isNudge = event.type == FeedEventType.nudge;
+      items.add(ActivityItem(
+        eventId: event.id,
+        author: event.author,
+        authorName: name,
+        authorEmoji: emoji,
+        timestamp: event.timestamp,
+        emoji: isNudge ? '👀' : '🔥',
+        kind: isNudge ? ActivityKind.nudge : ActivityKind.cheer,
+        message: event.payload['text'] as String?,
+        targetName: profiles[target]?.displayName,
+        isVerifiedLive: true,
+        isOwn: isOwn,
+      ));
+
+    case FeedEventType.workoutLogged:
+      final log = WorkoutLog.fromPayload(
+        event.payload,
+        loggedAt: event.timestamp,
+      );
+      items.add(ActivityItem(
+        eventId: event.id,
+        author: event.author,
+        authorName: name,
+        authorEmoji: emoji,
+        timestamp: event.timestamp,
+        emoji: '🏋️',
+        kind: ActivityKind.workout,
+        claimedDay: log.day,
+        workoutKind: log.kind,
+        workoutSets: log.totalSets,
+        workoutVolumeKg: log.volumeKg,
+        isVerifiedLive: DayKey.fromDateTime(event.loggedAt) == log.day,
+        isOwn: isOwn,
+      ));
+
+    // Not timeline material: settings, edits and the food diary (which a
+    // friend's device never receives anyway: it is private).
+    default:
+      return;
+  }
 }

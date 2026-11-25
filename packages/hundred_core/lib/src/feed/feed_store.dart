@@ -27,13 +27,26 @@ abstract class FeedStore {
   /// Events of [author] that the server has not confirmed yet, oldest first.
   Future<List<FeedEvent>> pending(String author);
 
-  /// The highest server sequence number stored — where the next pull starts.
+  /// Where the next pull starts: the highest server sequence number a pull
+  /// has fetched up to. Not the highest one stored — the user's own pushed
+  /// events, live inserts and a new friend's history all carry numbers far
+  /// above rows no pull has fetched yet.
   Future<int> cursor();
+
+  /// Moves the pull cursor. Only a completed pull page does this.
+  Future<void> setCursor(int serverSeq);
+
+  /// A small key–value side table for what belongs to this cache but is not
+  /// an event: whose cache it is, the last known friend list. Cleared with
+  /// [clear].
+  Future<String?> meta(String key);
+
+  Future<void> setMeta(String key, String? value);
 
   /// Forgets everything of [author], e.g. after a friendship ended.
   Future<void> removeAuthor(String author);
 
-  /// Forgets everything, e.g. on sign-out.
+  /// Forgets everything, e.g. on sign-out — the cursor and [meta] included.
   Future<void> clear();
 
   /// Emits every event as it lands, whether written here or pulled in.
@@ -44,6 +57,8 @@ abstract class FeedStore {
 
 class MemoryFeedStore implements FeedStore {
   final Map<String, FeedEvent> _events = <String, FeedEvent>{};
+  final Map<String, String> _meta = <String, String>{};
+  int _cursor = 0;
   final StreamController<FeedEvent> _controller =
       StreamController<FeedEvent>.broadcast();
 
@@ -91,17 +106,33 @@ class MemoryFeedStore implements FeedStore {
     ..sort(compareEvents);
 
   @override
-  Future<int> cursor() async => _events.values.fold<int>(
-      0,
-      (int best, FeedEvent e) =>
-          (e.serverSeq ?? 0) > best ? e.serverSeq! : best);
+  Future<int> cursor() async => _cursor;
+
+  @override
+  Future<void> setCursor(int serverSeq) async => _cursor = serverSeq;
+
+  @override
+  Future<String?> meta(String key) async => _meta[key];
+
+  @override
+  Future<void> setMeta(String key, String? value) async {
+    if (value == null) {
+      _meta.remove(key);
+    } else {
+      _meta[key] = value;
+    }
+  }
 
   @override
   Future<void> removeAuthor(String author) async =>
       _events.removeWhere((String _, FeedEvent e) => e.author == author);
 
   @override
-  Future<void> clear() async => _events.clear();
+  Future<void> clear() async {
+    _events.clear();
+    _meta.clear();
+    _cursor = 0;
+  }
 
   @override
   Future<void> close() async {

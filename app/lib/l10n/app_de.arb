@@ -16,6 +16,8 @@
   "addMealIdeas": "IDEEN",
   "addMealKcal": "kcal pro Portion (optional)",
   "addMealTitle": "Was gibt's?",
+  "addMealTitleMissing": "Gib der Mahlzeit einen Namen — oder tipp eine der Ideen an.",
+  "addMealToDiary": "Schon gegessen? Ins Tagebuch — ein Foto reicht",
   "adviceCutScope": "Du triffst nur {percent} % deiner Tage. Nimm eine Gewohnheit raus statt weiter zu scheitern — drei sichere Tage schlagen fünf geplante.",
   "@adviceCutScope": {
     "placeholders": {
@@ -246,7 +248,7 @@
       }
     }
   },
-  "coachBadgeLlm": "on-device KI",
+  "coachBadgeLlm": "KI",
   "coachBadgeRule": "Coach",
   "coachCelebrateGeneric": "{day} Tage am Stück. Das ist der Beweis, nicht das Gefühl.",
   "@coachCelebrateGeneric": {
@@ -794,7 +796,17 @@
   "foodManualFat": "Fett in g (optional)",
   "foodManualGrams": "Menge in g (optional)",
   "foodManualKcal": "Kalorien (kcal)",
+  "foodManualKcalFromMacros": "≈ {kcal} kcal aus den Makros unten",
+  "@foodManualKcalFromMacros": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "foodManualKcalMissing": "Ohne Kalorien geht es nicht. Nicht sicher? Ein Foto oder ein Satz, und sie werden geschätzt.",
   "foodManualName": "Name",
+  "foodManualNameMissing": "Was war es?",
   "foodManualProtein": "Eiweiß in g (optional)",
   "foodNotRecognised": "Nicht erkannt: {items}. Lass sie von der KI schätzen, such sie oder trag sie manuell ein.",
   "foodPer100": "{kcal} kcal · {protein} g E · {carbs} g K · {fat} g F pro 100 g",
@@ -859,10 +871,13 @@
   "friendsRequestsTitle": "Freundschaftsanfragen",
   "friendsScan": "Scannen",
   "friendsYourPeople": "Deine Leute",
-  "globalLeagueEmpty": "Deine Liga-Gruppe beginnt mit deinem ersten Check-in diese Woche: bis zu 30 Leute deiner Division, die Besten steigen am Montag auf.",
+  "globalLeagueEmpty": "Diese Woche noch keine Gruppe. Sobald dein Handy deine XP gemeldet hat, kommst du zu bis zu 30 Leuten deiner Division. Am Montag schließt die Woche: Die Besten steigen auf, ab fünf Leuten steigen die Letzten ab.",
   "globalLeagueHonesty": "Die XP von Fremden meldet deren Handy, pro Tag gedeckelt. Unter Freunden rechnet jedes Handy die XP aus den geteilten Check-ins nach.",
   "globalLeagueSection": "Liga dieser Woche",
-  "globalLeagueSub": "{size} Leute · Top {up} steigen auf, letzte {down} ab",
+  "globalLeagueSize": "{size, plural, =1{Bisher nur du} other{{size} Leute}}",
+  "globalLeagueMovesNone": "sobald jemand dazukommt, steigt am Montag die Nummer 1 auf",
+  "globalLeagueMovesUp": "am Montag {up, plural, =1{steigt die Nummer 1 auf} other{steigen die Top {up} auf}}",
+  "globalLeagueMoves": "am Montag steigen die Top {up} auf, {down, plural, =1{der letzte Platz steigt ab} other{die letzten {down} steigen ab}}",
   "globalLeagueXp": "{xp} XP",
   "goalBuildMuscle": "Muskeln aufbauen",
   "goalBuildMusclePitch": "Schwerer werden, stärker werden. Plan, Protein, Progression.",
@@ -1169,7 +1184,7 @@
   "leagueActiveToday": "Heute schon aktiv",
   "leagueBronze": "Bronze",
   "leagueDiamond": "Diamant",
-  "leagueFooter": "Hier treten nur Freunde an, die du selbst verbunden hast — keine Fremden. XP gibt es pro Check-in, skaliert mit Schwierigkeit und Streak; getrackte Trainings und Tagebuch-Tage zählen extra. Am Sonntag steigen die oberen Plätze auf, die unteren ab.",
+  "leagueFooter": "Hier treten nur Freunde an, die du selbst verbunden hast — keine Fremden. XP gibt es pro Check-in, skaliert mit Schwierigkeit und Streak; getrackte Trainings und Tagebuch-Tage zählen extra. Jeden Montag beginnt die Wertung von vorn. Unter Freunden steigt niemand auf oder ab: Die Farben markieren nur Spitze und Ende der Woche, deine Liga ergibt sich aus allen XP, die du je gesammelt hast.",
   "leagueGold": "Gold",
   "leagueNothingToday": "Heute noch nichts",
   "leagueObsidian": "Obsidian",
@@ -1215,8 +1230,6 @@
   "loggerAdviceHold": "Gewicht halten — jeden Satz in den Bereich bringen",
   "loggerAdviceReduce": "Zweimal verfehlt — zurück auf {weight} kg und neu aufbauen",
   "loggerDiscard": "Verwerfen",
-  "loggerDiscardBody": "Die eingetragenen Sätze gehen verloren.",
-  "loggerDiscardTitle": "Training verwerfen?",
   "loggerFinish": "Training abschließen",
   "loggerFinishNoSets": "Hake zuerst mindestens einen Satz ab.",
   "loggerIntro": "Trag jeden Satz ein. Beim nächsten Mal sagt dir die App, was du schlagen musst: mehr Wiederholungen beim gleichen Gewicht, dann mehr Gewicht.",
@@ -1422,9 +1435,9 @@
   "muscleShoulders": "Schultern",
   "muscleTriceps": "Trizeps",
   "navFriends": "Freunde",
-  "navMore": "Mehr",
+  "navMore": "Profil",
   "navPlan": "Plan",
-  "navSettingsTitle": "Einstellungen",
+  "navSettingsTitle": "Profil & Einstellungen",
   "navStats": "Zahlen",
   "navToday": "Heute",
   "notifChannelPressure": "Freunde & Streak-Warnungen",
@@ -1804,7 +1817,7 @@
     }
   },
   "planProtein": "Protein",
-  "planTabAbstinence": "Clean bleiben",
+  "planTabAbstinence": "Clean",
   "planTabMeals": "Essensplan",
   "planTabShopping": "Einkauf",
   "planTabTraining": "Training",
@@ -2175,7 +2188,7 @@
   "setSignOutBody": "Alles ist in deinem Konto gespeichert und wieder da, sobald du dich neu anmeldest. Dieses Handy vergisst es bis dahin.",
   "setSignOutSub": "Deine Daten bleiben in deinem Konto.",
   "setStreakMode": "Wie streng ist dein Streak?",
-  "setStreakModeNote": "Gilt ab heute. Vergangene Tage bleiben so gezählt, wie sie gezählt wurden. Deine Freunde zählen deinen Streak nach demselben Modus.",
+  "setStreakModeNote": "Eine Änderung gilt ab morgen. Heute und vergangene Tage bleiben so gezählt, wie sie gezählt wurden. Deine Freunde zählen deinen Streak nach demselben Modus.",
   "setStreakModeSection": "Streak",
   "setSyncDone": "Aktuell · {sent} gesendet, {received} empfangen",
   "setSyncNever": "Noch nicht synchronisiert.",
@@ -2537,5 +2550,510 @@
   "workoutStart": "Training starten",
   "workoutUpper": "Oberkörper",
   "workoutUpperFocus": "Druck und Zug",
-  "workoutWorkingSets": "Arbeitssätze"
+  "workoutWorkingSets": "Arbeitssätze",
+  "gateLoadingAccount": "Deine Challenge wird geladen …",
+  "gateLoadingAccountSlow": "Das dauert gerade. Ohne Verbindung kann deine Challenge noch nicht auf dieses Handy geladen werden.",
+  "gateErrorTitle": "Funki ist über etwas gestolpert.",
+  "setSignOutUnsentTitle": "Noch nicht alles ist gesendet",
+  "setSignOutUnsentBody": "{count, plural, =1{1 Eintrag von diesem Handy ist noch nicht beim Server angekommen.} other{{count} Einträge von diesem Handy sind noch nicht beim Server angekommen.}} Meldest du dich jetzt ab, ist er weg. Geh online und versuch es noch mal, oder melde dich trotzdem ab.",
+  "@setSignOutUnsentBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "setSignOutAnyway": "Trotzdem abmelden",
+  "setDeletingAccount": "Dein Konto wird gelöscht …",
+  "setDeleteAccountAppleNote": "Apple fragt noch einmal nach, damit der Zugriff der App auf deine Apple-ID widerrufen werden kann.",
+  "remindCardTitle": "Soll Funki dich erinnern?",
+  "remindCardBody": "Eine Erinnerung am Abend, solange heute offen ist, eine Warnung, wenn dein Streak auf der Kippe steht, und ein Ping, wenn dich jemand anstupst. Sonst nichts.",
+  "remindCardYes": "Ja, erinnere mich",
+  "remindCardLater": "Jetzt nicht",
+  "remindTitle": "Erinnerungen",
+  "remindRowSub": "Täglich um {time}",
+  "@remindRowSub": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "remindRowOff": "Aus",
+  "remindDaily": "Tägliche Erinnerung",
+  "remindDailySub": "Nur an Tagen, die noch offen sind — nie, wenn du schon fertig bist.",
+  "remindTime": "Uhrzeit",
+  "remindWarning": "Streak-Warnung",
+  "remindWarningSub": "Am späten Abend, wenn ein Streak ab drei Tagen um Mitternacht enden würde.",
+  "remindBlocked": "Benachrichtigungen sind für diese App ausgeschaltet.",
+  "remindAllow": "Benachrichtigungen erlauben",
+  "remindBlockedHint": "Passiert nichts, schalte sie in den Einstellungen deines Handys unter 100 Tage ein.",
+  "aiPurchaseRetryLater": "Bezahlt, aber der Server konnte es noch nicht bestätigen. Die App versucht es beim nächsten Start erneut — oder tipp auf „Kauf wiederherstellen“, sobald du online bist.",
+  "aiRestoreNothing": "Auf diesem Store-Konto wurde kein Abo zum Wiederherstellen gefunden.",
+  "aiRestoreFailed": "Wiederherstellen hat nicht geklappt. Prüf deine Verbindung und versuch es noch mal.",
+  "aiRestoring": "Deine Käufe werden geprüft …",
+  "tileHoldLonger": "Halten, bis es voll ist",
+  "tileHoldTip": "Tipp: Die Zeile gedrückt halten geht schneller.",
+  "tileUndo": "Rückgängig",
+  "tileMoreSemantics": "Mehr zu {habit}",
+  "@tileMoreSemantics": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "tileUndone": "Zurückgenommen.",
+  "homeFreezeConfirmTitle": "Heute einfrieren?",
+  "homeFreezeConfirmBody": "Dein Streak übersteht heute, ohne zu wachsen. {left, plural, =1{Das ist dein letzter Freeze in diesem Zyklus.} other{Danach hast du noch {left} Freezes in diesem Zyklus.}} Das lässt sich nicht zurücknehmen.",
+  "@homeFreezeConfirmBody": {
+    "placeholders": {
+      "left": {
+        "type": "int"
+      }
+    }
+  },
+  "homeYesterdayTitle": "Gestern ist durchgerutscht",
+  "homeYesterdayBodyFreeze": "Dein Streak von {streak} Tagen ist um Mitternacht gerissen. Gemacht, aber vergessen abzuhaken? Trag es jetzt nach. Oder rette den Streak mit einem Freeze (noch {left}).",
+  "@homeYesterdayBodyFreeze": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      },
+      "left": {
+        "type": "int"
+      }
+    }
+  },
+  "homeYesterdayBody": "Dein Streak von {streak} Tagen ist um Mitternacht gerissen. Gemacht, aber vergessen abzuhaken? Trag es jetzt nach — es wird als nachgetragen angezeigt.",
+  "@homeYesterdayBody": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "homeYesterdayLog": "Gestern nachtragen",
+  "homeYesterdayFreeze": "Freeze einsetzen",
+  "dayLogLate": "Nachtragen",
+  "dayLogLateNote": "Nachtragen geht nur für gestern. Deine Freunde sehen, dass es nachgetragen ist.",
+  "dayOpenDiary": "Mahlzeiten",
+  "dayOverNote": "Dieser Tag ist vorbei. Nachtragen geht nur für gestern.",
+  "profileEditTitle": "Dein Profil",
+  "profileEditSub": "Name und Gesicht — was Freunde in Anfragen, im Feed und in der Liga sehen.",
+  "profileSave": "Speichern",
+  "profileSaved": "Profil gespeichert.",
+  "profileStatement": "Dein Ziel in einem Satz",
+  "stageDaysLeft": "{days, plural, =1{Noch 1 Tag} other{Noch {days} Tage}}",
+  "@stageDaysLeft": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "statsWeekLabel": "KW {week}",
+  "@statsWeekLabel": {
+    "placeholders": {
+      "week": {
+        "type": "String"
+      }
+    }
+  },
+  "habitsEditTitle": "Deine Gewohnheiten",
+  "habitsEditSub": "Ändere ein Ziel, wie oft, oder nimm eine Gewohnheit raus. Vergangene Tage bleiben so gezählt, wie sie gezählt wurden.",
+  "habitsEditRow": "Gewohnheiten",
+  "habitsEditRowSub": "{count, plural, =1{1 Gewohnheit} other{{count} Gewohnheiten}} — hinzufügen, ändern, rausnehmen",
+  "@habitsEditRowSub": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "habitsDaysPerWeek": "{days, plural, =1{1 Tag pro Woche} other{{days} Tage pro Woche}}",
+  "@habitsDaysPerWeek": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "habitsRemove": "Rausnehmen",
+  "habitsRemoveTitle": "{habit} rausnehmen?",
+  "@habitsRemoveTitle": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "habitsRemoveBody": "Ab morgen zählt sie nicht mehr. Die Tage, an denen sie dabei war, bleiben, wie sie waren.",
+  "habitsAdd": "Gewohnheit hinzufügen",
+  "habitsAddCustom": "Eigene …",
+  "habitsCustomName": "Was ist es?",
+  "habitsSave": "Änderungen speichern",
+  "habitsSaved": "Gewohnheiten gespeichert.",
+  "habitsFromTomorrow": "Heute ist schon geschafft, darum zählt das ab morgen.",
+  "habitsTrainingNote": "Trainingstage richten sich nach deinem Trainingsplan.",
+  "habitsKeepOne": "Mindestens eine Gewohnheit muss bleiben.",
+  "setStreakModeConfirmTitle": "Auf {mode} umstellen?",
+  "@setStreakModeConfirmTitle": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "setStreakModeConfirmBody": "Ab morgen. Heute und alle Tage davor bleiben in dem Modus gezählt, in dem sie gezählt werden.",
+  "setStreakModeTomorrow": "Ab morgen umstellen",
+  "setStreakModePending": "Wechselt morgen auf {mode}.",
+  "@setStreakModePending": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "setAppSection": "App",
+  "setTapToCheckIn": "Tippen statt Halten",
+  "setTapToCheckInSub": "Ein Tippen hakt eine Gewohnheit ab. Für alle, die nicht lange drücken können oder wollen.",
+  "setSound": "Töne",
+  "setSoundSub": "Knistern, Zünden und die Slot-Machine. Im Lautlos-Modus bleibt es still.",
+  "setRestart": "Neu starten ab Tag 1",
+  "setRestartSub": "Gleiche Gewohnheiten, ein neuer Tag 1. Deine Historie bleibt in deinem Feed.",
+  "setRestartTitle": "Ab Tag 1 neu starten?",
+  "setRestartBody": "Dein Streak, deine Flamme und das Board fangen heute neu an. Deine Freunde sehen den Neustart. Das lässt sich nicht rückgängig machen.",
+  "setRestartConfirm": "Neu starten",
+  "setServerInfo": "Server: {server}",
+  "@setServerInfo": {
+    "placeholders": {
+      "server": {
+        "type": "String"
+      }
+    }
+  },
+  "habitsEveryDay": "Jeden Tag",
+  "loginModeSignIn": "Anmelden",
+  "loginModeRegister": "Neues Konto",
+  "loginPasswordRepeat": "Passwort wiederholen",
+  "loginPasswordMismatch": "Die beiden Passwörter sind nicht gleich.",
+  "loginShowPassword": "Passwort zeigen",
+  "loginHidePassword": "Passwort verbergen",
+  "loginForgot": "Passwort vergessen?",
+  "loginForgotNeedsEmail": "Gib zuerst deine E-Mail-Adresse ein.",
+  "loginForgotSent": "Wenn es ein Konto für {email} gibt, ist ein Link zum Setzen eines neuen Passworts unterwegs.",
+  "@loginForgotSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "loginNewPasswordTitle": "Neues Passwort setzen",
+  "loginNewPasswordSave": "Passwort speichern",
+  "loginNewPasswordSaved": "Dein neues Passwort ist gesetzt.",
+  "celebrateEvolving": "Funki verwandelt sich …",
+  "celebrateEvolved": "{stage}!",
+  "@celebrateEvolved": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  },
+  "shareCardStreak": "{streak, plural, =1{Tag Streak} other{Tage Streak}}",
+  "@shareCardStreak": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "shareCardDay": "Tag {day} meiner Challenge",
+  "@shareCardDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "ascendTitle": "Zyklus geschafft",
+  "ascendNext": "Willkommen in {tier}",
+  "@ascendNext": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "ascendBody": "Streak, Flamme und Historie kommen mit. Die nächsten hundert Tage beginnen jetzt.",
+  "ascendGo": "Ab in den nächsten Zyklus",
+  "lossTitle": "Dein Streak von {streak} Tagen ist ausgegangen.",
+  "@lossTitle": {
+    "placeholders": {
+      "streak": {
+        "type": "int"
+      }
+    }
+  },
+  "lossFunki": "Ich glühe noch. Puste mich an.",
+  "lossBody": "{stars, plural, =1{Dein Stern bleibt} other{Deine {stars} Sterne bleiben}} an deinem Himmel — nichts davon ist verloren. Der Unterschied zwischen einem Ausrutscher und einem Abbruch ist, was du in den nächsten 24 Stunden machst.",
+  "@lossBody": {
+    "placeholders": {
+      "stars": {
+        "type": "int"
+      }
+    }
+  },
+  "lossRelight": "Zünd mich wieder an",
+  "actionUndo": "Rückgängig",
+  "aiAllowanceUsedUp": "Dein KI-Kontingent für diesen Monat ist aufgebraucht. Mit Premium oder deinem eigenen API-Key geht es sofort weiter.",
+  "aiBadgeCloud": "Cloud-KI",
+  "aiRateLimited": "Gerade zu viele KI-Anfragen auf einmal. Warte eine Minute und versuch es dann noch einmal.",
+  "aiUnreachable": "Die KI war nicht erreichbar — du scheinst offline zu sein, oder es hat zu lange gedauert. Versuch es gleich noch einmal.",
+  "diaryCountOnTarget": "Jetzt im Ziel — mit Plan-Bonus zählen",
+  "diaryEntryRemoved": "{name} aus dem Tagebuch genommen",
+  "@diaryEntryRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryOffTargetOver": "Du liegst {kcal} kcal über deinem Ziel. Du kannst den Tag trotzdem abhaken — nur ohne Plan-Bonus.",
+  "@diaryOffTargetOver": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryOffTargetUnder": "Du liegst {kcal} kcal unter deinem Ziel. Du kannst den Tag trotzdem abhaken — nur ohne Plan-Bonus.",
+  "@diaryOffTargetUnder": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "foodEditHint": "Eine neue Menge rechnet die Kalorien mit. Stimmt die Schätzung nicht, korrigier die Kalorien.",
+  "foodEditTooltip": "Menge oder Kalorien ändern",
+  "foodPhotoNoCamera": "Kein Zugriff auf die Kamera. Erlaube ihn 100 Days in den Einstellungen deines Handys, oder wähl ein Foto aus der Galerie.",
+  "foodPhotoNoGallery": "Kein Zugriff auf deine Fotos. Erlaube ihn 100 Days in den Einstellungen deines Handys, oder mach ein neues Foto.",
+  "foodPhotoPickFailed": "Kamera oder Galerie ließen sich nicht öffnen. Versuch es noch einmal oder beschreib das Essen.",
+  "foodPhotoUnreadable": "Dieses Foto lässt sich nicht lesen — manche HEIC-Fotos nicht. Mach ein neues oder wähl ein JPEG.",
+  "householdJoinWarning": "Du wechselst den Haushalt: Dein jetziger Plan und deine Liste bleiben, wo sie sind, und du siehst stattdessen die des neuen Haushalts. Du kannst ihn später wieder verlassen.",
+  "householdLeave": "Haushalt verlassen",
+  "householdLeaveBody": "Plan, Rezepte und Listen bleiben bei den anderen. Du fängst mit einem eigenen Haushalt neu an und kannst jederzeit wieder eingeladen werden.",
+  "householdLeaveFailed": "Du konntest den Haushalt nicht verlassen. Prüf deine Verbindung und versuch es noch einmal.",
+  "householdLeaveTitle": "Haushalt verlassen?",
+  "householdLeft": "Du hast den Haushalt verlassen.",
+  "householdLoadFailed": "Der Haushalt konnte nicht geladen werden.",
+  "householdRemoveBody": "Plan und Liste sieht die Person dann nicht mehr. Mit einer Einladung kann sie wieder beitreten.",
+  "householdRemoveTitle": "{name} aus dem Haushalt entfernen?",
+  "@householdRemoveTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "householdSaveFailed": "Nicht gespeichert — prüf deine Verbindung und versuch es noch einmal.",
+  "planMealRemoved": "{title} aus dem Plan genommen",
+  "@planMealRemoved": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "planSaveFailed": "Der Plan konnte nicht gespeichert werden. Dein Entwurf ist noch da — versuch es noch einmal.",
+  "plannerListToppedUp": "Einkaufsliste aus dem Plan ergänzt",
+  "plannerQuotaUsedUp": "Dein KI-Kontingent für diesen Monat ist aufgebraucht, deshalb kann ich gerade nicht mit dir planen. Mit Premium oder deinem eigenen API-Key geht es sofort weiter — oder du planst bis zum 1. von Hand.",
+  "shopCloseEmpty": "Liste schließen",
+  "shopItemRemoved": "{name} von der Liste genommen",
+  "@shopItemRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shopTopUp": "{count, plural, =0{Auf der offenen Liste steht schon alles für diese Tage} =1{1 Zeile zur offenen Liste hinzugefügt} other{{count} Zeilen zur offenen Liste hinzugefügt}}",
+  "@shopTopUp": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loggerAddedLoadHint": "+ kg",
+  "loggerAdviceAddRepsBodyweight": "Eine Wdh. mehr pro Satz",
+  "loggerAdviceBeyondRange": "Jeder Satz am oberen Ende: je eine Wdh. mehr — oder nimm Zusatzgewicht und trag es bei + kg ein",
+  "loggerAdviceDeload": "Deload: leichter mit {weight} kg, und weit vor dem Muskelversagen aufhören",
+  "@loggerAdviceDeload": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "loggerAdviceDeloadBodyweight": "Deload: lockere Wiederholungen, und weit vor dem Muskelversagen aufhören",
+  "loggerAdviceReduceBodyweight": "Zweimal verfehlt — ohne Zusatzgewicht neu aufbauen",
+  "loggerDeloadBody": "Diese Woche weniger Sätze und leichtere Gewichte — mit Absicht. Dein Körper holt die drei Aufbauwochen nach, nächste Woche geht es wieder nach oben.",
+  "loggerDeloadTitle": "Deload-Woche",
+  "loggerKeepForLater": "Für später behalten",
+  "loggerLeaveBody": "Was du eingetragen hast, bleibt auf diesem Handy, bis du abschließt. Öffne das Training heute noch einmal, dann machst du da weiter, wo du warst.",
+  "loggerLeaveTitle": "Training verlassen?",
+  "loggerResume": "Weitermachen",
+  "loggerResumeBody": "Du hast dieses Training um {time} begonnen. {sets, plural, =0{Noch kein Satz abgehakt.} =1{Ein Satz ist abgehakt.} other{{sets} Sätze sind abgehakt.}}",
+  "@loggerResumeBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "sets": {
+        "type": "int"
+      }
+    }
+  },
+  "loggerResumeTitle": "Weitermachen, wo du warst?",
+  "loggerStartOver": "Neu beginnen",
+  "editorDiscard": "Verwerfen",
+  "editorDiscardBody": "Deine Änderungen am Trainingsplan sind noch nicht gespeichert.",
+  "editorDiscardTitle": "Änderungen verwerfen?",
+  "editorPlanOffBody": "Aus: Dein Trainings-Habit ist wieder ein einfacher Haken, ohne die +{percent} % XP eines geloggten Trainings. Deine geloggten Trainings bleiben in deinem Verlauf, und Split und Übungen warten hier, bis du ihn wieder einschaltest.",
+  "@editorPlanOffBody": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "editorPlanOnBody": "Logge jeden Satz: Jedes geloggte Training bringt +{percent} % XP.",
+  "@editorPlanOnBody": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "editorPlanSwitch": "Trainingsplan",
+  "editorPlanSwitchedOff": "Trainingsplan ausgeschaltet — deine Trainings bleiben geloggt",
+  "editorEmptySession": "Jede Einheit braucht mindestens eine Übung — füge dort eine hinzu, wo es markiert ist.",
+  "loggerEmptyBody": "Diese Einheit hat keine Übungen. Füge im Trainingsplan welche hinzu, dann kannst du sie loggen.",
+  "loggerEmptyTitle": "Noch nichts zu loggen",
+  "editDiscardTitle": "Änderungen verwerfen?",
+  "editDiscard": "Verwerfen",
+  "moderationReport": "Melden",
+  "moderationBlock": "Blockieren",
+  "moderationBlockTitle": "{name} blockieren?",
+  "@moderationBlockTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationBlockBody": "Ihr seid dann keine Freunde mehr, offene Anfragen verfallen. Keiner von euch kann den anderen finden, hinzufügen oder einladen, und du siehst {name} nicht mehr in der Liga. {name} erfährt nichts davon.",
+  "@moderationBlockBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationBlocked": "{name} ist blockiert.",
+  "@moderationBlocked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationReportTitle": "{name} melden",
+  "@moderationReportTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationReportBody": "Meldungen liest nur das Team hinter 100 Days. {name} erfährt nichts davon.",
+  "@moderationReportBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moderationReasonSpam": "Spam oder Fake-Konto",
+  "moderationReasonHarassment": "Belästigung oder Mobbing",
+  "moderationReasonInappropriate": "Anstößiger Name oder Emoji",
+  "moderationReasonCheating": "Schummeln in der Liga",
+  "moderationReasonOther": "Etwas anderes",
+  "moderationReportDetails": "Was ist passiert? (optional)",
+  "moderationAlsoBlock": "Auch blockieren",
+  "moderationReportSend": "Meldung senden",
+  "moderationReported": "Danke. Deine Meldung ist angekommen.",
+  "blockedTitle": "Blockiert",
+  "blockedSub": "Sie können dich nicht finden, hinzufügen oder einladen, und du siehst sie nicht in der Liga.",
+  "blockedNone": "Niemand blockiert.",
+  "blockedUnblock": "Freigeben",
+  "blockedUnblocked": "{name} ist freigegeben. Eine Freundschaft kommt nicht von selbst zurück.",
+  "@blockedUnblocked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsSentTitle": "Gesendete Anfragen",
+  "friendsSentSub": "Geteilt wird erst, wenn die andere Seite annimmt.",
+  "friendsSentWithdraw": "Zurückziehen",
+  "friendsSentWithdrawn": "Anfrage an {name} zurückgezogen.",
+  "@friendsSentWithdrawn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "findRequestTooMany": "Für heute reicht's mit Anfragen. Morgen geht's weiter.",
+  "findRequestDeclined": "Die Person hat vor Kurzem abgelehnt. In ein paar Wochen kannst du wieder fragen, oder sie fragt dich.",
+  "findRequestUnavailable": "Diese Person kannst du nicht hinzufügen.",
+  "profileNudgedToday": "Heute angestupst",
+  "scanPasteHint": "z. B. {link}",
+  "@scanPasteHint": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "scanNotAnInvite": "Dieser QR-Code ist keine Einladung für 100 Days.",
+  "feedCheckIns": "{name}: {count, plural, =1{1 Check-in} other{{count} Check-ins}}",
+  "@feedCheckIns": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "campfireTitle": "Am Lagerfeuer",
+  "friendFlameLabel": "{name}: {streak, plural, =1{1 Tag Streak} other{{streak} Tage Streak}}",
+  "@friendFlameLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "streak": {
+        "type": "int"
+      }
+    }
+  }
 }

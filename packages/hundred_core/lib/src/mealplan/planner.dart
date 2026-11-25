@@ -6,8 +6,10 @@ import 'package:meta/meta.dart';
 import '../ai/llm_client.dart';
 import '../feed/event.dart' show newEventId;
 import '../nutrition/foods.dart';
+import '../nutrition/nutrition_assistant.dart' show AiErrorCallback, askModel;
 import '../plan/nutrition.dart';
 import '../util/dates.dart';
+import 'meal_plan.dart';
 import 'recipe.dart';
 
 /// The JSON shape a meal plan proposal asks for. The example carries real
@@ -135,23 +137,52 @@ class MealPlanner {
   final MealPlanPromptBuilder prompts;
   final Duration timeout;
 
-  Future<List<ProposedMeal>?> proposeWeek(MealPlanRequest request) async {
+  /// [onError] hears when the call failed before there was an answer —
+  /// offline, timed out, allowance used up — as opposed to an answer that
+  /// held nothing usable.
+  Future<List<ProposedMeal>?> proposeWeek(
+    MealPlanRequest request, {
+    AiErrorCallback? onError,
+  }) async {
     if (!llm.isReady || request.days.isEmpty || request.slots.isEmpty) return null;
+    final raw = await askModel(
+      () => llm.generate(prompts.proposeWeek(request),
+          purpose: LlmPurpose.plan,
+          maxTokens: 8000,
+          temperature: 0.7,
+          json: true,
+          timeout: timeout),
+      timeout: timeout,
+      onError: onError,
+    );
+    if (raw == null) return null;
     try {
-      final raw = await llm
-          .generate(prompts.proposeWeek(request),
-              purpose: LlmPurpose.plan,
-              maxTokens: 8000,
-              temperature: 0.7,
-              json: true,
-              timeout: timeout)
-          .timeout(timeout);
       final meals = parseMealPlan(raw, request);
       return meals.isEmpty ? null : meals;
     } on Object {
       return null;
     }
   }
+}
+
+/// The titles of the most recently planned dishes, newest first and each
+/// once — what a new plan is asked not to repeat.
+List<String> recentTitles(
+  Iterable<PlanEntry> entries,
+  Map<String, Recipe> recipes, {
+  int limit = 20,
+}) {
+  final newestFirst = entries.toList()
+    ..sort((PlanEntry a, PlanEntry b) => b.day.compareTo(a.day));
+  final seen = <String>{};
+  final titles = <String>[];
+  for (final entry in newestFirst) {
+    final title = recipes[entry.recipeId]?.title.trim();
+    if (title == null || title.isEmpty || !seen.add(title.toLowerCase())) continue;
+    titles.add(title);
+    if (titles.length >= limit) break;
+  }
+  return titles;
 }
 
 /// Reads a proposal and drops every meal that does not hold up: outside the

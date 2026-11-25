@@ -25,7 +25,7 @@ logged late is visibly marked as backfilled.
 **The pressure comes from real people — and only from them.** Not "3 users
 were active today", but: Marcel was at the gym, he is on a 47-day streak, and
 you are still on zero. Find friends by name, username or in your
-address book; nudges and cheers arrive as pushes; a streak you keep together
+address book — and block or report anyone who should not find you; nudges and cheers arrive as pushes; a streak you keep together
 with each friend, a weekly quest you can only finish together. Weekly
 leagues with promotion and relegation — a public one with divisions, and the
 one that bites: among your friends, where losing to your flatmate is a
@@ -68,7 +68,13 @@ Habits are either **build** (do something) or **abstain** (avoid something),
 and that changes how they are counted: a forgotten tap does not kill an
 abstinence streak, but an admitted relapse does — that habit's, and no
 other. How strict the overall streak is, is yours to pick: **gentle**,
-**balanced** or **strict**.
+**balanced** or **strict** (a change applies from tomorrow).
+
+Habits can be added, changed and taken out while the challenge runs: a new
+target or frequency applies from a day on, and the days before keep counting
+by the rules they were counted with. A tick in the wrong row can be taken
+back, a day done but not ticked can be logged late the day after (marked as
+late for friends), and the reminders come when you want them.
 
 ## What the app generates
 
@@ -202,14 +208,16 @@ More on this: [`docs/architecture.md`](docs/architecture.md).
 
 ## Status
 
-Working: sign-in with Apple and Google, onboarding, check-ins, streaks, Funki
+Working: sign-in with Apple, Google and e-mail (with password reset),
+onboarding, check-ins with undo and late logging, editable habits, streaks, Funki
 and the flame evolution, the day-complete slot machine, the home screen
 widget on Android, editable training plans with set-by-set logging,
 nutrition targets and a food diary with photo, description, barcode and
 manual entry, households with a shared meal plan and shopping list, the AI
 planner and planning chat, free and premium AI or one's own key, friends by
-invite, search and address book, friend streaks and quests, a public league
-with divisions and one among friends, nudges and cheers, sync through the
+invite, search and address book, blocking and reporting, friend streaks and
+quests, a public league with divisions and one among friends, nudges and
+cheers, adjustable reminders, sounds, sync through the
 backend with an offline outbox, English and German, and release pipelines:
 `dev` goes to Google Play internal testing and TestFlight, `main` to Play
 closed testing and the App Store version, with the store listings, the

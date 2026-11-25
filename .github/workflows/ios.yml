@@ -96,6 +96,8 @@ jobs:
         working-directory: app
         env:
           APP_DEFINES_JSON: ${{ secrets.APP_DEFINES_JSON }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'production' || 'testflight' }}
         run: |
           mkdir -p config
           if [ -n "$APP_DEFINES_JSON" ]; then
@@ -103,6 +105,12 @@ jobs:
           else
             echo '{}' > config/release.json
           fi
+          # Crash reports go to Sentry only with the SENTRY_DSN secret; an
+          # empty DSN leaves them off (lib/main.dart).
+          jq --arg dsn "$SENTRY_DSN" --arg env "$SENTRY_ENVIRONMENT" \
+            '. + {SENTRY_DSN: $dsn, SENTRY_ENVIRONMENT: $env}' \
+            config/release.json > config/release.tmp
+          mv config/release.tmp config/release.json
           flutter pub get
           flutter build ios --config-only --release --no-codesign \
             --build-name "${{ steps.version.outputs.name }}" \

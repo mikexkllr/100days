@@ -57,6 +57,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get addMealTitle => 'Was gibt\'s?';
 
   @override
+  String get addMealTitleMissing =>
+      'Gib der Mahlzeit einen Namen — oder tipp eine der Ideen an.';
+
+  @override
+  String get addMealToDiary => 'Schon gegessen? Ins Tagebuch — ein Foto reicht';
+
+  @override
   String adviceCutScope(int percent) {
     return 'Du triffst nur $percent % deiner Tage. Nimm eine Gewohnheit raus statt weiter zu scheitern — drei sichere Tage schlagen fünf geplante.';
   }
@@ -402,7 +409,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get coachBadgeLlm => 'on-device KI';
+  String get coachBadgeLlm => 'KI';
 
   @override
   String get coachBadgeRule => 'Coach';
@@ -1316,7 +1323,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get foodManualKcal => 'Kalorien (kcal)';
 
   @override
+  String foodManualKcalFromMacros(int kcal) {
+    return '≈ $kcal kcal aus den Makros unten';
+  }
+
+  @override
+  String get foodManualKcalMissing =>
+      'Ohne Kalorien geht es nicht. Nicht sicher? Ein Foto oder ein Satz, und sie werden geschätzt.';
+
+  @override
   String get foodManualName => 'Name';
+
+  @override
+  String get foodManualNameMissing => 'Was war es?';
 
   @override
   String get foodManualProtein => 'Eiweiß in g (optional)';
@@ -1489,7 +1508,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get globalLeagueEmpty =>
-      'Deine Liga-Gruppe beginnt mit deinem ersten Check-in diese Woche: bis zu 30 Leute deiner Division, die Besten steigen am Montag auf.';
+      'Diese Woche noch keine Gruppe. Sobald dein Handy deine XP gemeldet hat, kommst du zu bis zu 30 Leuten deiner Division. Am Montag schließt die Woche: Die Besten steigen auf, ab fünf Leuten steigen die Letzten ab.';
 
   @override
   String get globalLeagueHonesty =>
@@ -1499,8 +1518,40 @@ class AppLocalizationsDe extends AppLocalizations {
   String get globalLeagueSection => 'Liga dieser Woche';
 
   @override
-  String globalLeagueSub(int size, int up, int down) {
-    return '$size Leute · Top $up steigen auf, letzte $down ab';
+  String globalLeagueSize(int size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      size,
+      locale: localeName,
+      other: '$size Leute',
+      one: 'Bisher nur du',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get globalLeagueMovesNone =>
+      'sobald jemand dazukommt, steigt am Montag die Nummer 1 auf';
+
+  @override
+  String globalLeagueMovesUp(int up) {
+    String _temp0 = intl.Intl.pluralLogic(
+      up,
+      locale: localeName,
+      other: 'steigen die Top $up auf',
+      one: 'steigt die Nummer 1 auf',
+    );
+    return 'am Montag $_temp0';
+  }
+
+  @override
+  String globalLeagueMoves(int up, int down) {
+    String _temp0 = intl.Intl.pluralLogic(
+      down,
+      locale: localeName,
+      other: 'die letzten $down steigen ab',
+      one: 'der letzte Platz steigt ab',
+    );
+    return 'am Montag steigen die Top $up auf, $_temp0';
   }
 
   @override
@@ -2076,7 +2127,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get leagueFooter =>
-      'Hier treten nur Freunde an, die du selbst verbunden hast — keine Fremden. XP gibt es pro Check-in, skaliert mit Schwierigkeit und Streak; getrackte Trainings und Tagebuch-Tage zählen extra. Am Sonntag steigen die oberen Plätze auf, die unteren ab.';
+      'Hier treten nur Freunde an, die du selbst verbunden hast — keine Fremden. XP gibt es pro Check-in, skaliert mit Schwierigkeit und Streak; getrackte Trainings und Tagebuch-Tage zählen extra. Jeden Montag beginnt die Wertung von vorn. Unter Freunden steigt niemand auf oder ab: Die Farben markieren nur Spitze und Ende der Woche, deine Liga ergibt sich aus allen XP, die du je gesammelt hast.';
 
   @override
   String get leagueGold => 'Gold';
@@ -2154,12 +2205,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get loggerDiscard => 'Verwerfen';
-
-  @override
-  String get loggerDiscardBody => 'Die eingetragenen Sätze gehen verloren.';
-
-  @override
-  String get loggerDiscardTitle => 'Training verwerfen?';
 
   @override
   String get loggerFinish => 'Training abschließen';
@@ -2770,13 +2815,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navFriends => 'Freunde';
 
   @override
-  String get navMore => 'Mehr';
+  String get navMore => 'Profil';
 
   @override
   String get navPlan => 'Plan';
 
   @override
-  String get navSettingsTitle => 'Einstellungen';
+  String get navSettingsTitle => 'Profil & Einstellungen';
 
   @override
   String get navStats => 'Zahlen';
@@ -3457,7 +3502,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get planProtein => 'Protein';
 
   @override
-  String get planTabAbstinence => 'Clean bleiben';
+  String get planTabAbstinence => 'Clean';
 
   @override
   String get planTabMeals => 'Essensplan';
@@ -4083,7 +4128,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get setStreakModeNote =>
-      'Gilt ab heute. Vergangene Tage bleiben so gezählt, wie sie gezählt wurden. Deine Freunde zählen deinen Streak nach demselben Modus.';
+      'Eine Änderung gilt ab morgen. Heute und vergangene Tage bleiben so gezählt, wie sie gezählt wurden. Deine Freunde zählen deinen Streak nach demselben Modus.';
 
   @override
   String get setStreakModeSection => 'Streak';
@@ -4746,4 +4791,808 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get workoutWorkingSets => 'Arbeitssätze';
+
+  @override
+  String get gateLoadingAccount => 'Deine Challenge wird geladen …';
+
+  @override
+  String get gateLoadingAccountSlow =>
+      'Das dauert gerade. Ohne Verbindung kann deine Challenge noch nicht auf dieses Handy geladen werden.';
+
+  @override
+  String get gateErrorTitle => 'Funki ist über etwas gestolpert.';
+
+  @override
+  String get setSignOutUnsentTitle => 'Noch nicht alles ist gesendet';
+
+  @override
+  String setSignOutUnsentBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Einträge von diesem Handy sind noch nicht beim Server angekommen.',
+      one: '1 Eintrag von diesem Handy ist noch nicht beim Server angekommen.',
+    );
+    return '$_temp0 Meldest du dich jetzt ab, ist er weg. Geh online und versuch es noch mal, oder melde dich trotzdem ab.';
+  }
+
+  @override
+  String get setSignOutAnyway => 'Trotzdem abmelden';
+
+  @override
+  String get setDeletingAccount => 'Dein Konto wird gelöscht …';
+
+  @override
+  String get setDeleteAccountAppleNote =>
+      'Apple fragt noch einmal nach, damit der Zugriff der App auf deine Apple-ID widerrufen werden kann.';
+
+  @override
+  String get remindCardTitle => 'Soll Funki dich erinnern?';
+
+  @override
+  String get remindCardBody =>
+      'Eine Erinnerung am Abend, solange heute offen ist, eine Warnung, wenn dein Streak auf der Kippe steht, und ein Ping, wenn dich jemand anstupst. Sonst nichts.';
+
+  @override
+  String get remindCardYes => 'Ja, erinnere mich';
+
+  @override
+  String get remindCardLater => 'Jetzt nicht';
+
+  @override
+  String get remindTitle => 'Erinnerungen';
+
+  @override
+  String remindRowSub(String time) {
+    return 'Täglich um $time';
+  }
+
+  @override
+  String get remindRowOff => 'Aus';
+
+  @override
+  String get remindDaily => 'Tägliche Erinnerung';
+
+  @override
+  String get remindDailySub =>
+      'Nur an Tagen, die noch offen sind — nie, wenn du schon fertig bist.';
+
+  @override
+  String get remindTime => 'Uhrzeit';
+
+  @override
+  String get remindWarning => 'Streak-Warnung';
+
+  @override
+  String get remindWarningSub =>
+      'Am späten Abend, wenn ein Streak ab drei Tagen um Mitternacht enden würde.';
+
+  @override
+  String get remindBlocked =>
+      'Benachrichtigungen sind für diese App ausgeschaltet.';
+
+  @override
+  String get remindAllow => 'Benachrichtigungen erlauben';
+
+  @override
+  String get remindBlockedHint =>
+      'Passiert nichts, schalte sie in den Einstellungen deines Handys unter 100 Tage ein.';
+
+  @override
+  String get aiPurchaseRetryLater =>
+      'Bezahlt, aber der Server konnte es noch nicht bestätigen. Die App versucht es beim nächsten Start erneut — oder tipp auf „Kauf wiederherstellen“, sobald du online bist.';
+
+  @override
+  String get aiRestoreNothing =>
+      'Auf diesem Store-Konto wurde kein Abo zum Wiederherstellen gefunden.';
+
+  @override
+  String get aiRestoreFailed =>
+      'Wiederherstellen hat nicht geklappt. Prüf deine Verbindung und versuch es noch mal.';
+
+  @override
+  String get aiRestoring => 'Deine Käufe werden geprüft …';
+
+  @override
+  String get tileHoldLonger => 'Halten, bis es voll ist';
+
+  @override
+  String get tileHoldTip => 'Tipp: Die Zeile gedrückt halten geht schneller.';
+
+  @override
+  String get tileUndo => 'Rückgängig';
+
+  @override
+  String tileMoreSemantics(String habit) {
+    return 'Mehr zu $habit';
+  }
+
+  @override
+  String get tileUndone => 'Zurückgenommen.';
+
+  @override
+  String get homeFreezeConfirmTitle => 'Heute einfrieren?';
+
+  @override
+  String homeFreezeConfirmBody(int left) {
+    String _temp0 = intl.Intl.pluralLogic(
+      left,
+      locale: localeName,
+      other: 'Danach hast du noch $left Freezes in diesem Zyklus.',
+      one: 'Das ist dein letzter Freeze in diesem Zyklus.',
+    );
+    return 'Dein Streak übersteht heute, ohne zu wachsen. $_temp0 Das lässt sich nicht zurücknehmen.';
+  }
+
+  @override
+  String get homeYesterdayTitle => 'Gestern ist durchgerutscht';
+
+  @override
+  String homeYesterdayBodyFreeze(int streak, int left) {
+    return 'Dein Streak von $streak Tagen ist um Mitternacht gerissen. Gemacht, aber vergessen abzuhaken? Trag es jetzt nach. Oder rette den Streak mit einem Freeze (noch $left).';
+  }
+
+  @override
+  String homeYesterdayBody(int streak) {
+    return 'Dein Streak von $streak Tagen ist um Mitternacht gerissen. Gemacht, aber vergessen abzuhaken? Trag es jetzt nach — es wird als nachgetragen angezeigt.';
+  }
+
+  @override
+  String get homeYesterdayLog => 'Gestern nachtragen';
+
+  @override
+  String get homeYesterdayFreeze => 'Freeze einsetzen';
+
+  @override
+  String get dayLogLate => 'Nachtragen';
+
+  @override
+  String get dayLogLateNote =>
+      'Nachtragen geht nur für gestern. Deine Freunde sehen, dass es nachgetragen ist.';
+
+  @override
+  String get dayOpenDiary => 'Mahlzeiten';
+
+  @override
+  String get dayOverNote =>
+      'Dieser Tag ist vorbei. Nachtragen geht nur für gestern.';
+
+  @override
+  String get profileEditTitle => 'Dein Profil';
+
+  @override
+  String get profileEditSub =>
+      'Name und Gesicht — was Freunde in Anfragen, im Feed und in der Liga sehen.';
+
+  @override
+  String get profileSave => 'Speichern';
+
+  @override
+  String get profileSaved => 'Profil gespeichert.';
+
+  @override
+  String get profileStatement => 'Dein Ziel in einem Satz';
+
+  @override
+  String stageDaysLeft(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Noch $days Tage',
+      one: 'Noch 1 Tag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String statsWeekLabel(String week) {
+    return 'KW $week';
+  }
+
+  @override
+  String get habitsEditTitle => 'Deine Gewohnheiten';
+
+  @override
+  String get habitsEditSub =>
+      'Ändere ein Ziel, wie oft, oder nimm eine Gewohnheit raus. Vergangene Tage bleiben so gezählt, wie sie gezählt wurden.';
+
+  @override
+  String get habitsEditRow => 'Gewohnheiten';
+
+  @override
+  String habitsEditRowSub(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Gewohnheiten',
+      one: '1 Gewohnheit',
+    );
+    return '$_temp0 — hinzufügen, ändern, rausnehmen';
+  }
+
+  @override
+  String habitsDaysPerWeek(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days Tage pro Woche',
+      one: '1 Tag pro Woche',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get habitsRemove => 'Rausnehmen';
+
+  @override
+  String habitsRemoveTitle(String habit) {
+    return '$habit rausnehmen?';
+  }
+
+  @override
+  String get habitsRemoveBody =>
+      'Ab morgen zählt sie nicht mehr. Die Tage, an denen sie dabei war, bleiben, wie sie waren.';
+
+  @override
+  String get habitsAdd => 'Gewohnheit hinzufügen';
+
+  @override
+  String get habitsAddCustom => 'Eigene …';
+
+  @override
+  String get habitsCustomName => 'Was ist es?';
+
+  @override
+  String get habitsSave => 'Änderungen speichern';
+
+  @override
+  String get habitsSaved => 'Gewohnheiten gespeichert.';
+
+  @override
+  String get habitsFromTomorrow =>
+      'Heute ist schon geschafft, darum zählt das ab morgen.';
+
+  @override
+  String get habitsTrainingNote =>
+      'Trainingstage richten sich nach deinem Trainingsplan.';
+
+  @override
+  String get habitsKeepOne => 'Mindestens eine Gewohnheit muss bleiben.';
+
+  @override
+  String setStreakModeConfirmTitle(String mode) {
+    return 'Auf $mode umstellen?';
+  }
+
+  @override
+  String get setStreakModeConfirmBody =>
+      'Ab morgen. Heute und alle Tage davor bleiben in dem Modus gezählt, in dem sie gezählt werden.';
+
+  @override
+  String get setStreakModeTomorrow => 'Ab morgen umstellen';
+
+  @override
+  String setStreakModePending(String mode) {
+    return 'Wechselt morgen auf $mode.';
+  }
+
+  @override
+  String get setAppSection => 'App';
+
+  @override
+  String get setTapToCheckIn => 'Tippen statt Halten';
+
+  @override
+  String get setTapToCheckInSub =>
+      'Ein Tippen hakt eine Gewohnheit ab. Für alle, die nicht lange drücken können oder wollen.';
+
+  @override
+  String get setSound => 'Töne';
+
+  @override
+  String get setSoundSub =>
+      'Knistern, Zünden und die Slot-Machine. Im Lautlos-Modus bleibt es still.';
+
+  @override
+  String get setRestart => 'Neu starten ab Tag 1';
+
+  @override
+  String get setRestartSub =>
+      'Gleiche Gewohnheiten, ein neuer Tag 1. Deine Historie bleibt in deinem Feed.';
+
+  @override
+  String get setRestartTitle => 'Ab Tag 1 neu starten?';
+
+  @override
+  String get setRestartBody =>
+      'Dein Streak, deine Flamme und das Board fangen heute neu an. Deine Freunde sehen den Neustart. Das lässt sich nicht rückgängig machen.';
+
+  @override
+  String get setRestartConfirm => 'Neu starten';
+
+  @override
+  String setServerInfo(String server) {
+    return 'Server: $server';
+  }
+
+  @override
+  String get habitsEveryDay => 'Jeden Tag';
+
+  @override
+  String get loginModeSignIn => 'Anmelden';
+
+  @override
+  String get loginModeRegister => 'Neues Konto';
+
+  @override
+  String get loginPasswordRepeat => 'Passwort wiederholen';
+
+  @override
+  String get loginPasswordMismatch =>
+      'Die beiden Passwörter sind nicht gleich.';
+
+  @override
+  String get loginShowPassword => 'Passwort zeigen';
+
+  @override
+  String get loginHidePassword => 'Passwort verbergen';
+
+  @override
+  String get loginForgot => 'Passwort vergessen?';
+
+  @override
+  String get loginForgotNeedsEmail => 'Gib zuerst deine E-Mail-Adresse ein.';
+
+  @override
+  String loginForgotSent(String email) {
+    return 'Wenn es ein Konto für $email gibt, ist ein Link zum Setzen eines neuen Passworts unterwegs.';
+  }
+
+  @override
+  String get loginNewPasswordTitle => 'Neues Passwort setzen';
+
+  @override
+  String get loginNewPasswordSave => 'Passwort speichern';
+
+  @override
+  String get loginNewPasswordSaved => 'Dein neues Passwort ist gesetzt.';
+
+  @override
+  String get celebrateEvolving => 'Funki verwandelt sich …';
+
+  @override
+  String celebrateEvolved(String stage) {
+    return '$stage!';
+  }
+
+  @override
+  String shareCardStreak(int streak) {
+    String _temp0 = intl.Intl.pluralLogic(
+      streak,
+      locale: localeName,
+      other: 'Tage Streak',
+      one: 'Tag Streak',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String shareCardDay(int day) {
+    return 'Tag $day meiner Challenge';
+  }
+
+  @override
+  String get ascendTitle => 'Zyklus geschafft';
+
+  @override
+  String ascendNext(String tier) {
+    return 'Willkommen in $tier';
+  }
+
+  @override
+  String get ascendBody =>
+      'Streak, Flamme und Historie kommen mit. Die nächsten hundert Tage beginnen jetzt.';
+
+  @override
+  String get ascendGo => 'Ab in den nächsten Zyklus';
+
+  @override
+  String lossTitle(int streak) {
+    return 'Dein Streak von $streak Tagen ist ausgegangen.';
+  }
+
+  @override
+  String get lossFunki => 'Ich glühe noch. Puste mich an.';
+
+  @override
+  String lossBody(int stars) {
+    String _temp0 = intl.Intl.pluralLogic(
+      stars,
+      locale: localeName,
+      other: 'Deine $stars Sterne bleiben',
+      one: 'Dein Stern bleibt',
+    );
+    return '$_temp0 an deinem Himmel — nichts davon ist verloren. Der Unterschied zwischen einem Ausrutscher und einem Abbruch ist, was du in den nächsten 24 Stunden machst.';
+  }
+
+  @override
+  String get lossRelight => 'Zünd mich wieder an';
+
+  @override
+  String get actionUndo => 'Rückgängig';
+
+  @override
+  String get aiAllowanceUsedUp =>
+      'Dein KI-Kontingent für diesen Monat ist aufgebraucht. Mit Premium oder deinem eigenen API-Key geht es sofort weiter.';
+
+  @override
+  String get aiBadgeCloud => 'Cloud-KI';
+
+  @override
+  String get aiRateLimited =>
+      'Gerade zu viele KI-Anfragen auf einmal. Warte eine Minute und versuch es dann noch einmal.';
+
+  @override
+  String get aiUnreachable =>
+      'Die KI war nicht erreichbar — du scheinst offline zu sein, oder es hat zu lange gedauert. Versuch es gleich noch einmal.';
+
+  @override
+  String get diaryCountOnTarget => 'Jetzt im Ziel — mit Plan-Bonus zählen';
+
+  @override
+  String diaryEntryRemoved(String name) {
+    return '$name aus dem Tagebuch genommen';
+  }
+
+  @override
+  String diaryOffTargetOver(int kcal) {
+    return 'Du liegst $kcal kcal über deinem Ziel. Du kannst den Tag trotzdem abhaken — nur ohne Plan-Bonus.';
+  }
+
+  @override
+  String diaryOffTargetUnder(int kcal) {
+    return 'Du liegst $kcal kcal unter deinem Ziel. Du kannst den Tag trotzdem abhaken — nur ohne Plan-Bonus.';
+  }
+
+  @override
+  String get foodEditHint =>
+      'Eine neue Menge rechnet die Kalorien mit. Stimmt die Schätzung nicht, korrigier die Kalorien.';
+
+  @override
+  String get foodEditTooltip => 'Menge oder Kalorien ändern';
+
+  @override
+  String get foodPhotoNoCamera =>
+      'Kein Zugriff auf die Kamera. Erlaube ihn 100 Days in den Einstellungen deines Handys, oder wähl ein Foto aus der Galerie.';
+
+  @override
+  String get foodPhotoNoGallery =>
+      'Kein Zugriff auf deine Fotos. Erlaube ihn 100 Days in den Einstellungen deines Handys, oder mach ein neues Foto.';
+
+  @override
+  String get foodPhotoPickFailed =>
+      'Kamera oder Galerie ließen sich nicht öffnen. Versuch es noch einmal oder beschreib das Essen.';
+
+  @override
+  String get foodPhotoUnreadable =>
+      'Dieses Foto lässt sich nicht lesen — manche HEIC-Fotos nicht. Mach ein neues oder wähl ein JPEG.';
+
+  @override
+  String get householdJoinWarning =>
+      'Du wechselst den Haushalt: Dein jetziger Plan und deine Liste bleiben, wo sie sind, und du siehst stattdessen die des neuen Haushalts. Du kannst ihn später wieder verlassen.';
+
+  @override
+  String get householdLeave => 'Haushalt verlassen';
+
+  @override
+  String get householdLeaveBody =>
+      'Plan, Rezepte und Listen bleiben bei den anderen. Du fängst mit einem eigenen Haushalt neu an und kannst jederzeit wieder eingeladen werden.';
+
+  @override
+  String get householdLeaveFailed =>
+      'Du konntest den Haushalt nicht verlassen. Prüf deine Verbindung und versuch es noch einmal.';
+
+  @override
+  String get householdLeaveTitle => 'Haushalt verlassen?';
+
+  @override
+  String get householdLeft => 'Du hast den Haushalt verlassen.';
+
+  @override
+  String get householdLoadFailed => 'Der Haushalt konnte nicht geladen werden.';
+
+  @override
+  String get householdRemoveBody =>
+      'Plan und Liste sieht die Person dann nicht mehr. Mit einer Einladung kann sie wieder beitreten.';
+
+  @override
+  String householdRemoveTitle(String name) {
+    return '$name aus dem Haushalt entfernen?';
+  }
+
+  @override
+  String get householdSaveFailed =>
+      'Nicht gespeichert — prüf deine Verbindung und versuch es noch einmal.';
+
+  @override
+  String planMealRemoved(String title) {
+    return '$title aus dem Plan genommen';
+  }
+
+  @override
+  String get planSaveFailed =>
+      'Der Plan konnte nicht gespeichert werden. Dein Entwurf ist noch da — versuch es noch einmal.';
+
+  @override
+  String get plannerListToppedUp => 'Einkaufsliste aus dem Plan ergänzt';
+
+  @override
+  String get plannerQuotaUsedUp =>
+      'Dein KI-Kontingent für diesen Monat ist aufgebraucht, deshalb kann ich gerade nicht mit dir planen. Mit Premium oder deinem eigenen API-Key geht es sofort weiter — oder du planst bis zum 1. von Hand.';
+
+  @override
+  String get shopCloseEmpty => 'Liste schließen';
+
+  @override
+  String shopItemRemoved(String name) {
+    return '$name von der Liste genommen';
+  }
+
+  @override
+  String shopTopUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zeilen zur offenen Liste hinzugefügt',
+      one: '1 Zeile zur offenen Liste hinzugefügt',
+      zero: 'Auf der offenen Liste steht schon alles für diese Tage',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get loggerAddedLoadHint => '+ kg';
+
+  @override
+  String get loggerAdviceAddRepsBodyweight => 'Eine Wdh. mehr pro Satz';
+
+  @override
+  String get loggerAdviceBeyondRange =>
+      'Jeder Satz am oberen Ende: je eine Wdh. mehr — oder nimm Zusatzgewicht und trag es bei + kg ein';
+
+  @override
+  String loggerAdviceDeload(String weight) {
+    return 'Deload: leichter mit $weight kg, und weit vor dem Muskelversagen aufhören';
+  }
+
+  @override
+  String get loggerAdviceDeloadBodyweight =>
+      'Deload: lockere Wiederholungen, und weit vor dem Muskelversagen aufhören';
+
+  @override
+  String get loggerAdviceReduceBodyweight =>
+      'Zweimal verfehlt — ohne Zusatzgewicht neu aufbauen';
+
+  @override
+  String get loggerDeloadBody =>
+      'Diese Woche weniger Sätze und leichtere Gewichte — mit Absicht. Dein Körper holt die drei Aufbauwochen nach, nächste Woche geht es wieder nach oben.';
+
+  @override
+  String get loggerDeloadTitle => 'Deload-Woche';
+
+  @override
+  String get loggerKeepForLater => 'Für später behalten';
+
+  @override
+  String get loggerLeaveBody =>
+      'Was du eingetragen hast, bleibt auf diesem Handy, bis du abschließt. Öffne das Training heute noch einmal, dann machst du da weiter, wo du warst.';
+
+  @override
+  String get loggerLeaveTitle => 'Training verlassen?';
+
+  @override
+  String get loggerResume => 'Weitermachen';
+
+  @override
+  String loggerResumeBody(String time, int sets) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sets,
+      locale: localeName,
+      other: '$sets Sätze sind abgehakt.',
+      one: 'Ein Satz ist abgehakt.',
+      zero: 'Noch kein Satz abgehakt.',
+    );
+    return 'Du hast dieses Training um $time begonnen. $_temp0';
+  }
+
+  @override
+  String get loggerResumeTitle => 'Weitermachen, wo du warst?';
+
+  @override
+  String get loggerStartOver => 'Neu beginnen';
+
+  @override
+  String get editorDiscard => 'Verwerfen';
+
+  @override
+  String get editorDiscardBody =>
+      'Deine Änderungen am Trainingsplan sind noch nicht gespeichert.';
+
+  @override
+  String get editorDiscardTitle => 'Änderungen verwerfen?';
+
+  @override
+  String editorPlanOffBody(int percent) {
+    return 'Aus: Dein Trainings-Habit ist wieder ein einfacher Haken, ohne die +$percent % XP eines geloggten Trainings. Deine geloggten Trainings bleiben in deinem Verlauf, und Split und Übungen warten hier, bis du ihn wieder einschaltest.';
+  }
+
+  @override
+  String editorPlanOnBody(int percent) {
+    return 'Logge jeden Satz: Jedes geloggte Training bringt +$percent % XP.';
+  }
+
+  @override
+  String get editorPlanSwitch => 'Trainingsplan';
+
+  @override
+  String get editorPlanSwitchedOff =>
+      'Trainingsplan ausgeschaltet — deine Trainings bleiben geloggt';
+
+  @override
+  String get editorEmptySession =>
+      'Jede Einheit braucht mindestens eine Übung — füge dort eine hinzu, wo es markiert ist.';
+
+  @override
+  String get loggerEmptyBody =>
+      'Diese Einheit hat keine Übungen. Füge im Trainingsplan welche hinzu, dann kannst du sie loggen.';
+
+  @override
+  String get loggerEmptyTitle => 'Noch nichts zu loggen';
+
+  @override
+  String get editDiscardTitle => 'Änderungen verwerfen?';
+
+  @override
+  String get editDiscard => 'Verwerfen';
+
+  @override
+  String get moderationReport => 'Melden';
+
+  @override
+  String get moderationBlock => 'Blockieren';
+
+  @override
+  String moderationBlockTitle(String name) {
+    return '$name blockieren?';
+  }
+
+  @override
+  String moderationBlockBody(String name) {
+    return 'Ihr seid dann keine Freunde mehr, offene Anfragen verfallen. Keiner von euch kann den anderen finden, hinzufügen oder einladen, und du siehst $name nicht mehr in der Liga. $name erfährt nichts davon.';
+  }
+
+  @override
+  String moderationBlocked(String name) {
+    return '$name ist blockiert.';
+  }
+
+  @override
+  String moderationReportTitle(String name) {
+    return '$name melden';
+  }
+
+  @override
+  String moderationReportBody(String name) {
+    return 'Meldungen liest nur das Team hinter 100 Days. $name erfährt nichts davon.';
+  }
+
+  @override
+  String get moderationReasonSpam => 'Spam oder Fake-Konto';
+
+  @override
+  String get moderationReasonHarassment => 'Belästigung oder Mobbing';
+
+  @override
+  String get moderationReasonInappropriate => 'Anstößiger Name oder Emoji';
+
+  @override
+  String get moderationReasonCheating => 'Schummeln in der Liga';
+
+  @override
+  String get moderationReasonOther => 'Etwas anderes';
+
+  @override
+  String get moderationReportDetails => 'Was ist passiert? (optional)';
+
+  @override
+  String get moderationAlsoBlock => 'Auch blockieren';
+
+  @override
+  String get moderationReportSend => 'Meldung senden';
+
+  @override
+  String get moderationReported => 'Danke. Deine Meldung ist angekommen.';
+
+  @override
+  String get blockedTitle => 'Blockiert';
+
+  @override
+  String get blockedSub =>
+      'Sie können dich nicht finden, hinzufügen oder einladen, und du siehst sie nicht in der Liga.';
+
+  @override
+  String get blockedNone => 'Niemand blockiert.';
+
+  @override
+  String get blockedUnblock => 'Freigeben';
+
+  @override
+  String blockedUnblocked(String name) {
+    return '$name ist freigegeben. Eine Freundschaft kommt nicht von selbst zurück.';
+  }
+
+  @override
+  String get friendsSentTitle => 'Gesendete Anfragen';
+
+  @override
+  String get friendsSentSub =>
+      'Geteilt wird erst, wenn die andere Seite annimmt.';
+
+  @override
+  String get friendsSentWithdraw => 'Zurückziehen';
+
+  @override
+  String friendsSentWithdrawn(String name) {
+    return 'Anfrage an $name zurückgezogen.';
+  }
+
+  @override
+  String get findRequestTooMany =>
+      'Für heute reicht\'s mit Anfragen. Morgen geht\'s weiter.';
+
+  @override
+  String get findRequestDeclined =>
+      'Die Person hat vor Kurzem abgelehnt. In ein paar Wochen kannst du wieder fragen, oder sie fragt dich.';
+
+  @override
+  String get findRequestUnavailable =>
+      'Diese Person kannst du nicht hinzufügen.';
+
+  @override
+  String get profileNudgedToday => 'Heute angestupst';
+
+  @override
+  String scanPasteHint(String link) {
+    return 'z. B. $link';
+  }
+
+  @override
+  String get scanNotAnInvite =>
+      'Dieser QR-Code ist keine Einladung für 100 Days.';
+
+  @override
+  String feedCheckIns(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Check-ins',
+      one: '1 Check-in',
+    );
+    return '$name: $_temp0';
+  }
+
+  @override
+  String get campfireTitle => 'Am Lagerfeuer';
+
+  @override
+  String friendFlameLabel(String name, int streak) {
+    String _temp0 = intl.Intl.pluralLogic(
+      streak,
+      locale: localeName,
+      other: '$streak Tage Streak',
+      one: '1 Tag Streak',
+    );
+    return '$name: $_temp0';
+  }
 }
