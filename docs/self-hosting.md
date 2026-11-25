@@ -99,7 +99,9 @@ Build-time configuration, as a JSON file you keep out of git:
   "FIREBASE_PROJECT_ID": "…",
   "FIREBASE_SENDER_ID": "…",
   "FIREBASE_ANDROID_APP_ID": "1:…:android:…",
-  "FIREBASE_IOS_APP_ID": "1:…:ios:…"
+  "FIREBASE_IOS_APP_ID": "1:…:ios:…",
+  "SENTRY_DSN": "https://…@….ingest.de.sentry.io/…",
+  "SENTRY_ENVIRONMENT": "production"
 }
 ```
 
@@ -108,7 +110,8 @@ flutter run --dart-define-from-file=config/my-backend.json
 ```
 
 Only `SUPABASE_URL` and `SUPABASE_KEY` are required; without the Google ids
-the Google button is hidden, without the Firebase values push is off.
+the Google button is hidden, without the Firebase values push is off,
+without `SENTRY_DSN` no crash reports are sent anywhere.
 Users of a stock build can also switch to your server on the sign-in screen
 under **Own server** (URL, publishable key, optionally the Google web
 client id); the choice is remembered on the device.

@@ -59,6 +59,7 @@ dependencies:
   # Crackle, ignition and the slot machine (assets/sounds, made by
   # tool/make_sounds.py). Switchable, and quiet in silent mode.
   audioplayers: ^6.1.0
+  sentry_flutter: ^9.30.1
 
 dev_dependencies:
   flutter_test:

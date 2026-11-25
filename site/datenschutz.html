@@ -19,7 +19,7 @@
 </header>
 
 <h1>Datenschutzerklärung</h1>
-<p class="meta">Stand: 18. November 2026 · gültig ab 18. November 2026</p>
+<p class="meta">Stand: 25. November 2026 · gültig ab 25. November 2026</p>
 
 <h2>1. Verantwortlicher</h2>
 <p>Die App <strong>100 Days &amp; Beyond</strong> („100 Tage &amp; mehr“, „die App“) für iOS und Android und ihr Backend betreibt als Verantwortlicher:</p>
@@ -55,7 +55,8 @@ USt-IdNr.: DE362000323
 <ul>
   <li><strong>Freunde:</strong> Freundschaftsanfragen, Freundschaften und Einladungscodes.</li>
   <li><strong>Öffentliche Liga:</strong> Sofern du sie nicht in den Einstellungen ausschaltest, sehen die bis zu 30 Personen deiner wöchentlichen Ligagruppe deinen Namen, dein Emoji und deine Wochen-XP.</li>
-  <li><strong>Kontakte abgleichen (optional):</strong> nur wenn du den Zugriff auf deine Kontakte erlaubst und eine Suche startest. Die App sendet die E-Mail-Adressen und Telefonnummern aus deinem Adressbuch an unseren Server. Der Server bildet daraus verschlüsselte Prüfwerte (HMAC-SHA256 mit einem geheimen Schlüssel), vergleicht sie mit denen von Nutzern, die auffindbar sein wollen, gibt die Treffer zurück und verwirft das Gesendete. Dein Adressbuch wird nicht gespeichert. Gegen Missbrauch zählt der Server, wie viele Suchen du pro Tag startest.</li>
+  <li><strong>Kontakte abgleichen (optional):</strong> nur wenn du den Zugriff auf deine Kontakte erlaubst und eine Suche startest. Die App sendet die E-Mail-Adressen aus deinem Adressbuch an unseren Server (Telefonnummern bleiben auf deinem Telefon). Der Server bildet daraus verschlüsselte Prüfwerte (HMAC-SHA256 mit einem geheimen Schlüssel), vergleicht sie mit denen von Nutzern, die auffindbar sein wollen, gibt die Treffer zurück und verwirft das Gesendete. Dein Adressbuch wird nicht gespeichert. Gegen Missbrauch zählt der Server, wie viele Suchen du pro Tag startest.</li>
+  <li><strong>Blockieren und Melden:</strong> Blockierst du jemanden, speichern wir, wen du blockiert hast, damit ihr euch gegenseitig nicht mehr finden oder hinzufügen könnt; die andere Person erfährt davon nichts. Meldest du jemanden, speichern wir deine Meldung – den Grund, deinen Text, den Namen und Benutzernamen, den die Person zu diesem Zeitpunkt zeigte, und den Zeitpunkt –, damit wir sie prüfen können. Meldungen können nur wir lesen.</li>
   <li><strong>Auffindbar sein (optional):</strong> Wenn du es einschaltest, wird ein verschlüsselter Prüfwert der E-Mail-Adresse gespeichert, die dein Anmeldeanbieter bestätigt hat, damit Freunde dich finden. Ausschalten löscht ihn.</li>
 </ul>
 
@@ -81,10 +82,13 @@ USt-IdNr.: DE362000323
 <h3>2.8 Käufe</h3>
 <p>Premium kaufst du über den App Store oder Google Play. Die App gibt den Kaufnachweis des Stores an unseren Server, der ihn bei Apple oder Google prüft und das Produkt, die Transaktionsreferenz des Stores und das Ablaufdatum speichert. Deine Zahlungsdaten sehen wir nie.</p>
 
-<h3>2.9 Was wir nicht tun</h3>
+<h3>2.9 Absturzberichte</h3>
+<p>Stürzt die App ab oder läuft sie in einen Fehler, mit dem sie nicht gerechnet hat, sendet sie einen Absturzbericht an Sentry, einen Dienst zum Finden und Beheben solcher Fehler. Ein Bericht enthält den Fehler und die Stelle in der App, an der er auftrat (Stacktrace), die App-Version, das Gerätemodell, das Betriebssystem und seine Version, die Sprache, App- und Geräteereignisse kurz vor dem Fehler (etwa der Wechsel in den Hintergrund oder ein Netzverlust) und eine zufällige Installations-ID, die Sentry erzeugt. Er enthält keinen Namen, keine E-Mail-Adresse, keine Nutzer-ID und keine Inhalte, die du eingegeben hast, und Sentry verwirft deine IP-Adresse. Wir nutzen die Berichte nur, um Fehler zu beheben.</p>
+
+<h3>2.10 Was wir nicht tun</h3>
 <ul>
   <li>Keine Werbung, keine Werbe-IDs, kein Tracking über Apps oder Websites hinweg.</li>
-  <li>Keine Analyse- oder Absturzberichts-SDKs.</li>
+  <li>Keine Analyse-SDKs.</li>
   <li>Kein Verkauf und keine Vermietung von Daten.</li>
   <li>Kein Standort, kein Mikrofon, kein Browserverlauf.</li>
 </ul>
@@ -99,6 +103,8 @@ USt-IdNr.: DE362000323
   <tr><td>KI-Anfragen, Token-Zähler</td><td>KI-Funktionen und das kostenlose Kontingent</td><td>Art. 6 Abs. 1 lit. b – Vertrag; Art. 9 Abs. 2 lit. a für Gesundheitsdaten</td></tr>
   <tr><td>Kaufdaten</td><td>Premium, gesetzliche Aufbewahrung</td><td>Art. 6 Abs. 1 lit. b und c</td></tr>
   <tr><td>Zähler gegen Missbrauch</td><td>Missbrauch verhindern</td><td>Art. 6 Abs. 1 lit. f – berechtigtes Interesse</td></tr>
+  <tr><td>Blockierungen und Meldungen</td><td>Schutz vor Missbrauch, Bearbeitung von Meldungen</td><td>Art. 6 Abs. 1 lit. b – Vertrag; Art. 6 Abs. 1 lit. f – berechtigtes Interesse</td></tr>
+  <tr><td>Absturzberichte</td><td>Fehler finden und beheben</td><td>Art. 6 Abs. 1 lit. f – berechtigtes Interesse an einer funktionierenden App</td></tr>
 </table>
 </div>
 
@@ -111,6 +117,7 @@ USt-IdNr.: DE362000323
   <tr><td>Google (Sign-In, Firebase Cloud Messaging)</td><td>Anmelde-Tokens; Geräte-Token und Benachrichtigungstext</td><td>Anmeldung, Zustellung von Benachrichtigungen</td><td>USA, wie oben</td></tr>
   <tr><td>Apple</td><td>Anmelde-Tokens; Benachrichtigungen unter iOS; Kaufprüfung</td><td>Mit Apple anmelden, APNs, App Store</td><td>USA, nach Apples Bedingungen</td></tr>
   <tr><td>Open Food Facts</td><td>Barcode-Nummern</td><td>Produktsuche</td><td>Frankreich</td></tr>
+  <tr><td>Functional Software, Inc. (Sentry)</td><td>Absturzberichte (Abschnitt 2.9)</td><td>Fehler finden und beheben</td><td>EU (Deutschland); Anbieter in den USA, mit Auftragsverarbeitungsvertrag und Standardvertragsklauseln</td></tr>
   <tr><td>IONOS SE</td><td>deine E-Mail-Adresse und die Bestätigungsmail, wenn du dich mit E-Mail registrierst</td><td>Hosting des Servers, von dem unsere Mails verschickt werden</td><td>Deutschland</td></tr>
 </table>
 </div>
@@ -121,6 +128,8 @@ USt-IdNr.: DE362000323
   <li>Konto, Verlauf, Freunde und Haushaltsdaten: bis du sie oder dein Konto löschst.</li>
   <li>KI-Token-Zähler: pro Monat, bis du dein Konto löschst.</li>
   <li>Kaufdaten: solange das Abo läuft und wie es das deutsche Steuerrecht verlangt (bis zu 10 Jahre).</li>
+  <li>Blockierungen: bis du sie aufhebst oder dein Konto löschst. Meldungen: solange wir sie brauchen, um die Meldung zu bearbeiten und wiederholten Missbrauch zu verhindern; wird ein Konto gelöscht, behält die Meldung den Namen und Benutzernamen, die darin stehen, aber nicht den Bezug zum Konto.</li>
+  <li>Absturzberichte: löscht Sentry nach spätestens 90 Tagen.</li>
 </ul>
 <p><strong>Konto löschen</strong> (Einstellungen → Konto → Konto löschen) entfernt dein Konto und alles, was daran hängt, sofort aus unserer Datenbank. Mehr dazu: <a href="delete-account.html">Konto löschen</a>.</p>
 

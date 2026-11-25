@@ -6,12 +6,14 @@ import 'package:flutter/services.dart';
 import 'package:app_links/app_links.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import 'app.dart';
 import 'config/backend_config.dart';
 import 'data/app_prefs.dart';
 import 'data/app_repository.dart';
+import 'data/crash_reporting.dart';
 import 'data/feed_sync.dart';
 import 'data/locale_store.dart';
 import 'data/notifications.dart';
@@ -27,7 +29,36 @@ import 'ui/motion/sounds.dart';
 import 'ui/settings/ai_screen.dart';
 import 'ui/social/invite_flow.dart';
 
+/// Crash reports go to Sentry only in the official builds: the release
+/// workflows pass the DSN. A build without one — a self-hosted build, a
+/// local run, the tests — reports nothing.
+const String _sentryDsn = String.fromEnvironment('SENTRY_DSN');
+const String _sentryEnvironment =
+    String.fromEnvironment('SENTRY_ENVIRONMENT', defaultValue: 'production');
+
 Future<void> main() async {
+  if (_sentryDsn.isEmpty) return _run();
+  await SentryFlutter.init(
+    (SentryFlutterOptions options) {
+      options
+        ..dsn = _sentryDsn
+        ..environment = _sentryEnvironment
+        // Errors and crashes only: no tracing, no screenshots (nor the
+        // view hierarchy, off by default), and nothing that names the
+        // user — no user id, no e-mail, no IP address (also scrubbed in
+        // the Sentry project).
+        ..tracesSampleRate = null
+        ..sendDefaultPii = false
+        ..attachScreenshot = false
+        // Log lines can carry names and goals; the breadcrumbs of
+        // navigation and app state are enough to follow a crash.
+        ..enablePrintBreadcrumbs = false;
+    },
+    appRunner: _run,
+  );
+}
+
+Future<void> _run() async {
   WidgetsFlutterBinding.ensureInitialized();
   LicenseRegistry.addLicense(() async* {
     yield LicenseEntryWithLineBreaks(
@@ -57,6 +88,7 @@ Future<void> main() async {
   unawaited(AppSounds.start());
 
   runApp(ProviderScope(
+    observers: const <ProviderObserver>[CrashReportingObserver()],
     overrides: <Override>[
       backendConfigProvider.overrideWithValue(backend),
       notificationsProvider.overrideWithValue(notifications),

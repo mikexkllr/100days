@@ -23,6 +23,15 @@ Secrets:
   Admin, because the export uses Apple's cloud signing ("cloud-managed
   distribution certificate"), which App Manager keys may not use. Without
   them the iOS job says so and stops.
+- Repository secret `SENTRY_DSN`: the client key of the Sentry project
+  `mike-keller-2t/100days` (EU region). Both release workflows add it and
+  `SENTRY_ENVIRONMENT` (`production` on `main`, `internal` / `testflight`
+  on `dev`) to the build defines; without it the builds report nothing.
+  The project stores no IP addresses; the app sends errors and crashes
+  only (no tracing, no screenshots, no user). Debug symbols are not
+  uploaded yet: the builds are not obfuscated, so Dart stack traces read
+  as they are; native frames would need `SENTRY_AUTH_TOKEN` and
+  `sentry_dart_plugin`.
 - Repository secrets `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`,
   `SUPABASE_PROJECT_REF` for `supabase.yml` (migrations and functions on
   `main`); without them that job skips.
@@ -35,8 +44,8 @@ Secrets:
 | Bundle / package | `com.hundreddays.hundredDays` | `com.hundreddays.hundred_days` |
 | Category | Health & Fitness, Lifestyle | Health & fitness |
 | Premium | group "Premium": `hundred_days_premium_yearly` €19.99, `hundred_days_premium_monthly` €2.99 | subscriptions with the same ids, base plans `yearly` / `monthly`, DE €19.99 / €2.99 |
-| Privacy | label: name, e-mail, health, fitness, photos, other content, user id, device id, purchases — app functionality, linked to the user, no tracking | data safety form, same data, deletion URL |
-| Age | 16+ in the terms; age rating from `app/ios/fastlane/age_rating.json` | IARC questionnaire, target audience 16–17 and 18+ |
+| Privacy | label: name, e-mail, health, fitness, photos, contacts (the friend list is a social graph), other content (incl. reports), user id, device id, purchases — app functionality, linked to the user; crash data and other diagnostics (Sentry) — app functionality, not linked; no tracking | data safety form: the same, address book and photos processed ephemerally, reports also for fraud prevention and security, crash logs and diagnostics; sign-up with username and password and with OAuth; deletion URL |
+| Age | 16+ in the terms; age rating from `app/ios/fastlane/age_rating.json`: computed 13+ (alcohol and nicotine come up as habits to quit), overridden to 16+ because the terms require it | IARC questionnaire, target audience 16–17 and 18+ |
 | Policies | | ads: no; advertising ID: no; health: activity & nutrition; finance: none; government: no |
 
 Purchases are checked by the `verify-purchase` function: the App Store
