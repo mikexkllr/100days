@@ -393,7 +393,18 @@ class AppController extends AsyncNotifier<AppSnapshot> {
           .syncNow()
           .then((SyncReport _) => ref.invalidateSelf(), onError: (Object _) {}));
     });
+    // The gate waits for the account's first pull (accountLoaded). A brand
+    // new account's pull brings no events, so `changes` stays quiet and the
+    // gate would wait until some later sync: "loading your account", then
+    // "no connection", on the very first sign-in. Until the account is
+    // loaded, every sync round reads the snapshot again. Listening before
+    // the first read, so a pull faster than that read is not missed.
+    var waitingForFirstPull = true;
+    final pulls = repository.sync.reports.listen((SyncReport _) {
+      if (waitingForFirstPull) ref.invalidateSelf();
+    });
     ref.onDispose(() {
+      pulls.cancel();
       _debounce?.cancel();
       _midnight?.cancel();
       // Pushes still held back for the undo window are dropped with the
@@ -406,7 +417,9 @@ class AppController extends AsyncNotifier<AppSnapshot> {
       social.cancel();
     });
 
-    return repository.snapshot();
+    final AppSnapshot snapshot = await repository.snapshot();
+    waitingForFirstPull = !snapshot.accountLoaded;
+    return snapshot;
   }
 
   AppRepository get _repository => ref.read(repositoryProvider);
