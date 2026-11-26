@@ -96,6 +96,29 @@ platform :ios do
     end
   end
 
+  # deliver picks the version's build only when it also submits it for
+  # review. Without IOS_AUTO_SUBMIT the version kept whatever build it had
+  # and each new one had to be swapped in by hand in App Store Connect.
+  def attach_build_to_version
+    platform = Spaceship::ConnectAPI::Platform::IOS
+    bundle_id = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
+    app = Spaceship::ConnectAPI::App.find(bundle_id) ||
+          UI.user_error!("No app #{bundle_id} in App Store Connect")
+    version = app.get_edit_app_store_version(platform: platform)
+    unless version && version.version_string == ENV["APP_VERSION"]
+      UI.user_error!("No editable App Store version #{ENV['APP_VERSION']} " \
+                     "(found #{version&.version_string || 'none'})")
+    end
+    build = Spaceship::ConnectAPI::Build.all(
+      app_id: app.id,
+      version: ENV["APP_VERSION"],
+      build_number: ENV["BUILD_NUMBER"],
+      platform: platform,
+    ).first || UI.user_error!("Build #{ENV['BUILD_NUMBER']} of #{ENV['APP_VERSION']} not found")
+    version.select_build(build_id: build.id)
+    UI.success("App Store version #{version.version_string} now has build #{build.version}")
+  end
+
   desc "dev: build and upload to TestFlight (internal testers)"
   lane :beta do
     connect_api
@@ -106,6 +129,7 @@ platform :ios do
 
   desc "main: upload, then attach the build and the listing to the App Store version"
   lane :release do
+    auto_submit = ENV["IOS_AUTO_SUBMIT"] == "true"
     connect_api
     build_ipa
     verify_entitlements
@@ -119,10 +143,13 @@ platform :ios do
       force: true,
       automatic_release: false,
       run_precheck_before_submit: false,
-      submit_for_review: ENV["IOS_AUTO_SUBMIT"] == "true",
+      submit_for_review: auto_submit,
       submission_information: { add_id_info_uses_idfa: false },
       app_rating_config_path: File.expand_path("age_rating.json", __dir__),
     )
+    # After deliver, which creates the version when APP_VERSION is new;
+    # a submitting deliver has attached the build itself.
+    attach_build_to_version unless auto_submit
   end
 
   desc "Upload only the listing (texts and screenshots)"
