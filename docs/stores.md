@@ -75,8 +75,10 @@ Redirect URLs (Authentication → URL Configuration).
 
 ## Before the first review
 
-- App Review information in App Store Connect: the demo account and a note
-  ("Sign in with email" on the first screen).
+- App Review information in App Store Connect: the demo account, the notes
+  and a screen recording from a real iPhone. The first submission was sent
+  back for exactly these (Guideline 2.1, Information Needed); what goes
+  where is in [`app-review-notes.md`](app-review-notes.md).
 - A review screenshot per App Store subscription: the AI & subscription
   screen with both plans (`tool/store_screenshots.sh`, see *Screenshots*).
 - Closed testing on Google Play: the track (`alpha`) uses the email list
