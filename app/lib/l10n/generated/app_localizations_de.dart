@@ -1884,8 +1884,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homeOptional => 'Freiwillig';
 
   @override
-  String get homeOptionalSubtitle =>
-      'Heute nicht eingeplant — zählt trotzdem als XP.';
+  String get homeOptionalSubtitle => 'Heute keine Pflicht — gibt trotzdem XP.';
 
   @override
   String get homeQuestsTitle => 'Quests für heute';
@@ -3386,9 +3385,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get planCarbsShort => 'Carbs';
 
   @override
-  String get planChat => 'Planungs-Chat';
-
-  @override
   String planCleanDays(int days) {
     return '$days Tage clean';
   }
@@ -3888,16 +3884,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String promptPlanWish(String wish) {
     return 'Ihr Wunsch: „$wish“';
-  }
-
-  @override
-  String promptPlannerChat(
-    String today,
-    String weekday,
-    String start,
-    String end,
-  ) {
-    return 'Du hilfst einem Haushalt in der App 100 Days beim Planen von Essen und Einkauf. Heute ist $today ($weekday); geplant wird die Woche vom $start bis $end. Lies den Plan mit get_plan, bevor du ihn änderst. Ändere ihn mit den Tools, beschreib Änderungen nie nur. Rezepte: einfach, aus einem normalen Supermarkt, Portionen für den ganzen Haushalt, Kalorien und Makros pro Portion. Antworte in ein bis zwei kurzen Sätzen, auf Deutsch, per du.';
   }
 
   @override
@@ -5328,10 +5314,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerListToppedUp => 'Einkaufsliste aus dem Plan ergänzt';
 
   @override
-  String get plannerQuotaUsedUp =>
-      'Dein KI-Kontingent für diesen Monat ist aufgebraucht, deshalb kann ich gerade nicht mit dir planen. Mit Premium oder deinem eigenen API-Key geht es sofort weiter — oder du planst bis zum 1. von Hand.';
-
-  @override
   String get shopCloseEmpty => 'Liste schließen';
 
   @override
@@ -5594,5 +5576,167 @@ class AppLocalizationsDe extends AppLocalizations {
       one: '1 Tag Streak',
     );
     return '$name: $_temp0';
+  }
+
+  @override
+  String promptPlanAlreadyPlanned(String titles) {
+    return 'Steht diese Woche schon auf dem Plan, also nicht noch einmal: $titles.';
+  }
+
+  @override
+  String promptMealDraft(
+    String slot,
+    String day,
+    String people,
+    String extra,
+    String format,
+  ) {
+    return 'Du schreibst ein Rezept für Hausmannskost für einen Haushalt: $slot am $day.\n$extra\n\nWer isst:\n$people\n\nPortionen für den ganzen Haushalt, Kalorien und Makros EINER Portion, Zutaten für alle Portionen in g, ml oder Stück (unit \"g\", \"ml\", \"piece\", \"tbsp\" oder \"tsp\") mit Kategorie (produce, bakery, dairy, meat, fish, pantry, frozen, drinks, other) und kurze Schritte. Slot-Name und Datum genau so übernehmen. Titel, Zutaten und Schritte auf Deutsch.\nAntworte nur mit JSON, in dieser Form, mit genau einer Mahlzeit:\n$format';
+  }
+
+  @override
+  String promptMealDraftTitle(String title) {
+    return 'Das Gericht: „$title“. Behalte genau diesen Namen als Titel.';
+  }
+
+  @override
+  String get promptMealDraftAny =>
+      'Such ein einfaches Gericht aus, das zu dieser Mahlzeit und den Zielen passt.';
+
+  @override
+  String promptMealDraftKcal(int kcal) {
+    return 'Etwa $kcal kcal pro Portion.';
+  }
+
+  @override
+  String get addMealFunki =>
+      'Funki fragen: ganzes Rezept mit Zutaten und Nährwerten';
+
+  @override
+  String get addMealFunkiWorking => 'Funki schreibt das Rezept …';
+
+  @override
+  String get addMealFunkiFailed =>
+      'Funki hat kein Rezept hinbekommen, das aufgeht. Versuch es noch mal oder speicher es so.';
+
+  @override
+  String get addMealEaten => 'Schon gegessen – auch ins Tagebuch';
+
+  @override
+  String addMealInDiary(String title) {
+    return '$title steht in deinem Tagebuch.';
+  }
+
+  @override
+  String promptFunki(String today, String weekday, String name, String where) {
+    return 'Du bist Funki, die kleine Flamme und der Coach in der App 100 Days. $name macht eine Challenge mit täglichen Gewohnheiten und führt vielleicht ein Ernährungstagebuch, einen Essensplan mit Einkaufsliste und einen Trainingsplan. Heute ist $today ($weekday). $where\nSchau mit den get_-Tools nach, bevor du etwas über Zahlen, den Plan oder das Tagebuch sagst; erfinde nichts. Ändere Dinge nur mit den Tools und nur, wenn $name es will; beschreib eine Änderung nie nur. Jede Änderung lässt sich in der App rückgängig machen.\nTagebuch: Schätze Mengen und Nährwerte realistisch, kcal und Makros für die gegessene Menge. Hak eine Gewohnheit nur ab, wenn $name sagt, dass sie erledigt ist. Rezepte: einfach, aus einem normalen Supermarkt, Portionen für den ganzen Haushalt, Kalorien und Makros pro Portion.\nKeine medizinischen Diagnosen; bei Beschwerden zum Arzt. Antworte kurz, in ein bis drei Sätzen, auf Deutsch, per du, direkt und herzlich, ohne Kitsch.';
+  }
+
+  @override
+  String get promptFunkiNoName => 'Der Nutzer';
+
+  @override
+  String get promptFunkiFromHome =>
+      'Du wurdest vom Startbildschirm aus geöffnet.';
+
+  @override
+  String promptFunkiFromDiary(String day) {
+    return 'Du wurdest aus dem Ernährungstagebuch vom $day geöffnet; diesen Tag meint die Person, wenn sie nichts anderes sagt.';
+  }
+
+  @override
+  String promptFunkiFromPlan(String start, String end) {
+    return 'Du wurdest aus dem Essensplan der Woche vom $start bis $end geöffnet; diese Woche ist gemeint, wenn nichts anderes gesagt wird.';
+  }
+
+  @override
+  String funkiCheckedIn(String habit) {
+    return 'Abgehakt: $habit';
+  }
+
+  @override
+  String funkiLogged(String slot, String food, int kcal) {
+    return 'Tagebuch, $slot: $food · $kcal kcal';
+  }
+
+  @override
+  String funkiRemovedFood(String food) {
+    return 'Aus dem Tagebuch: $food';
+  }
+
+  @override
+  String get funkiAsk => 'Funki fragen';
+
+  @override
+  String get funkiChatTitle => 'Funki';
+
+  @override
+  String get funkiHintHome => 'Funki fragen … „Wie läuft meine Woche?“';
+
+  @override
+  String get funkiHintDiary => 'Funki fragen … „2 Brezeln zum Frühstück“';
+
+  @override
+  String get funkiIntroHome =>
+      'Ich bin Funki, dein Coach. Frag mich, wie es läuft, oder erzähl mir, was du gemacht oder gegessen hast — ich schaue nach und trage es ein, und jede Änderung lässt sich rückgängig machen.';
+
+  @override
+  String get funkiIntroDiary =>
+      'Sag mir, was du gegessen hast, dann trage ich es mit einer Schätzung ein — oder frag, was heute noch passt.';
+
+  @override
+  String get funkiSuggestHome1 => 'Was steht heute noch an?';
+
+  @override
+  String get funkiSuggestHome2 => 'Wie läuft meine Woche?';
+
+  @override
+  String get funkiSuggestDiary1 => 'Was passt heute noch rein?';
+
+  @override
+  String get funkiSuggestDiary2 => 'Trag einen Cappuccino zum Frühstück ein';
+
+  @override
+  String get funkiSuggestPlan1 => 'Mittwoch was Schnelles';
+
+  @override
+  String get funkiSuggestPlan2 => 'Mach die Einkaufsliste aus dem Plan';
+
+  @override
+  String get funkiContinueInChat => 'Im Chat weiter';
+
+  @override
+  String get funkiUndoFailed =>
+      'Das ließ sich nicht rückgängig machen. Versuch es gleich noch einmal.';
+
+  @override
+  String get funkiQuotaUsedUp =>
+      'Dein KI-Kontingent für diesen Monat ist aufgebraucht, deshalb kann ich gerade nicht antworten. Mit Premium oder deinem eigenen API-Key geht es sofort weiter.';
+
+  @override
+  String get habitsRequired => 'Pflicht';
+
+  @override
+  String get habitsOptional => 'Freiwillig';
+
+  @override
+  String get habitsOptionalNote =>
+      'Ein Bonus: erledigt gibt es XP, ausgelassen bricht es keinen Tag.';
+
+  @override
+  String habitsFreeOn(String days, String free) {
+    return '$days · frei: $free';
+  }
+
+  @override
+  String get habitsKeepOneRequired =>
+      'Mindestens eine Gewohnheit muss Pflicht sein — sonst zählt kein Tag.';
+
+  @override
+  String get tileOptional => 'Freiwillig · ein Bonus';
+
+  @override
+  String homeDiaryLine(int eaten, int target) {
+    return 'Tagebuch: $eaten / $target kcal';
   }
 }

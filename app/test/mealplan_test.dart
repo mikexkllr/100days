@@ -38,6 +38,7 @@ class _Llm implements LlmClient {
     double temperature = 0.7,
     Duration timeout = const Duration(seconds: 30),
     bool json = false,
+    Map<String, Object?>? schema,
   }) async {
     lastPrompt = prompt;
     if (fails) throw StateError('SocketException: Failed host lookup');
@@ -369,6 +370,92 @@ void main() {
     expect(find.text('Ein Foto von deinem Teller'), findsOneWidget);
   });
 
+  Map<String, dynamic> lasagne(DayKey day) => <String, dynamic>{
+        'meals': <Object>[
+          <String, dynamic>{
+            'day': day.toString(),
+            'slot': 'dinner',
+            'title': 'Lasagne',
+            'servings': 2,
+            'minutes': 50,
+            'kcal': 690,
+            'protein': 38,
+            'carbs': 70,
+            'fat': 28,
+            'ingredients': <Object>[
+              <String, dynamic>{'name': 'Lasagneplatten', 'qty': 250, 'unit': 'g', 'category': 'pantry'},
+              <String, dynamic>{'name': 'Rinderhack', 'qty': 400, 'unit': 'g', 'category': 'meat'},
+            ],
+            'steps': <String>['Soße kochen.', 'Schichten und backen.'],
+          },
+        ],
+      };
+
+  testWidgets('Funki makes a full recipe of a name and calories',
+      (WidgetTester tester) async {
+    final DayKey monday = DayKey.today().weekStart;
+    final _Llm llm = _Llm(jsonEncode(lasagne(monday)));
+    await pump(tester, const WeekPlanView(), llm: llm);
+    await tester.tap(find.text('Noch nichts geplant').first);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('add-meal-title')), 'Lasagne');
+    await tester.enterText(find.byKey(const Key('add-meal-kcal')), '700');
+    await tester.tap(find.byKey(const Key('add-meal-funki')));
+    await tester.pumpAndSettle();
+
+    expect(llm.lastPrompt, contains('„Lasagne“'));
+    expect(llm.lastPrompt, contains('Etwa 700 kcal pro Portion.'));
+    final Recipe recipe = (await household.recipes('home')).values.single;
+    expect(recipe.title, 'Lasagne');
+    expect(recipe.ingredients.map((Ingredient i) => i.name),
+        <String>['Lasagneplatten', 'Rinderhack']);
+    expect(recipe.steps, hasLength(2));
+    expect(find.text('Lasagne'), findsOneWidget);
+  });
+
+  testWidgets('when Funki has no recipe that adds up, the sheet stays and says so',
+      (WidgetTester tester) async {
+    await pump(tester, const WeekPlanView(), llm: _Llm('Keine Ahnung.'));
+    await tester.tap(find.text('Noch nichts geplant').first);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('add-meal-title')), 'Lasagne');
+    await tester.tap(find.byKey(const Key('add-meal-funki')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('add-meal-funki-problem')), findsOneWidget);
+    expect(find.byKey(const Key('add-meal-title')), findsOneWidget);
+    expect(await household.recipes('home'), isEmpty);
+  });
+
+  testWidgets('a meal entered as eaten is in the plan and in the diary',
+      (WidgetTester tester) async {
+    await repository.startChallenge(_dietChallenge());
+    await pump(tester, const WeekPlanView());
+    await tester.tap(find.text('Noch nichts geplant').first);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('add-meal-title')), 'Pizza');
+    await tester.enterText(find.byKey(const Key('add-meal-kcal')), '800');
+    // A day gone by starts switched on; Monday may be today.
+    final SwitchListTile eaten =
+        tester.widget<SwitchListTile>(find.byKey(const Key('add-meal-eaten')));
+    expect(eaten.value, DayKey.today().weekStart.isBefore(DayKey.today()));
+    if (!eaten.value) {
+      await tester.tap(find.byKey(const Key('add-meal-eaten')));
+      await tester.pumpAndSettle();
+    }
+    await tester.tap(find.byKey(const Key('add-meal-save')));
+    await tester.pumpAndSettle();
+
+    final AppSnapshot s = await repository.snapshot();
+    final FoodEntry logged =
+        s.me.intakeOn(DayKey.today().weekStart).entries.single;
+    expect(logged.name, 'Pizza');
+    expect(logged.source, FoodSource.plan);
+    expect(logged.meal, MealSlotKind.dinner);
+    expect(logged.nutrients.kcal, greaterThan(0));
+    expect(find.text('Pizza steht in deinem Tagebuch.'), findsOneWidget);
+  });
+
   testWidgets('a day to come, or no diary, offers no way into it',
       (WidgetTester tester) async {
     await pump(tester, const WeekPlanView());
@@ -400,6 +487,56 @@ void main() {
     await tester.tap(find.byKey(const Key('plan-accept')));
     await tester.pumpAndSettle();
   }
+
+  testWidgets('the wish closes the keyboard on return, and a new proposal is new',
+      (WidgetTester tester) async {
+    final DayKey day = DayKey.today();
+    final _Llm llm =
+        _Llm(jsonEncode(<String, dynamic>{'meals': <Object>[dal(day)]}));
+    await pump(tester, const WeekPlanView(), llm: llm);
+    await tester.tap(find.byKey(const Key('plan-week')));
+    await tester.pumpAndSettle();
+    await tester.showKeyboard(find.byKey(const Key('plan-wish')));
+    await tester.enterText(find.byKey(const Key('plan-wish')), 'viel Gemüse');
+    expect(tester.testTextInput.isVisible, isTrue);
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(tester.testTextInput.isVisible, isFalse);
+
+    await tester.tap(find.byKey(const Key('plan-propose')));
+    await tester.pumpAndSettle();
+    expect(llm.lastPrompt, isNot(contains('Linsen-Dal')));
+    await tester.tap(find.byKey(const Key('plan-propose')));
+    await tester.pumpAndSettle();
+    // "Again" is asked not to bring the last draft back.
+    expect(llm.lastPrompt, contains('Linsen-Dal'));
+  });
+
+  testWidgets('a dish already planned this week is not proposed for another day',
+      (WidgetTester tester) async {
+    final DayKey day = DayKey.today();
+    final String id = await household.ensureHousehold();
+    final Recipe kept = await household.saveRecipe(id, _curry());
+    // Lunch today stays as it is; dinner is planned.
+    await household.saveEntry(id, PlanEntry(
+      id: newEventId(),
+      day: day,
+      slot: MealSlotKind.lunch,
+      recipeId: kept.id,
+    ));
+    final _Llm llm = _Llm(jsonEncode(<String, dynamic>{
+      'meals': <Object>[dal(day, title: 'Hähnchen-Curry')],
+    }));
+    await pump(tester, const WeekPlanView(), llm: llm);
+    await tester.tap(find.byKey(const Key('plan-week')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('plan-propose')));
+    await tester.pumpAndSettle();
+
+    expect(llm.lastPrompt, contains('Steht diese Woche schon auf dem Plan'));
+    expect(find.byKey(const Key('plan-accept')), findsNothing);
+    expect(find.byKey(const Key('plan-problem')), findsOneWidget);
+  });
 
   testWidgets('planning the same week twice replaces each meal, not doubles it',
       (WidgetTester tester) async {

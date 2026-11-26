@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
+import '../../ai/funki/funki.dart';
 import '../../data/app_repository.dart';
 import '../../l10n/l10n.dart';
 import '../../state/household_providers.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
+import '../funki/funki_ask_bar.dart';
 import '../widgets/app_card.dart';
 import 'add_food_screen.dart';
 import 'nutrition_goals_screen.dart';
@@ -203,6 +205,15 @@ class _NutritionDiaryViewState extends ConsumerState<NutritionDiaryView> {
           ],
         ),
         _Summary(plan: plan, eaten: eaten),
+        // "2 pretzels for breakfast", "what still fits?" — Funki enters it
+        // or answers, about the day in view.
+        Padding(
+          padding: const EdgeInsets.only(top: AppSpacing.sm),
+          child: FunkiAskBar(
+            key: ValueKey<String>('funki-diary-$day'),
+            focus: FunkiFocus.diary(day),
+          ),
+        ),
         for (final MealSlot slot in plan.meals)
           _MealCard(
             slot: slot,

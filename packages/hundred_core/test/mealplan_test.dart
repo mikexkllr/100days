@@ -284,6 +284,158 @@ void main() {
     });
   });
 
+  group('each dish once', () {
+    final request = MealPlanRequest(
+      days: <DayKey>[_sat, _sat.addDays(1), _sat.addDays(2)],
+      slots: const <MealSlotKind>[MealSlotKind.dinner],
+      people: const <PlanFor>[PlanFor(name: 'Mike')],
+      plannedTitles: const <String>['Linsen-Dal'],
+    );
+
+    Map<String, dynamic> meal(String day, String title) => <String, dynamic>{
+          'day': day,
+          'slot': 'dinner',
+          'title': title,
+          'servings': 2,
+          'kcal': 640,
+          'protein': 42,
+          'carbs': 70,
+          'fat': 18,
+          'ingredients': <Map<String, dynamic>>[
+            <String, dynamic>{'name': 'Reis', 'qty': 150, 'unit': 'g', 'category': 'pantry'},
+          ],
+        };
+
+    test('a dish already in the week or in the draft is not proposed again', () {
+      final meals = parseMealPlan(
+        jsonEncode(<String, dynamic>{
+          'meals': <Object>[
+            meal('2026-11-21', 'Curry'),
+            meal('2026-11-22', '  curry '),
+            meal('2026-11-23', 'linsen-dal'),
+          ],
+        }),
+        request,
+      );
+      expect(meals.map((ProposedMeal m) => m.recipe.title), <String>['Curry']);
+    });
+
+    test('the prompt asks not to repeat what is planned and what was eaten', () {
+      final prompt = const EnglishMealPlanPrompts().proposeWeek(MealPlanRequest(
+        days: request.days,
+        slots: request.slots,
+        people: request.people,
+        plannedTitles: const <String>['Linsen-Dal'],
+        avoidTitles: const <String>['linsen-dal', 'Pizza'],
+      ));
+      expect(prompt, contains('Do not repeat: Linsen-Dal, Pizza.'));
+    });
+
+    test('a week is asked for in the shape of a schema', () async {
+      final llm = _Llm(jsonEncode(<String, dynamic>{
+        'meals': <Object>[meal('2026-11-21', 'Curry')],
+      }));
+      final meals = await MealPlanner(llm: llm).proposeWeek(request);
+      expect(meals!.single.recipe.title, 'Curry');
+      expect(llm.lastSchema, kMealPlanSchema);
+    });
+
+    test('a recipe of a known name is the known one', () {
+      final known = _curry();
+      expect(recipeNamed(<Recipe>[known, _omelette()], ' hähnchen-CURRY'), same(known));
+      expect(recipeNamed(<Recipe>[known], 'Curry'), isNull);
+      final again = Recipe(
+        id: 'new',
+        title: 'Hähnchen-Curry',
+        servings: 4,
+        ingredients: const <Ingredient>[],
+        perServing: const Nutrients(kcal: 500, proteinG: 0, carbsG: 0, fatG: 0),
+      );
+      expect(reconcileRecipe(known, again), same(known),
+          reason: 'a dish with ingredients stays as it is');
+    });
+
+    test('a dish entered by hand takes in the full recipe, under its own id', () {
+      const byHand = Recipe(
+        id: 'pizza',
+        title: 'Pizza',
+        servings: 1,
+        ingredients: <Ingredient>[],
+        perServing: Nutrients(kcal: 800, proteinG: 0, carbsG: 0, fatG: 0),
+      );
+      expect(
+          reconcileRecipe(
+              byHand,
+              const Recipe(
+                id: 'x',
+                title: 'pizza',
+                servings: 1,
+                ingredients: <Ingredient>[],
+                perServing: Nutrients.zero,
+              )),
+          same(byHand),
+          reason: 'a name alone adds nothing');
+      final full = reconcileRecipe(byHand, _curry());
+      expect(full.id, 'pizza');
+      expect(full.title, 'Pizza');
+      expect(full.ingredients, hasLength(3));
+      expect(full.perServing.kcal, 640);
+    });
+  });
+
+  group('one meal drafted', () {
+    Map<String, dynamic> answer(num kcal) => <String, dynamic>{
+          'meals': <Object>[
+            <String, dynamic>{
+              'day': '2026-11-21',
+              'slot': 'dinner',
+              'title': 'Lasagne',
+              'servings': 2,
+              'kcal': kcal,
+              'protein': kcal * 0.25 / 4,
+              'carbs': kcal * 0.45 / 4,
+              'fat': kcal * 0.30 / 9,
+              'ingredients': <Map<String, dynamic>>[
+                <String, dynamic>{'name': 'Lasagneplatten', 'qty': 250, 'unit': 'g', 'category': 'pantry'},
+              ],
+              'steps': <String>['Schichten.', 'Backen.'],
+            },
+          ],
+        };
+
+    MealDraftRequest request({String? title = 'Lasagne', int? kcal = 700}) =>
+        MealDraftRequest(
+          day: _sat,
+          slot: MealSlotKind.dinner,
+          people: const <PlanFor>[PlanFor(name: 'Mike', dailyKcal: 2600)],
+          title: title,
+          kcalPerServing: kcal,
+        );
+
+    test('turns a name and calories into a full recipe', () async {
+      final llm = _Llm(jsonEncode(answer(680)));
+      final meal = await MealPlanner(llm: llm).draftMeal(request());
+      expect(meal!.recipe.title, 'Lasagne');
+      expect(meal.recipe.ingredients.single.name, 'Lasagneplatten');
+      expect(meal.day, _sat);
+      expect(llm.lastPrompt, contains('"Lasagne"'));
+      expect(llm.lastPrompt, contains('About 700 kcal per serving.'));
+      expect(llm.lastSchema, kMealPlanSchema);
+    });
+
+    test('far off the calories asked for is not what was asked for', () async {
+      final llm = _Llm(jsonEncode(answer(1200)));
+      expect(await MealPlanner(llm: llm).draftMeal(request()), isNull);
+      expect(await MealPlanner(llm: llm).draftMeal(request(kcal: null)), isNotNull);
+    });
+
+    test('without a name it picks something for the meal', () async {
+      final llm = _Llm(jsonEncode(answer(700)));
+      await MealPlanner(llm: llm).draftMeal(request(title: ' '));
+      expect(llm.lastPrompt, contains('Pick a simple dish'));
+    });
+  });
+
   group('a list made again', () {
     test('only tops up what the open list does not hold yet', () {
       const wanted = <ShoppingItem>[
@@ -313,6 +465,8 @@ class _Llm implements LlmClient {
 
   final String answer;
   final bool fails;
+  String? lastPrompt;
+  Map<String, Object?>? lastSchema;
 
   @override
   String get modelName => 'fake';
@@ -329,6 +483,11 @@ class _Llm implements LlmClient {
     double temperature = 0.7,
     Duration timeout = const Duration(seconds: 30),
     bool json = false,
-  }) async =>
-      fails ? throw StateError('offline') : answer;
+    Map<String, Object?>? schema,
+  }) async {
+    lastPrompt = prompt;
+    lastSchema = schema;
+    if (fails) throw StateError('offline');
+    return answer;
+  }
 }

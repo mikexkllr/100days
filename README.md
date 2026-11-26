@@ -101,8 +101,10 @@ one **week of meals** and one **shopping list**, live on every phone.
   ("no fish, Wednesday something quick"), get a draft, keep what you like.
   Portions are sized to each person's calorie target — for those who share
   it with the household; everything else stays private.
-- **The planning chat** changes plan and list as you talk to it ("we still
-  have rice") — every change shows up with an undo.
+- **Funki**, the coach, changes plan and list as you talk to him ("we still
+  have rice") — every change shows up with an undo. He also reads and
+  fills the diary, checks off habits and knows your training; ask him in
+  one line on Today and in the diary, or in the chat.
 - **By hand**: "pizza on Friday", or one of the app's meal ideas in a tap —
   ranked against your own target for that meal if you have one.
 - **A list from the plan** for the days until your next trip, added up and
@@ -214,7 +216,7 @@ and the flame evolution, the day-complete slot machine, the home screen
 widget on Android, editable training plans with set-by-set logging,
 nutrition targets and a food diary with photo, description, barcode and
 manual entry, households with a shared meal plan and shopping list, the AI
-planner and planning chat, free and premium AI or one's own key, friends by
+planner and Funki, the coach with tools on everything, free and premium AI or one's own key, friends by
 invite, search and address book, blocking and reporting, friend streaks and
 quests, a public league with divisions and one among friends, nudges and
 cheers, adjustable reminders, sounds, sync through the

@@ -69,6 +69,7 @@ class DartanticLlmClient implements LlmClient {
     List<Tool>? tools,
     double? temperature,
     bool json = false,
+    Map<String, Object?>? schema,
     int? maxTokens,
   }) =>
       Agent.forProvider(
@@ -93,12 +94,14 @@ class DartanticLlmClient implements LlmClient {
     double temperature = 0.7,
     Duration timeout = const Duration(seconds: 30),
     bool json = false,
+    Map<String, Object?>? schema,
   }) async {
     try {
       final ChatResult<String> result = await agent(
         purpose,
         temperature: temperature,
-        json: json,
+        // A schema carries its own JSON mode.
+        json: json && schema == null,
         maxTokens: maxTokens,
       )
           .send(
@@ -107,6 +110,9 @@ class DartanticLlmClient implements LlmClient {
               for (final LlmImage image in images)
                 DataPart(image.bytes, mimeType: image.mimeType),
             ],
+            // Structured output: Gemini constrains its answer to the schema,
+            // OpenAI and Anthropic get it the way dartantic maps it for them.
+            outputSchema: schema == null ? null : Schema.fromMap(schema),
           )
           .timeout(timeout);
       return result.output;

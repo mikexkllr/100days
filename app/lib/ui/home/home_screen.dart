@@ -7,12 +7,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
 import '../../data/app_repository.dart';
+import '../../ai/funki/funki.dart';
 import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/fire.dart';
 import '../../theme/theme.dart';
 import '../celebration/day_complete.dart';
 import '../motion/rolling_number.dart';
+import '../funki/funki_ask_bar.dart';
 import '../nutrition/diary_view.dart';
 import '../plan/workout_detail.dart';
 import '../settings/profile_edit_screen.dart';
@@ -130,6 +132,14 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
     final bool coachTellsPressure =
         selectTone(snapshot.toCoachContext()) == CoachTone.socialPressure;
 
+    VoidCallback? diaryFor(Habit habit) =>
+        habit.category == HabitCategory.nutrition &&
+                snapshot.plan?.nutrition != null
+            ? () => Navigator.of(context).push<void>(MaterialPageRoute<void>(
+                  builder: (BuildContext context) => const DiaryScreen(),
+                ))
+            : null;
+
     Widget tile(Habit habit, {bool scheduled = true}) => Padding(
           key: _tileKeys.putIfAbsent(
               habit.id, () => GlobalKey(debugLabel: 'tile-${habit.id}')),
@@ -148,6 +158,14 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
             onUndo: () => _undo(habit),
             onHoldFill: (double fill) => _holdFill.value = fill,
             tapToCheckIn: prefsTap,
+            // Eating is logged in the diary: the row leads there and says
+            // where the day stands.
+            onOpenDiary: diaryFor(habit),
+            diaryLine: diaryFor(habit) == null
+                ? null
+                : l10n.homeDiaryLine(
+                    snapshot.me.intakeOn(today).total.kcal.round(),
+                    snapshot.plan!.nutrition!.kcal),
           ),
         );
 
@@ -240,6 +258,8 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
           ],
           const SizedBox(height: AppSpacing.md),
           const CoachCard(),
+          const SizedBox(height: AppSpacing.sm),
+          FunkiAskBar(focus: FunkiFocus.home(today)),
           const SizedBox(height: AppSpacing.md),
           _BoardCard(
             snapshot: snapshot,
@@ -353,9 +373,14 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
     AppSounds.play(Sfx.ignite);
     _feed(habit, TodayState.of(before).fire,
         flameStageFor(before.me.streak.current));
-    await ref
-        .read(appStateProvider.notifier)
-        .checkIn(habit, value: value, notifyDelay: _undoWindow);
+    // A diary on target today makes the nutrition tick a tracked one — the
+    // same as closing the day in the diary.
+    final NutritionPlan? plan = before.plan?.nutrition;
+    final bool tracked = habit.category == HabitCategory.nutrition &&
+        plan != null &&
+        before.me.intakeOn(before.today).isOnTarget(plan);
+    await ref.read(appStateProvider.notifier).checkIn(habit,
+        value: value, notifyDelay: _undoWindow, tracked: tracked);
     if (!mounted) return;
     final AppLocalizations l10nNow = context.l10n;
     ScaffoldMessenger.of(context)

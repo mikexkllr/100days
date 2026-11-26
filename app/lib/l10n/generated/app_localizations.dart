@@ -3009,7 +3009,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeOptionalSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Not scheduled today — still counts as XP.'**
+  /// **'Not required today — still earns XP.'**
   String get homeOptionalSubtitle;
 
   /// No description provided for @homeQuestsTitle.
@@ -5556,12 +5556,6 @@ abstract class AppLocalizations {
   /// **'Carbs'**
   String get planCarbsShort;
 
-  /// No description provided for @planChat.
-  ///
-  /// In en, this message translates to:
-  /// **'Planning chat'**
-  String get planChat;
-
   /// No description provided for @planCleanDays.
   ///
   /// In en, this message translates to:
@@ -6301,17 +6295,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Their wish: \"{wish}\"'**
   String promptPlanWish(String wish);
-
-  /// No description provided for @promptPlannerChat.
-  ///
-  /// In en, this message translates to:
-  /// **'You help a household plan its meals and shopping in the 100 Days app. Today is {today} ({weekday}); the week being planned runs from {start} to {end}. Read the plan with get_plan before changing it. Change it with the tools; never just describe a change. Recipes: simple, from a normal supermarket, servings for the whole household, calories and macros per serving. Keep answers to one or two short sentences, in English.'**
-  String promptPlannerChat(
-    String today,
-    String weekday,
-    String start,
-    String end,
-  );
 
   /// No description provided for @promptUnitClean.
   ///
@@ -8593,12 +8576,6 @@ abstract class AppLocalizations {
   /// **'Topped up the shopping list from the plan'**
   String get plannerListToppedUp;
 
-  /// No description provided for @plannerQuotaUsedUp.
-  ///
-  /// In en, this message translates to:
-  /// **'This month\'s AI allowance is used up, so I cannot plan with you right now. With Premium or your own API key it goes on straight away — or plan by hand until the 1st.'**
-  String get plannerQuotaUsedUp;
-
   /// No description provided for @shopCloseEmpty.
   ///
   /// In en, this message translates to:
@@ -8982,6 +8959,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name}: {streak, plural, =1{1-day streak} other{{streak}-day streak}}'**
   String friendFlameLabel(String name, int streak);
+
+  /// No description provided for @promptPlanAlreadyPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Already on this week\'s plan, so not again: {titles}.'**
+  String promptPlanAlreadyPlanned(String titles);
+
+  /// No description provided for @promptMealDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'You write one home-cooking recipe for a household: {slot} on {day}.\n{extra}\n\nWho eats:\n{people}\n\nServings for the whole household, the calories and macros of ONE serving, ingredients for all servings in g, ml or pieces (unit \"g\", \"ml\", \"piece\", \"tbsp\" or \"tsp\") with a category (produce, bakery, dairy, meat, fish, pantry, frozen, drinks, other), and short steps. Use the slot name and the date exactly as given. Title, ingredients and steps in English.\nAnswer with JSON only, in this form, with exactly one meal:\n{format}'**
+  String promptMealDraft(
+    String slot,
+    String day,
+    String people,
+    String extra,
+    String format,
+  );
+
+  /// No description provided for @promptMealDraftTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The dish: \"{title}\". Keep exactly that name as the title.'**
+  String promptMealDraftTitle(String title);
+
+  /// No description provided for @promptMealDraftAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a simple dish that suits this meal and the targets.'**
+  String get promptMealDraftAny;
+
+  /// No description provided for @promptMealDraftKcal.
+  ///
+  /// In en, this message translates to:
+  /// **'About {kcal} kcal per serving.'**
+  String promptMealDraftKcal(int kcal);
+
+  /// No description provided for @addMealFunki.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Funki: full recipe with ingredients and macros'**
+  String get addMealFunki;
+
+  /// No description provided for @addMealFunkiWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Funki is writing the recipe …'**
+  String get addMealFunkiWorking;
+
+  /// No description provided for @addMealFunkiFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Funki did not come up with a recipe that adds up. Try again, or save it as it is.'**
+  String get addMealFunkiFailed;
+
+  /// No description provided for @addMealEaten.
+  ///
+  /// In en, this message translates to:
+  /// **'Already eaten — into the diary too'**
+  String get addMealEaten;
+
+  /// No description provided for @addMealInDiary.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} is in your diary.'**
+  String addMealInDiary(String title);
+
+  /// No description provided for @promptFunki.
+  ///
+  /// In en, this message translates to:
+  /// **'You are Funki, the little flame and coach in the 100 Days app. {name} is doing a challenge of daily habits, and may keep a food diary, a meal plan with a shopping list, and a training plan. Today is {today} ({weekday}). {where}\nLook things up with the get_ tools before you say anything about numbers, the plan or the diary; never make anything up. Change things only with the tools and only when {name} wants it; never just describe a change. Every change can be undone in the app.\nDiary: estimate amounts and nutrients realistically, kcal and macros for the amount eaten. Check off a habit only when {name} says it is done. Recipes: simple, from a normal supermarket, servings for the whole household, calories and macros per serving.\nNo medical diagnoses; for complaints, a doctor. Answer briefly, in one to three sentences, in English, direct and warm, without schmaltz.'**
+  String promptFunki(String today, String weekday, String name, String where);
+
+  /// No description provided for @promptFunkiNoName.
+  ///
+  /// In en, this message translates to:
+  /// **'The user'**
+  String get promptFunkiNoName;
+
+  /// No description provided for @promptFunkiFromHome.
+  ///
+  /// In en, this message translates to:
+  /// **'They opened you from the home screen.'**
+  String get promptFunkiFromHome;
+
+  /// No description provided for @promptFunkiFromDiary.
+  ///
+  /// In en, this message translates to:
+  /// **'They opened you from the food diary of {day}; that is the day they mean unless they say otherwise.'**
+  String promptFunkiFromDiary(String day);
+
+  /// No description provided for @promptFunkiFromPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'They opened you from the meal plan of the week {start} to {end}; that is the week they mean unless they say otherwise.'**
+  String promptFunkiFromPlan(String start, String end);
+
+  /// No description provided for @funkiCheckedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked off: {habit}'**
+  String funkiCheckedIn(String habit);
+
+  /// No description provided for @funkiLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Diary, {slot}: {food} · {kcal} kcal'**
+  String funkiLogged(String slot, String food, int kcal);
+
+  /// No description provided for @funkiRemovedFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of the diary: {food}'**
+  String funkiRemovedFood(String food);
+
+  /// No description provided for @funkiAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Funki'**
+  String get funkiAsk;
+
+  /// No description provided for @funkiChatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Funki'**
+  String get funkiChatTitle;
+
+  /// No description provided for @funkiHintHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Funki … \"how is my week going?\"'**
+  String get funkiHintHome;
+
+  /// No description provided for @funkiHintDiary.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Funki … \"2 pretzels for breakfast\"'**
+  String get funkiHintDiary;
+
+  /// No description provided for @funkiIntroHome.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m Funki, your coach. Ask me how you\'re doing, tell me what you did or ate — I look things up and enter them, and every change can be undone.'**
+  String get funkiIntroHome;
+
+  /// No description provided for @funkiIntroDiary.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell me what you ate and I\'ll put it in the diary with an estimate — or ask what still fits today.'**
+  String get funkiIntroDiary;
+
+  /// No description provided for @funkiSuggestHome1.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s still left today?'**
+  String get funkiSuggestHome1;
+
+  /// No description provided for @funkiSuggestHome2.
+  ///
+  /// In en, this message translates to:
+  /// **'How is my week going?'**
+  String get funkiSuggestHome2;
+
+  /// No description provided for @funkiSuggestDiary1.
+  ///
+  /// In en, this message translates to:
+  /// **'What still fits today?'**
+  String get funkiSuggestDiary1;
+
+  /// No description provided for @funkiSuggestDiary2.
+  ///
+  /// In en, this message translates to:
+  /// **'Put a cappuccino in for breakfast'**
+  String get funkiSuggestDiary2;
+
+  /// No description provided for @funkiSuggestPlan1.
+  ///
+  /// In en, this message translates to:
+  /// **'Something quick on Wednesday'**
+  String get funkiSuggestPlan1;
+
+  /// No description provided for @funkiSuggestPlan2.
+  ///
+  /// In en, this message translates to:
+  /// **'Make the shopping list from the plan'**
+  String get funkiSuggestPlan2;
+
+  /// No description provided for @funkiContinueInChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Go on in the chat'**
+  String get funkiContinueInChat;
+
+  /// No description provided for @funkiUndoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That could not be undone. Try again in a moment.'**
+  String get funkiUndoFailed;
+
+  /// No description provided for @funkiQuotaUsedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Your AI allowance for this month is used up, so I can\'t answer right now. Premium or your own API key gets me going again at once.'**
+  String get funkiQuotaUsedUp;
+
+  /// No description provided for @habitsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get habitsRequired;
+
+  /// No description provided for @habitsOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get habitsOptional;
+
+  /// No description provided for @habitsOptionalNote.
+  ///
+  /// In en, this message translates to:
+  /// **'A bonus: done, it brings XP; left out, it breaks no day.'**
+  String get habitsOptionalNote;
+
+  /// No description provided for @habitsFreeOn.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} · off: {free}'**
+  String habitsFreeOn(String days, String free);
+
+  /// No description provided for @habitsKeepOneRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'At least one habit has to be required — otherwise no day counts.'**
+  String get habitsKeepOneRequired;
+
+  /// No description provided for @tileOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional · a bonus'**
+  String get tileOptional;
+
+  /// No description provided for @homeDiaryLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Diary: {eaten} / {target} kcal'**
+  String homeDiaryLine(int eaten, int target);
 }
 
 class _AppLocalizationsDelegate

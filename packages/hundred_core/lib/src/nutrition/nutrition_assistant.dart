@@ -16,6 +16,30 @@ const String kFoodEstimateJson =
     '{"foods":[{"name":"Pizza","grams":100,"kcal":266,"protein":11,'
     '"carbs":33,"fat":10}]}';
 
+/// [kFoodEstimateJson] as a JSON Schema, for structured output. The checks
+/// on every food still apply.
+const Map<String, Object?> kFoodEstimateSchema = <String, Object?>{
+  'type': 'object',
+  'properties': <String, Object?>{
+    'foods': <String, Object?>{
+      'type': 'array',
+      'items': <String, Object?>{
+        'type': 'object',
+        'properties': <String, Object?>{
+          'name': <String, Object?>{'type': 'string'},
+          'grams': <String, Object?>{'type': 'number'},
+          'kcal': <String, Object?>{'type': 'number'},
+          'protein': <String, Object?>{'type': 'number'},
+          'carbs': <String, Object?>{'type': 'number'},
+          'fat': <String, Object?>{'type': 'number'},
+        },
+        'required': <String>['name', 'grams', 'kcal', 'protein', 'carbs', 'fat'],
+      },
+    },
+  },
+  'required': <String>['foods'],
+};
+
 /// A food the language model recognised in a description or a photo, with
 /// its estimate.
 @immutable
@@ -29,6 +53,31 @@ class FoodEstimate {
   final String name;
   final double grams;
   final Nutrients nutrients;
+}
+
+/// One food as a model writes it — `name`, `grams`, `kcal`, `protein`,
+/// `carbs`, `fat` — or null when it does not hold up: at most 9 kcal a gram
+/// (pure fat) plus a margin, and nothing heavier than a family-size
+/// portion. What an estimate and Funki's diary entries both go through.
+FoodEstimate? foodEstimateFrom(Object? item) {
+  if (item is! Map) return null;
+  final name = item['name'];
+  final grams = _num(item['grams']);
+  final kcal = _num(item['kcal']);
+  if (name is! String || name.trim().isEmpty) return null;
+  if (grams == null || kcal == null) return null;
+  if (grams <= 0 || grams > 3000 || kcal < 0) return null;
+  if (kcal > grams * 9.5 + 20) return null;
+  return FoodEstimate(
+    name: name.trim(),
+    grams: grams,
+    nutrients: Nutrients(
+      kcal: kcal,
+      proteinG: _num(item['protein']) ?? 0,
+      carbsG: _num(item['carbs']) ?? 0,
+      fatG: _num(item['fat']) ?? 0,
+    ),
+  );
 }
 
 /// New targets the model proposes from a wish like "fewer carbs, I train in
@@ -196,6 +245,7 @@ class NutritionAssistant {
           maxTokens: 400,
           temperature: 0.2,
           json: true,
+          schema: kFoodEstimateSchema,
           timeout: timeout),
       timeout: timeout,
       onError: onError,
@@ -219,6 +269,7 @@ class NutritionAssistant {
           maxTokens: 600,
           temperature: 0.2,
           json: true,
+          schema: kFoodEstimateSchema,
           timeout: timeout),
       timeout: timeout,
       onError: onError,
@@ -228,29 +279,10 @@ class NutritionAssistant {
 
   List<FoodEstimate>? _parseEstimates(String raw) {
     try {
-      final result = <FoodEstimate>[];
-      for (final Object? item in _foodItems(raw)) {
-        if (item is! Map) continue;
-        final name = item['name'];
-        final grams = _num(item['grams']);
-        final kcal = _num(item['kcal']);
-        if (name is! String || name.trim().isEmpty) continue;
-        if (grams == null || kcal == null) continue;
-        // Plausibility: at most 9 kcal per gram (pure fat) plus a margin,
-        // and nothing heavier than a family-size portion.
-        if (grams <= 0 || grams > 3000 || kcal < 0) continue;
-        if (kcal > grams * 9.5 + 20) continue;
-        result.add(FoodEstimate(
-          name: name.trim(),
-          grams: grams,
-          nutrients: Nutrients(
-            kcal: kcal,
-            proteinG: _num(item['protein']) ?? 0,
-            carbsG: _num(item['carbs']) ?? 0,
-            fatG: _num(item['fat']) ?? 0,
-          ),
-        ));
-      }
+      final result = <FoodEstimate>[
+        for (final Object? item in _foodItems(raw))
+          if (foodEstimateFrom(item) case final FoodEstimate food) food,
+      ];
       return result.isEmpty ? null : result;
     } on Object {
       return null;
@@ -363,9 +395,10 @@ class NutritionAssistant {
     return jsonDecode(raw.substring(start, end + 1));
   }
 
-  double? _num(Object? value) {
-    if (value is num) return value.toDouble();
-    if (value is String) return double.tryParse(value.replaceAll(',', '.'));
-    return null;
-  }
+}
+
+double? _num(Object? value) {
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value.replaceAll(',', '.'));
+  return null;
 }

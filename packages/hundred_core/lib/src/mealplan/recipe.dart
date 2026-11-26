@@ -216,3 +216,44 @@ num _round(double value) {
   final rounded = (value * 10).round() / 10;
   return rounded == rounded.roundToDouble() ? rounded.round() : rounded;
 }
+
+/// What makes two dish names the same dish: case and spacing do not count.
+String recipeKey(String title) =>
+    title.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+
+/// The household's recipe called [title], if it has one.
+Recipe? recipeNamed(Iterable<Recipe> recipes, String title) {
+  final key = recipeKey(title);
+  if (key.isEmpty) return null;
+  for (final recipe in recipes) {
+    if (recipeKey(recipe.title) == key) return recipe;
+  }
+  return null;
+}
+
+/// What to store when [incoming] has the name of a recipe the household
+/// already has: one recipe per name, so planning "chili" a third time does
+/// not leave three chilis behind.
+///
+/// The stored recipe stays as it is when it already has ingredients — a
+/// dish the household knows does not change because a plan named it again.
+/// One entered by hand without them takes the new one's content, under its
+/// own id. Returns [existing] itself when nothing needs writing.
+Recipe reconcileRecipe(Recipe existing, Recipe incoming) {
+  if (existing.ingredients.isNotEmpty) return existing;
+  if (incoming.ingredients.isEmpty &&
+      (incoming.perServing.kcal <= 0 ||
+          incoming.perServing.kcal == existing.perServing.kcal)) {
+    return existing;
+  }
+  return Recipe(
+    id: existing.id,
+    title: existing.title,
+    servings: incoming.servings,
+    ingredients: incoming.ingredients,
+    perServing: incoming.perServing,
+    minutes: incoming.minutes ?? existing.minutes,
+    steps: incoming.steps.isEmpty ? existing.steps : incoming.steps,
+    tags: incoming.tags.isEmpty ? existing.tags : incoming.tags,
+  );
+}

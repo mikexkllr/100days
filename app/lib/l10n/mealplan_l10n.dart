@@ -76,10 +76,32 @@ class LocalizedMealPlanPrompts implements MealPlanPromptBuilder {
       if (request.wish != null && request.wish!.trim().isNotEmpty)
         l10n.promptPlanWish(request.wish!.trim()),
       if (request.maxMinutes != null) l10n.promptPlanMinutes(request.maxMinutes!),
+      if (request.plannedTitles.isNotEmpty)
+        l10n.promptPlanAlreadyPlanned(request.plannedTitles.join(', ')),
       if (request.avoidTitles.isNotEmpty)
         l10n.promptPlanAvoid(request.avoidTitles.join(', ')),
     ];
     return l10n.promptMealPlan(days, people, extra.join('\n'), kMealPlanJson);
+  }
+
+  @override
+  String draftMeal(MealDraftRequest request) {
+    final List<String> extra = <String>[
+      if (request.hasTitle)
+        l10n.promptMealDraftTitle(request.title!.trim())
+      else
+        l10n.promptMealDraftAny,
+      if (request.kcalPerServing != null)
+        l10n.promptMealDraftKcal(request.kcalPerServing!),
+      if (request.maxMinutes != null) l10n.promptPlanMinutes(request.maxMinutes!),
+    ];
+    return l10n.promptMealDraft(
+      '${request.slot.name} (${l10n.mealName(request.slot)})',
+      '${request.day} (${l10n.weekdayShort(request.day.toDateTime().weekday)})',
+      request.people.map(_person).join('\n'),
+      extra.join('\n'),
+      kMealPlanJson,
+    );
   }
 
   String _person(PlanFor p) {
