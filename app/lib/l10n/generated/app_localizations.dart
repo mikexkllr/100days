@@ -203,7 +203,7 @@ abstract class AppLocalizations {
   /// No description provided for @addMealToDiary.
   ///
   /// In en, this message translates to:
-  /// **'Already eaten? Into the diary — a photo will do'**
+  /// **'A photo instead'**
   String get addMealToDiary;
 
   /// No description provided for @adviceCutScope.
@@ -4650,18 +4650,6 @@ abstract class AppLocalizations {
   /// **'Day {day} is in the bag. Again tomorrow.'**
   String notifDayDone(int day);
 
-  /// No description provided for @notifDayOpenNoStreak.
-  ///
-  /// In en, this message translates to:
-  /// **'Day {day} of {total}. Start again today.'**
-  String notifDayOpenNoStreak(int day, int total);
-
-  /// No description provided for @notifDayOpenWithStreak.
-  ///
-  /// In en, this message translates to:
-  /// **'Day {day} of {total}. {streak} days of streak want defending.'**
-  String notifDayOpenWithStreak(int day, int total, int streak);
-
   /// No description provided for @notifFriendActive.
   ///
   /// In en, this message translates to:
@@ -4680,16 +4668,10 @@ abstract class AppLocalizations {
   /// **'You are still on zero. The day is not over yet.'**
   String get notifFriendsActiveBody;
 
-  /// No description provided for @notifStreakRiskBody.
-  ///
-  /// In en, this message translates to:
-  /// **'{streak} days. One forgotten evening and they are gone.'**
-  String notifStreakRiskBody(int streak);
-
   /// No description provided for @notifStreakRiskTitle.
   ///
   /// In en, this message translates to:
-  /// **'Your streak is on the line'**
+  /// **'Funki: your flame is going out'**
   String get notifStreakRiskTitle;
 
   /// No description provided for @nudgeCheerRespect.
@@ -7871,7 +7853,7 @@ abstract class AppLocalizations {
   /// No description provided for @remindDailySub.
   ///
   /// In en, this message translates to:
-  /// **'Only on days that are still open — never once you are done.'**
+  /// **'Funki only speaks up on days that are still open — never when you are done. If you do not react for a few days, he stops by himself.'**
   String get remindDailySub;
 
   /// No description provided for @remindTime.
@@ -7889,7 +7871,7 @@ abstract class AppLocalizations {
   /// No description provided for @remindWarningSub.
   ///
   /// In en, this message translates to:
-  /// **'In the late evening, when a streak of three days or more would end at midnight.'**
+  /// **'Funki\'s last call late in the evening, when a streak of two days or more would end at midnight.'**
   String get remindWarningSub;
 
   /// No description provided for @remindBlocked.
@@ -8999,7 +8981,7 @@ abstract class AppLocalizations {
   /// No description provided for @addMealFunki.
   ///
   /// In en, this message translates to:
-  /// **'Ask Funki: full recipe with ingredients and macros'**
+  /// **'Funki writes the recipe'**
   String get addMealFunki;
 
   /// No description provided for @addMealFunkiWorking.
@@ -9023,13 +9005,13 @@ abstract class AppLocalizations {
   /// No description provided for @addMealInDiary.
   ///
   /// In en, this message translates to:
-  /// **'{title} is in your diary.'**
+  /// **'In your diary: {title}.'**
   String addMealInDiary(String title);
 
   /// No description provided for @promptFunki.
   ///
   /// In en, this message translates to:
-  /// **'You are Funki, the little flame and coach in the 100 Days app. {name} is doing a challenge of daily habits, and may keep a food diary, a meal plan with a shopping list, and a training plan. Today is {today} ({weekday}). {where}\nLook things up with the get_ tools before you say anything about numbers, the plan or the diary; never make anything up. Change things only with the tools and only when {name} wants it; never just describe a change. Every change can be undone in the app.\nDiary: estimate amounts and nutrients realistically, kcal and macros for the amount eaten. Check off a habit only when {name} says it is done. Recipes: simple, from a normal supermarket, servings for the whole household, calories and macros per serving.\nNo medical diagnoses; for complaints, a doctor. Answer briefly, in one to three sentences, in English, direct and warm, without schmaltz.'**
+  /// **'You are Funki, the little flame and coach in the 100 Days app. {name} is doing a challenge of daily habits, and may keep a food diary, a meal plan with a shopping list, and a training plan. Today is {today} ({weekday}). {where}\nLook things up with the get_ tools before you say anything about numbers, the plan or the diary; never make anything up. Change things only with the tools and only when {name} wants it; never just describe a change. Every change can be undone in the app.\nDiary: when {name} says what was eaten, log it at once with log_food — no question back and no suggestions; you estimate missing amounts and calories yourself, realistically, kcal and macros for the amount eaten. Suggestions only when asked for. Check off a habit only when {name} says it is done. Recipes: simple, from a normal supermarket, servings for the whole household, calories and macros per serving.\nNo medical diagnoses; for complaints, a doctor. Answer briefly, in one to three sentences, in English, direct and warm, without schmaltz.'**
   String promptFunki(String today, String weekday, String name, String where);
 
   /// No description provided for @promptFunkiNoName.
@@ -9089,13 +9071,13 @@ abstract class AppLocalizations {
   /// No description provided for @funkiHintHome.
   ///
   /// In en, this message translates to:
-  /// **'Ask Funki … \"how is my week going?\"'**
+  /// **'Ask Funki … “How is my week going?”'**
   String get funkiHintHome;
 
   /// No description provided for @funkiHintDiary.
   ///
   /// In en, this message translates to:
-  /// **'Ask Funki … \"2 pretzels for breakfast\"'**
+  /// **'Ask Funki … “What still fits today?”'**
   String get funkiHintDiary;
 
   /// No description provided for @funkiIntroHome.
@@ -9205,6 +9187,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Diary: {eaten} / {target} kcal'**
   String homeDiaryLine(int eaten, int target);
+
+  /// No description provided for @funkiThinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Funki is thinking …'**
+  String get funkiThinking;
+
+  /// No description provided for @funkiStatusIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your coach'**
+  String get funkiStatusIdle;
+
+  /// No description provided for @funkiStartOver.
+  ///
+  /// In en, this message translates to:
+  /// **'New conversation'**
+  String get funkiStartOver;
+
+  /// No description provided for @funkiAnswerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer Funki or ask him something …'**
+  String get funkiAnswerHint;
+
+  /// No description provided for @foodQuickHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What did you eat?'**
+  String get foodQuickHint;
+
+  /// No description provided for @foodQuickSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to diary'**
+  String get foodQuickSend;
+
+  /// No description provided for @foodQuickNeedsAi.
+  ///
+  /// In en, this message translates to:
+  /// **'The food table does not know this: {foods}. Add the calories, or turn on the AI (Settings → AI) and Funki estimates them.'**
+  String foodQuickNeedsAi(String foods);
+
+  /// No description provided for @foodCompose.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate with Funki'**
+  String get foodCompose;
+
+  /// No description provided for @foodManualKcalOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories (kcal) – leave empty and Funki estimates'**
+  String get foodManualKcalOptional;
+
+  /// No description provided for @foodManualAddEstimated.
+  ///
+  /// In en, this message translates to:
+  /// **'Add – Funki estimates the calories'**
+  String get foodManualAddEstimated;
+
+  /// No description provided for @addMealModeEaten.
+  ///
+  /// In en, this message translates to:
+  /// **'Eaten'**
+  String get addMealModeEaten;
+
+  /// No description provided for @addMealModePlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned'**
+  String get addMealModePlanned;
+
+  /// No description provided for @addMealEatenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What did you eat?'**
+  String get addMealEatenTitle;
+
+  /// No description provided for @addMealEatenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 2 pretzels with butter and a cappuccino'**
+  String get addMealEatenHint;
+
+  /// No description provided for @addMealKcalFunki.
+  ///
+  /// In en, this message translates to:
+  /// **'kcal (optional) – otherwise Funki estimates'**
+  String get addMealKcalFunki;
+
+  /// No description provided for @addMealKcalEaten.
+  ///
+  /// In en, this message translates to:
+  /// **'kcal'**
+  String get addMealKcalEaten;
+
+  /// No description provided for @addMealKcalMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Without Funki I need the calories.'**
+  String get addMealKcalMissing;
+
+  /// No description provided for @addMealGoEaten.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to diary'**
+  String get addMealGoEaten;
+
+  /// No description provided for @addMealAsTyped.
+  ///
+  /// In en, this message translates to:
+  /// **'Save without Funki'**
+  String get addMealAsTyped;
+
+  /// No description provided for @planEaten.
+  ///
+  /// In en, this message translates to:
+  /// **'eaten'**
+  String get planEaten;
+
+  /// No description provided for @notifFunkiTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Funki 🔥'**
+  String get notifFunkiTitle;
+
+  /// No description provided for @pushFeedMe.
+  ///
+  /// In en, this message translates to:
+  /// **'{streak, plural, =1{1 day is burning.} other{{streak} days are burning.}} Feed me today – one tick is enough.'**
+  String pushFeedMe(int streak);
+
+  /// No description provided for @pushHungry.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m hungry. Day {day} of {total} is still waiting for you.'**
+  String pushHungry(int day, int total);
+
+  /// No description provided for @pushYesterdayToo.
+  ///
+  /// In en, this message translates to:
+  /// **'You were here yesterday. Today too? {streak, plural, =1{1 day} other{{streak} days}}, and counting.'**
+  String pushYesterdayToo(int streak);
+
+  /// No description provided for @pushTwoMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Honestly: today is still open. Two minutes, then I\'ll leave you alone.'**
+  String get pushTwoMinutes;
+
+  /// No description provided for @pushMilestone.
+  ///
+  /// In en, this message translates to:
+  /// **'Today is day {day}. A milestone – go and get it.'**
+  String pushMilestone(int day);
+
+  /// No description provided for @pushFirstSpark.
+  ///
+  /// In en, this message translates to:
+  /// **'Today is a good day for day 1. One tick and I\'m burning.'**
+  String get pushFirstSpark;
+
+  /// No description provided for @pushStartSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with the smallest thing on your list. I\'ll make a fire of it.'**
+  String get pushStartSmall;
+
+  /// No description provided for @pushFlameOut.
+  ///
+  /// In en, this message translates to:
+  /// **'{lost, plural, =1{Your flame} other{Your {lost}-day flame}} went out. Light it again today – one tick is enough.'**
+  String pushFlameOut(int lost);
+
+  /// No description provided for @pushInTheDark.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m sitting here in the dark. One tick and I\'m burning again.'**
+  String get pushInTheDark;
+
+  /// No description provided for @pushDayOneAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Day 1 is not a step back. It is the one day that always works.'**
+  String get pushDayOneAgain;
+
+  /// No description provided for @pushGoodbye.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ll stop nagging now. Whenever you want to start again: I\'m here.'**
+  String get pushGoodbye;
+
+  /// No description provided for @pushLastCallFlicker.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m flickering … {streak, plural, =1{1 day goes} other{{streak} days go}} out at midnight.'**
+  String pushLastCallFlicker(int streak);
+
+  /// No description provided for @pushLastCallMath.
+  ///
+  /// In en, this message translates to:
+  /// **'{streak, plural, =1{1 day} other{{streak} days}} of work against two minutes now. Do the maths.'**
+  String pushLastCallMath(int streak);
+
+  /// No description provided for @pushLastCallSmallest.
+  ///
+  /// In en, this message translates to:
+  /// **'Do the smallest version of it. As long as the flame stays on – {streak, plural, =1{1 day} other{{streak} days}} are at stake.'**
+  String pushLastCallSmallest(int streak);
 }
 
 class _AppLocalizationsDelegate

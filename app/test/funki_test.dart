@@ -7,8 +7,8 @@ import 'package:hundred_days/ai/funki/funki.dart';
 import 'package:hundred_days/ai/funki/funki_tools.dart';
 import 'package:hundred_days/data/app_repository.dart';
 import 'package:hundred_days/data/household_backend.dart';
-import 'package:hundred_days/ui/funki/funki_ask_bar.dart';
-import 'package:hundred_days/ui/funki/funki_chat_screen.dart';
+import 'package:hundred_days/ui/funki/funki_sheet.dart';
+import 'package:hundred_days/ui/funki/funki_widgets.dart';
 import 'package:hundred_days/ui/mealplan/week_plan_view.dart';
 import 'package:hundred_days/ui/nutrition/diary_view.dart';
 
@@ -104,11 +104,26 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> ask(WidgetTester tester, String text) async {
-    await tester.enterText(find.byKey(const Key('funki-ask')), text);
-    await tester.tap(find.byKey(const Key('funki-ask-send')));
+  /// Funki's sheet, opened from [opener] unless it is up already, and a
+  /// question put to him there.
+  Future<void> ask(WidgetTester tester, String text,
+      {Key opener = const Key('funki-ask')}) async {
+    if (find.byKey(const Key('funki-input')).evaluate().isEmpty) {
+      await tester.tap(find.byKey(opener));
+      await tester.pumpAndSettle();
+    }
+    await tester.enterText(find.byKey(const Key('funki-input')), text);
+    await tester.tap(find.byKey(const Key('funki-send')));
     await tester.pumpAndSettle();
   }
+
+  /// "Ask Funki" as it stands on a screen.
+  Widget askButton() => Center(
+        child: FunkiAskButton(
+          key: const Key('funki-ask'),
+          focus: FunkiFocus.home(DayKey.today()),
+        ),
+      );
 
   testWidgets('in the diary, what was eaten goes in with its numbers, and back out',
       (WidgetTester tester) async {
@@ -126,7 +141,7 @@ void main() {
     ]);
     await pump(tester, const DiaryScreen(), brain);
 
-    await ask(tester, '2 Brezeln zum Frühstück');
+    await ask(tester, '2 Brezeln zum Frühstück', opener: const Key('funki-bar'));
 
     expect(find.text('Zwei Brezeln sind drin, 440 kcal.'), findsOneWidget);
     expect(find.text('Tagebuch, Frühstück: Brezel · 440 kcal'), findsOneWidget);
@@ -155,7 +170,7 @@ void main() {
         ('check_in', <String, dynamic>{'habit_id': 'reading'}),
       ]),
     ]);
-    await pump(tester, FunkiAskBar(focus: FunkiFocus.home(DayKey.today())), brain);
+    await pump(tester, askButton(), brain);
 
     await ask(tester, 'Hab heute gelesen');
     AppSnapshot s = await repository.snapshot();
@@ -175,7 +190,7 @@ void main() {
         ('check_in', <String, dynamic>{'habit_id': 'reading'}),
       ]),
     ]);
-    await pump(tester, FunkiAskBar(focus: FunkiFocus.home(DayKey.today())), brain);
+    await pump(tester, askButton(), brain);
     await ask(tester, 'gelesen');
     // An answer that is only a change still says something.
     expect(find.text('Erledigt.'), findsOneWidget);
@@ -191,13 +206,13 @@ void main() {
     final _ScriptedBrain brain = _ScriptedBrain(<_Step>[
       _Step('', fails: Exception('402 quota_exceeded')),
     ]);
-    await pump(tester, FunkiAskBar(focus: FunkiFocus.home(DayKey.today())), brain);
+    await pump(tester, askButton(), brain);
     await ask(tester, 'Wie läuft es?');
     expect(find.textContaining('KI-Kontingent'), findsOneWidget);
     expect(find.byKey(const Key('funki-paywall')), findsOneWidget);
   });
 
-  testWidgets('a question in passing goes on in the chat, with what was said',
+  testWidgets('closed and opened again, the conversation goes on — until it is started over',
       (WidgetTester tester) async {
     final _ScriptedBrain brain = _ScriptedBrain(<_Step>[
       const _Step('Heute fehlt noch Lesen.', calls: <(String, Map<String, dynamic>)>[
@@ -205,21 +220,28 @@ void main() {
       ]),
       const _Step('Gern.'),
     ]);
-    await pump(tester, FunkiAskBar(focus: FunkiFocus.home(DayKey.today())), brain);
+    await pump(tester, askButton(), brain);
     await ask(tester, 'Was fehlt noch?');
     expect(brain.results.single, contains('"required_today":true'));
+    expect(find.byType(FunkiSheet), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('funki-open-chat')));
+    await tester.tap(find.byKey(const Key('funki-close')));
     await tester.pumpAndSettle();
-    expect(find.byType(FunkiChatScreen), findsOneWidget);
+    expect(find.byType(FunkiSheet), findsNothing);
+
+    await tester.tap(find.byKey(const Key('funki-ask')));
+    await tester.pumpAndSettle();
     expect(find.text('Was fehlt noch?'), findsOneWidget);
     expect(find.text('Heute fehlt noch Lesen.'), findsOneWidget);
 
-    await tester.enterText(find.byKey(const Key('funki-input')), 'Danke');
-    await tester.tap(find.byKey(const Key('funki-send')));
-    await tester.pumpAndSettle();
+    await ask(tester, 'Danke');
     expect(find.text('Gern.'), findsOneWidget);
     expect(brain.histories.last.length, greaterThan(2));
+
+    await tester.tap(find.byKey(const Key('funki-new')));
+    await tester.pumpAndSettle();
+    expect(find.text('Was fehlt noch?'), findsNothing);
+    expect(find.text('Gern.'), findsNothing);
   });
 
   testWidgets('from the plan, Funki plans a meal — the dish the household knows',
@@ -267,12 +289,8 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('plan-chat')));
-    await tester.pumpAndSettle();
-    expect(find.text('Funki'), findsOneWidget);
-    await tester.enterText(find.byKey(const Key('funki-input')), 'Heute Dal');
-    await tester.tap(find.byKey(const Key('funki-send')));
-    await tester.pumpAndSettle();
+    await ask(tester, 'Heute Dal', opener: const Key('plan-chat'));
+    expect(find.byType(FunkiSheet), findsOneWidget);
 
     final List<PlanEntry> plan = await household.plan(id, day, day);
     expect(plan.single.recipeId, dal.id, reason: 'one recipe per name');
@@ -282,8 +300,8 @@ void main() {
 
   testWidgets('without a model that can call tools, the line is not offered',
       (WidgetTester tester) async {
-    await pump(tester, FunkiAskBar(focus: FunkiFocus.home(DayKey.today())), null);
-    expect(find.byKey(const Key('funki-ask')), findsNothing);
+    await pump(tester, askButton(), null);
+    expect(find.text('Funki fragen'), findsNothing);
   });
 }
 

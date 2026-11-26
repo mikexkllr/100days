@@ -60,8 +60,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addMealTitleMissing => 'Give it a name — or tap one of the ideas.';
 
   @override
-  String get addMealToDiary =>
-      'Already eaten? Into the diary — a photo will do';
+  String get addMealToDiary => 'A photo instead';
 
   @override
   String adviceCutScope(int percent) {
@@ -2835,16 +2834,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String notifDayOpenNoStreak(int day, int total) {
-    return 'Day $day of $total. Start again today.';
-  }
-
-  @override
-  String notifDayOpenWithStreak(int day, int total, int streak) {
-    return 'Day $day of $total. $streak days of streak want defending.';
-  }
-
-  @override
   String notifFriendActive(String name) {
     return '$name was already out today';
   }
@@ -2859,12 +2848,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'You are still on zero. The day is not over yet.';
 
   @override
-  String notifStreakRiskBody(int streak) {
-    return '$streak days. One forgotten evening and they are gone.';
-  }
-
-  @override
-  String get notifStreakRiskTitle => 'Your streak is on the line';
+  String get notifStreakRiskTitle => 'Funki: your flame is going out';
 
   @override
   String nudgeCheerRespect(String emoji) {
@@ -4826,7 +4810,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get remindDailySub =>
-      'Only on days that are still open — never once you are done.';
+      'Funki only speaks up on days that are still open — never when you are done. If you do not react for a few days, he stops by himself.';
 
   @override
   String get remindTime => 'Time';
@@ -4836,7 +4820,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get remindWarningSub =>
-      'In the late evening, when a streak of three days or more would end at midnight.';
+      'Funki\'s last call late in the evening, when a streak of two days or more would end at midnight.';
 
   @override
   String get remindBlocked => 'Notifications are switched off for this app.';
@@ -5588,8 +5572,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get addMealFunki =>
-      'Ask Funki: full recipe with ingredients and macros';
+  String get addMealFunki => 'Funki writes the recipe';
 
   @override
   String get addMealFunkiWorking => 'Funki is writing the recipe …';
@@ -5603,12 +5586,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String addMealInDiary(String title) {
-    return '$title is in your diary.';
+    return 'In your diary: $title.';
   }
 
   @override
   String promptFunki(String today, String weekday, String name, String where) {
-    return 'You are Funki, the little flame and coach in the 100 Days app. $name is doing a challenge of daily habits, and may keep a food diary, a meal plan with a shopping list, and a training plan. Today is $today ($weekday). $where\nLook things up with the get_ tools before you say anything about numbers, the plan or the diary; never make anything up. Change things only with the tools and only when $name wants it; never just describe a change. Every change can be undone in the app.\nDiary: estimate amounts and nutrients realistically, kcal and macros for the amount eaten. Check off a habit only when $name says it is done. Recipes: simple, from a normal supermarket, servings for the whole household, calories and macros per serving.\nNo medical diagnoses; for complaints, a doctor. Answer briefly, in one to three sentences, in English, direct and warm, without schmaltz.';
+    return 'You are Funki, the little flame and coach in the 100 Days app. $name is doing a challenge of daily habits, and may keep a food diary, a meal plan with a shopping list, and a training plan. Today is $today ($weekday). $where\nLook things up with the get_ tools before you say anything about numbers, the plan or the diary; never make anything up. Change things only with the tools and only when $name wants it; never just describe a change. Every change can be undone in the app.\nDiary: when $name says what was eaten, log it at once with log_food — no question back and no suggestions; you estimate missing amounts and calories yourself, realistically, kcal and macros for the amount eaten. Suggestions only when asked for. Check off a habit only when $name says it is done. Recipes: simple, from a normal supermarket, servings for the whole household, calories and macros per serving.\nNo medical diagnoses; for complaints, a doctor. Answer briefly, in one to three sentences, in English, direct and warm, without schmaltz.';
   }
 
   @override
@@ -5649,10 +5632,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get funkiChatTitle => 'Funki';
 
   @override
-  String get funkiHintHome => 'Ask Funki … \"how is my week going?\"';
+  String get funkiHintHome => 'Ask Funki … “How is my week going?”';
 
   @override
-  String get funkiHintDiary => 'Ask Funki … \"2 pretzels for breakfast\"';
+  String get funkiHintDiary => 'Ask Funki … “What still fits today?”';
 
   @override
   String get funkiIntroHome =>
@@ -5716,5 +5699,171 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String homeDiaryLine(int eaten, int target) {
     return 'Diary: $eaten / $target kcal';
+  }
+
+  @override
+  String get funkiThinking => 'Funki is thinking …';
+
+  @override
+  String get funkiStatusIdle => 'Your coach';
+
+  @override
+  String get funkiStartOver => 'New conversation';
+
+  @override
+  String get funkiAnswerHint => 'Answer Funki or ask him something …';
+
+  @override
+  String get foodQuickHint => 'What did you eat?';
+
+  @override
+  String get foodQuickSend => 'Add to diary';
+
+  @override
+  String foodQuickNeedsAi(String foods) {
+    return 'The food table does not know this: $foods. Add the calories, or turn on the AI (Settings → AI) and Funki estimates them.';
+  }
+
+  @override
+  String get foodCompose => 'Estimate with Funki';
+
+  @override
+  String get foodManualKcalOptional =>
+      'Calories (kcal) – leave empty and Funki estimates';
+
+  @override
+  String get foodManualAddEstimated => 'Add – Funki estimates the calories';
+
+  @override
+  String get addMealModeEaten => 'Eaten';
+
+  @override
+  String get addMealModePlanned => 'Planned';
+
+  @override
+  String get addMealEatenTitle => 'What did you eat?';
+
+  @override
+  String get addMealEatenHint => 'e.g. 2 pretzels with butter and a cappuccino';
+
+  @override
+  String get addMealKcalFunki => 'kcal (optional) – otherwise Funki estimates';
+
+  @override
+  String get addMealKcalEaten => 'kcal';
+
+  @override
+  String get addMealKcalMissing => 'Without Funki I need the calories.';
+
+  @override
+  String get addMealGoEaten => 'Add to diary';
+
+  @override
+  String get addMealAsTyped => 'Save without Funki';
+
+  @override
+  String get planEaten => 'eaten';
+
+  @override
+  String get notifFunkiTitle => 'Funki 🔥';
+
+  @override
+  String pushFeedMe(int streak) {
+    String _temp0 = intl.Intl.pluralLogic(
+      streak,
+      locale: localeName,
+      other: '$streak days are burning.',
+      one: '1 day is burning.',
+    );
+    return '$_temp0 Feed me today – one tick is enough.';
+  }
+
+  @override
+  String pushHungry(int day, int total) {
+    return 'I\'m hungry. Day $day of $total is still waiting for you.';
+  }
+
+  @override
+  String pushYesterdayToo(int streak) {
+    String _temp0 = intl.Intl.pluralLogic(
+      streak,
+      locale: localeName,
+      other: '$streak days',
+      one: '1 day',
+    );
+    return 'You were here yesterday. Today too? $_temp0, and counting.';
+  }
+
+  @override
+  String get pushTwoMinutes =>
+      'Honestly: today is still open. Two minutes, then I\'ll leave you alone.';
+
+  @override
+  String pushMilestone(int day) {
+    return 'Today is day $day. A milestone – go and get it.';
+  }
+
+  @override
+  String get pushFirstSpark =>
+      'Today is a good day for day 1. One tick and I\'m burning.';
+
+  @override
+  String get pushStartSmall =>
+      'Start with the smallest thing on your list. I\'ll make a fire of it.';
+
+  @override
+  String pushFlameOut(int lost) {
+    String _temp0 = intl.Intl.pluralLogic(
+      lost,
+      locale: localeName,
+      other: 'Your $lost-day flame',
+      one: 'Your flame',
+    );
+    return '$_temp0 went out. Light it again today – one tick is enough.';
+  }
+
+  @override
+  String get pushInTheDark =>
+      'I\'m sitting here in the dark. One tick and I\'m burning again.';
+
+  @override
+  String get pushDayOneAgain =>
+      'Day 1 is not a step back. It is the one day that always works.';
+
+  @override
+  String get pushGoodbye =>
+      'I\'ll stop nagging now. Whenever you want to start again: I\'m here.';
+
+  @override
+  String pushLastCallFlicker(int streak) {
+    String _temp0 = intl.Intl.pluralLogic(
+      streak,
+      locale: localeName,
+      other: '$streak days go',
+      one: '1 day goes',
+    );
+    return 'I\'m flickering … $_temp0 out at midnight.';
+  }
+
+  @override
+  String pushLastCallMath(int streak) {
+    String _temp0 = intl.Intl.pluralLogic(
+      streak,
+      locale: localeName,
+      other: '$streak days',
+      one: '1 day',
+    );
+    return '$_temp0 of work against two minutes now. Do the maths.';
+  }
+
+  @override
+  String pushLastCallSmallest(int streak) {
+    String _temp0 = intl.Intl.pluralLogic(
+      streak,
+      locale: localeName,
+      other: '$streak days',
+      one: '1 day',
+    );
+    return 'Do the smallest version of it. As long as the flame stays on – $_temp0 are at stake.';
   }
 }

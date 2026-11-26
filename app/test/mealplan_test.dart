@@ -400,7 +400,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('add-meal-title')), 'Lasagne');
     await tester.enterText(find.byKey(const Key('add-meal-kcal')), '700');
-    await tester.tap(find.byKey(const Key('add-meal-funki')));
+    // With Funki there, the main button is his: the full recipe.
+    await tester.tap(find.byKey(const Key('add-meal-save')));
     await tester.pumpAndSettle();
 
     expect(llm.lastPrompt, contains('„Lasagne“'));
@@ -419,41 +420,100 @@ void main() {
     await tester.tap(find.text('Noch nichts geplant').first);
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('add-meal-title')), 'Lasagne');
-    await tester.tap(find.byKey(const Key('add-meal-funki')));
+    await tester.tap(find.byKey(const Key('add-meal-save')));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('add-meal-funki-problem')), findsOneWidget);
     expect(find.byKey(const Key('add-meal-title')), findsOneWidget);
     expect(await household.recipes('home'), isEmpty);
+
+    // The way without him stays: the meal as typed.
+    await tester.tap(find.byKey(const Key('add-meal-manual')));
+    await tester.pumpAndSettle();
+    expect((await household.recipes('home')).values.single.title, 'Lasagne');
   });
 
-  testWidgets('a meal entered as eaten is in the plan and in the diary',
-      (WidgetTester tester) async {
-    await repository.startChallenge(_dietChallenge());
-    await pump(tester, const WeekPlanView());
+  /// Opens Monday's dinner — a day that has come — as "eaten".
+  Future<void> openEaten(WidgetTester tester) async {
     await tester.tap(find.text('Noch nichts geplant').first);
     await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const Key('add-meal-title')), 'Pizza');
-    await tester.enterText(find.byKey(const Key('add-meal-kcal')), '800');
-    // A day gone by starts switched on; Monday may be today.
-    final SwitchListTile eaten =
-        tester.widget<SwitchListTile>(find.byKey(const Key('add-meal-eaten')));
-    expect(eaten.value, DayKey.today().weekStart.isBefore(DayKey.today()));
-    if (!eaten.value) {
-      await tester.tap(find.byKey(const Key('add-meal-eaten')));
-      await tester.pumpAndSettle();
-    }
+    await tester.tap(find.text('Gegessen'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('what was eaten is described, and Funki makes diary entries of it',
+      (WidgetTester tester) async {
+    await repository.startChallenge(_dietChallenge());
+    final _Llm llm = _Llm('{"foods":[{"name":"Käsekuchen","grams":120,'
+        '"kcal":350,"protein":8,"carbs":40,"fat":17}]}');
+    await pump(tester, const WeekPlanView(), llm: llm);
+    await openEaten(tester);
+    // It asks what was eaten, wants no calories and suggests nothing.
+    expect(find.text('Was hast du gegessen?'), findsOneWidget);
+    expect(find.text('IDEEN'), findsNothing);
+    await tester.enterText(
+        find.byKey(const Key('add-meal-title')), 'ein Stück Käsekuchen');
     await tester.tap(find.byKey(const Key('add-meal-save')));
     await tester.pumpAndSettle();
 
-    final AppSnapshot s = await repository.snapshot();
+    final DayKey monday = DayKey.today().weekStart;
     final FoodEntry logged =
-        s.me.intakeOn(DayKey.today().weekStart).entries.single;
-    expect(logged.name, 'Pizza');
-    expect(logged.source, FoodSource.plan);
+        (await repository.snapshot()).me.intakeOn(monday).entries.single;
+    expect(logged.name, 'Käsekuchen');
+    expect(logged.nutrients.kcal, 350);
+    expect(logged.grams, 120);
+    expect(logged.source, FoodSource.ai);
     expect(logged.meal, MealSlotKind.dinner);
-    expect(logged.nutrients.kcal, greaterThan(0));
-    expect(find.text('Pizza steht in deinem Tagebuch.'), findsOneWidget);
+    // In the diary — not on the household's plan, where it would be
+    // portioned for everyone. The week shows it all the same.
+    expect(await household.plan('home', monday, monday), isEmpty);
+    expect(find.byKey(Key('eaten-$monday-dinner')), findsOneWidget);
+    expect(find.text('Im Tagebuch: Käsekuchen.'), findsOneWidget);
+  });
+
+  testWidgets('calories the user knows are kept; Funki fits the rest to them',
+      (WidgetTester tester) async {
+    await repository.startChallenge(_dietChallenge());
+    final _Llm llm = _Llm('{"foods":[{"name":"Käsekuchen","grams":120,'
+        '"kcal":350,"protein":8,"carbs":40,"fat":17}]}');
+    await pump(tester, const WeekPlanView(), llm: llm);
+    await openEaten(tester);
+    await tester.enterText(find.byKey(const Key('add-meal-title')), 'Käsekuchen');
+    await tester.enterText(find.byKey(const Key('add-meal-kcal')), '700');
+    await tester.tap(find.byKey(const Key('add-meal-save')));
+    await tester.pumpAndSettle();
+
+    final FoodEntry logged = (await repository.snapshot())
+        .me
+        .intakeOn(DayKey.today().weekStart)
+        .entries
+        .single;
+    expect(logged.nutrients.kcal, 700);
+    expect(logged.nutrients.proteinG, 16);
+    expect(logged.grams, 240);
+  });
+
+  testWidgets('without Funki, what was eaten needs its calories — and takes them',
+      (WidgetTester tester) async {
+    await repository.startChallenge(_dietChallenge());
+    await pump(tester, const WeekPlanView());
+    await openEaten(tester);
+    await tester.enterText(
+        find.byKey(const Key('add-meal-title')), 'Omas Schmorgericht');
+    await tester.tap(find.byKey(const Key('add-meal-save')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('add-meal-funki-problem')), findsOneWidget);
+    final DayKey monday = DayKey.today().weekStart;
+    expect((await repository.snapshot()).me.intakeOn(monday).entries, isEmpty);
+
+    await tester.enterText(find.byKey(const Key('add-meal-kcal')), '800');
+    await tester.tap(find.byKey(const Key('add-meal-save')));
+    await tester.pumpAndSettle();
+    final FoodEntry logged =
+        (await repository.snapshot()).me.intakeOn(monday).entries.single;
+    expect(logged.name, 'Omas Schmorgericht');
+    expect(logged.nutrients.kcal, 800);
+    expect(logged.source, FoodSource.manual);
   });
 
   testWidgets('a day to come, or no diary, offers no way into it',

@@ -14,6 +14,7 @@ import '../../l10n/food_names.dart';
 import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
+import '../funki/funki_widgets.dart';
 import '../widgets/app_card.dart';
 import 'barcode_scan_screen.dart';
 
@@ -28,19 +29,20 @@ String newFoodEntryId() {
       .join();
 }
 
-/// The ways into the diary, in the order of their tabs.
-enum FoodEntryWay { search, photo, describe, barcode, manual }
+/// The ways into the diary, in the order of their tabs: saying what it was
+/// comes first — it needs neither a search nor a number.
+enum FoodEntryWay { describe, photo, search, barcode, manual }
 
-/// Five ways to log a meal: search the food table, take a photo (the
-/// language model estimates what is on the plate), describe it in a
-/// sentence, scan or type a barcode, or enter the numbers yourself.
+/// Five ways to log a meal: describe it in a sentence, take a photo (the
+/// language model estimates what is on the plate), search the food table,
+/// scan or type a barcode, or enter the numbers yourself.
 class AddFoodScreen extends ConsumerStatefulWidget {
   const AddFoodScreen({
     super.key,
     required this.meal,
     required this.day,
     this.prefillText,
-    this.startOn = FoodEntryWay.search,
+    this.startOn = FoodEntryWay.describe,
   });
 
   final MealSlotKind meal;
@@ -115,9 +117,9 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
             // Five short labels fit a phone; scrolling would hide the last.
             labelPadding: const EdgeInsets.symmetric(horizontal: 2),
             tabs: <Widget>[
-              Tab(text: l10n.foodTabSearch),
-              Tab(text: l10n.foodTabPhoto),
               Tab(text: l10n.foodTabDescribe),
+              Tab(text: l10n.foodTabPhoto),
+              Tab(text: l10n.foodTabSearch),
               Tab(text: l10n.foodTabBarcode),
               Tab(text: l10n.foodTabManual),
             ],
@@ -131,13 +133,13 @@ class _AddFoodScreenState extends ConsumerState<AddFoodScreen> {
                 absorbing: _saving,
                 child: TabBarView(
                   children: <Widget>[
-                    _SearchTab(onPick: _log, makeEntry: _entry),
-                    _PhotoTab(onPick: _log, makeEntry: _entry),
                     _DescribeTab(
                       initialText: widget.prefillText,
                       onPick: _log,
                       makeEntry: _entry,
                     ),
+                    _PhotoTab(onPick: _log, makeEntry: _entry),
+                    _SearchTab(onPick: _log, makeEntry: _entry),
                     _BarcodeTab(onPick: _log, makeEntry: _entry),
                     _ManualTab(onPick: _log, makeEntry: _entry),
                   ],
@@ -586,6 +588,13 @@ class _DescribeTabState extends ConsumerState<_DescribeTab>
     });
   }
 
+  /// One press: the table reads what it knows, Funki estimates the rest.
+  Future<void> _compose(NutritionAssistant? assistant) async {
+    FocusScope.of(context).unfocus();
+    _parse();
+    if (assistant != null && _unknown.isNotEmpty) await _estimate(assistant);
+  }
+
   Future<void> _estimate(NutritionAssistant assistant) async {
     if (_estimating) return;
     // Asked about the text as it reads now — not about what it said when
@@ -635,11 +644,6 @@ class _DescribeTabState extends ConsumerState<_DescribeTab>
         drafts.where((_Draft d) => d.include).toList();
     final double total = included.fold(
         0.0, (double sum, _Draft d) => sum + d.nutrients.kcal);
-    // Only worth asking while the text holds something neither the table
-    // nor an earlier estimate has placed.
-    final Set<String> estimated = _estimated;
-    final bool askable = _read().$2.any((String u) => !estimated.contains(u));
-
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: <Widget>[
@@ -651,40 +655,30 @@ class _DescribeTabState extends ConsumerState<_DescribeTab>
           textInputAction: TextInputAction.done,
           decoration: InputDecoration(hintText: l10n.foodDescribeHint),
           onChanged: (_) => setState(() {}),
-          onSubmitted: (_) => _parse(),
+          onSubmitted: (_) => _compose(assistant),
         ),
         const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: OutlinedButton.icon(
-                key: const Key('food-parse'),
-                onPressed: _parse,
-                icon: const Icon(Icons.manage_search, size: 18),
-                label: Text(l10n.foodRecognise),
-              ),
-            ),
-            if (assistant != null) ...<Widget>[
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: FilledButton.icon(
-                  key: const Key('food-estimate'),
-                  onPressed: _estimating || !askable
-                      ? null
-                      : () => _estimate(assistant),
-                  icon: _estimating
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.auto_awesome, size: 18),
-                  label: Text(l10n.foodAskAi),
-                ),
-              ),
-            ],
-          ],
-        ),
+        // With Funki, one button: what the table knows costs nothing, the
+        // rest he estimates. Without him, the table alone.
+        if (assistant != null)
+          FilledButton.icon(
+            key: const Key('food-estimate'),
+            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+            onPressed: _estimating || _text.text.trim().isEmpty
+                ? null
+                : () => _compose(assistant),
+            icon: _estimating
+                ? const FunkiThinking(color: AppColors.onPrimary)
+                : const FunkiAvatar(size: 26),
+            label: Text(_estimating ? l10n.funkiThinking : l10n.foodCompose),
+          )
+        else
+          OutlinedButton.icon(
+            key: const Key('food-parse'),
+            onPressed: _parse,
+            icon: const Icon(Icons.manage_search, size: 18),
+            label: Text(l10n.foodRecognise),
+          ),
         const SizedBox(height: AppSpacing.sm),
         if (assistant == null)
           Text(
@@ -1115,17 +1109,17 @@ class _BarcodeTabState extends ConsumerState<_BarcodeTab>
   }
 }
 
-class _ManualTab extends StatefulWidget {
+class _ManualTab extends ConsumerStatefulWidget {
   const _ManualTab({required this.onPick, required this.makeEntry});
 
   final _OnPick onPick;
   final _EntryFactory makeEntry;
 
   @override
-  State<_ManualTab> createState() => _ManualTabState();
+  ConsumerState<_ManualTab> createState() => _ManualTabState();
 }
 
-class _ManualTabState extends State<_ManualTab>
+class _ManualTabState extends ConsumerState<_ManualTab>
     with AutomaticKeepAliveClientMixin<_ManualTab> {
   @override
   bool get wantKeepAlive => true;
@@ -1179,8 +1173,55 @@ class _ManualTabState extends State<_ManualTab>
   bool get _hasName => _name.text.trim().isNotEmpty;
   bool get _hasKcal => _nutrients.kcal > 0;
 
-  /// A press always answers: logged, or the fields say what is missing.
-  void _add() {
+  /// While Funki estimates what has a name but no calories, and what went
+  /// wrong if he could not.
+  bool _estimating = false;
+  String? _problem;
+
+  /// A name without calories: Funki estimates them — nobody knows what a
+  /// plate of pasta has. The amount helps him, if it was given.
+  Future<void> _estimate(NutritionAssistant assistant) async {
+    if (_estimating) return;
+    final AppLocalizations l10n = context.l10n;
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _estimating = true;
+      _problem = null;
+    });
+    final double grams = _n(_grams);
+    Object? failure;
+    final List<FoodEstimate>? estimates = await assistant.estimateFoods(
+      grams > 0 ? '${_name.text.trim()}, ${grams.round()} g' : _name.text.trim(),
+      onError: (Object error) => failure = error,
+    );
+    if (!mounted) return;
+    if (estimates == null || estimates.isEmpty) {
+      setState(() {
+        _estimating = false;
+        _problem =
+            failure != null ? l10n.aiErrorMessage(failure!) : l10n.foodAiFailed;
+      });
+      return;
+    }
+    setState(() => _estimating = false);
+    widget.onPick(<FoodEntry>[
+      for (final FoodEstimate e in estimates)
+        widget.makeEntry(
+          name: e.name,
+          grams: e.grams,
+          nutrients: e.nutrients,
+          source: FoodSource.ai,
+        ),
+    ]);
+  }
+
+  /// A press always answers: logged, estimated, or the fields say what is
+  /// missing.
+  void _add(NutritionAssistant? assistant) {
+    if (_hasName && !_hasKcal && assistant != null) {
+      _estimate(assistant);
+      return;
+    }
     if (!_hasName || !_hasKcal) {
       setState(() => _tried = true);
       return;
@@ -1219,7 +1260,10 @@ class _ManualTabState extends State<_ManualTab>
           ),
         );
 
-    final bool kcalMissing = _tried && !_hasKcal;
+    final NutritionAssistant? assistant =
+        ref.watch(nutritionAssistantProvider).valueOrNull;
+    // With Funki the calories may stay empty; without him they are needed.
+    final bool kcalMissing = _tried && !_hasKcal && assistant == null;
     void open(FoodEntryWay way) =>
         DefaultTabController.of(context).animateTo(way.index);
     return ListView(
@@ -1240,7 +1284,7 @@ class _ManualTabState extends State<_ManualTab>
         ),
         number(
           _kcal,
-          l10n.foodManualKcal,
+          assistant == null ? l10n.foodManualKcal : l10n.foodManualKcalOptional,
           key: const Key('manual-kcal'),
           error: kcalMissing ? l10n.foodManualKcalMissing : null,
           helper: _n(_kcal) == 0 && _hasKcal
@@ -1273,12 +1317,28 @@ class _ManualTabState extends State<_ManualTab>
         number(_protein, l10n.foodManualProtein),
         number(_carbs, l10n.foodManualCarbs),
         number(_fat, l10n.foodManualFat),
+        if (_problem != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+            child: Text(
+              _problem!,
+              key: const Key('manual-problem'),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: AppColors.danger),
+            ),
+          ),
         const SizedBox(height: AppSpacing.sm),
         FilledButton(
           key: const Key('manual-add'),
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-          onPressed: _add,
-          child: Text(l10n.foodManualAdd),
+          onPressed: _estimating ? null : () => _add(assistant),
+          child: _estimating
+              ? const FunkiThinking(color: AppColors.onPrimary)
+              : Text(_hasName && !_hasKcal && assistant != null
+                  ? l10n.foodManualAddEstimated
+                  : l10n.foodManualAdd),
         ),
       ],
     );

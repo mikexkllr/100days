@@ -69,6 +69,21 @@ the evening he dozes off.
 reels: the old form shakes and charges, a white flash, the new one and its
 name. Ascending after day 100 is a celebration of its own.
 
+**It talks, and it is the same Funki everywhere.** His line of the day on
+Today is said by him — his face next to it, the words written out as he
+says them — and right under it is the line to answer him. Wherever he can
+be asked ("ask Funki": Today, the meal plan, the top bar of the other
+screens) the same sheet comes up over the screen the user is on: Funki at
+its head, hopping embers while he thinks, a jump and sparks when he has
+changed something, small when he could not. Entering food is not a
+conversation with him: "what did you eat?" is typed and it is in the diary.
+
+**It writes when you are away.** The reminders are his, in his voice, and
+never the same sentence two days running; the evening before a streak dies
+is a last call; after the flame has gone out he asks three more times, each
+quieter, says goodbye and leaves it at that. A reminder nobody answers is
+noise.
+
 **It is there the morning after.** A streak that broke and can no longer be
 rescued is not met with a bare 0: Funki, as an ember that still glows, says
 so once and points at the next 24 hours. While yesterday can still be saved
