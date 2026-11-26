@@ -7,9 +7,13 @@
 | `dev` | internal testing | TestFlight, internal testers |
 | `main` | closed testing (track `alpha`) | App Store Connect: build and listing attached to the App Store version |
 
-Both run the full CI first. Submitting the App Store version for review is a
-click in App Store Connect, unless the repository variable `IOS_AUTO_SUBMIT`
-is `true`. Production on Google Play is promoted by hand from closed testing;
+Both run the full CI first. On `main` the `release` lane waits until Apple
+has processed the build and then makes it the App Store version's build
+(fastlane's `deliver` only picks the build when it also submits, so the lane
+does it itself). Submitting the App Store version for review is a click in
+App Store Connect, unless the repository variable `IOS_AUTO_SUBMIT` is
+`true`. A version that is waiting for review or in review cannot take a new
+build: the run then fails after the build is already on TestFlight. Production on Google Play is promoted by hand from closed testing;
 a new developer account may request production access only after 14 days of
 closed testing with at least 12 opted-in testers.
 
