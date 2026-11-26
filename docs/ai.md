@@ -25,9 +25,9 @@ the sense — the checks below still run on every answer.
 | Feature | Purpose header | Free | Premium / own key |
 | --- | --- | --- | --- |
 | Meal from a photo | `food` | ✓ within the allowance | ✓ |
-| Meal from a description, meal ideas, target proposals | `food` | ✓ within the allowance | ✓ |
-| Plan the week, a recipe from a dish name ("ask Funki" in "What is it?") | `plan` | ✓ within the allowance | ✓ |
-| Funki, the coach: chat and one-line question (tools on everything) | `chat` | ✓ within the allowance | ✓ |
+| Meal from a description ("what did you eat?" — calories optional), meal ideas, target proposals | `food` | ✓ within the allowance | ✓ |
+| Plan the week, a recipe from a dish name (a planned meal in the meal sheet) | `plan` | ✓ within the allowance | ✓ |
+| Funki, the coach, to talk to (tools on everything) | `chat` | ✓ within the allowance | ✓ |
 | The coach's daily line, nudge texts | `coach` | rule-based | ✓ |
 
 Every answer is checked before it counts, and every check lives in
@@ -112,17 +112,38 @@ too; his tool descriptions stay English, like the JSON they describe.
 
 ## Funki
 
-Funki — the flame — is the coach to talk to. One conversation model
-(`FunkiConversation`) backs two surfaces:
+Funki — the flame — is the coach. He is asked in **one place**: a sheet
+that comes up over the screen the user is on (`showFunki`,
+`app/lib/ui/funki/funki_sheet.dart`). The ways into it look the same
+everywhere — Funki and a line of words (`FunkiAskButton`): under his line
+of the day on Today, in the meal plan, and as his face in the top bar of the
+diary and of the other tabs. He knows where he was called (`FunkiFocus`),
+and a conversation closed and opened again goes on where it stopped
+(`FunkiSession`, one conversation per place and day, until "new
+conversation" or the end of the session).
 
-- **Funki fragen**: one line on Today and in the diary, for a question in
-  passing ("2 pretzels for breakfast", "what still fits today?"). The
-  answer and its changes show right below; "go on in the chat" continues
-  the same conversation. (The "ask Funki" line in the meal plan's "What is
-  it?" sheet is simpler: the dish name and calories typed become one full
-  recipe, through `MealPlanner.draftMeal`.)
-- **The chat**: the full conversation, opened from the meal plan (where it
-  replaced the planning chat) or from a question in passing.
+Wherever he speaks he is the flame itself (`FunkiAvatar`: the user's own
+Funki, at the stage of their streak): he writes his words out, hops while
+he thinks and jumps when he has changed something.
+
+**Entering food is not a conversation.** "What did you eat?" takes a
+description and, optionally, calories (`composeFood`,
+`app/lib/ui/nutrition/food_compose.dart`): the food table reads what it
+knows — free and offline — and the rest goes to the model as one estimate
+(`NutritionAssistant.estimateFoods`); calories the user gave are kept and
+the foods scaled to them. That is the diary's first line, the "eaten" side
+of the meal sheet, the describe tab and a manual entry without calories.
+The "planned" side of the meal sheet makes a full recipe of a dish name
+through `MealPlanner.draftMeal`. Asked in his sheet, Funki logs food
+through `log_food` — told to enter what was said rather than discuss it.
+
+**His notifications are rules, not model calls.** They are scheduled on the
+phone for the days to come, so nothing can be asked at the moment they
+fire: `funkiReminders` and `funkiLastCalls` (core, `coach/funki_push.dart`)
+pick a sentence for each day from the streak's outlook — sentences that
+take turns while a streak is alive, a milestone, a last call in the
+evening, and after the flame has gone out three quieter ones, a goodbye,
+and then silence. The wording is in the ARB files (`push…`).
 
 He reads and changes through tools: `get_today`, `check_in`, `get_diary`,
 `log_food`, `remove_food`, `eat_planned`, `get_meal_plan`, `get_recipe`,

@@ -103,8 +103,8 @@ one **week of meals** and one **shopping list**, live on every phone.
   it with the household; everything else stays private.
 - **Funki**, the coach, changes plan and list as you talk to him ("we still
   have rice") — every change shows up with an undo. He also reads and
-  fills the diary, checks off habits and knows your training; ask him in
-  one line on Today and in the diary, or in the chat.
+  fills the diary, checks off habits and knows your training; he is one
+  tap away on every screen, and his reminders sound like him.
 - **By hand**: "pizza on Friday", or one of the app's meal ideas in a tap —
   ranked against your own target for that meal if you have one.
 - **A list from the plan** for the days until your next trip, added up and
