@@ -8,6 +8,7 @@ library hundred_core;
 
 export 'src/ai/llm_client.dart';
 export 'src/coach/coach.dart';
+export 'src/coach/funki_push.dart';
 export 'src/coach/heuristic_coach.dart';
 export 'src/coach/llm_coach.dart';
 export 'src/coach/prompts.dart';

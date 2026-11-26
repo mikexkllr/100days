@@ -7,14 +7,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
 import '../../data/app_repository.dart';
-import '../../ai/funki/funki.dart';
 import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/fire.dart';
 import '../../theme/theme.dart';
 import '../celebration/day_complete.dart';
 import '../motion/rolling_number.dart';
-import '../funki/funki_ask_bar.dart';
 import '../nutrition/diary_view.dart';
 import '../plan/workout_detail.dart';
 import '../settings/profile_edit_screen.dart';
@@ -217,6 +215,12 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
             ),
             for (final Habit habit in otherHabits) tile(habit, scheduled: false),
           ],
+          // Funki, right under what there is to do today: what he has to
+          // say about it, and the line to answer him.
+          const Padding(
+            padding: EdgeInsets.only(top: AppSpacing.xs),
+            child: CoachCard(),
+          ),
           if (!ref.watch(appPrefsProvider).permissionAsked &&
               snapshot.me.logsByDay.isNotEmpty)
             Padding(
@@ -256,10 +260,6 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
               eaten: snapshot.me.intakeOn(today).total,
             ),
           ],
-          const SizedBox(height: AppSpacing.md),
-          const CoachCard(),
-          const SizedBox(height: AppSpacing.sm),
-          FunkiAskBar(focus: FunkiFocus.home(today)),
           const SizedBox(height: AppSpacing.md),
           _BoardCard(
             snapshot: snapshot,

@@ -258,10 +258,9 @@ void main() {
           '"kcal":350,"protein":8,"carbs":40,"fat":17}]}');
       await pump(tester, const DiaryScreen(), llm: llm);
       await describe(tester, '2 Eier und Thunfischpizza');
-      await tester.tap(find.byKey(const Key('food-parse')));
-      await tester.pumpAndSettle();
 
-      // Changed after "recognise", estimated without it.
+      // Changed before the one button is pressed: it reads the text as it
+      // stands — the table takes the eggs, Funki is asked about the rest.
       await tester.enterText(
           find.byKey(const Key('food-describe')), '2 Eier und Käsekuchen');
       await tester.pumpAndSettle();
@@ -269,12 +268,15 @@ void main() {
       await tester.pumpAndSettle();
       expect(llm.lastPrompt, contains('käsekuchen'));
       expect(llm.lastPrompt, isNot(contains('thunfischpizza')));
+      expect(llm.lastPrompt, isNot(contains('eier')));
       expect(find.text('Käsekuchen'), findsOneWidget);
 
-      // Nothing left to ask about: the button rests.
-      FilledButton estimate() =>
-          tester.widget<FilledButton>(find.byKey(const Key('food-estimate')));
-      expect(estimate().onPressed, isNull);
+      // Nothing left to ask about: a second press costs nothing.
+      llm.lastPrompt = null;
+      await tester.tap(find.byKey(const Key('food-estimate')));
+      await tester.pumpAndSettle();
+      expect(llm.lastPrompt, isNull);
+      expect(find.text('Käsekuchen'), findsOneWidget);
 
       // A paid estimate survives a look at another tab.
       await tester.tap(find.text('Suchen'));
@@ -300,11 +302,76 @@ void main() {
 
     testWidgets('with everything recognised there is nothing to estimate',
         (WidgetTester tester) async {
-      await pump(tester, const DiaryScreen(), llm: _Llm('{}'));
+      final _Llm llm = _Llm('{}');
+      await pump(tester, const DiaryScreen(), llm: llm);
       await describe(tester, '2 Eier');
-      expect(
-          tester.widget<FilledButton>(find.byKey(const Key('food-estimate'))).onPressed,
-          isNull);
+      await tester.tap(find.byKey(const Key('food-estimate')));
+      await tester.pumpAndSettle();
+      // The food table knew it all: the model was not asked.
+      expect(llm.lastPrompt, isNull);
+      expect(find.byKey(const Key('food-add-parsed')), findsOneWidget);
+    });
+
+    testWidgets('the first line: what was eaten, typed, is in the diary — and out again',
+        (WidgetTester tester) async {
+      final _Llm llm = _Llm('{"foods":[{"name":"Brezel","grams":160,'
+          '"kcal":440,"protein":12,"carbs":88,"fat":4},{"name":"Butter",'
+          '"grams":10,"kcal":74,"protein":0,"carbs":0,"fat":8}]}');
+      await pump(tester, const DiaryScreen(), llm: llm);
+      await tester.enterText(find.byKey(const Key('food-quick')),
+          '2 Brezeln mit Butter zum Mittagessen');
+      await tester.tap(find.byKey(const Key('food-quick-send')));
+      await tester.pumpAndSettle();
+
+      final List<FoodEntry> logged = await eaten();
+      expect(logged.map((FoodEntry e) => e.name), <String>['Brezel', 'Butter']);
+      // The meal it names, not the one the clock points at.
+      expect(logged.every((FoodEntry e) => e.meal == MealSlotKind.lunch), isTrue);
+      expect(logged.every((FoodEntry e) => e.source == FoodSource.ai), isTrue);
+      expect(find.text('Tagebuch, Mittagessen: Brezel, Butter · 514 kcal'),
+          findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('food-quick-undo')));
+      await tester.pumpAndSettle();
+      expect(await eaten(), isEmpty);
+    });
+
+    testWidgets('the first line reads the food table without a model',
+        (WidgetTester tester) async {
+      await pump(tester, const DiaryScreen());
+      await tester.enterText(find.byKey(const Key('food-quick')), '2 Eier');
+      await tester.tap(find.byKey(const Key('food-quick-send')));
+      await tester.pumpAndSettle();
+      expect((await eaten()).single.source, FoodSource.parsed);
+
+      // What the table does not know says so instead of guessing.
+      await tester.enterText(
+          find.byKey(const Key('food-quick')), 'Omas Schmorgericht');
+      await tester.tap(find.byKey(const Key('food-quick-send')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('food-quick-problem')), findsOneWidget);
+      expect(await eaten(), hasLength(1));
+    });
+
+    testWidgets('a name without calories: Funki estimates them',
+        (WidgetTester tester) async {
+      final _Llm llm = _Llm('{"foods":[{"name":"Käsekuchen","grams":150,'
+          '"kcal":430,"protein":10,"carbs":50,"fat":21}]}');
+      await pump(tester, const DiaryScreen(), llm: llm);
+      await tester.tap(find.byKey(const Key('add-food-lunch')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Manuell'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('manual-name')), 'Käsekuchen');
+      await tester.enterText(find.widgetWithText(TextField, 'Menge in g (optional)'), '150');
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('manual-add')));
+      await tester.pumpAndSettle();
+
+      expect(llm.lastPrompt, contains('Käsekuchen, 150 g'));
+      final FoodEntry logged = (await eaten()).single;
+      expect(logged.nutrients.kcal, 430);
+      expect(logged.source, FoodSource.ai);
     });
 
     testWidgets('offline, the estimate says so', (WidgetTester tester) async {

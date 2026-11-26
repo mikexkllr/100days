@@ -10,7 +10,8 @@ import '../../l10n/l10n.dart';
 import '../../state/household_providers.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
-import '../funki/funki_ask_bar.dart';
+import '../funki/funki_widgets.dart';
+import 'food_compose.dart';
 import '../widgets/app_card.dart';
 import 'add_food_screen.dart';
 import 'nutrition_goals_screen.dart';
@@ -28,7 +29,12 @@ class DiaryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final AsyncValue<AppSnapshot> async = ref.watch(appStateProvider);
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.diaryTitle)),
+      appBar: AppBar(
+        title: Text(context.l10n.diaryTitle),
+        actions: <Widget>[
+          FunkiBarButton(focus: FunkiFocus.diary(day ?? DayKey.today())),
+        ],
+      ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (Object error, StackTrace _) => Center(child: Text('$error')),
@@ -205,13 +211,16 @@ class _NutritionDiaryViewState extends ConsumerState<NutritionDiaryView> {
           ],
         ),
         _Summary(plan: plan, eaten: eaten),
-        // "2 pretzels for breakfast", "what still fits?" — Funki enters it
-        // or answers, about the day in view.
+        // "What did you eat?" — typed, and it is in the diary. Questions
+        // go to Funki in the top bar.
         Padding(
           padding: const EdgeInsets.only(top: AppSpacing.sm),
-          child: FunkiAskBar(
-            key: ValueKey<String>('funki-diary-$day'),
-            focus: FunkiFocus.diary(day),
+          child: FoodQuickAdd(
+            key: ValueKey<String>('food-quick-$day'),
+            day: day,
+            slots: <MealSlotKind>[for (final MealSlot m in plan.meals) m.kind],
+            intake: intake,
+            isToday: isToday,
           ),
         ),
         for (final MealSlot slot in plan.meals)

@@ -12,6 +12,8 @@ import 'l10n/l10n.dart';
 import 'state/providers.dart';
 import 'theme/fire.dart';
 import 'theme/theme.dart';
+import 'ai/funki/funki.dart';
+import 'ui/funki/funki_widgets.dart';
 import 'ui/home/home_screen.dart';
 import 'ui/mascot/flame_mascot.dart';
 import 'ui/auth/login_screen.dart';
@@ -344,7 +346,16 @@ class _AppShellState extends ConsumerState<AppShell>
       child: Scaffold(
         extendBody: true,
         // Today is the whole screen: it needs no title above it.
-        appBar: _index == 0 ? null : AppBar(title: Text(titles[_index])),
+        appBar: _index == 0
+            ? null
+            : AppBar(
+                title: Text(titles[_index]),
+                actions: <Widget>[
+                  // Funki is one tap away wherever the user is.
+                  if (_index != 4)
+                    FunkiBarButton(focus: FunkiFocus.home(DayKey.today())),
+                ],
+              ),
         body: SafeArea(
           bottom: false,
           // Hidden tabs stay built, so their flames would keep flickering and

@@ -17,6 +17,7 @@ import 'data/crash_reporting.dart';
 import 'data/feed_sync.dart';
 import 'data/locale_store.dart';
 import 'data/notifications.dart';
+import 'l10n/funki_push_l10n.dart';
 import 'data/push_service.dart';
 import 'data/social_backend.dart';
 import 'l10n/l10n.dart';
@@ -300,7 +301,7 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
       AppLocalizations.delegate.load(ref.read(effectiveLocaleProvider));
 
   NotificationCopy _copy(AppLocalizations l10n) => NotificationCopy(
-        appTitle: l10n.appTitle,
+        appTitle: l10n.notifFunkiTitle,
         reminderChannelName: l10n.notifChannelReminder,
         reminderChannelDescription: l10n.notifChannelReminderDesc,
         pressureChannelName: l10n.notifChannelPressure,
@@ -387,26 +388,19 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
       frozenDays: snapshot.me.frozenDays,
     );
 
+    // Funki writes them: which sentence fits which day is decided by the
+    // rules in the core, from the outlook — a streak alive, a milestone, a
+    // flame that went out — and never the same one two days running.
     if (prefs.remindersOn) {
+      final List<FunkiPush?> reminders = funkiReminders(outlook, challenge);
       await notifications.scheduleDailyReminders(
         copy: copy,
         hour: prefs.reminderTime.hour,
         minute: prefs.reminderTime.minute,
         messageBuilder: (int offset) {
-          if (offset >= outlook.length) return null;
-          final StreakOutlook day = outlook[offset];
-          final int number = challenge.dayNumber(day.day);
-          return switch (day.state) {
-            // Done already: no reminder — a "well done" at 18:30 is noise.
-            OutlookState.done || OutlookState.rest || OutlookState.frozen =>
-              null,
-            OutlookState.open => day.streak > 0
-                ? l10n.notifDayOpenWithStreak(
-                    number, challenge.lengthDays, day.streak)
-                : l10n.notifDayOpenNoStreak(number, challenge.lengthDays),
-            OutlookState.cold =>
-              l10n.notifDayOpenNoStreak(number, challenge.lengthDays),
-          };
+          final FunkiPush? push =
+              offset < reminders.length ? reminders[offset] : null;
+          return push == null ? null : l10n.funkiPushText(push);
         },
       );
     } else {
@@ -419,17 +413,15 @@ class _BootstrapState extends ConsumerState<_Bootstrap>
           prefs.reminderTime.hour * 60 + prefs.reminderTime.minute;
       final int warnMinute =
           reminderMinute >= 21 * 60 + 30 ? 22 * 60 + 45 : 21 * 60 + 30;
+      final List<FunkiPush?> lastCalls = funkiLastCalls(outlook, challenge);
       await notifications.scheduleStreakRisk(
         copy: copy,
         hour: warnMinute ~/ 60,
         minute: warnMinute % 60,
         bodyBuilder: (int offset) {
-          if (offset >= outlook.length) return null;
-          final StreakOutlook day = outlook[offset];
-          // Only an open day with a streak worth losing; never a day that is
-          // done, resting or held by a freeze.
-          if (day.state != OutlookState.open || day.streak < 3) return null;
-          return l10n.notifStreakRiskBody(day.streak);
+          final FunkiPush? push =
+              offset < lastCalls.length ? lastCalls[offset] : null;
+          return push == null ? null : l10n.funkiPushText(push);
         },
       );
     } else {

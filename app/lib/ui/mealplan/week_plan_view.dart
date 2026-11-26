@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
+import '../../data/app_repository.dart';
 import '../../data/household_backend.dart';
 import '../../ai/funki/funki.dart';
 import '../../l10n/l10n.dart';
 import '../../state/household_providers.dart';
+import '../../state/providers.dart';
 import '../../theme/theme.dart';
-import '../funki/funki_chat_screen.dart';
+import '../funki/funki_sheet.dart';
+import '../funki/funki_widgets.dart';
+import '../nutrition/diary_view.dart';
 import '../widgets/app_card.dart';
 import 'household_load_error.dart';
 import 'household_screen.dart';
@@ -109,15 +113,10 @@ class _WeekPlanViewState extends ConsumerState<WeekPlanView> {
                 child: OutlinedButton.icon(
                   key: const Key('plan-chat'),
                   onPressed: canPlan
-                      ? () => Navigator.of(context).push<void>(
-                            MaterialPageRoute<void>(
-                              builder: (BuildContext context) => FunkiChatScreen(
-                                focus: FunkiFocus.mealPlan(_weekStart),
-                              ),
-                            ),
-                          )
+                      ? () =>
+                          showFunki(context, FunkiFocus.mealPlan(_weekStart))
                       : null,
-                  icon: const Text('🔥', style: TextStyle(fontSize: 16)),
+                  icon: const FunkiAvatar(size: 22),
                   label: Text(l10n.funkiAsk),
                 ),
               ),
@@ -234,11 +233,22 @@ class _DayCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations l10n = context.l10n;
     final TextTheme text = Theme.of(context).textTheme;
+    // What the user logged in their diary that day: a week of meals is
+    // what was planned and what was eaten. Only for someone with a diary,
+    // and never ahead of today.
+    final AppSnapshot? snapshot = ref.watch(appStateProvider).valueOrNull;
+    final DayIntake? intake = snapshot?.plan?.nutrition != null &&
+            !day.isAfter(snapshot!.today)
+        ? snapshot.me.intakeOn(day)
+        : null;
+    List<FoodEntry> eaten(MealSlotKind slot) =>
+        intake?.entriesFor(slot) ?? const <FoodEntry>[];
     // Slots without a meal stay out of the way, except dinner — the one
     // households plan most — which offers itself.
     final List<MealSlotKind> shown = <MealSlotKind>[
       for (final MealSlotKind slot in slots)
         if (slot == MealSlotKind.dinner ||
+            eaten(slot).isNotEmpty ||
             entries.any((PlanEntry e) => e.slot == slot))
           slot,
     ];
@@ -274,17 +284,83 @@ class _DayCard extends ConsumerWidget {
                 ),
               ],
             ),
-            for (final MealSlotKind slot in shown)
-              for (final PlanEntry? entry in entries
-                  .where((PlanEntry e) => e.slot == slot)
-                  .toList()
-                  .followedByEmptyIfNone())
-                _SlotRow(
-                  day: day,
-                  slot: slot,
-                  entry: entry,
-                  recipe: entry == null ? null : recipes[entry.recipeId],
-                ),
+            for (final MealSlotKind slot in shown) ...<Widget>[
+              // An empty slot offers itself only while nothing was eaten.
+              if (eaten(slot).isEmpty ||
+                  entries.any((PlanEntry e) => e.slot == slot))
+                for (final PlanEntry? entry in entries
+                    .where((PlanEntry e) => e.slot == slot)
+                    .toList()
+                    .followedByEmptyIfNone())
+                  _SlotRow(
+                    day: day,
+                    slot: slot,
+                    entry: entry,
+                    recipe: entry == null ? null : recipes[entry.recipeId],
+                  ),
+              if (eaten(slot).isNotEmpty)
+                _EatenRow(day: day, slot: slot, entries: eaten(slot)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// What the user ate at a meal, from their diary — tapped, the diary opens
+/// on that day.
+class _EatenRow extends StatelessWidget {
+  const _EatenRow({required this.day, required this.slot, required this.entries});
+
+  final DayKey day;
+  final MealSlotKind slot;
+  final List<FoodEntry> entries;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    final TextTheme text = Theme.of(context).textTheme;
+    final int kcal = entries
+        .fold(0.0, (double sum, FoodEntry e) => sum + e.nutrients.kcal)
+        .round();
+    return InkWell(
+      key: Key('eaten-$day-${slot.name}'),
+      borderRadius: AppRadius.cardAll,
+      onTap: () => Navigator.of(context).push<void>(MaterialPageRoute<void>(
+        builder: (BuildContext context) => DiaryScreen(day: day),
+      )),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs + 2),
+        child: Row(
+          children: <Widget>[
+            SizedBox(
+              width: 88,
+              child: Row(
+                children: <Widget>[
+                  const Icon(Icons.check_circle,
+                      size: 14, color: AppColors.success),
+                  const SizedBox(width: AppSpacing.xs),
+                  Flexible(
+                    child: Text(l10n.mealName(slot),
+                        overflow: TextOverflow.ellipsis,
+                        style: text.bodySmall
+                            ?.copyWith(color: AppColors.textTertiary)),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Text(
+                entries.map((FoodEntry e) => e.name).join(', '),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: text.bodyMedium,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Text(l10n.diaryEntryKcal(kcal),
+                style: text.bodySmall?.copyWith(color: AppColors.textSecondary)),
           ],
         ),
       ),

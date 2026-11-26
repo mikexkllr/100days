@@ -1,29 +1,250 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hundred_core/hundred_core.dart';
 
 import '../../ai/dartantic_llm_client.dart';
 import '../../ai/funki/funki.dart';
+import '../../ai/funki/funki_tools.dart';
+import '../../data/app_repository.dart';
 import '../../l10n/l10n.dart';
+import '../../state/providers.dart';
 import '../../theme/theme.dart';
+import '../mascot/flame_mascot.dart';
+import '../motion/motion.dart';
 import '../settings/ai_screen.dart' show showPaywall;
 import '../widgets/app_card.dart';
+import 'funki_sheet.dart';
 
-/// Funki's face in a conversation: the flame, small.
-class FunkiAvatar extends StatelessWidget {
-  const FunkiAvatar({super.key, this.size = 30});
+/// Funki himself wherever he speaks: the flame the user has raised, at the
+/// stage their streak has brought him to — flickering, blinking, and
+/// gulping when [gulps] is bumped.
+class FunkiAvatar extends ConsumerWidget {
+  const FunkiAvatar({
+    super.key,
+    this.size = 34,
+    this.mood = MascotMood.happy,
+    this.gulps = 0,
+  });
 
   final double size;
+  final MascotMood mood;
+
+  /// Bumped when he has done something: he jumps and throws sparks.
+  final int gulps;
 
   @override
-  Widget build(BuildContext context) => Container(
-        width: size,
-        height: size,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.primary.withValues(alpha: 0.16),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final int streak = ref.watch(appStateProvider.select(
+        (AsyncValue<AppSnapshot> s) => s.valueOrNull?.me.streak.current ?? 0));
+    return SizedBox(
+      width: size,
+      height: size,
+      child: FlameMascot(
+        stage: flameStageFor(streak),
+        mood: mood,
+        size: size,
+        gulps: gulps,
+      ),
+    );
+  }
+}
+
+/// Funki is thinking: three embers that take turns hopping.
+class FunkiThinking extends StatelessWidget {
+  const FunkiThinking({super.key, this.color = AppColors.primary});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        label: context.l10n.funkiThinking,
+        child: AmbientClock(
+          builder: (BuildContext context, double seconds, Widget? _) => Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              for (int i = 0; i < 3; i++)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2.5),
+                  child: Transform.translate(
+                    offset: Offset(
+                        0,
+                        -4 *
+                            math.max(
+                                0, math.sin(seconds * 2 * math.pi * 1.1 - i * 0.9))),
+                    child: Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: color.withValues(alpha: 0.55 + 0.15 * i),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
-        child: Text('🔥', style: TextStyle(fontSize: size * 0.55)),
       );
+}
+
+/// What Funki says, written out as he says it: the words appear one after
+/// the other, once. Where motion is reduced they are simply there.
+class FunkiSpeech extends StatefulWidget {
+  const FunkiSpeech(this.text, {super.key, this.style, this.animate = true});
+
+  final String text;
+  final TextStyle? style;
+
+  /// False for words already read — an old message is not said again.
+  final bool animate;
+
+  @override
+  State<FunkiSpeech> createState() => _FunkiSpeechState();
+}
+
+class _FunkiSpeechState extends State<FunkiSpeech>
+    with SingleTickerProviderStateMixin {
+  AnimationController? _say;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_say == null && widget.animate && ambientMotionOf(context)) _start();
+  }
+
+  @override
+  void didUpdateWidget(FunkiSpeech old) {
+    super.didUpdateWidget(old);
+    if (old.text != widget.text && widget.animate && ambientMotionOf(context)) {
+      _start();
+    }
+  }
+
+  void _start() {
+    _say?.dispose();
+    _say = AnimationController(
+      vsync: this,
+      duration: Duration(
+          milliseconds: (widget.text.length * 16).clamp(250, 1600).toInt()),
+    )
+      ..addListener(() => setState(() {}))
+      ..forward();
+  }
+
+  @override
+  void dispose() {
+    _say?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AnimationController? say = _say;
+    if (say == null || say.isCompleted) {
+      return Text(widget.text, style: widget.style);
+    }
+    final int shown = (widget.text.length * say.value).floor();
+    // The rest is there already, unseen: the bubble keeps its size while
+    // the words arrive.
+    return Text.rich(
+      TextSpan(
+        children: <InlineSpan>[
+          TextSpan(text: widget.text.substring(0, shown)),
+          TextSpan(
+            text: widget.text.substring(shown),
+            style: const TextStyle(color: Colors.transparent),
+          ),
+        ],
+      ),
+      style: widget.style,
+      semanticsLabel: widget.text,
+    );
+  }
+}
+
+/// "Ask Funki", the same wherever it stands: Funki and a line of words;
+/// tapped, his sheet comes up over the screen the user is on.
+///
+/// Not shown without a model that can call tools.
+class FunkiAskButton extends ConsumerWidget {
+  const FunkiAskButton({
+    super.key,
+    required this.focus,
+    this.label,
+    this.filled = false,
+  });
+
+  final FunkiFocus focus;
+
+  /// What it says; "Ask Funki" when null.
+  final String? label;
+
+  /// Looks like a line to type in rather than a button.
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (ref.watch(funkiBrainProvider) == null) return const SizedBox.shrink();
+    final AppLocalizations l10n = context.l10n;
+    final TextTheme text = Theme.of(context).textTheme;
+    return Material(
+      color: filled ? AppColors.surfaceHigh : Colors.transparent,
+      shape: StadiumBorder(
+        side: BorderSide(
+            color: filled ? Colors.transparent : AppColors.glassEdge),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => showFunki(context, focus),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.xs, AppSpacing.xs, AppSpacing.md, AppSpacing.xs),
+          child: Row(
+            mainAxisSize: filled ? MainAxisSize.max : MainAxisSize.min,
+            children: <Widget>[
+              const FunkiAvatar(size: 34),
+              const SizedBox(width: AppSpacing.xs),
+              Flexible(
+                child: Text(
+                  label ?? l10n.funkiAsk,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: filled
+                      ? text.bodyMedium?.copyWith(color: AppColors.textTertiary)
+                      : text.labelLarge,
+                ),
+              ),
+              if (filled) ...<Widget>[
+                const Spacer(),
+                const Icon(Icons.arrow_upward_rounded,
+                    size: 18, color: AppColors.textTertiary),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Funki in a screen's top bar: one tap from wherever the user is.
+class FunkiBarButton extends ConsumerWidget {
+  const FunkiBarButton({super.key, required this.focus});
+
+  final FunkiFocus focus;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (ref.watch(funkiBrainProvider) == null) return const SizedBox.shrink();
+    return IconButton(
+      key: const Key('funki-bar'),
+      tooltip: context.l10n.funkiAsk,
+      onPressed: () => showFunki(context, focus),
+      icon: const FunkiAvatar(size: 32),
+    );
+  }
 }
 
 /// What a turn says: the answer, or why there is none.
@@ -43,14 +264,14 @@ class FunkiTurnView extends StatelessWidget {
     super.key,
     required this.turn,
     required this.conversation,
-    this.compact = false,
+    this.fresh = false,
   });
 
   final FunkiTurn turn;
   final FunkiConversation conversation;
 
-  /// In the one-line question: no avatar, a little tighter.
-  final bool compact;
+  /// Just said: the words are written out as they come.
+  final bool fresh;
 
   Future<void> _undo(BuildContext context, FunkiChange change) async {
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
@@ -78,7 +299,11 @@ class FunkiTurnView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Text(funkiTurnText(l10n, turn), style: text.bodyMedium),
+          if (turn.fromUser)
+            Text(turn.text, style: text.bodyMedium)
+          else
+            FunkiSpeech(funkiTurnText(l10n, turn),
+                style: text.bodyMedium, animate: fresh),
           if (turn.offersPaywall)
             Padding(
               padding: const EdgeInsets.only(top: AppSpacing.sm),
@@ -95,19 +320,7 @@ class FunkiTurnView extends StatelessWidget {
       crossAxisAlignment:
           turn.fromUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: <Widget>[
-        if (turn.fromUser || compact)
-          bubble
-        else
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              const Padding(
-                padding: EdgeInsets.only(top: AppSpacing.sm, right: AppSpacing.xs),
-                child: FunkiAvatar(size: 26),
-              ),
-              Flexible(child: bubble),
-            ],
-          ),
+        bubble,
         for (final FunkiChange change in turn.changes)
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.xs),

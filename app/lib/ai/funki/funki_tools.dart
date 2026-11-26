@@ -23,8 +23,8 @@ final Provider<FunkiBrain?> funkiBrainProvider = Provider<FunkiBrain?>((Ref ref)
 /// A new conversation about [focus], or null when Funki cannot be reached.
 ///
 /// The tools read through [container], which outlives the screen that
-/// opened the conversation: the one-line question and the chat it goes on
-/// in are different screens.
+/// opened the conversation: Funki is asked from a sheet over whatever
+/// screen the user is on.
 FunkiConversation? createFunkiConversation(
   ProviderContainer container,
   AppLocalizations l10n,
@@ -49,7 +49,58 @@ FunkiConversation? createFunkiConversation(
   );
 }
 
-/// Who Funki is, what day it is and where he was opened.
+/// The conversations with Funki that are going on: one for each place and
+/// day he was asked about, so closing his sheet and opening it again goes
+/// on where it stopped. Gone with the session.
+class FunkiSession {
+  final Map<String, FunkiConversation> _open = <String, FunkiConversation>{};
+
+  static String _key(FunkiFocus focus) =>
+      '${focus.place.name}-${focus.day}-${focus.weekStart}';
+
+  /// The conversation about [focus], started if there is none. Null without
+  /// a model that can call tools.
+  FunkiConversation? about(
+    ProviderContainer container,
+    AppLocalizations l10n,
+    FunkiFocus focus,
+  ) {
+    final FunkiConversation? known = _open[_key(focus)];
+    if (known != null) return known;
+    final FunkiConversation? fresh =
+        createFunkiConversation(container, l10n, focus);
+    if (fresh != null) _open[_key(focus)] = fresh;
+    return fresh;
+  }
+
+  /// Starts over about [focus]: a new conversation, the old one let go.
+  FunkiConversation? startOver(
+    ProviderContainer container,
+    AppLocalizations l10n,
+    FunkiFocus focus,
+  ) {
+    // Not disposed here: a sheet may still be listening to it.
+    _open.remove(_key(focus));
+    return about(container, l10n, focus);
+  }
+
+  void dispose() {
+    for (final FunkiConversation c in _open.values) {
+      c.dispose();
+    }
+    _open.clear();
+  }
+}
+
+final Provider<FunkiSession> funkiSessionProvider =
+    Provider<FunkiSession>((Ref ref) {
+  // Another account, another model: nothing said before carries over.
+  ref.watch(funkiBrainProvider);
+  final FunkiSession session = FunkiSession();
+  ref.onDispose(session.dispose);
+  return session;
+});
+
 String funkiSystemPrompt(
   AppLocalizations l10n,
   FunkiFocus focus,

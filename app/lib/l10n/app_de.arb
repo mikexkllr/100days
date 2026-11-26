@@ -17,7 +17,7 @@
   "addMealKcal": "kcal pro Portion (optional)",
   "addMealTitle": "Was gibt's?",
   "addMealTitleMissing": "Gib der Mahlzeit einen Namen — oder tipp eine der Ideen an.",
-  "addMealToDiary": "Schon gegessen? Ins Tagebuch — ein Foto reicht",
+  "addMealToDiary": "Lieber ein Foto",
   "adviceCutScope": "Du triffst nur {percent} % deiner Tage. Nimm eine Gewohnheit raus statt weiter zu scheitern — drei sichere Tage schlagen fünf geplante.",
   "@adviceCutScope": {
     "placeholders": {
@@ -1452,31 +1452,6 @@
       }
     }
   },
-  "notifDayOpenNoStreak": "Tag {day} von {total}. Heute wieder anfangen.",
-  "@notifDayOpenNoStreak": {
-    "placeholders": {
-      "day": {
-        "type": "int"
-      },
-      "total": {
-        "type": "int"
-      }
-    }
-  },
-  "notifDayOpenWithStreak": "Tag {day} von {total}. {streak} Tage Streak wollen verteidigt werden.",
-  "@notifDayOpenWithStreak": {
-    "placeholders": {
-      "day": {
-        "type": "int"
-      },
-      "total": {
-        "type": "int"
-      },
-      "streak": {
-        "type": "int"
-      }
-    }
-  },
   "notifFriendActive": "{name} war heute schon dran",
   "@notifFriendActive": {
     "placeholders": {
@@ -1494,15 +1469,7 @@
     }
   },
   "notifFriendsActiveBody": "Du stehst noch auf null. Noch ist der Tag nicht rum.",
-  "notifStreakRiskBody": "{streak} Tage. Ein vergessener Abend, und sie sind weg.",
-  "@notifStreakRiskBody": {
-    "placeholders": {
-      "streak": {
-        "type": "int"
-      }
-    }
-  },
-  "notifStreakRiskTitle": "Dein Streak steht auf dem Spiel",
+  "notifStreakRiskTitle": "Funki: Deine Flamme geht aus",
   "nudgeCheerRespect": "Respekt für {emoji}",
   "@nudgeCheerRespect": {
     "placeholders": {
@@ -2579,10 +2546,10 @@
   },
   "remindRowOff": "Aus",
   "remindDaily": "Tägliche Erinnerung",
-  "remindDailySub": "Nur an Tagen, die noch offen sind — nie, wenn du schon fertig bist.",
+  "remindDailySub": "Funki meldet sich nur an Tagen, die noch offen sind — nie, wenn du schon fertig bist. Reagierst du ein paar Tage nicht, hört er von selbst auf.",
   "remindTime": "Uhrzeit",
   "remindWarning": "Streak-Warnung",
-  "remindWarningSub": "Am späten Abend, wenn ein Streak ab drei Tagen um Mitternacht enden würde.",
+  "remindWarningSub": "Funkis letzter Aufruf am späten Abend, wenn ein Streak ab zwei Tagen um Mitternacht enden würde.",
   "remindBlocked": "Benachrichtigungen sind für diese App ausgeschaltet.",
   "remindAllow": "Benachrichtigungen erlauben",
   "remindBlockedHint": "Passiert nichts, schalte sie in den Einstellungen deines Handys unter 100 Tage ein.",
@@ -3058,12 +3025,12 @@
   "promptMealDraftTitle": "Das Gericht: „{title}“. Behalte genau diesen Namen als Titel.",
   "promptMealDraftAny": "Such ein einfaches Gericht aus, das zu dieser Mahlzeit und den Zielen passt.",
   "promptMealDraftKcal": "Etwa {kcal} kcal pro Portion.",
-  "addMealFunki": "Funki fragen: ganzes Rezept mit Zutaten und Nährwerten",
+  "addMealFunki": "Funki schreibt das Rezept",
   "addMealFunkiWorking": "Funki schreibt das Rezept …",
   "addMealFunkiFailed": "Funki hat kein Rezept hinbekommen, das aufgeht. Versuch es noch mal oder speicher es so.",
   "addMealEaten": "Schon gegessen – auch ins Tagebuch",
-  "addMealInDiary": "{title} steht in deinem Tagebuch.",
-  "promptFunki": "Du bist Funki, die kleine Flamme und der Coach in der App 100 Days. {name} macht eine Challenge mit täglichen Gewohnheiten und führt vielleicht ein Ernährungstagebuch, einen Essensplan mit Einkaufsliste und einen Trainingsplan. Heute ist {today} ({weekday}). {where}\nSchau mit den get_-Tools nach, bevor du etwas über Zahlen, den Plan oder das Tagebuch sagst; erfinde nichts. Ändere Dinge nur mit den Tools und nur, wenn {name} es will; beschreib eine Änderung nie nur. Jede Änderung lässt sich in der App rückgängig machen.\nTagebuch: Schätze Mengen und Nährwerte realistisch, kcal und Makros für die gegessene Menge. Hak eine Gewohnheit nur ab, wenn {name} sagt, dass sie erledigt ist. Rezepte: einfach, aus einem normalen Supermarkt, Portionen für den ganzen Haushalt, Kalorien und Makros pro Portion.\nKeine medizinischen Diagnosen; bei Beschwerden zum Arzt. Antworte kurz, in ein bis drei Sätzen, auf Deutsch, per du, direkt und herzlich, ohne Kitsch.",
+  "addMealInDiary": "Im Tagebuch: {title}.",
+  "promptFunki": "Du bist Funki, die kleine Flamme und der Coach in der App 100 Days. {name} macht eine Challenge mit täglichen Gewohnheiten und führt vielleicht ein Ernährungstagebuch, einen Essensplan mit Einkaufsliste und einen Trainingsplan. Heute ist {today} ({weekday}). {where}\nSchau mit den get_-Tools nach, bevor du etwas über Zahlen, den Plan oder das Tagebuch sagst; erfinde nichts. Ändere Dinge nur mit den Tools und nur, wenn {name} es will; beschreib eine Änderung nie nur. Jede Änderung lässt sich in der App rückgängig machen.\nTagebuch: Sagt {name}, was gegessen wurde, trag es sofort mit log_food ein — ohne Rückfrage und ohne Vorschläge; fehlende Mengen und Kalorien schätzt du selbst, realistisch, kcal und Makros für die gegessene Menge. Vorschläge nur, wenn danach gefragt wird. Hak eine Gewohnheit nur ab, wenn {name} sagt, dass sie erledigt ist. Rezepte: einfach, aus einem normalen Supermarkt, Portionen für den ganzen Haushalt, Kalorien und Makros pro Portion.\nKeine medizinischen Diagnosen; bei Beschwerden zum Arzt. Antworte kurz, in ein bis drei Sätzen, auf Deutsch, per du, direkt und herzlich, ohne Kitsch.",
   "promptFunkiNoName": "Der Nutzer",
   "promptFunkiFromHome": "Du wurdest vom Startbildschirm aus geöffnet.",
   "promptFunkiFromDiary": "Du wurdest aus dem Ernährungstagebuch vom {day} geöffnet; diesen Tag meint die Person, wenn sie nichts anderes sagt.",
@@ -3073,8 +3040,8 @@
   "funkiRemovedFood": "Aus dem Tagebuch: {food}",
   "funkiAsk": "Funki fragen",
   "funkiChatTitle": "Funki",
-  "funkiHintHome": "Funki fragen … „Wie läuft meine Woche?“",
-  "funkiHintDiary": "Funki fragen … „2 Brezeln zum Frühstück“",
+  "funkiHintHome": "Frag Funki … „Wie läuft meine Woche?“",
+  "funkiHintDiary": "Frag Funki … „Was passt heute noch rein?“",
   "funkiIntroHome": "Ich bin Funki, dein Coach. Frag mich, wie es läuft, oder erzähl mir, was du gemacht oder gegessen hast — ich schaue nach und trage es ein, und jede Änderung lässt sich rückgängig machen.",
   "funkiIntroDiary": "Sag mir, was du gegessen hast, dann trage ich es mit einer Schätzung ein — oder frag, was heute noch passt.",
   "funkiSuggestHome1": "Was steht heute noch an?",
@@ -3092,5 +3059,40 @@
   "habitsFreeOn": "{days} · frei: {free}",
   "habitsKeepOneRequired": "Mindestens eine Gewohnheit muss Pflicht sein — sonst zählt kein Tag.",
   "tileOptional": "Freiwillig · ein Bonus",
-  "homeDiaryLine": "Tagebuch: {eaten} / {target} kcal"
+  "homeDiaryLine": "Tagebuch: {eaten} / {target} kcal",
+  "funkiThinking": "Funki überlegt …",
+  "funkiStatusIdle": "Dein Coach",
+  "funkiStartOver": "Neues Gespräch",
+  "funkiAnswerHint": "Antworte Funki oder frag ihn was …",
+  "foodQuickHint": "Was hast du gegessen? z. B. „2 Brezeln mit Butter“",
+  "foodQuickSend": "Eintragen",
+  "foodQuickNeedsAi": "Das kennt die Lebensmitteltabelle nicht: {foods}. Gib die Kalorien dazu oder schalte die KI ein (Einstellungen → KI), dann schätzt Funki sie.",
+  "foodCompose": "Mit Funki schätzen",
+  "foodManualKcalOptional": "Kalorien (kcal) – leer lassen, dann schätzt Funki",
+  "foodManualAddEstimated": "Hinzufügen – Funki schätzt die Kalorien",
+  "addMealModeEaten": "Gegessen",
+  "addMealModePlanned": "Geplant",
+  "addMealEatenTitle": "Was hast du gegessen?",
+  "addMealEatenHint": "z. B. 2 Brezeln mit Butter und ein Cappuccino",
+  "addMealKcalFunki": "kcal (optional) – sonst schätzt Funki",
+  "addMealKcalEaten": "kcal",
+  "addMealKcalMissing": "Ohne Funki brauche ich die Kalorien.",
+  "addMealGoEaten": "Ins Tagebuch eintragen",
+  "addMealAsTyped": "Ohne Funki speichern",
+  "planEaten": "gegessen",
+  "notifFunkiTitle": "Funki 🔥",
+  "pushFeedMe": "{streak, plural, =1{1 Tag brennt schon.} other{{streak} Tage brennen schon.}} Fütter mich heute – ein Haken reicht.",
+  "pushHungry": "Ich hab Hunger. Tag {day} von {total} wartet noch auf dich.",
+  "pushYesterdayToo": "Gestern warst du da. Heute auch? {streak, plural, =1{1 Tag} other{{streak} Tage}}, und es werden mehr.",
+  "pushTwoMinutes": "Kurz ehrlich: Heute ist noch offen. Zwei Minuten, dann gebe ich Ruhe.",
+  "pushMilestone": "Heute ist Tag {day}. Ein Meilenstein – hol ihn dir.",
+  "pushFirstSpark": "Heute ist ein guter Tag für Tag 1. Ein Haken, und ich brenne.",
+  "pushStartSmall": "Fang mit dem Kleinsten auf deiner Liste an. Ich mach ein Feuer draus.",
+  "pushFlameOut": "{lost, plural, =1{Deine Flamme} other{Deine {lost}-Tage-Flamme}} ist aus. Zünd sie heute wieder an – ein Haken reicht.",
+  "pushInTheDark": "Ich sitze hier im Dunkeln. Ein Haken, und ich brenne wieder.",
+  "pushDayOneAgain": "Tag 1 ist kein Rückschritt. Er ist der eine Tag, der immer klappt.",
+  "pushGoodbye": "Ich höre jetzt auf zu nerven. Wenn du wieder loslegen willst: Ich bin da.",
+  "pushLastCallFlicker": "Ich flackere … {streak, plural, =1{1 Tag geht} other{{streak} Tage gehen}} um Mitternacht aus.",
+  "pushLastCallMath": "{streak, plural, =1{1 Tag} other{{streak} Tage}} Arbeit gegen zwei Minuten jetzt. Rechne selbst.",
+  "pushLastCallSmallest": "Mach die kleinste Version davon. Hauptsache, die Flamme bleibt an – {streak, plural, =1{1 Tag steht} other{{streak} Tage stehen}} auf dem Spiel."
 }

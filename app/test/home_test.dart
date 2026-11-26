@@ -5,6 +5,7 @@ import 'package:hundred_core/hundred_core.dart';
 import 'package:hundred_days/data/app_repository.dart';
 import 'package:hundred_days/l10n/l10n.dart';
 import 'package:hundred_days/ui/celebration/day_complete.dart';
+import 'package:hundred_days/ui/home/coach_card.dart';
 import 'package:hundred_days/ui/home/home_screen.dart';
 import 'package:hundred_days/ui/home/day_sheet.dart';
 import 'package:hundred_days/ui/home/streak_hero.dart';
@@ -78,7 +79,11 @@ void main() {
     await pump(tester);
 
     expect(find.byType(TodayRing), findsOneWidget);
-    expect(find.byType(FlameMascot), findsOneWidget);
+    expect(
+      find.descendant(
+          of: find.byType(TodayRing), matching: find.byType(FlameMascot)),
+      findsOneWidget,
+    );
     expect(find.text('Tag 1 / 100'), findsOneWidget);
     expect(find.byType(HabitTile), findsNWidgets(2));
     expect(find.text('Kein Zucker'), findsOneWidget);
@@ -190,7 +195,12 @@ void main() {
     await startChallenge();
     await pump(tester);
 
-    expect(find.text('COACH'), findsOneWidget);
+    // Funki says it himself: his face next to his line.
+    expect(
+      find.descendant(
+          of: find.byType(CoachCard), matching: find.byType(FlameMascot)),
+      findsOneWidget,
+    );
     expect(find.textContaining('Tag 1 von 100'), findsWidgets);
   });
 
