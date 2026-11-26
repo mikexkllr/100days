@@ -24,13 +24,15 @@ Attached to this App Review Information (recorded on an iPhone with the latest i
 100 Days & Beyond is a habit tracker for a 100-day challenge (e.g. no sugar, reading, training). Users check in once a day, keep a streak, and do it with friends: friend streaks, weekly quests, weekly leagues. Optional nutrition features: log meals by photo, barcode or text and let the AI plan a week of meals and a shared shopping list for a household. Audience: adults and teenagers 16+ who want to build or quit a habit. It solves keeping a goal going day after day; the value is one small daily step, visible progress and friends who notice.
 
 3. HOW TO TEST
-Demo account (free tier, so the purchase can be tested): see the sign-in fields of this section. On the first screen tap "Continue with email", enter the address and password, tap "Sign in". New users can also register with any email (a confirmation link is mailed), or use Sign in with Apple / Google.
+Demo account (free tier, so the purchase can be tested): see the sign-in fields of this section. On the first screen tap "Continue with email", enter the address and password, tap "Sign in". Onboarding then asks for a name and a 100-day challenge; any values work. New users can also register with any email (a confirmation link is mailed), or use Sign in with Apple / Google.
 - Today tab: press and hold a habit to check it in. Further down, the nutrition card (calories / protein) opens the food diary: add food by photo, barcode or text.
 - Plan tab: training plan, AI meal plan, shared shopping list.
-- Friends tab -> "Find friends" (contacts, username search) or "Scan" (QR code / link). Friends tab -> League: the public weekly league; tap a person there -> Report or Block. On a friend's profile the menu (top right) has Report and Block.
+- Friends tab -> "Find friends" (contacts, username search) or "Scan" (QR code / link). Friends tab -> League: the public weekly league; tap a person there -> Report or Block. The same for strangers in the username search. On a friend's profile the menu (top right) has Report and Block.
 - Profile tab -> AI ("AI & subscription"): Premium (monthly 2.99 EUR, yearly 19.99 EUR, auto-renewing), "Restore purchase", Terms of use and Privacy policy links. Free accounts get a monthly AI allowance; Premium a larger one and the daily coach line.
 - Profile tab -> Delete account: deletes the account and all its data on the server (Sign in with Apple users are asked once more so the Apple token can be revoked).
 No hardware, sample files or special setup needed.
+Privacy policy: https://mikexkllr.github.io/100days/privacy.html
+Terms: https://mikexkllr.github.io/100days/terms.html
 
 4. EXTERNAL SERVICES
 - Supabase (EU, Ireland): sign-in, database, storage, server functions.
