@@ -43,10 +43,14 @@ const Map<int, List<int>> kWeekdaySpread = <int, List<int>>{
   ],
 };
 
-/// The weekdays [habit] is expected on — as of [day] when given, since the
-/// weekly frequency can change during a challenge.
-List<int> scheduledWeekdays(Habit habit, [DayKey? day]) => kWeekdaySpread[
-    (day == null ? habit.daysPerWeek : habit.daysPerWeekOn(day)).clamp(1, 7)]!;
+/// The weekdays [habit] is required on — as of [day] when given, since the
+/// schedule can change during a challenge. The days the user picked, or the
+/// usual spread of its weekly frequency; none for an optional habit.
+List<int> scheduledWeekdays(Habit habit, [DayKey? day]) {
+  final schedule = day == null ? habit.schedule : habit.scheduleOn(day);
+  if (schedule.optional) return const <int>[];
+  return schedule.weekdays ?? kWeekdaySpread[schedule.daysPerWeek.clamp(1, 7)]!;
+}
 
 bool isHabitScheduledOn(Habit habit, DayKey day) =>
     habit.isActiveOn(day) &&

@@ -1879,8 +1879,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeOptional => 'Optional';
 
   @override
-  String get homeOptionalSubtitle =>
-      'Not scheduled today — still counts as XP.';
+  String get homeOptionalSubtitle => 'Not required today — still earns XP.';
 
   @override
   String get homeQuestsTitle => 'Today\'s quests';
@@ -5691,4 +5690,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get funkiQuotaUsedUp =>
       'Your AI allowance for this month is used up, so I can\'t answer right now. Premium or your own API key gets me going again at once.';
+
+  @override
+  String get habitsRequired => 'Required';
+
+  @override
+  String get habitsOptional => 'Optional';
+
+  @override
+  String get habitsOptionalNote =>
+      'A bonus: done, it brings XP; left out, it breaks no day.';
+
+  @override
+  String habitsFreeOn(String days, String free) {
+    return '$days · off: $free';
+  }
+
+  @override
+  String get habitsKeepOneRequired =>
+      'At least one habit has to be required — otherwise no day counts.';
 }

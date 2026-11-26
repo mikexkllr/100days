@@ -201,24 +201,91 @@ const Map<HabitCategory, HabitDefinition> kHabitCatalog =
 HabitDefinition habitDefinition(HabitCategory category) =>
     kHabitCatalog[category]!;
 
-/// A past weekly frequency: [daysPerWeek] applied to every day before
-/// [until]. Kept so that changing "4 days a week" to 5 does not turn every
-/// past Wednesday into a missed training day.
+/// When a habit is required: [daysPerWeek] spread over the week the usual
+/// way, or exactly [weekdays] — "every day but Sunday, my cheat day" — or
+/// never, when it is [optional] and only counts as a bonus.
+@immutable
+class HabitSchedule {
+  const HabitSchedule({
+    required this.daysPerWeek,
+    this.weekdays,
+    this.optional = false,
+  });
+
+  /// How many days a week, when [weekdays] does not name them.
+  final int daysPerWeek;
+
+  /// The required weekdays, `DateTime.monday` to `DateTime.sunday`, sorted.
+  /// Null for the usual spread of [daysPerWeek].
+  final List<int>? weekdays;
+
+  /// Never required: done or not, it neither builds nor breaks the day.
+  final bool optional;
+
+  /// [weekdays] as a schedule keeps them: each day once, in order, within a
+  /// week. An empty list is no list.
+  static List<int>? normalize(Iterable<int>? days) {
+    if (days == null) return null;
+    final sorted = days.where((int d) => d >= 1 && d <= 7).toSet().toList()..sort();
+    return sorted.isEmpty ? null : List<int>.unmodifiable(sorted);
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is HabitSchedule &&
+      other.daysPerWeek == daysPerWeek &&
+      other.optional == optional &&
+      _sameDays(other.weekdays, weekdays);
+
+  @override
+  int get hashCode => Object.hash(daysPerWeek, optional, weekdays?.join(','));
+
+  static bool _sameDays(List<int>? a, List<int>? b) {
+    if (a == null || b == null) return a == b;
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+}
+
+/// A past schedule: what applied to every day before [until]. Kept so that
+/// changing "4 days a week" to 5 — or a habit made optional — does not turn
+/// every past Wednesday into a missed training day, or mend a missed one.
 @immutable
 class ScheduleChange {
-  const ScheduleChange({required this.until, required this.daysPerWeek});
+  const ScheduleChange({
+    required this.until,
+    required this.daysPerWeek,
+    this.weekdays,
+    this.optional = false,
+  });
 
   factory ScheduleChange.fromJson(Map<String, dynamic> json) => ScheduleChange(
         until: DayKey.parse(json['until'] as String),
         daysPerWeek: (json['days'] as num).toInt(),
+        weekdays: HabitSchedule.normalize(
+            (json['weekdays'] as List<dynamic>?)?.map((dynamic d) => (d as num).toInt())),
+        optional: json['optional'] == true,
       );
 
   final DayKey until;
   final int daysPerWeek;
+  final List<int>? weekdays;
+  final bool optional;
+
+  HabitSchedule get schedule => HabitSchedule(
+        daysPerWeek: daysPerWeek,
+        weekdays: weekdays,
+        optional: optional,
+      );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'until': until.toString(),
         'days': daysPerWeek,
+        if (weekdays != null) 'weekdays': weekdays,
+        if (optional) 'optional': true,
       };
 }
 
@@ -256,6 +323,8 @@ class Habit {
     this.activeUntil,
     this.scheduleHistory = const <ScheduleChange>[],
     this.targetHistory = const <TargetChange>[],
+    this.weekdays,
+    this.optional = false,
   });
 
   factory Habit.fromJson(Map<String, dynamic> json) => Habit(
@@ -281,6 +350,11 @@ class Habit {
             .map((dynamic e) =>
                 TargetChange.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList(growable: false),
+        // Both arrived later; an older phone leaves them out and an older
+        // app reading them falls back to [daysPerWeek].
+        weekdays: HabitSchedule.normalize(
+            (json['weekdays'] as List<dynamic>?)?.map((dynamic d) => (d as num).toInt())),
+        optional: json['optional'] == true,
       );
 
   factory Habit.fromCategory(HabitCategory category, {String? id}) {
@@ -321,13 +395,36 @@ class Habit {
   /// Earlier targets, oldest first.
   final List<TargetChange> targetHistory;
 
+  /// The weekdays it is required on, when the user picked them — see
+  /// [HabitSchedule.weekdays]. Null for the usual spread of [daysPerWeek].
+  final List<int>? weekdays;
+
+  /// Never required, only a bonus — see [HabitSchedule.optional].
+  final bool optional;
+
+  /// When it is required from now on.
+  HabitSchedule get schedule => HabitSchedule(
+        daysPerWeek: daysPerWeek,
+        weekdays: weekdays,
+        optional: optional,
+      );
+
+  /// When it was required on [day].
+  HabitSchedule scheduleOn(DayKey day) {
+    for (final change in scheduleHistory) {
+      if (day.isBefore(change.until)) return change.schedule;
+    }
+    return schedule;
+  }
+
   HabitDefinition get definition => habitDefinition(category);
 
   HabitKind get kind => definition.kind;
 
   String get emoji => definition.emoji;
 
-  bool get isDaily => daysPerWeek >= 7;
+  bool get isDaily =>
+      !optional && (weekdays?.length ?? daysPerWeek) >= 7;
 
   bool isActiveOn(DayKey day) {
     final from = activeFrom;
@@ -382,34 +479,55 @@ class Habit {
         activeUntil: activeUntil ?? this.activeUntil,
         scheduleHistory: scheduleHistory,
         targetHistory: targetHistory ?? this.targetHistory,
+        weekdays: weekdays,
+        optional: optional,
       );
 
   /// The weekly frequency that applied on [day].
-  int daysPerWeekOn(DayKey day) {
-    for (final change in scheduleHistory) {
-      if (day.isBefore(change.until)) return change.daysPerWeek;
-    }
-    return daysPerWeek;
+  int daysPerWeekOn(DayKey day) => scheduleOn(day).daysPerWeek;
+
+  /// This habit at a new weekly frequency from [from] on, spread the usual
+  /// way, with the old schedule kept for every day before.
+  Habit withDaysPerWeek(int days, {required DayKey from}) {
+    if (days == daysPerWeek && weekdays == null) return this;
+    return withSchedule(
+      HabitSchedule(daysPerWeek: days, optional: optional),
+      from: from,
+    );
   }
 
-  /// This habit at a new weekly frequency from [from] on, with the old one
-  /// kept for every day before.
-  Habit withDaysPerWeek(int days, {required DayKey from}) {
-    if (days == daysPerWeek) return this;
+  /// This habit on [next] from [from] on — other weekdays, required or
+  /// optional — with the old schedule kept for every day before.
+  Habit withSchedule(HabitSchedule next, {required DayKey from}) {
+    final days = HabitSchedule.normalize(next.weekdays);
+    final normalized = HabitSchedule(
+      daysPerWeek: days?.length ?? next.daysPerWeek,
+      weekdays: days,
+      optional: next.optional,
+    );
+    if (normalized == schedule) return this;
+    final before = scheduleOn(from.addDays(-1));
     return Habit(
       id: id,
       category: category,
       target: target,
-      daysPerWeek: days,
+      daysPerWeek: normalized.daysPerWeek,
       title: title,
       note: note,
       activeFrom: activeFrom,
       activeUntil: activeUntil,
       scheduleHistory: <ScheduleChange>[
         ...scheduleHistory.where((ScheduleChange c) => c.until.isBefore(from)),
-        ScheduleChange(until: from, daysPerWeek: daysPerWeekOn(from.addDays(-1))),
+        ScheduleChange(
+          until: from,
+          daysPerWeek: before.daysPerWeek,
+          weekdays: before.weekdays,
+          optional: before.optional,
+        ),
       ],
       targetHistory: targetHistory,
+      weekdays: normalized.weekdays,
+      optional: normalized.optional,
     );
   }
 
@@ -431,6 +549,8 @@ class Habit {
         activeUntil: activeUntil,
         scheduleHistory: scheduleHistory,
         targetHistory: targetHistory,
+        weekdays: weekdays,
+        optional: optional,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -447,5 +567,7 @@ class Habit {
         if (activeUntil != null) 'until': activeUntil.toString(),
         if (targetHistory.isNotEmpty)
           'targets': targetHistory.map((TargetChange c) => c.toJson()).toList(),
+        if (weekdays != null) 'weekdays': weekdays,
+        if (optional) 'optional': true,
       };
 }

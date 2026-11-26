@@ -1084,7 +1084,7 @@
   },
   "homeOpenDiary": "Ernährungstagebuch öffnen",
   "homeOptional": "Freiwillig",
-  "homeOptionalSubtitle": "Heute nicht eingeplant — zählt trotzdem als XP.",
+  "homeOptionalSubtitle": "Heute keine Pflicht — gibt trotzdem XP.",
   "homeQuestsTitle": "Quests für heute",
   "homeRelapseBody": "Das setzt den Streak dieser Gewohnheit zurück — deine anderen behalten ihren. Deine Freunde sehen es. Ehrlich bleiben ist der ganze Sinn — aber nur, wenn es stimmt.",
   "homeRelapseConfirm": "Eintragen",
@@ -3085,5 +3085,10 @@
   "funkiSuggestPlan2": "Mach die Einkaufsliste aus dem Plan",
   "funkiContinueInChat": "Im Chat weiter",
   "funkiUndoFailed": "Das ließ sich nicht rückgängig machen. Versuch es gleich noch einmal.",
-  "funkiQuotaUsedUp": "Dein KI-Kontingent für diesen Monat ist aufgebraucht, deshalb kann ich gerade nicht antworten. Mit Premium oder deinem eigenen API-Key geht es sofort weiter."
+  "funkiQuotaUsedUp": "Dein KI-Kontingent für diesen Monat ist aufgebraucht, deshalb kann ich gerade nicht antworten. Mit Premium oder deinem eigenen API-Key geht es sofort weiter.",
+  "habitsRequired": "Pflicht",
+  "habitsOptional": "Freiwillig",
+  "habitsOptionalNote": "Ein Bonus: erledigt gibt es XP, ausgelassen bricht es keinen Tag.",
+  "habitsFreeOn": "{days} · frei: {free}",
+  "habitsKeepOneRequired": "Mindestens eine Gewohnheit muss Pflicht sein — sonst zählt kein Tag."
 }

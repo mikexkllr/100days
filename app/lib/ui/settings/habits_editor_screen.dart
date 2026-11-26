@@ -22,18 +22,47 @@ class HabitsEditorScreen extends ConsumerStatefulWidget {
 class _Draft {
   _Draft(this.habit)
       : target = habit.target,
-        days = habit.daysPerWeek;
+        weekdays = scheduledWeekdays(habit).toSet(),
+        optional = habit.optional;
 
   _Draft.added(this.habit)
       : target = habit.target,
-        days = habit.daysPerWeek,
+        weekdays = scheduledWeekdays(habit).toSet(),
+        optional = habit.optional,
         isNew = true;
 
   final Habit habit;
   num target;
-  int days;
+
+  /// The weekdays it is required on, `DateTime.monday`-based. Shown as the
+  /// usual spread until the user picks days themselves.
+  Set<int> weekdays;
+
+  /// Picked by hand: saved as exactly these days.
+  bool daysPicked = false;
+  bool optional;
   bool removed = false;
   bool isNew = false;
+
+  /// When it is required, as it would be saved.
+  HabitSchedule get schedule => daysPicked
+      ? HabitSchedule(
+          daysPerWeek: weekdays.length,
+          weekdays: weekdays.toList(),
+          optional: optional,
+        )
+      : HabitSchedule(
+          daysPerWeek: habit.daysPerWeek,
+          weekdays: habit.weekdays,
+          optional: optional,
+        );
+
+  bool get scheduleChanged =>
+      optional != habit.optional ||
+      (daysPicked && !_same(weekdays, scheduledWeekdays(habit).toSet()));
+
+  static bool _same(Set<int> a, Set<int> b) =>
+      a.length == b.length && a.containsAll(b);
 }
 
 class _HabitsEditorState extends ConsumerState<HabitsEditorScreen> {
@@ -51,7 +80,7 @@ class _HabitsEditorState extends ConsumerState<HabitsEditorScreen> {
       : _snapshot.today;
 
   bool get _dirty => _drafts.any((_Draft d) =>
-      d.removed || d.isNew || d.target != d.habit.target || d.days != d.habit.daysPerWeek);
+      d.removed || d.isNew || d.target != d.habit.target || d.scheduleChanged);
 
   num _step(Habit habit) {
     final num target = habit.definition.defaultTarget;
@@ -192,6 +221,12 @@ class _HabitsEditorState extends ConsumerState<HabitsEditorScreen> {
 
   Future<void> _save() async {
     final Challenge challenge = _snapshot.challenge!;
+    // A challenge of bonuses only has no day that counts.
+    if (_drafts.every((_Draft d) => d.removed || d.optional)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.habitsKeepOneRequired)));
+      return;
+    }
     final DayKey from = _from;
     final DayKey tomorrow = _snapshot.today.addDays(1);
     final Map<String, Habit> byId = <String, Habit>{
@@ -200,19 +235,24 @@ class _HabitsEditorState extends ConsumerState<HabitsEditorScreen> {
     for (final _Draft d in _drafts) {
       Habit h = d.habit;
       if (d.isNew) {
+        final HabitSchedule schedule = d.schedule;
         h = Habit(
           id: h.id,
           category: h.category,
           target: d.target,
-          daysPerWeek: d.days,
+          daysPerWeek: schedule.daysPerWeek,
           title: h.title,
           note: h.note,
           activeFrom: from,
+          weekdays: HabitSchedule.normalize(schedule.weekdays),
+          optional: schedule.optional,
         );
       } else if (d.removed) {
         h = h.retiredFrom(tomorrow);
       } else {
-        h = h.withTarget(d.target, from: from).withDaysPerWeek(d.days, from: from);
+        h = h
+            .withTarget(d.target, from: from)
+            .withSchedule(d.schedule, from: from);
       }
       byId[h.id] = h;
     }
@@ -330,8 +370,13 @@ class _HabitEditCard extends StatelessWidget {
     final AppLocalizations l10n = context.l10n;
     final Habit habit = draft.habit;
     final bool amount = habit.definition.unit != HabitUnit.done;
-    final bool weekly =
-        habit.kind == HabitKind.build && trainingNote == null;
+    // Training days follow the training plan; everything else picks its
+    // own — "no sugar, Sunday is the cheat day" too.
+    final bool weekly = trainingNote == null;
+    final TextStyle? note = Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: AppColors.textSecondary,
+          fontSize: 12.5,
+        );
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,18 +426,42 @@ class _HabitEditCard extends StatelessWidget {
                 ),
               ],
             ),
-          if (weekly) ...<Widget>[
-            const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: AppSpacing.xs),
+          SegmentedButton<bool>(
+            key: Key('required-${habit.id}'),
+            showSelectedIcon: false,
+            segments: <ButtonSegment<bool>>[
+              ButtonSegment<bool>(value: false, label: Text(l10n.habitsRequired)),
+              ButtonSegment<bool>(value: true, label: Text(l10n.habitsOptional)),
+            ],
+            selected: <bool>{draft.optional},
+            onSelectionChanged: (Set<bool> picked) {
+              draft.optional = picked.single;
+              onChanged();
+            },
+          ),
+          if (draft.optional)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(l10n.habitsOptionalNote, style: note),
+            )
+          else if (weekly) ...<Widget>[
+            const SizedBox(height: AppSpacing.sm),
             Wrap(
               spacing: 6,
               runSpacing: 6,
               children: <Widget>[
-                for (int d = 1; d <= 7; d++)
-                  ChoiceChip(
-                    label: Text('$d'),
-                    selected: draft.days == d,
-                    onSelected: (_) {
-                      draft.days = d;
+                for (int d = DateTime.monday; d <= DateTime.sunday; d++)
+                  FilterChip(
+                    key: Key('day-${habit.id}-$d'),
+                    showCheckmark: false,
+                    label: Text(l10n.weekdayShort(d)),
+                    selected: draft.weekdays.contains(d),
+                    onSelected: (bool on) {
+                      // At least one day: no days is "optional", one tap up.
+                      if (!on && draft.weekdays.length <= 1) return;
+                      on ? draft.weekdays.add(d) : draft.weekdays.remove(d);
+                      draft.daysPicked = true;
                       onChanged();
                     },
                   ),
@@ -400,22 +469,22 @@ class _HabitEditCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              draft.days >= 7
+              draft.weekdays.length >= 7
                   ? l10n.habitsEveryDay
-                  : l10n.habitsDaysPerWeek(draft.days),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                    fontSize: 12.5,
-                  ),
+                  : l10n.habitsFreeOn(
+                      l10n.habitsDaysPerWeek(draft.weekdays.length),
+                      <int>[
+                        for (int d = DateTime.monday; d <= DateTime.sunday; d++)
+                          if (!draft.weekdays.contains(d)) d,
+                      ].map(l10n.weekdayShort).join(', '),
+                    ),
+              style: note,
             ),
           ],
-          if (trainingNote != null)
-            Text(
-              trainingNote!,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                    fontSize: 12.5,
-                  ),
+          if (trainingNote != null && !draft.optional)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(trainingNote!, style: note),
             ),
         ],
       ),

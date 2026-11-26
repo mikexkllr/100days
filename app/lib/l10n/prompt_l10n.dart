@@ -67,7 +67,7 @@ class LocalizedCoachPrompts implements CoachPromptBuilder {
         .map((Habit h) => l10n.promptAdjustHabitLine(
               l10n.habitLabel(h),
               '${h.target}',
-              h.daysPerWeek,
+              scheduledWeekdays(h).length,
               c.habitStreaks[h.id] ?? 0,
             ))
         .join('\n');

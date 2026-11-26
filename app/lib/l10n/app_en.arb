@@ -1369,7 +1369,7 @@
   },
   "homeOpenDiary": "Open the food diary",
   "homeOptional": "Optional",
-  "homeOptionalSubtitle": "Not scheduled today — still counts as XP.",
+  "homeOptionalSubtitle": "Not required today — still earns XP.",
   "homeQuestsTitle": "Today's quests",
   "homeRelapseBody": "This resets the streak of this habit — your other habits keep theirs. Friends see it. Being honest is the whole point — but only if it is true.",
   "homeRelapseConfirm": "Log it",
@@ -4023,5 +4023,20 @@
   "funkiSuggestPlan2": "Make the shopping list from the plan",
   "funkiContinueInChat": "Go on in the chat",
   "funkiUndoFailed": "That could not be undone. Try again in a moment.",
-  "funkiQuotaUsedUp": "Your AI allowance for this month is used up, so I can't answer right now. Premium or your own API key gets me going again at once."
+  "funkiQuotaUsedUp": "Your AI allowance for this month is used up, so I can't answer right now. Premium or your own API key gets me going again at once.",
+  "habitsRequired": "Required",
+  "habitsOptional": "Optional",
+  "habitsOptionalNote": "A bonus: done, it brings XP; left out, it breaks no day.",
+  "habitsFreeOn": "{days} · off: {free}",
+  "@habitsFreeOn": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      },
+      "free": {
+        "type": "String"
+      }
+    }
+  },
+  "habitsKeepOneRequired": "At least one habit has to be required — otherwise no day counts."
 }

@@ -3009,7 +3009,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeOptionalSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Not scheduled today — still counts as XP.'**
+  /// **'Not required today — still earns XP.'**
   String get homeOptionalSubtitle;
 
   /// No description provided for @homeQuestsTitle.
@@ -9163,6 +9163,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your AI allowance for this month is used up, so I can\'t answer right now. Premium or your own API key gets me going again at once.'**
   String get funkiQuotaUsedUp;
+
+  /// No description provided for @habitsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get habitsRequired;
+
+  /// No description provided for @habitsOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get habitsOptional;
+
+  /// No description provided for @habitsOptionalNote.
+  ///
+  /// In en, this message translates to:
+  /// **'A bonus: done, it brings XP; left out, it breaks no day.'**
+  String get habitsOptionalNote;
+
+  /// No description provided for @habitsFreeOn.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} · off: {free}'**
+  String habitsFreeOn(String days, String free);
+
+  /// No description provided for @habitsKeepOneRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'At least one habit has to be required — otherwise no day counts.'**
+  String get habitsKeepOneRequired;
 }
 
 class _AppLocalizationsDelegate

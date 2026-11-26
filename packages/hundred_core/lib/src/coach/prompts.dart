@@ -1,5 +1,6 @@
 import '../domain/habit.dart';
 import '../domain/peer.dart';
+import '../domain/schedule.dart';
 import 'coach.dart';
 
 /// Builds the prompts sent to the language model.
@@ -71,7 +72,8 @@ cheeky but friendly, no bullying, no quotation marks. Output only the message.
   String adjustments(CoachContext c) {
     final habits = c.challenge.habits
         .map((Habit h) => '- ${h.category.name}: target ${h.target}, '
-            '${h.daysPerWeek}x per week, streak ${c.habitStreaks[h.id] ?? 0}')
+            '${h.optional ? 'optional' : '${scheduledWeekdays(h).length}x per week'}, '
+            'streak ${c.habitStreaks[h.id] ?? 0}')
         .join('\n');
     return '''
 You are a training and habit coach. Write in English, second person.

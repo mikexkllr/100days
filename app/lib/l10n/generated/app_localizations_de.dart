@@ -1884,8 +1884,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get homeOptional => 'Freiwillig';
 
   @override
-  String get homeOptionalSubtitle =>
-      'Heute nicht eingeplant — zählt trotzdem als XP.';
+  String get homeOptionalSubtitle => 'Heute keine Pflicht — gibt trotzdem XP.';
 
   @override
   String get homeQuestsTitle => 'Quests für heute';
@@ -5713,4 +5712,23 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get funkiQuotaUsedUp =>
       'Dein KI-Kontingent für diesen Monat ist aufgebraucht, deshalb kann ich gerade nicht antworten. Mit Premium oder deinem eigenen API-Key geht es sofort weiter.';
+
+  @override
+  String get habitsRequired => 'Pflicht';
+
+  @override
+  String get habitsOptional => 'Freiwillig';
+
+  @override
+  String get habitsOptionalNote =>
+      'Ein Bonus: erledigt gibt es XP, ausgelassen bricht es keinen Tag.';
+
+  @override
+  String habitsFreeOn(String days, String free) {
+    return '$days · frei: $free';
+  }
+
+  @override
+  String get habitsKeepOneRequired =>
+      'Mindestens eine Gewohnheit muss Pflicht sein — sonst zählt kein Tag.';
 }

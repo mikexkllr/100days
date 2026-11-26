@@ -310,4 +310,90 @@ void main() {
     expect(DayKey(2026, 4, 1).differenceInDays(DayKey(2026, 3, 2)), 30);
     expect(DayKey(2026, 11, 1).differenceInDays(DayKey(2026, 10, 1)), 31);
   });
+
+  group('picked weekdays and optional habits', () {
+    // Monday to Saturday; Sunday is the cheat day.
+    final nutrition = Habit.fromCategory(HabitCategory.nutrition).withSchedule(
+        const HabitSchedule(daysPerWeek: 6, weekdays: <int>[6, 1, 2, 3, 4, 5, 5]),
+        from: _start);
+    final reading = Habit.fromCategory(HabitCategory.reading);
+
+    test('a habit is required on the days picked, the cheat day is free', () {
+      expect(nutrition.weekdays, <int>[1, 2, 3, 4, 5, 6]);
+      expect(nutrition.daysPerWeek, 6);
+      final challenge = _challenge(<Habit>[nutrition, reading]);
+      // 2026-03-05 is a Thursday, 2026-03-08 a Sunday.
+      expect(requiredHabitsOn(challenge, DayKey(2026, 3, 5)), contains(nutrition));
+      expect(requiredHabitsOn(challenge, DayKey(2026, 3, 8)), <Habit>[reading]);
+    });
+
+    test('skipping the cheat day does not break the streak', () {
+      final challenge = _challenge(<Habit>[nutrition]);
+      final stats = computeStreak(
+        challenge: challenge,
+        // Monday to Saturday, then Monday: Sunday left out.
+        logsByDay: _logsForDays(<int>[0, 1, 2, 3, 4, 5, 7], <Habit>[nutrition]),
+        frozenDays: const <String>{},
+        today: _start.addDays(7),
+      );
+      expect(stats.current, 7);
+    });
+
+    test('an optional habit is never required; done, it does not count either way', () {
+      final optional = reading.withSchedule(
+          const HabitSchedule(daysPerWeek: 7, optional: true),
+          from: _start);
+      final challenge = _challenge(<Habit>[noSugar, optional]);
+      expect(requiredHabitsOn(challenge, _start), <Habit>[noSugar]);
+      expect(scheduledWeekdays(optional), isEmpty);
+      final stats = computeStreak(
+        challenge: challenge,
+        logsByDay: _logsForDays(<int>[0, 1, 2], <Habit>[noSugar]),
+        frozenDays: const <String>{},
+        today: _start.addDays(2),
+      );
+      expect(stats.current, 3);
+    });
+
+    test('a new schedule applies from its day on; the days before keep theirs', () {
+      final from = _start.addDays(7);
+      final made = reading.withSchedule(
+          const HabitSchedule(daysPerWeek: 7, optional: true),
+          from: from);
+      // The first week it was required, and a miss then stays a miss.
+      expect(isHabitScheduledOn(made, _start.addDays(3)), isTrue);
+      expect(isHabitScheduledOn(made, from), isFalse);
+      final back = made.withSchedule(
+          const HabitSchedule(daysPerWeek: 3, weekdays: <int>[1, 3, 5]),
+          from: from.addDays(7));
+      expect(isHabitScheduledOn(back, from.addDays(2)), isFalse, reason: 'still optional then');
+      expect(scheduledWeekdays(back, from.addDays(9)), <int>[1, 3, 5]);
+      expect(isHabitScheduledOn(back, _start.addDays(1)), isTrue, reason: 'the first week, daily');
+    });
+
+    test('the same schedule again changes nothing', () {
+      expect(identical(nutrition.withSchedule(nutrition.schedule, from: _start.addDays(9)), nutrition),
+          isTrue);
+      expect(identical(reading.withDaysPerWeek(reading.daysPerWeek, from: _start), reading), isTrue);
+    });
+
+    test('survives its JSON, and old JSON reads as before', () {
+      final optional = nutrition.withSchedule(
+          const HabitSchedule(daysPerWeek: 6, optional: true),
+          from: _start.addDays(14));
+      final copy = Habit.fromJson(optional.toJson());
+      expect(copy.optional, isTrue);
+      expect(copy.scheduleOn(_start.addDays(3)).weekdays, <int>[1, 2, 3, 4, 5, 6]);
+      expect(copy.scheduleOn(_start.addDays(20)).optional, isTrue);
+      final old = Habit.fromJson(<String, dynamic>{
+        'id': 'gym',
+        'category': 'gym',
+        'target': 1,
+        'daysPerWeek': 4,
+      });
+      expect(old.weekdays, isNull);
+      expect(old.optional, isFalse);
+      expect(scheduledWeekdays(old), scheduledWeekdays(gym));
+    });
+  });
 }
