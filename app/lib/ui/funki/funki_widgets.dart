@@ -174,6 +174,7 @@ class FunkiAskButton extends ConsumerWidget {
     required this.focus,
     this.label,
     this.filled = false,
+    this.avatar = true,
   });
 
   final FunkiFocus focus;
@@ -183,6 +184,9 @@ class FunkiAskButton extends ConsumerWidget {
 
   /// Looks like a line to type in rather than a button.
   final bool filled;
+
+  /// False where Funki is right next to it already.
+  final bool avatar;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -199,29 +203,38 @@ class FunkiAskButton extends ConsumerWidget {
       child: InkWell(
         onTap: () => showFunki(context, focus),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-              AppSpacing.xs, AppSpacing.xs, AppSpacing.md, AppSpacing.xs),
-          child: Row(
-            mainAxisSize: filled ? MainAxisSize.max : MainAxisSize.min,
-            children: <Widget>[
-              const FunkiAvatar(size: 34),
-              const SizedBox(width: AppSpacing.xs),
-              Flexible(
-                child: Text(
-                  label ?? l10n.funkiAsk,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: filled
-                      ? text.bodyMedium?.copyWith(color: AppColors.textTertiary)
-                      : text.labelLarge,
+          padding: EdgeInsets.fromLTRB(avatar ? AppSpacing.xs : AppSpacing.md,
+              AppSpacing.xs, AppSpacing.md, AppSpacing.xs),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 34),
+            child: Row(
+              mainAxisSize: filled ? MainAxisSize.max : MainAxisSize.min,
+              children: <Widget>[
+                if (avatar) ...<Widget>[
+                  const FunkiAvatar(size: 34),
+                  const SizedBox(width: AppSpacing.xs),
+                ],
+                // A line takes the width it is given; a button is as wide
+                // as its words.
+                Flexible(
+                  fit: filled ? FlexFit.tight : FlexFit.loose,
+                  child: Text(
+                    label ?? l10n.funkiAsk,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: filled
+                        ? text.bodyMedium
+                            ?.copyWith(color: AppColors.textTertiary)
+                        : text.labelLarge,
+                  ),
                 ),
-              ),
-              if (filled) ...<Widget>[
-                const Spacer(),
-                const Icon(Icons.arrow_upward_rounded,
-                    size: 18, color: AppColors.textTertiary),
+                if (filled) ...<Widget>[
+                  const SizedBox(width: AppSpacing.sm),
+                  const Icon(Icons.arrow_upward_rounded,
+                      size: 18, color: AppColors.textTertiary),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

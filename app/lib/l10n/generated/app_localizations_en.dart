@@ -5714,7 +5714,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get funkiAnswerHint => 'Answer Funki or ask him something …';
 
   @override
-  String get foodQuickHint => 'What did you eat? e.g. “2 pretzels with butter”';
+  String get foodQuickHint => 'What did you eat?';
 
   @override
   String get foodQuickSend => 'Add to diary';

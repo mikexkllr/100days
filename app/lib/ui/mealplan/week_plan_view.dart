@@ -5,6 +5,7 @@ import 'package:hundred_core/hundred_core.dart';
 import '../../data/app_repository.dart';
 import '../../data/household_backend.dart';
 import '../../ai/funki/funki.dart';
+import '../../ai/funki/funki_tools.dart';
 import '../../l10n/l10n.dart';
 import '../../state/household_providers.dart';
 import '../../state/providers.dart';
@@ -112,7 +113,9 @@ class _WeekPlanViewState extends ConsumerState<WeekPlanView> {
               Expanded(
                 child: OutlinedButton.icon(
                   key: const Key('plan-chat'),
-                  onPressed: canPlan
+                  // Funki, not the planner: he is there whenever he can be
+                  // talked to at all.
+                  onPressed: ref.watch(funkiBrainProvider) != null
                       ? () =>
                           showFunki(context, FunkiFocus.mealPlan(_weekStart))
                       : null,

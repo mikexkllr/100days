@@ -12,14 +12,11 @@ import 'funki_widgets.dart';
 /// Funki comes up over the screen the user is on — the one way to talk to
 /// him, from Today, the diary, the plan or a top bar. He knows where he was
 /// called ([focus]) and goes on where the last conversation there stopped.
-///
-/// With [ask] the question is put to him at once.
-Future<void> showFunki(BuildContext context, FunkiFocus focus, {String? ask}) {
+Future<void> showFunki(BuildContext context, FunkiFocus focus) {
   final ProviderContainer container = ProviderScope.containerOf(context);
   final AppLocalizations l10n = context.l10n;
   final FunkiConversation? conversation =
       container.read(funkiSessionProvider).about(container, l10n, focus);
-  if (ask != null && ask.trim().isNotEmpty) conversation?.send(ask);
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,

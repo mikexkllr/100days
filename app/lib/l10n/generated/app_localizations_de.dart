@@ -5737,8 +5737,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get funkiAnswerHint => 'Antworte Funki oder frag ihn was …';
 
   @override
-  String get foodQuickHint =>
-      'Was hast du gegessen? z. B. „2 Brezeln mit Butter“';
+  String get foodQuickHint => 'Was hast du gegessen?';
 
   @override
   String get foodQuickSend => 'Eintragen';

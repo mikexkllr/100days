@@ -3064,7 +3064,7 @@
   "funkiStatusIdle": "Dein Coach",
   "funkiStartOver": "Neues Gespräch",
   "funkiAnswerHint": "Antworte Funki oder frag ihn was …",
-  "foodQuickHint": "Was hast du gegessen? z. B. „2 Brezeln mit Butter“",
+  "foodQuickHint": "Was hast du gegessen?",
   "foodQuickSend": "Eintragen",
   "foodQuickNeedsAi": "Das kennt die Lebensmitteltabelle nicht: {foods}. Gib die Kalorien dazu oder schalte die KI ein (Einstellungen → KI), dann schätzt Funki sie.",
   "foodCompose": "Mit Funki schätzen",

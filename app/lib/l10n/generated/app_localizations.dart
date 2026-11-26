@@ -9215,7 +9215,7 @@ abstract class AppLocalizations {
   /// No description provided for @foodQuickHint.
   ///
   /// In en, this message translates to:
-  /// **'What did you eat? e.g. “2 pretzels with butter”'**
+  /// **'What did you eat?'**
   String get foodQuickHint;
 
   /// No description provided for @foodQuickSend.

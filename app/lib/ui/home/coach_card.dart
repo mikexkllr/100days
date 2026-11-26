@@ -89,6 +89,8 @@ class CoachCard extends ConsumerWidget {
                   focus: FunkiFocus.home(today),
                   label: l10n.funkiAnswerHint,
                   filled: true,
+                  // He is right above, saying his line.
+                  avatar: false,
                 ),
               ],
             ],
