@@ -46,6 +46,11 @@ abstract class LlmClient {
   ///
   /// With [json] set, the model is asked for a JSON object; callers still
   /// parse defensively, because not every model complies.
+  ///
+  /// [schema] is a JSON Schema for that object. A client that can pass it
+  /// on asks the provider to answer in exactly that shape (structured
+  /// output); one that cannot treats it as [json]. Either way the answer is
+  /// still checked by the caller.
   Future<String> generate(
     String prompt, {
     List<LlmImage> images = const <LlmImage>[],
@@ -54,6 +59,7 @@ abstract class LlmClient {
     double temperature = 0.7,
     Duration timeout = const Duration(seconds: 30),
     bool json = false,
+    Map<String, Object?>? schema,
   });
 }
 
@@ -78,6 +84,7 @@ class UnavailableLlmClient implements LlmClient {
     double temperature = 0.7,
     Duration timeout = const Duration(seconds: 30),
     bool json = false,
+    Map<String, Object?>? schema,
   }) =>
       Future<String>.error(StateError('No language model available'));
 }

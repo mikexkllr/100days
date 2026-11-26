@@ -127,6 +127,24 @@ class HouseholdActions {
     if (listId != null) _ref.invalidate(listItemsProvider(listId));
   }
 
+  /// Stores [recipe] — or, when the household already has a dish of that
+  /// name, that one (see [reconcileRecipe]): one recipe per name, however
+  /// often it is planned. [known] is kept up to date for the next call.
+  Future<Recipe> _store(
+    String householdId,
+    Recipe recipe,
+    Map<String, Recipe> known, {
+    bool fromAi = false,
+  }) async {
+    final Recipe? same = recipeNamed(known.values, recipe.title);
+    final Recipe wanted = same == null ? recipe : reconcileRecipe(same, recipe);
+    if (identical(wanted, same)) return same!;
+    final Recipe stored =
+        await _backend.saveRecipe(householdId, wanted, fromAi: fromAi);
+    known[stored.id] = stored;
+    return stored;
+  }
+
   /// Writes accepted proposals: each recipe, then its slot with portions
   /// sized for every member who shares their target. A slot that already
   /// has a meal gets the new one instead — planning a week twice must not
@@ -140,10 +158,12 @@ class HouseholdActions {
       ..sort();
     final List<PlanEntry> before =
         await _backend.plan(id, days.first, days.last);
+    final Map<String, Recipe> known =
+        Map<String, Recipe>.of(await _backend.recipes(id));
     try {
       for (final ProposedMeal meal in meals) {
         final Recipe recipe =
-            await _backend.saveRecipe(id, meal.recipe, fromAi: true);
+            await _store(id, meal.recipe, known, fromAi: true);
         await _backend.saveEntry(
           id,
           PlanEntry(
@@ -165,23 +185,26 @@ class HouseholdActions {
     }
   }
 
-  Future<void> setMeal(DayKey day, MealSlotKind slot, Recipe recipe,
+  /// Puts [recipe] on [day]'s [slot] and returns the entry as stored —
+  /// with the household's own recipe of that name, if it has one.
+  Future<(PlanEntry, Recipe)> setMeal(DayKey day, MealSlotKind slot, Recipe recipe,
       {bool fromAi = false, String? replacing}) async {
     final String id = await _id;
     final Household household = await _ref.read(householdProvider.future);
-    final Recipe stored = await _backend.saveRecipe(id, recipe, fromAi: fromAi);
+    final Recipe stored = await _store(
+        id, recipe, Map<String, Recipe>.of(await _backend.recipes(id)),
+        fromAi: fromAi);
     if (replacing != null) await _backend.removeEntry(replacing);
-    await _backend.saveEntry(
-      id,
-      PlanEntry(
-        id: newEventId(),
-        day: day,
-        slot: slot,
-        recipeId: stored.id,
-        portions: portionsForHousehold(household, stored, slot),
-      ),
+    final PlanEntry entry = PlanEntry(
+      id: newEventId(),
+      day: day,
+      slot: slot,
+      recipeId: stored.id,
+      portions: portionsForHousehold(household, stored, slot),
     );
+    await _backend.saveEntry(id, entry);
     _planChanged();
+    return (entry, stored);
   }
 
   Future<void> removeEntry(String entryId) async {

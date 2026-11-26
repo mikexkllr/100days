@@ -3,14 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
 import '../../data/household_backend.dart';
+import '../../ai/funki/funki.dart';
 import '../../l10n/l10n.dart';
 import '../../state/household_providers.dart';
 import '../../theme/theme.dart';
+import '../funki/funki_chat_screen.dart';
 import '../widgets/app_card.dart';
 import 'household_load_error.dart';
 import 'household_screen.dart';
 import 'plan_week_sheet.dart';
-import 'planner_chat_screen.dart';
 import 'recipe_sheet.dart';
 
 /// The household's week of meals: day by day, slot by slot. Everyone in the
@@ -110,13 +111,14 @@ class _WeekPlanViewState extends ConsumerState<WeekPlanView> {
                   onPressed: canPlan
                       ? () => Navigator.of(context).push<void>(
                             MaterialPageRoute<void>(
-                              builder: (BuildContext context) =>
-                                  PlannerChatScreen(weekStart: _weekStart),
+                              builder: (BuildContext context) => FunkiChatScreen(
+                                focus: FunkiFocus.mealPlan(_weekStart),
+                              ),
                             ),
                           )
                       : null,
-                  icon: const Icon(Icons.forum_outlined, size: 18),
-                  label: Text(l10n.planChat),
+                  icon: const Text('🔥', style: TextStyle(fontSize: 16)),
+                  label: Text(l10n.funkiAsk),
                 ),
               ),
             ],

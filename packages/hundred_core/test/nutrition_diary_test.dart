@@ -86,6 +86,7 @@ class _FakeRuntime implements LlmClient {
     double temperature = 0.7,
     Duration timeout = const Duration(seconds: 30),
     bool json = false,
+    Map<String, Object?>? schema,
   }) async {
     lastTimeout = timeout;
     lastImages = images;
@@ -569,6 +570,7 @@ class _FailingRuntime extends _FakeRuntime {
     double temperature = 0.7,
     Duration timeout = const Duration(seconds: 30),
     bool json = false,
+    Map<String, Object?>? schema,
   }) async =>
       throw StateError('no network');
 }
@@ -585,6 +587,7 @@ class _HangingRuntime extends _FakeRuntime {
     double temperature = 0.7,
     Duration timeout = const Duration(seconds: 30),
     bool json = false,
+    Map<String, Object?>? schema,
   }) =>
       Completer<String>().future;
 }

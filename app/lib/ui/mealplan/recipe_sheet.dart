@@ -224,13 +224,15 @@ class _RecipeSheetState extends ConsumerState<_RecipeSheet> {
   }
 }
 
-/// Adds a meal to a slot by hand: one of the app's meal ideas in a tap, or
-/// a title and, if known, the calories of a portion. The planner and the
-/// chat fill recipes in full; this is for "pizza on Friday".
+/// Adds a meal to a slot: one of the app's meal ideas in a tap, a title
+/// and, if known, the calories of a portion — or the same handed to Funki,
+/// who makes a full recipe of it, with ingredients for the list. The
+/// planner and the chat fill recipes in full; this is for "pizza on
+/// Friday".
 ///
 /// A meal of today or a day gone by may already have been eaten: for
-/// someone with a diary the sheet also leads there, where a photo of the
-/// plate is enough.
+/// someone with a diary the sheet puts it there too, or leads there, where
+/// a photo of the plate is enough.
 Future<void> showAddMealSheet(
   BuildContext context,
   WidgetRef ref,
@@ -257,7 +259,16 @@ Future<void> showAddMealSheet(
   final HouseholdActions actions = ref.read(householdActionsProvider);
   final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
   final NavigatorState navigator = Navigator.of(context);
-  final String failed = context.l10n.householdSaveFailed;
+  final AppLocalizations l10n = context.l10n;
+  final MealPlanner? planner =
+      await ref.read(mealPlannerProvider.future).catchError((Object _) => null);
+  final List<PlanFor> people = <PlanFor>[
+    for (final HouseholdMember m
+        in ref.read(householdProvider).valueOrNull?.members ??
+            const <HouseholdMember>[])
+      m.toPlanFor(),
+  ];
+  if (!context.mounted) return;
   final Object? chosen = await showModalBottomSheet<Object>(
     context: context,
     isScrollControlled: true,
@@ -268,6 +279,28 @@ Future<void> showAddMealSheet(
       slot: slot,
       ideas: ideas,
       canLogEaten: canLogEaten,
+      askFunki: planner == null
+          ? null
+          : (String title, int? kcal) async {
+              Object? failure;
+              final ProposedMeal? meal = await planner.draftMeal(
+                MealDraftRequest(
+                  day: day,
+                  slot: slot,
+                  people: people,
+                  title: title,
+                  kcalPerServing: kcal,
+                ),
+                onError: (Object error) => failure = error,
+              );
+              if (meal != null) return (recipe: meal.recipe, problem: null);
+              return (
+                recipe: null,
+                problem: failure != null
+                    ? l10n.aiErrorMessage(failure!)
+                    : l10n.addMealFunkiFailed,
+              );
+            },
     ),
   );
   if (identical(chosen, _AddMealSheet.toDiary)) {
@@ -280,13 +313,33 @@ Future<void> showAddMealSheet(
     ));
     return;
   }
-  if (chosen is! Recipe) return;
+  if (chosen is! _AddedMeal) return;
   try {
-    await actions.setMeal(day, slot, chosen);
+    final (PlanEntry entry, Recipe recipe) = await actions
+        .setMeal(day, slot, chosen.recipe, fromAi: chosen.fromAi);
+    if (chosen.eaten) {
+      await actions.eatAsPlanned(entry, recipe);
+      messenger.showSnackBar(
+          SnackBar(content: Text(l10n.addMealInDiary(recipe.title))));
+    }
   } on Object {
-    messenger.showSnackBar(SnackBar(content: Text(failed)));
+    messenger.showSnackBar(SnackBar(content: Text(l10n.householdSaveFailed)));
   }
 }
+
+/// What the sheet hands back: the meal, whether Funki wrote it, and whether
+/// it goes into the diary as eaten.
+class _AddedMeal {
+  const _AddedMeal(this.recipe, {this.fromAi = false, this.eaten = false});
+
+  final Recipe recipe;
+  final bool fromAi;
+  final bool eaten;
+}
+
+/// Funki's recipe for a name and calories — or why there is none.
+typedef FunkiRecipe = Future<({Recipe? recipe, String? problem})> Function(
+    String title, int? kcal);
 
 class _AddMealSheet extends StatefulWidget {
   const _AddMealSheet({
@@ -294,6 +347,7 @@ class _AddMealSheet extends StatefulWidget {
     required this.slot,
     required this.ideas,
     required this.canLogEaten,
+    this.askFunki,
   });
 
   /// What the sheet hands back for "already eaten — into the diary".
@@ -305,6 +359,9 @@ class _AddMealSheet extends StatefulWidget {
 
   /// The user keeps a diary and the day has come.
   final bool canLogEaten;
+
+  /// Null without a reachable model: the line is not offered.
+  final FunkiRecipe? askFunki;
 
   @override
   State<_AddMealSheet> createState() => _AddMealSheetState();
@@ -320,6 +377,14 @@ class _AddMealSheetState extends State<_AddMealSheet> {
   /// Save was pressed without a title: the field says so.
   bool _titleMissing = false;
 
+  /// Already eaten: into the diary as well. A day gone by most likely was;
+  /// today's meal may still be ahead.
+  late bool _eaten = widget.canLogEaten && widget.day.isBefore(DayKey.today());
+
+  /// While Funki writes the recipe, and what went wrong if he could not.
+  bool _asking = false;
+  String? _funkiProblem;
+
   @override
   void dispose() {
     _title.dispose();
@@ -334,14 +399,21 @@ class _AddMealSheetState extends State<_AddMealSheet> {
   }
 
   void _pick(String name, {double kcal = 0, double proteinG = 0}) =>
-      _close(Recipe(
-        id: newEventId(),
-        title: name,
-        servings: 1,
-        ingredients: const <Ingredient>[],
-        perServing:
-            Nutrients(kcal: kcal, proteinG: proteinG, carbsG: 0, fatG: 0),
+      _close(_AddedMeal(
+        Recipe(
+          id: newEventId(),
+          title: name,
+          servings: 1,
+          ingredients: const <Ingredient>[],
+          perServing:
+              Nutrients(kcal: kcal, proteinG: proteinG, carbsG: 0, fatG: 0),
+        ),
+        eaten: _eaten,
       ));
+
+  // A German keyboard types "650,5".
+  double? get _typedKcal =>
+      double.tryParse(_kcal.text.trim().replaceAll(',', '.'));
 
   /// The calories stay optional; the name does not — a save without one
   /// says so instead of closing on nothing.
@@ -351,9 +423,33 @@ class _AddMealSheetState extends State<_AddMealSheet> {
       setState(() => _titleMissing = true);
       return;
     }
-    // A German keyboard types "650,5".
-    _pick(title,
-        kcal: double.tryParse(_kcal.text.trim().replaceAll(',', '.')) ?? 0);
+    _pick(title, kcal: _typedKcal ?? 0);
+  }
+
+  /// What was typed, to Funki: a full recipe of it. Without a name he picks
+  /// something for the slot.
+  Future<void> _askFunki() async {
+    if (_asking || _closing) return;
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _asking = true;
+      _funkiProblem = null;
+      _titleMissing = false;
+    });
+    final double? kcal = _typedKcal;
+    final ({Recipe? recipe, String? problem}) answer = await widget.askFunki!(
+      _title.text.trim(),
+      kcal == null || kcal <= 0 ? null : kcal.round(),
+    );
+    if (!mounted) return;
+    if (answer.recipe != null) {
+      _close(_AddedMeal(answer.recipe!, fromAi: true, eaten: _eaten));
+      return;
+    }
+    setState(() {
+      _asking = false;
+      _funkiProblem = answer.problem;
+    });
   }
 
   @override
@@ -467,19 +563,59 @@ class _AddMealSheetState extends State<_AddMealSheet> {
                       onSubmitted: (_) => _save(),
                       decoration: InputDecoration(labelText: l10n.addMealKcal),
                     ),
+                    if (widget.canLogEaten)
+                      SwitchListTile(
+                        key: const Key('add-meal-eaten'),
+                        contentPadding: EdgeInsets.zero,
+                        value: _eaten,
+                        onChanged: (bool on) => setState(() => _eaten = on),
+                        title: Text(l10n.addMealEaten,
+                            style: Theme.of(context).textTheme.bodyMedium),
+                      ),
                   ],
                 ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.lg),
+                  AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 0),
               child: FilledButton(
                 key: const Key('add-meal-save'),
-                onPressed: _save,
+                onPressed: _asking ? null : _save,
                 child: Text(l10n.actionSave),
               ),
             ),
+            if (widget.askFunki != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg, AppSpacing.xs, AppSpacing.lg, 0),
+                child: TextButton.icon(
+                  key: const Key('add-meal-funki'),
+                  onPressed: _asking ? null : _askFunki,
+                  icon: _asking
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('🔥', style: TextStyle(fontSize: 16)),
+                  label: Text(_asking ? l10n.addMealFunkiWorking : l10n.addMealFunki),
+                ),
+              ),
+            if (_funkiProblem != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                child: Text(
+                  _funkiProblem!,
+                  key: const Key('add-meal-funki-problem'),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: AppColors.danger),
+                ),
+              ),
+            const SizedBox(height: AppSpacing.lg),
           ],
         ),
       ),

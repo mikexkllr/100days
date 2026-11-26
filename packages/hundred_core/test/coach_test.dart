@@ -97,6 +97,7 @@ class _FakeRuntime implements LlmClient {
     double temperature = 0.7,
     Duration timeout = const Duration(seconds: 30),
     bool json = false,
+    Map<String, Object?>? schema,
   }) async {
     calls++;
     lastTimeout = timeout;

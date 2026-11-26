@@ -61,22 +61,43 @@ class _PlanWeekSheetState extends ConsumerState<_PlanWeekSheet> {
   }
 
   /// The dishes planned most recently, around and in this week — what the
-  /// draft should not repeat. Without them it is still a plan.
-  Future<List<String>> _recentDishes() async {
+  /// draft should not repeat — and those on this week's slots that the
+  /// draft leaves alone, which it must not repeat. Without them it is still
+  /// a plan.
+  Future<({List<String> recent, List<String> planned})> _dishes(
+      Set<String> requested) async {
     try {
       final String id = await ref.read(householdIdProvider.future);
       final List<PlanEntry> entries = await ref
           .read(householdBackendProvider)
           .plan(id, widget.weekStart.addDays(-28), widget.weekStart.addDays(6));
-      return recentTitles(entries, await ref.read(recipesProvider.future));
+      final Map<String, Recipe> recipes = await ref.read(recipesProvider.future);
+      final List<PlanEntry> thisWeekKept = <PlanEntry>[
+        for (final PlanEntry e in entries)
+          if (!e.day.isBefore(widget.weekStart) &&
+              !requested.contains('${e.day}/${e.slot.name}'))
+            e,
+      ];
+      return (
+        recent: recentTitles(entries, recipes),
+        planned: recentTitles(thisWeekKept, recipes, limit: 40),
+      );
     } on Object {
-      return const <String>[];
+      return (recent: const <String>[], planned: const <String>[]);
     }
   }
 
   Future<void> _propose() async {
     if (_working) return;
+    // The wish is typed; the keyboard has done its job and would cover the
+    // draft.
+    FocusScope.of(context).unfocus();
     final AppLocalizations l10n = context.l10n;
+    // "Again" means something else: the last draft is not repeated either.
+    final List<String> lastDraft = <String>[
+      for (final ProposedMeal m in _proposal ?? const <ProposedMeal>[])
+        m.recipe.title,
+    ];
     setState(() {
       _working = true;
       _problem = null;
@@ -87,15 +108,23 @@ class _PlanWeekSheetState extends ConsumerState<_PlanWeekSheet> {
       final MealPlanner? planner = await ref.read(mealPlannerProvider.future);
       if (planner == null) return;
       final Household household = await ref.read(householdProvider.future);
+      final List<DayKey> days = _days.toList()..sort();
+      final List<MealSlotKind> slots =
+          MealSlotKind.values.where(_slots.contains).toList();
+      final dishes = await _dishes(<String>{
+        for (final DayKey d in days)
+          for (final MealSlotKind s in slots) '$d/${s.name}',
+      });
       Object? failure;
       final List<ProposedMeal>? meals = await planner.proposeWeek(
         MealPlanRequest(
-          days: _days.toList()..sort(),
-          slots: MealSlotKind.values.where(_slots.contains).toList(),
+          days: days,
+          slots: slots,
           people: household.members.map((HouseholdMember m) => m.toPlanFor()).toList(),
           wish: _wish.text,
           maxMinutes: _maxMinutes,
-          avoidTitles: await _recentDishes(),
+          avoidTitles: <String>[...lastDraft, ...dishes.recent],
+          plannedTitles: dishes.planned,
         ),
         onError: (Object error) => failure = error,
       );
@@ -153,7 +182,11 @@ class _PlanWeekSheetState extends ConsumerState<_PlanWeekSheet> {
 
     return ListView(
       controller: widget.scroll,
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      // The keyboard goes as soon as the sheet is scrolled, and the end of
+      // the sheet can be scrolled above it while it is up.
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg,
+          AppSpacing.lg + MediaQuery.viewInsetsOf(context).bottom),
       children: <Widget>[
         Text(l10n.planWeekAi, style: text.headlineSmall),
         const SizedBox(height: AppSpacing.md),
@@ -204,6 +237,12 @@ class _PlanWeekSheetState extends ConsumerState<_PlanWeekSheet> {
           controller: _wish,
           minLines: 1,
           maxLines: 3,
+          textCapitalization: TextCapitalization.sentences,
+          // One wish, not a letter: the return key closes the keyboard
+          // instead of starting a line that hides the button beneath.
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => FocusScope.of(context).unfocus(),
+          onTapOutside: (_) => FocusScope.of(context).unfocus(),
           decoration: InputDecoration(hintText: l10n.planWeekWishHint),
         ),
         const SizedBox(height: AppSpacing.md),
