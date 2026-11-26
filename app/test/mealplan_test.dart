@@ -11,6 +11,7 @@ import 'package:hundred_days/ui/mealplan/household_screen.dart';
 import 'package:hundred_days/ui/mealplan/recipe_sheet.dart';
 import 'package:hundred_days/ui/mealplan/shopping_view.dart';
 import 'package:hundred_days/ui/mealplan/week_plan_view.dart';
+import 'package:hundred_days/ui/nutrition/add_food_screen.dart';
 
 import 'helpers.dart';
 
@@ -303,6 +304,77 @@ void main() {
 
     final Recipe recipe = (await household.recipes('home')).values.single;
     expect(recipe.perServing.kcal, 650.5);
+  });
+
+  testWidgets('on a phone with the keyboard up, save is in reach',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(393 * 3, 852 * 3);
+    tester.view.devicePixelRatio = 3;
+    tester.view.padding = const FakeViewPadding(top: 59 * 3, bottom: 34 * 3);
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(wrapForTest(
+      repository: repository,
+      child: const WeekPlanView(),
+      household: household,
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Noch nichts geplant').first);
+    await tester.pumpAndSettle();
+    // The title field asks for the keyboard; it takes half the screen.
+    tester.view.viewInsets = const FakeViewPadding(bottom: 340 * 3);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('add-meal-title')), 'Pizza');
+    await tester.pump();
+
+    final Rect save = tester.getRect(find.byKey(const Key('add-meal-save')));
+    expect(save.bottom, lessThanOrEqualTo(852 - 340));
+    await tester.tap(find.byKey(const Key('add-meal-save')));
+    await tester.pumpAndSettle();
+
+    // No calories typed: they are optional, the meal is planned anyway.
+    final Recipe recipe = (await household.recipes('home')).values.single;
+    expect(recipe.title, 'Pizza');
+    expect(recipe.perServing.kcal, 0);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a save without a name says so instead of closing',
+      (WidgetTester tester) async {
+    await pump(tester, const WeekPlanView());
+    await tester.tap(find.text('Noch nichts geplant').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('add-meal-save')));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Gib der Mahlzeit einen Namen'), findsOneWidget);
+    expect(find.byKey(const Key('add-meal-title')), findsOneWidget);
+    expect(await household.recipes('home'), isEmpty);
+  });
+
+  testWidgets('a meal already eaten leads into the diary, onto the photo',
+      (WidgetTester tester) async {
+    await repository.startChallenge(_dietChallenge());
+    await pump(tester, const WeekPlanView());
+    // Monday has come, whatever today is.
+    await tester.tap(find.text('Noch nichts geplant').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('add-meal-to-diary')));
+    await tester.pumpAndSettle();
+
+    final AddFoodScreen screen =
+        tester.widget<AddFoodScreen>(find.byType(AddFoodScreen));
+    expect(screen.day, DayKey.today().weekStart);
+    expect(screen.meal, MealSlotKind.dinner);
+    // Without a model the photo tab says what it needs.
+    expect(find.text('Ein Foto von deinem Teller'), findsOneWidget);
+  });
+
+  testWidgets('a day to come, or no diary, offers no way into it',
+      (WidgetTester tester) async {
+    await pump(tester, const WeekPlanView());
+    await tester.tap(find.text('Noch nichts geplant').first);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('add-meal-to-diary')), findsNothing);
   });
 
   Map<String, dynamic> dal(DayKey day, {String title = 'Linsen-Dal'}) =>

@@ -17,7 +17,10 @@ import 'nutrition_goals_screen.dart';
 /// the day in: what was eaten, and closing the day on it. What to eat and
 /// what to buy are planned under Plan.
 class DiaryScreen extends ConsumerWidget {
-  const DiaryScreen({super.key});
+  const DiaryScreen({super.key, this.day});
+
+  /// The day it opens on; today when null or not yet gone by.
+  final DayKey? day;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,7 +32,7 @@ class DiaryScreen extends ConsumerWidget {
         error: (Object error, StackTrace _) => Center(child: Text('$error')),
         data: (AppSnapshot snapshot) => snapshot.plan?.nutrition == null
             ? const SizedBox.shrink()
-            : NutritionDiaryView(snapshot: snapshot),
+            : NutritionDiaryView(snapshot: snapshot, initialDay: day),
       ),
     );
   }
@@ -42,9 +45,16 @@ class DiaryScreen extends ConsumerWidget {
 /// What the household planned for a meal waits next to it, one tap from
 /// the diary — but nothing lands in it unless the user puts it there.
 class NutritionDiaryView extends ConsumerStatefulWidget {
-  const NutritionDiaryView({super.key, required this.snapshot});
+  const NutritionDiaryView({
+    super.key,
+    required this.snapshot,
+    this.initialDay,
+  });
 
   final AppSnapshot snapshot;
+
+  /// A day gone by to open on, from the day sheet; null follows today.
+  final DayKey? initialDay;
 
   @override
   ConsumerState<NutritionDiaryView> createState() => _NutritionDiaryViewState();
@@ -53,7 +63,7 @@ class NutritionDiaryView extends ConsumerStatefulWidget {
 class _NutritionDiaryViewState extends ConsumerState<NutritionDiaryView> {
   /// The day the user went back to, or null to follow today — a diary left
   /// open overnight must log breakfast on the new day, not on yesterday.
-  DayKey? _picked;
+  late DayKey? _picked = widget.initialDay;
 
   /// Lines swiped away and not yet gone from the snapshot. A dismissed
   /// row must leave the tree at once.

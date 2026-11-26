@@ -170,6 +170,15 @@ void main() {
     });
   });
 
+  group('macros', () {
+    test('add up to their calories, 4 / 4 / 9 per gram', () {
+      const Nutrients n =
+          Nutrients(kcal: 0, proteinG: 30, carbsG: 50, fatG: 10);
+      expect(n.kcalFromMacros, 30 * 4 + 50 * 4 + 10 * 9);
+      expect(Nutrients.zero.kcalFromMacros, 0);
+    });
+  });
+
   group('food table', () {
     test('ids are unique and values are plausible', () {
       expect(kFoodById, hasLength(kFoodLibrary.length));

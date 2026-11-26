@@ -16,6 +16,8 @@
   "addMealIdeas": "IDEAS",
   "addMealKcal": "kcal per portion (optional)",
   "addMealTitle": "What is it?",
+  "addMealTitleMissing": "Give it a name — or tap one of the ideas.",
+  "addMealToDiary": "Already eaten? Into the diary — a photo will do",
   "adviceCutScope": "You only hit {percent}% of your days. Take a habit out instead of carrying on failing — three certain days beat five planned ones.",
   "@adviceCutScope": {
     "placeholders": {
@@ -988,7 +990,17 @@
   "foodManualFat": "Fat in g (optional)",
   "foodManualGrams": "Amount in g (optional)",
   "foodManualKcal": "Calories (kcal)",
+  "foodManualKcalFromMacros": "≈ {kcal} kcal from the macros below",
+  "@foodManualKcalFromMacros": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "foodManualKcalMissing": "Calories are needed. Not sure? A photo or a sentence gets them estimated.",
   "foodManualName": "Name",
+  "foodManualNameMissing": "What was it?",
   "foodManualProtein": "Protein in g (optional)",
   "foodNotRecognised": "Not recognised: {items}. Estimate them with AI, search for them, or enter them manually.",
   "@foodNotRecognised": {
@@ -3472,6 +3484,8 @@
   "homeYesterdayFreeze": "Use a freeze",
   "dayLogLate": "Log",
   "dayLogLateNote": "Only yesterday can be logged late. Friends see that it was.",
+  "dayOpenDiary": "Meals",
+  "dayOverNote": "This day is over. Only yesterday can still be logged late.",
   "profileEditTitle": "Your profile",
   "profileEditSub": "Name and face — what friends see in requests, the feed and the league.",
   "profileSave": "Save",

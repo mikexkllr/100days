@@ -356,4 +356,76 @@ void main() {
       expect(find.textContaining('on-device'), findsNothing);
     });
   });
+
+  group('entering numbers by hand', () {
+    Future<void> openManual(WidgetTester tester) async {
+      await pump(tester, const DiaryScreen());
+      await tester.tap(find.byKey(const Key('add-food-lunch')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Manuell'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('without calories, add says what is missing and where to go',
+        (WidgetTester tester) async {
+      await openManual(tester);
+      await tester.enterText(find.byKey(const Key('manual-name')), 'Pasta');
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('manual-add')));
+      await tester.pumpAndSettle();
+
+      expect(await eaten(), isEmpty);
+      expect(find.textContaining('Ohne Kalorien geht es nicht'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('manual-to-photo')));
+      await tester.pumpAndSettle();
+      // Without a model the photo tab says what it needs.
+      expect(find.text('Ein Foto von deinem Teller'), findsOneWidget);
+    });
+
+    testWidgets('without a name, add asks for it', (WidgetTester tester) async {
+      await openManual(tester);
+      await tester.enterText(find.byKey(const Key('manual-kcal')), '500');
+      await tester.tap(find.byKey(const Key('manual-add')));
+      await tester.pumpAndSettle();
+
+      expect(await eaten(), isEmpty);
+      expect(find.text('Was war es?'), findsOneWidget);
+    });
+
+    testWidgets('macros without calories add up to them',
+        (WidgetTester tester) async {
+      await openManual(tester);
+      await tester.enterText(find.byKey(const Key('manual-name')), 'Riegel');
+      await tester.enterText(
+          find.widgetWithText(TextField, 'Eiweiß in g (optional)'), '20');
+      await tester.enterText(
+          find.widgetWithText(TextField, 'Fett in g (optional)'), '10');
+      await tester.pumpAndSettle();
+      expect(find.text('≈ 170 kcal aus den Makros unten'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('manual-add')));
+      await tester.pumpAndSettle();
+
+      final FoodEntry entry = (await eaten()).single;
+      expect(entry.nutrients.kcal, 20 * 4 + 10 * 9);
+      expect(entry.nutrients.proteinG, 20);
+    });
+
+    testWidgets('opened on a day gone by, it logs onto that day',
+        (WidgetTester tester) async {
+      final DayKey day = DayKey.today().addDays(-2);
+      await pump(tester, DiaryScreen(day: day));
+      expect(find.text('Heute'), findsNothing);
+      await tester.tap(find.byKey(const Key('add-food-lunch')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Manuell'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('manual-name')), 'Suppe');
+      await tester.enterText(find.byKey(const Key('manual-kcal')), '300');
+      await tester.tap(find.byKey(const Key('manual-add')));
+      await tester.pumpAndSettle();
+
+      expect((await eaten(on: day)).single.name, 'Suppe');
+      expect(await eaten(), isEmpty);
+    });
+  });
 }

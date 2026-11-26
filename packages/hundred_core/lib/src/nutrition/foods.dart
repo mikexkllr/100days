@@ -93,6 +93,11 @@ class Nutrients {
   final double carbsG;
   final double fatG;
 
+  /// The energy the macros carry: 4 kcal per gram of protein and of
+  /// carbohydrate, 9 per gram of fat. What a label without a calorie line
+  /// adds up to.
+  double get kcalFromMacros => proteinG * 4 + carbsG * 4 + fatG * 9;
+
   Nutrients operator +(Nutrients other) => Nutrients(
         kcal: kcal + other.kcal,
         proteinG: proteinG + other.proteinG,

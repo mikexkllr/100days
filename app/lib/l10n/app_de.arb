@@ -16,6 +16,8 @@
   "addMealIdeas": "IDEEN",
   "addMealKcal": "kcal pro Portion (optional)",
   "addMealTitle": "Was gibt's?",
+  "addMealTitleMissing": "Gib der Mahlzeit einen Namen — oder tipp eine der Ideen an.",
+  "addMealToDiary": "Schon gegessen? Ins Tagebuch — ein Foto reicht",
   "adviceCutScope": "Du triffst nur {percent} % deiner Tage. Nimm eine Gewohnheit raus statt weiter zu scheitern — drei sichere Tage schlagen fünf geplante.",
   "@adviceCutScope": {
     "placeholders": {
@@ -794,7 +796,17 @@
   "foodManualFat": "Fett in g (optional)",
   "foodManualGrams": "Menge in g (optional)",
   "foodManualKcal": "Kalorien (kcal)",
+  "foodManualKcalFromMacros": "≈ {kcal} kcal aus den Makros unten",
+  "@foodManualKcalFromMacros": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "foodManualKcalMissing": "Ohne Kalorien geht es nicht. Nicht sicher? Ein Foto oder ein Satz, und sie werden geschätzt.",
   "foodManualName": "Name",
+  "foodManualNameMissing": "Was war es?",
   "foodManualProtein": "Eiweiß in g (optional)",
   "foodNotRecognised": "Nicht erkannt: {items}. Lass sie von der KI schätzen, such sie oder trag sie manuell ein.",
   "foodPer100": "{kcal} kcal · {protein} g E · {carbs} g K · {fat} g F pro 100 g",
@@ -2625,6 +2637,8 @@
   "homeYesterdayFreeze": "Freeze einsetzen",
   "dayLogLate": "Nachtragen",
   "dayLogLateNote": "Nachtragen geht nur für gestern. Deine Freunde sehen, dass es nachgetragen ist.",
+  "dayOpenDiary": "Mahlzeiten",
+  "dayOverNote": "Dieser Tag ist vorbei. Nachtragen geht nur für gestern.",
   "profileEditTitle": "Dein Profil",
   "profileEditSub": "Name und Gesicht — was Freunde in Anfragen, im Feed und in der Liga sehen.",
   "profileSave": "Speichern",
