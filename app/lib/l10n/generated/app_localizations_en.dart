@@ -60,7 +60,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addMealTitleMissing => 'Give it a name — or tap one of the ideas.';
 
   @override
-  String get addMealToDiary => 'A photo instead';
+  String get addMealToDiary => 'Take a photo instead';
 
   @override
   String adviceCutScope(int percent) {

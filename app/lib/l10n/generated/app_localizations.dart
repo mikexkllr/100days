@@ -203,7 +203,7 @@ abstract class AppLocalizations {
   /// No description provided for @addMealToDiary.
   ///
   /// In en, this message translates to:
-  /// **'A photo instead'**
+  /// **'Take a photo instead'**
   String get addMealToDiary;
 
   /// No description provided for @adviceCutScope.

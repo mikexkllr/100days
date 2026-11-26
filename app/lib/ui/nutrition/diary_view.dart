@@ -415,11 +415,14 @@ class _MealCard extends StatelessWidget {
   final void Function(FoodEntry entry) onRemove;
   final void Function(FoodEntry entry) onEdit;
 
-  Future<void> _add(BuildContext context) => Navigator.of(context).push<void>(
+  Future<void> _add(BuildContext context,
+          {FoodEntryWay way = FoodEntryWay.describe}) =>
+      Navigator.of(context).push<void>(
         MaterialPageRoute<void>(
           builder: (BuildContext context) => AddFoodScreen(
             meal: slot.kind,
             day: day,
+            startOn: way,
           ),
         ),
       );
@@ -453,6 +456,13 @@ class _MealCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+                // The plate in front of you: one tap to the camera.
+                IconButton(
+                  key: Key('photo-food-${slot.kind.name}'),
+                  tooltip: l10n.foodTabPhoto,
+                  onPressed: () => _add(context, way: FoodEntryWay.photo),
+                  icon: const Icon(Icons.photo_camera_outlined),
                 ),
                 IconButton.filled(
                   key: Key('add-food-${slot.kind.name}'),

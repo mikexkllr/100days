@@ -17,7 +17,7 @@
   "addMealKcal": "kcal per portion (optional)",
   "addMealTitle": "What is it?",
   "addMealTitleMissing": "Give it a name — or tap one of the ideas.",
-  "addMealToDiary": "A photo instead",
+  "addMealToDiary": "Take a photo instead",
   "adviceCutScope": "You only hit {percent}% of your days. Take a habit out instead of carrying on failing — three certain days beat five planned ones.",
   "@adviceCutScope": {
     "placeholders": {

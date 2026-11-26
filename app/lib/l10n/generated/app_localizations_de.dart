@@ -61,7 +61,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Gib der Mahlzeit einen Namen — oder tipp eine der Ideen an.';
 
   @override
-  String get addMealToDiary => 'Lieber ein Foto';
+  String get addMealToDiary => 'Stattdessen ein Foto machen';
 
   @override
   String adviceCutScope(int percent) {

@@ -151,11 +151,15 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
             scheduledToday: scheduled,
             xpGain: _xpGain[habit.id],
             celebration: _celebrations[habit.id] ?? 0,
-            onCheckIn: (num value) => _checkIn(habit, value),
+            // Eating is checked in where it is tracked: ticking the row
+            // opens the diary, and closing the day there is the tick.
+            onCheckIn: (num value) =>
+                diaryFor(habit) != null ? diaryFor(habit)!() : _checkIn(habit, value),
             onRelapse: () => _confirmRelapse(habit),
             onUndo: () => _undo(habit),
             onHoldFill: (double fill) => _holdFill.value = fill,
-            tapToCheckIn: prefsTap,
+            // Opening the diary commits nothing: a tap is enough there.
+            tapToCheckIn: prefsTap || diaryFor(habit) != null,
             // Eating is logged in the diary: the row leads there and says
             // where the day stands.
             onOpenDiary: diaryFor(habit),
@@ -373,14 +377,9 @@ class _HomeBodyState extends ConsumerState<_HomeBody> {
     AppSounds.play(Sfx.ignite);
     _feed(habit, TodayState.of(before).fire,
         flameStageFor(before.me.streak.current));
-    // A diary on target today makes the nutrition tick a tracked one — the
-    // same as closing the day in the diary.
-    final NutritionPlan? plan = before.plan?.nutrition;
-    final bool tracked = habit.category == HabitCategory.nutrition &&
-        plan != null &&
-        before.me.intakeOn(before.today).isOnTarget(plan);
-    await ref.read(appStateProvider.notifier).checkIn(habit,
-        value: value, notifyDelay: _undoWindow, tracked: tracked);
+    await ref
+        .read(appStateProvider.notifier)
+        .checkIn(habit, value: value, notifyDelay: _undoWindow);
     if (!mounted) return;
     final AppLocalizations l10nNow = context.l10n;
     ScaffoldMessenger.of(context)

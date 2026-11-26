@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hundred_core/hundred_core.dart';
 import 'package:hundred_days/ai/meal_photo.dart';
 import 'package:hundred_days/data/app_repository.dart';
+import 'package:hundred_days/ui/nutrition/add_food_screen.dart';
 import 'package:hundred_days/ui/nutrition/diary_view.dart';
 import 'package:hundred_days/ui/nutrition/nutrition_goals_screen.dart';
 
@@ -310,6 +311,17 @@ void main() {
       // The food table knew it all: the model was not asked.
       expect(llm.lastPrompt, isNull);
       expect(find.byKey(const Key('food-add-parsed')), findsOneWidget);
+    });
+
+    testWidgets('every meal has the camera on it: one tap to the photo',
+        (WidgetTester tester) async {
+      await pump(tester, const DiaryScreen());
+      await tester.tap(find.byKey(const Key('photo-food-lunch')));
+      await tester.pumpAndSettle();
+      expect(
+        DefaultTabController.of(tester.element(find.byType(TabBarView))).index,
+        FoodEntryWay.photo.index,
+      );
     });
 
     testWidgets('the first line: what was eaten, typed, is in the diary — and out again',

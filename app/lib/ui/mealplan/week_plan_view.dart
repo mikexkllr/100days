@@ -12,6 +12,7 @@ import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../funki/funki_sheet.dart';
 import '../funki/funki_widgets.dart';
+import '../nutrition/add_food_screen.dart';
 import '../nutrition/diary_view.dart';
 import '../widgets/app_card.dart';
 import 'household_load_error.dart';
@@ -300,6 +301,7 @@ class _DayCard extends ConsumerWidget {
                     slot: slot,
                     entry: entry,
                     recipe: entry == null ? null : recipes[entry.recipeId],
+                    canPhoto: intake != null,
                   ),
               if (eaten(slot).isNotEmpty)
                 _EatenRow(day: day, slot: slot, entries: eaten(slot)),
@@ -383,12 +385,17 @@ class _SlotRow extends ConsumerWidget {
     required this.slot,
     required this.entry,
     required this.recipe,
+    this.canPhoto = false,
   });
 
   final DayKey day;
   final MealSlotKind slot;
   final PlanEntry? entry;
   final Recipe? recipe;
+
+  /// The user keeps a diary and the day has come: a photo of the plate
+  /// logs the meal, straight from the row.
+  final bool canPhoto;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -420,6 +427,21 @@ class _SlotRow extends ConsumerWidget {
             if (recipe != null && recipe.minutes != null)
               Text(l10n.planMinutes(recipe.minutes!),
                   style: text.bodySmall?.copyWith(color: AppColors.textSecondary)),
+            if (recipe == null && canPhoto)
+              IconButton(
+                key: Key('slot-photo-$day-${slot.name}'),
+                tooltip: l10n.foodTabPhoto,
+                visualDensity: VisualDensity.compact,
+                onPressed: () =>
+                    Navigator.of(context).push<void>(MaterialPageRoute<void>(
+                  builder: (BuildContext context) => AddFoodScreen(
+                    meal: slot,
+                    day: day,
+                    startOn: FoodEntryWay.photo,
+                  ),
+                )),
+                icon: const Icon(Icons.photo_camera_outlined, size: 20),
+              ),
           ],
         ),
       ),

@@ -17,7 +17,7 @@
   "addMealKcal": "kcal pro Portion (optional)",
   "addMealTitle": "Was gibt's?",
   "addMealTitleMissing": "Gib der Mahlzeit einen Namen — oder tipp eine der Ideen an.",
-  "addMealToDiary": "Lieber ein Foto",
+  "addMealToDiary": "Stattdessen ein Foto machen",
   "adviceCutScope": "Du triffst nur {percent} % deiner Tage. Nimm eine Gewohnheit raus statt weiter zu scheitern — drei sichere Tage schlagen fünf geplante.",
   "@adviceCutScope": {
     "placeholders": {

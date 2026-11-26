@@ -16,11 +16,27 @@ import '../widgets/app_card.dart';
 
 /// AI and subscription: what this month's allowance looks like, Premium, and
 /// the option to use one's own API key instead.
-class AiScreen extends ConsumerWidget {
+class AiScreen extends ConsumerStatefulWidget {
   const AiScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AiScreen> createState() => _AiScreenState();
+}
+
+class _AiScreenState extends ConsumerState<AiScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // The server counts every request, Funki's included; the number here
+    // is only as fresh as its last fetch. Opened, it is asked for again —
+    // the old one stays on screen until the new one is there.
+    Future<void>.microtask(() {
+      if (mounted) ref.invalidate(aiAllowanceProvider);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
     final OwnKey? own = ref.watch(ownKeyProvider).valueOrNull;
     final AiAllowance allowance =
