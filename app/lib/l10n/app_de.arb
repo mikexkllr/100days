@@ -3090,5 +3090,7 @@
   "habitsOptional": "Freiwillig",
   "habitsOptionalNote": "Ein Bonus: erledigt gibt es XP, ausgelassen bricht es keinen Tag.",
   "habitsFreeOn": "{days} · frei: {free}",
-  "habitsKeepOneRequired": "Mindestens eine Gewohnheit muss Pflicht sein — sonst zählt kein Tag."
+  "habitsKeepOneRequired": "Mindestens eine Gewohnheit muss Pflicht sein — sonst zählt kein Tag.",
+  "tileOptional": "Freiwillig · ein Bonus",
+  "homeDiaryLine": "Tagebuch: {eaten} / {target} kcal"
 }

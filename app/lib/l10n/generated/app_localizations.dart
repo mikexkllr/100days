@@ -9193,6 +9193,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'At least one habit has to be required — otherwise no day counts.'**
   String get habitsKeepOneRequired;
+
+  /// No description provided for @tileOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional · a bonus'**
+  String get tileOptional;
+
+  /// No description provided for @homeDiaryLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Diary: {eaten} / {target} kcal'**
+  String homeDiaryLine(int eaten, int target);
 }
 
 class _AppLocalizationsDelegate

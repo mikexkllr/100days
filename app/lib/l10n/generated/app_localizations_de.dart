@@ -5731,4 +5731,12 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get habitsKeepOneRequired =>
       'Mindestens eine Gewohnheit muss Pflicht sein — sonst zählt kein Tag.';
+
+  @override
+  String get tileOptional => 'Freiwillig · ein Bonus';
+
+  @override
+  String homeDiaryLine(int eaten, int target) {
+    return 'Tagebuch: $eaten / $target kcal';
+  }
 }

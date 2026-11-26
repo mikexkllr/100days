@@ -5709,4 +5709,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get habitsKeepOneRequired =>
       'At least one habit has to be required — otherwise no day counts.';
+
+  @override
+  String get tileOptional => 'Optional · a bonus';
+
+  @override
+  String homeDiaryLine(int eaten, int target) {
+    return 'Diary: $eaten / $target kcal';
+  }
 }

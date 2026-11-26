@@ -42,6 +42,8 @@ class HabitTile extends StatefulWidget {
     this.scheduledToday = true,
     this.xpGain,
     this.celebration = 0,
+    this.onOpenDiary,
+    this.diaryLine,
   });
 
   final Habit habit;
@@ -69,6 +71,14 @@ class HabitTile extends StatefulWidget {
 
   /// Bumped by the screen after each check-in to replay the celebration.
   final int celebration;
+
+  /// Set on the nutrition row of someone who keeps a food diary: the row
+  /// leads into it.
+  final VoidCallback? onOpenDiary;
+
+  /// Where the diary stands today — "Diary: 1240 / 2100 kcal" — on the
+  /// line that leads there.
+  final String? diaryLine;
 
   @override
   State<HabitTile> createState() => _HabitTileState();
@@ -261,6 +271,32 @@ class _HabitTileState extends State<HabitTile> {
                 ],
               ),
             ),
+            // Outside the row that is held: a tap here must never be the
+            // start of a check-in, nor a check-in the start of a tap here.
+            if (widget.onOpenDiary != null)
+              InkWell(
+                key: Key('tile-diary-${_habit.id}'),
+                onTap: widget.onOpenDiary,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(64, 0, 12, 10),
+                  child: Row(
+                    children: <Widget>[
+                      const Icon(Icons.restaurant_menu,
+                          size: 15, color: AppColors.textTertiary),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          widget.diaryLine ?? l10n.homeOpenDiary,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary),
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right,
+                          size: 18, color: AppColors.textTertiary),
+                    ],
+                  ),
+                ),
+              ),
             AnimatedSize(
               duration: const Duration(milliseconds: 260),
               curve: Curves.easeOutCubic,
@@ -337,6 +373,7 @@ class _HabitTileState extends State<HabitTile> {
 
   String? _subtitle(AppLocalizations l10n) {
     if (_isRelapse) return l10n.tileRelapseLogged;
+    if (_habit.optional && !_isDone) return l10n.tileOptional;
     if (!widget.scheduledToday && !_isDone) return l10n.tileRestToday;
     if (!_isAmount) return widget.streak > 0 ? null : l10n.tileHoldExplain;
     final num value = _entry?.value ?? 0;

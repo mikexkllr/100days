@@ -742,4 +742,78 @@ void main() {
       expect(find.byType(DiaryScreen), findsOneWidget);
     });
   });
+
+  group('nutrition on Today', () {
+    const BodyProfile body = BodyProfile(
+      sex: BiologicalSex.female,
+      ageYears: 29,
+      heightCm: 170,
+      weightKg: 66,
+      activityLevel: ActivityLevel.moderate,
+    );
+
+    Future<void> startDiet() async {
+      await repository.saveProfile(displayName: 'Mike', avatarEmoji: '🐺');
+      await repository.startChallenge(Challenge(
+        id: 'diet',
+        goal: const Goal(
+          archetype: GoalArchetype.loseFat,
+          statement: 'Leichter werden',
+          body: body,
+          nutritionPlanEnabled: true,
+        ),
+        habits: <Habit>[Habit.fromCategory(HabitCategory.nutrition)],
+        startDay: DayKey.today().addDays(-2),
+      ));
+    }
+
+    testWidgets('the nutrition row says where the diary stands and leads into it',
+        (WidgetTester tester) async {
+      await startDiet();
+      await repository.logFood(FoodEntry(
+        id: 'lunch',
+        day: DayKey.today(),
+        meal: MealSlotKind.lunch,
+        name: 'Eintopf',
+        grams: 400,
+        nutrients: const Nutrients(kcal: 600, proteinG: 30, carbsG: 60, fatG: 20),
+        source: FoodSource.manual,
+      ));
+      await pump(tester);
+      final int target =
+          (await repository.snapshot()).plan!.nutrition!.kcal;
+      expect(find.text('Tagebuch: 600 / $target kcal'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('tile-diary-nutrition')));
+      await tester.pumpAndSettle();
+      expect(find.byType(DiaryScreen), findsOneWidget);
+    });
+
+    testWidgets('a tick with the diary on target counts as tracked',
+        (WidgetTester tester) async {
+      await startDiet();
+      final NutritionPlan plan = (await repository.snapshot()).plan!.nutrition!;
+      await repository.logFood(FoodEntry(
+        id: 'day',
+        day: DayKey.today(),
+        meal: MealSlotKind.dinner,
+        name: 'Alles',
+        grams: 1500,
+        nutrients: Nutrients(
+          kcal: plan.kcal.toDouble(),
+          proteinG: plan.proteinG.toDouble(),
+          carbsG: plan.carbsG.toDouble(),
+          fatG: plan.fatG.toDouble(),
+        ),
+        source: FoodSource.manual,
+      ));
+      await pump(tester);
+      await holdToIgnite(tester, 'Abhaken');
+      final CheckIn entry = (await repository.snapshot())
+          .me
+          .logsByDay[DayKey.today().toString()]!
+          .entryFor('nutrition')!;
+      expect(entry.tracked, isTrue);
+    });
+  });
 }
