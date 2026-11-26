@@ -59,10 +59,11 @@ class FlameMascot extends StatefulWidget {
 
 class _FlameMascotState extends State<FlameMascot>
     with TickerProviderStateMixin {
-  late final AnimationController _poke = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 650),
-  );
+  // Created in initState, not lazily: his drawing is built at layout (under
+  // ParticleBurst's LayoutBuilder), so a Funki removed before his first
+  // layout never touched them, and dispose() would build them on an element
+  // already unmounted.
+  late final AnimationController _poke;
   int _bursts = 0;
   int _combo = 0;
   DateTime _lastPoke = DateTime.fromMillisecondsSinceEpoch(0);
@@ -74,11 +75,21 @@ class _FlameMascotState extends State<FlameMascot>
   /// How far he is pulled, −0.6 (squashed) … 1 (stretched), and the spring
   /// that brings him back.
   double _pull = 0;
-  late final AnimationController _spring = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 700),
-  );
+  late final AnimationController _spring;
   double _pullAtRelease = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _poke = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 650),
+    );
+    _spring = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+  }
 
   @override
   void didUpdateWidget(FlameMascot oldWidget) {
