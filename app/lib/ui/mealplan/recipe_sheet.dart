@@ -717,47 +717,54 @@ class _AddMealSheetState extends State<_AddMealSheet> {
             Padding(
               padding: const EdgeInsets.fromLTRB(
                   AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 0),
-              child: FilledButton.icon(
-                key: const Key('add-meal-save'),
-                onPressed: _asking ? null : _go,
-                icon: _asking
-                    ? const FunkiThinking(color: AppColors.onPrimary)
-                    : withFunki
-                        ? const FunkiAvatar(size: 26)
-                        : const Icon(Icons.check, size: 18),
-                label: Text(_asking
-                    ? (_eaten ? l10n.funkiThinking : l10n.addMealFunkiWorking)
-                    : _eaten
-                        ? l10n.addMealGoEaten
-                        : withFunki
-                            ? l10n.addMealFunki
-                            : l10n.actionSave),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg, AppSpacing.xs, AppSpacing.lg, 0),
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                spacing: AppSpacing.sm,
+              child: Row(
                 children: <Widget>[
-                  if (widget.canLogEaten && _eaten)
-                    TextButton.icon(
+                  Expanded(
+                    child: FilledButton.icon(
+                      key: const Key('add-meal-save'),
+                      onPressed: _asking ? null : _go,
+                      icon: _asking
+                          ? const FunkiThinking(color: AppColors.onPrimary)
+                          : withFunki
+                              ? const FunkiAvatar(size: 26)
+                              : const Icon(Icons.check, size: 18),
+                      label: Text(_asking
+                          ? (_eaten
+                              ? l10n.funkiThinking
+                              : l10n.addMealFunkiWorking)
+                          : _eaten
+                              ? l10n.addMealGoEaten
+                              : withFunki
+                                  ? l10n.addMealFunki
+                                  : l10n.actionSave),
+                    ),
+                  ),
+                  // Eaten: a photo of the plate does the same, one tap away.
+                  if (widget.canLogEaten && _eaten) ...<Widget>[
+                    const SizedBox(width: AppSpacing.sm),
+                    IconButton.filledTonal(
                       key: const Key('add-meal-to-diary'),
+                      tooltip: l10n.addMealToDiary,
                       onPressed:
                           _asking ? null : () => _close(_AddMealSheet.toDiary),
-                      icon: const Icon(Icons.photo_camera_outlined, size: 18),
-                      label: Text(l10n.addMealToDiary),
+                      icon: const Icon(Icons.photo_camera_outlined),
                     ),
-                  if (withFunki)
-                    TextButton(
-                      key: const Key('add-meal-manual'),
-                      onPressed: _asking ? null : _saveAsTyped,
-                      child: Text(l10n.addMealAsTyped),
-                    ),
+                  ],
                 ],
               ),
             ),
+            if (withFunki)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg, AppSpacing.xs, AppSpacing.lg, 0),
+                child: Center(
+                  child: TextButton(
+                    key: const Key('add-meal-manual'),
+                    onPressed: _asking ? null : _saveAsTyped,
+                    child: Text(l10n.addMealAsTyped),
+                  ),
+                ),
+              ),
             const SizedBox(height: AppSpacing.md),
           ],
         ),

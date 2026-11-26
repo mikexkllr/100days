@@ -772,7 +772,12 @@ void main() {
           body: body,
           nutritionPlanEnabled: true,
         ),
-        habits: <Habit>[Habit.fromCategory(HabitCategory.nutrition)],
+        // A second habit keeps the day open when nutrition is ticked: no
+        // celebration in the way.
+        habits: <Habit>[
+          Habit.fromCategory(HabitCategory.nutrition),
+          Habit.fromCategory(HabitCategory.reading),
+        ],
         startDay: DayKey.today().addDays(-2),
       ));
     }
@@ -799,7 +804,7 @@ void main() {
       expect(find.byType(DiaryScreen), findsOneWidget);
     });
 
-    testWidgets('a tick with the diary on target counts as tracked',
+    testWidgets('ticking the row opens the diary, and closing the day there is the tick',
         (WidgetTester tester) async {
       await startDiet();
       final NutritionPlan plan = (await repository.snapshot()).plan!.nutrition!;
@@ -818,7 +823,21 @@ void main() {
         source: FoodSource.manual,
       ));
       await pump(tester);
-      await holdToIgnite(tester, 'Abhaken');
+
+      // One tap: nothing is committed by opening the diary.
+      await tester.tap(find.text('Abhaken').first);
+      await tester.pumpAndSettle();
+      expect(find.byType(DiaryScreen), findsOneWidget);
+      expect(
+        (await repository.snapshot())
+            .me
+            .logsByDay[DayKey.today().toString()]
+            ?.entryFor('nutrition'),
+        isNull,
+      );
+
+      await tester.tap(find.byKey(const Key('close-day')));
+      await tester.pumpAndSettle();
       final CheckIn entry = (await repository.snapshot())
           .me
           .logsByDay[DayKey.today().toString()]!

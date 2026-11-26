@@ -516,6 +516,20 @@ void main() {
     expect(logged.source, FoodSource.manual);
   });
 
+  testWidgets('an empty meal of a day that has come has the camera on it',
+      (WidgetTester tester) async {
+    await repository.startChallenge(_dietChallenge());
+    await pump(tester, const WeekPlanView());
+    final DayKey monday = DayKey.today().weekStart;
+    await tester.tap(find.byKey(Key('slot-photo-$monday-dinner')));
+    await tester.pumpAndSettle();
+    expect(find.byType(AddFoodScreen), findsOneWidget);
+    expect(
+      DefaultTabController.of(tester.element(find.byType(TabBarView))).index,
+      FoodEntryWay.photo.index,
+    );
+  });
+
   testWidgets('a day to come, or no diary, offers no way into it',
       (WidgetTester tester) async {
     await pump(tester, const WeekPlanView());

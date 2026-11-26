@@ -225,7 +225,8 @@ final StateProvider<AiFailure?> aiFailureProvider =
     StateProvider<AiFailure?>((Ref ref) => null);
 
 /// This month's AI allowance as the server enforces it. Refreshed after a
-/// purchase and when an AI screen opens.
+/// purchase, when the allowance runs out and whenever the AI screen opens
+/// or is pulled down.
 final FutureProvider<AiAllowance> aiAllowanceProvider =
     FutureProvider<AiAllowance>((Ref ref) async {
   if (await ref.watch(signedInUserProvider.future) == null) {
