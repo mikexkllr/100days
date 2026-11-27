@@ -246,14 +246,27 @@ void main() {
       expect(recipeNamed(known, canned.title, level: CookingLevel.everyday), isNull);
       // Typed by hand, without a level: the dish the household has written.
       expect(recipeNamed(known, canned.title), same(canned));
-      // From before levels: everyday.
-      expect(recipeNamed(known, 'chili', level: CookingLevel.everyday), same(old));
-      expect(recipeNamed(known, 'chili', level: CookingLevel.scratch), isNull);
       // A name without a recipe takes whichever is written for it.
       expect(recipeNamed(known, 'pizza', level: CookingLevel.scratch), same(onlyAName));
       final filled = reconcileRecipe(onlyAName, scratch);
       expect(filled.id, 'pizza');
       expect(filled.level, CookingLevel.scratch);
+      // A dish known at this level stays as the household has it.
+      expect(reconcileRecipe(scratch, _parsed(_meal('2026-11-23'), level: CookingLevel.scratch)), same(scratch));
+
+      // From before levels — and before recipes listed their basics: found
+      // whatever level is asked for, and the new writing takes its place,
+      // under the id the plan knows.
+      expect(old.level, isNull);
+      expect(recipeNamed(known, 'chili', level: CookingLevel.everyday), same(old));
+      expect(recipeNamed(known, 'chili', level: CookingLevel.scratch), same(old));
+      final renewed = reconcileRecipe(old, scratch);
+      expect(renewed.id, 'old');
+      expect(renewed.title, 'Chili');
+      expect(renewed.level, CookingLevel.scratch);
+      expect(renewed.ingredients, scratch.ingredients);
+      // Named again by hand, it is not emptied.
+      expect(reconcileRecipe(old, onlyAName), same(old));
     });
 
     test('written again, a dish keeps its name and its place in the plan', () {

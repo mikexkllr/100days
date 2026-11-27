@@ -316,10 +316,11 @@ String recipeKey(String title) =>
 /// The household's recipe called [title], if it has one.
 ///
 /// With [level], the one written at that level — chili from cans and chili
-/// from dried beans are two recipes with one name — or else one that is
-/// only a name so far, which a written recipe may fill in. A recipe from
-/// before levels counts as [CookingLevel.everyday]. Without [level], a
-/// written recipe of that name before one that is only a name.
+/// from dried beans are two recipes with one name — or one from before
+/// recipes had a level, or else one that is only a name so far: both of
+/// those a newly written recipe takes the place of (see [reconcileRecipe]).
+/// Without [level], a written recipe of that name before one that is only
+/// a name.
 Recipe? recipeNamed(
   Iterable<Recipe> recipes,
   String title, {
@@ -332,8 +333,7 @@ Recipe? recipeNamed(
     if (recipeKey(recipe.title) != key) continue;
     if (!recipe.isWritten) {
       onlyAName ??= recipe;
-    } else if (level == null ||
-        (recipe.level ?? CookingLevel.everyday) == level) {
+    } else if (level == null || recipe.level == null || recipe.level == level) {
       return recipe;
     }
   }
@@ -347,9 +347,16 @@ Recipe? recipeNamed(
 /// The stored recipe stays as it is when it already has ingredients — a
 /// dish the household knows does not change because a plan named it again.
 /// One entered by hand without them takes the new one's content, under its
-/// own id. Returns [existing] itself when nothing needs writing.
+/// own id. So does one written before recipes had a level: those left out
+/// the oil and the salt, and the dish written anew is the one a shopping
+/// list can be made from. Returns [existing] itself when nothing needs
+/// writing.
 Recipe reconcileRecipe(Recipe existing, Recipe incoming) {
-  if (existing.ingredients.isNotEmpty) return existing;
+  if (existing.isWritten) {
+    return existing.level == null && incoming.level != null && incoming.isWritten
+        ? existing.rewrittenAs(incoming)
+        : existing;
+  }
   if (incoming.ingredients.isEmpty &&
       (incoming.perServing.kcal <= 0 ||
           incoming.perServing.kcal == existing.perServing.kcal)) {

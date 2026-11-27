@@ -44,7 +44,9 @@ Every answer is checked before it counts, and every check lives in
   alone is dropped. A drafted single recipe must land within 30 % of the
   calories asked for. Saving reuses the household's recipe of the same name
   and cooking level (`recipeNamed`, `reconcileRecipe`) instead of storing a
-  copy. A recipe is held to forty ingredients and twenty-four steps.
+  copy — except one written before recipes had a level and listed their
+  basics, which the new writing replaces. A recipe is held to forty
+  ingredients and twenty-four steps.
 - **Kitchen basics**: a model may mark an ingredient as one (`staple`), and
   `isKitchenStaple` knows salt, pepper, oils, vinegars and a few spices by
   name — but only a little of something from a shelf can be a basic.
