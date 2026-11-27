@@ -17,9 +17,14 @@ An honest list. Anything under "Open" is not built yet.
   diary under Today with food table, photo, free-text parsing and barcode
   lookup
 - Households: shared week of meals and shopping list, live; AI week planning
-  with portions sized to shared targets; meal ideas by hand; the planning
-  chat with undo; lists from the plan by shopping rhythm; the planned meal
-  waiting in the diary, eaten in one tap
+  with portions sized to shared targets, at a cooking level (convenient,
+  everyday, from scratch); a recipe for every meal with every ingredient
+  and steps to cook from, written or rewritten on a tap; meal ideas by
+  hand; lists from the recipes by shopping rhythm, kitchen basics apart;
+  the planned meal waiting in the diary, eaten in one tap
+- Funki to talk to, with tools on the habits, the diary, the meal plan and
+  its recipes, the shopping list and the training plan, each change with
+  an undo; his answers drawn from Markdown
 - AI through the project's gateway with a monthly allowance, premium through
   the stores (verified server side), or one's own key
 - Tracked check-ins (logged workout, diary day on target) worth +50 % XP

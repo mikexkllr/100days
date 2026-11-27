@@ -97,19 +97,33 @@ until there is a connection again.
 Everyone has a household — alone, as a couple, as a flat. Its members share
 one **week of meals** and one **shopping list**, live on every phone.
 
-- **Plan the week** with the AI: pick days, meals, cooking time, type a wish
-  ("no fish, Wednesday something quick"), get a draft, keep what you like.
-  Portions are sized to each person's calorie target — for those who share
-  it with the household; everything else stays private.
-- **Funki**, the coach, changes plan and list as you talk to him ("we still
-  have rice") — every change shows up with an undo. He also reads and
-  fills the diary, checks off habits and knows your training; he is one
-  tap away on every screen, and his reminders sound like him.
+- **Plan the week** with the AI: pick days, meals, cooking time and how
+  much you make yourself, type a wish ("no fish, Wednesday something
+  quick"), get a draft, keep what you like. Portions are sized to each
+  person's calorie target — for those who share it with the household;
+  everything else stays private.
+- **Three ways to cook the same dinner**: *convenient* (a ready-to-cook
+  fillet, beans from a can), *everyday*, or *from scratch* (a side of wild
+  salmon, dried beans soaked overnight). Everyone has their own default;
+  it is picked wherever a plan or a recipe is written.
+- **A recipe for every meal**: every ingredient — the oil, the salt and the
+  spices too — and steps to cook from. A meal that is only a name gets its
+  recipe written on a tap, and any recipe can be written again at another
+  level.
+- **Funki**, the coach, changes plan, recipes and list as you talk to him
+  ("plan the week from scratch", "we still have rice", "500 g of mince as
+  well") — every change shows up with an undo. He also reads and fills the
+  diary, checks off habits and rebuilds your training plan ("swap the
+  squats", "one day more"); he is one tap away on every screen, and his
+  reminders sound like him.
 - **By hand**: "pizza on Friday", or one of the app's meal ideas in a tap —
   ranked against your own target for that meal if you have one.
-- **A list from the plan** for the days until your next trip, added up and
-  sorted by aisle. Shop weekly on your day, every few days, or whenever; add
-  an extra list between trips; what you did not get moves to the next one.
+- **A list from the recipes** for the days until your next trip, added up
+  and sorted by aisle. Kitchen basics — oil, salt, spices — stand at the
+  end without an amount, to check at home; what you always have stays off
+  it; and a planned meal without a recipe is named rather than silently
+  missing. Shop weekly on your day, every few days, or whenever; add an
+  extra list between trips; what you did not get moves to the next one.
 - **Eaten as planned**: the planned meal waits in your diary; one tap puts
   your own portion in.
 
@@ -215,7 +229,8 @@ onboarding, check-ins with undo and late logging, editable habits, streaks, Funk
 and the flame evolution, the day-complete slot machine, the home screen
 widget on Android, editable training plans with set-by-set logging,
 nutrition targets and a food diary with photo, description, barcode and
-manual entry, households with a shared meal plan and shopping list, the AI
+manual entry, households with a shared meal plan, recipes at three cooking
+levels and a shopping list that knows the kitchen basics, the AI
 planner and Funki, the coach with tools on everything, free and premium AI or one's own key, friends by
 invite, search and address book, blocking and reporting, friend streaks and
 quests, a public league with divisions and one among friends, nudges and
