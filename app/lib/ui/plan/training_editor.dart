@@ -7,10 +7,15 @@ import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
 import 'session_editor.dart';
+import 'training_form.dart';
 
-/// Change the split, the training days and every exercise of a running
-/// plan — or switch the plan off, and on again. Saved as a challenge
-/// update: the history stays as it was.
+/// Change the days, experience, equipment, split and every exercise of a
+/// running plan — or switch the plan off, and on again. Saved as a
+/// challenge update: the history stays as it was.
+///
+/// Also the way into a plan that comes later — switched on, or a training
+/// habit added — so it asks what onboarding asks, and an answer changes the
+/// plan by the same rule (`retargetTraining`).
 class TrainingEditorScreen extends ConsumerStatefulWidget {
   const TrainingEditorScreen({super.key, required this.challenge});
 
@@ -24,9 +29,15 @@ class TrainingEditorScreen extends ConsumerStatefulWidget {
 class _TrainingEditorScreenState extends ConsumerState<TrainingEditorScreen> {
   late final int _initialDays =
       widget.challenge.goal.trainingDaysPerWeek.clamp(2, 6);
-  late final TrainingSetup _initialSetup = widget.challenge.goal.training ??
-      suggestTrainingSetup(widget.challenge.goal);
+  late final TrainingExperience _initialExperience =
+      widget.challenge.goal.experience;
+  late final EquipmentAccess _initialEquipment =
+      widget.challenge.goal.equipment;
+  late final TrainingSetup _initialSetup =
+      widget.challenge.goal.training ?? suggestTrainingSetup(_goal);
   late int _days = _initialDays;
+  late TrainingExperience _experience = _initialExperience;
+  late EquipmentAccess _equipment = _initialEquipment;
   late TrainingSetup _setup = _initialSetup;
   bool _saving = false;
 
@@ -41,10 +52,37 @@ class _TrainingEditorScreenState extends ConsumerState<TrainingEditorScreen> {
   /// one and coming back does not cost the edits.
   final Map<SplitKind, TrainingSetup> _bySplit = <SplitKind, TrainingSetup>{};
 
-  Goal get _goal => widget.challenge.goal.copyWith(trainingDaysPerWeek: _days);
+  Goal get _goal => widget.challenge.goal.copyWith(
+        trainingDaysPerWeek: _days,
+        experience: _experience,
+        equipment: _equipment,
+      );
 
   bool get _dirty =>
-      !_enabled || _days != _initialDays || _setup != _initialSetup;
+      !_enabled ||
+      _days != _initialDays ||
+      _experience != _initialExperience ||
+      _equipment != _initialEquipment ||
+      _setup != _initialSetup;
+
+  /// Days, experience or equipment changed: the plan follows as it does in
+  /// onboarding — and so do the ones parked under other splits.
+  void _changeGoal({
+    int? days,
+    TrainingExperience? experience,
+    EquipmentAccess? equipment,
+  }) {
+    final Goal from = _goal;
+    setState(() {
+      _days = days ?? _days;
+      _experience = experience ?? _experience;
+      _equipment = equipment ?? _equipment;
+      final Goal to = _goal;
+      _setup = retargetTraining(_setup, from: from, to: to);
+      _bySplit.updateAll((SplitKind _, TrainingSetup parked) =>
+          retargetTraining(parked, from: from, to: to));
+    });
+  }
 
   Future<bool> _confirmDiscard() async {
     final AppLocalizations l10n = context.l10n;
@@ -180,21 +218,36 @@ class _TrainingEditorScreenState extends ConsumerState<TrainingEditorScreen> {
     );
   }
 
-  /// Days, split and exercises: only while the plan is on.
+  /// Funki, days, experience, equipment, split and exercises: only while
+  /// the plan is on.
   List<Widget> _planSections(AppLocalizations l10n) => <Widget>[
+        const SizedBox(height: AppSpacing.md),
+        FunkiTrainingLine(
+          goal: _goal,
+          setup: _setup,
+          onChanged: (EquipmentAccess equipment, TrainingSetup setup) =>
+              setState(() {
+            _equipment = equipment;
+            _setup = setup;
+          }),
+        ),
         SectionHeader(l10n.obTrainingDaysPerWeek,
             subtitle: l10n.editorDaysNote),
-        Wrap(
-          spacing: AppSpacing.sm,
-          children: <Widget>[
-            for (final int days in const <int>[2, 3, 4, 5, 6])
-              ChoiceChip(
-                label: Text('$days×'),
-                selected: _days == days,
-                selectedColor: AppColors.primary.withValues(alpha: 0.2),
-                onSelected: (_) => setState(() => _days = days),
-              ),
-          ],
+        TrainingDaysPicker(
+          value: _days,
+          onChanged: (int days) => _changeGoal(days: days),
+        ),
+        SectionHeader(l10n.obTrainingExperience),
+        ExperiencePicker(
+          value: _experience,
+          onChanged: (TrainingExperience level) =>
+              _changeGoal(experience: level),
+        ),
+        SectionHeader(l10n.obTrainingEquipment),
+        EquipmentPicker(
+          value: _equipment,
+          onChanged: (EquipmentAccess access) =>
+              _changeGoal(equipment: access),
         ),
         SectionHeader(l10n.editorSplitTitle),
         SplitPicker(

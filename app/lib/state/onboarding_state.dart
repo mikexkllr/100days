@@ -91,6 +91,7 @@ class OnboardingDraft {
     EquipmentAccess? equipment,
     bool? trainingPlanEnabled,
     SplitKind? split,
+    bool clearSplit = false,
     TrainingSetup? trainingSetup,
     bool clearTrainingSetup = false,
     bool? nutritionPlanEnabled,
@@ -110,7 +111,7 @@ class OnboardingDraft {
         experience: experience ?? this.experience,
         equipment: equipment ?? this.equipment,
         trainingPlanEnabled: trainingPlanEnabled ?? this.trainingPlanEnabled,
-        split: split ?? this.split,
+        split: clearSplit ? null : split ?? this.split,
         trainingSetup: clearTrainingSetup
             ? null
             : trainingSetup ?? this.trainingSetup,
@@ -212,21 +213,52 @@ class OnboardingController extends Notifier<OnboardingDraft> {
     );
   }
 
-  // Days, experience and equipment change what the suggestion would be, so
-  // unedited suggestions are rebuilt; an edited plan is kept as it is.
-  void setTrainingDays(int days) => state = state.copyWith(
-        trainingDaysPerWeek: days,
-        clearTrainingSetup: state.trainingSetup == null,
-      );
+  // Days, experience and equipment change what the suggestion would be.
+  // What becomes of the plan is `retargetTraining`'s call, as in the plan
+  // editor: an untouched suggestion follows (it is not stored, so it does
+  // by itself), an edited plan keeps its edits and loses only what the new
+  // equipment cannot do.
+  void _retarget(OnboardingDraft next) {
+    final TrainingSetup? edited = state.trainingSetup;
+    if (edited == null || state.archetype == null) {
+      state = next;
+      return;
+    }
+    state = next.copyWith(
+      trainingSetup: retargetTraining(
+        edited,
+        from: state._baseGoal(),
+        to: next._baseGoal(),
+      ),
+    );
+  }
+
+  void setTrainingDays(int days) =>
+      _retarget(state.copyWith(trainingDaysPerWeek: days));
 
   void setExperience(TrainingExperience experience) =>
-      state = state.copyWith(experience: experience);
+      _retarget(state.copyWith(experience: experience));
 
-  void setEquipment(EquipmentAccess equipment) => state = state.copyWith(
-        equipment: equipment,
-        // Exercises picked for a full gym make no sense at home.
-        clearTrainingSetup: true,
-      );
+  void setEquipment(EquipmentAccess equipment) =>
+      _retarget(state.copyWith(equipment: equipment));
+
+  /// Equipment and plan in one go: what Funki built, or what was there
+  /// before it. A plan that is just the suggestion is not stored, so it
+  /// keeps following the answers above it.
+  void setTrainingPlan(EquipmentAccess equipment, TrainingSetup setup) {
+    final OnboardingDraft next =
+        state.copyWith(equipment: equipment, split: setup.split);
+    final bool suggested = next.archetype != null &&
+        setup == suggestTrainingSetup(next._baseGoal(), split: setup.split);
+    state = suggested
+        ? next.copyWith(
+            clearTrainingSetup: true,
+            // The recommended split goes on following the days.
+            clearSplit:
+                setup.split == recommendedSplit(next.trainingDaysPerWeek),
+          )
+        : next.copyWith(trainingSetup: setup);
+  }
 
   void setTrainingPlanEnabled(bool enabled) =>
       state = state.copyWith(trainingPlanEnabled: enabled);

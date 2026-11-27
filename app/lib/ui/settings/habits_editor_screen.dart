@@ -6,6 +6,7 @@ import '../../data/app_repository.dart';
 import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
+import '../plan/training_editor.dart';
 import '../widgets/app_card.dart';
 
 /// The habits of a running challenge: add one, change a target or how often,
@@ -219,6 +220,12 @@ class _HabitsEditorState extends ConsumerState<HabitsEditorScreen> {
     return name;
   }
 
+  static bool _isTraining(Habit h) =>
+      (h.category == HabitCategory.gym || h.category == HabitCategory.cardio) &&
+      h.activeUntil == null;
+
+  static bool _trains(Iterable<Habit> habits) => habits.any(_isTraining);
+
   Future<void> _save() async {
     final Challenge challenge = _snapshot.challenge!;
     // A challenge of bonuses only has no day that counts.
@@ -256,14 +263,36 @@ class _HabitsEditorState extends ConsumerState<HabitsEditorScreen> {
       }
       byId[h.id] = h;
     }
+    // Training comes into a challenge that had none: the plan is set up
+    // the way onboarding sets it up — days, experience, equipment — instead
+    // of starting as a full-gym guess. Its days start from the new habit's.
+    final Habit? newTraining = _trains(challenge.habits)
+        ? null
+        : byId.values.where(_isTraining).firstOrNull;
+    final bool setUpPlan =
+        newTraining != null && challenge.goal.trainingPlanEnabled;
+    final int days = newTraining?.daysPerWeek ?? 0;
+    final Challenge updated = challenge.copyWith(
+      habits: byId.values.toList(),
+      goal: setUpPlan && days >= 2 && days <= 6
+          ? challenge.goal.copyWith(trainingDaysPerWeek: days)
+          : null,
+    );
     setState(() => _saving = true);
     try {
-      await ref.read(appStateProvider.notifier).updateChallenge(
-            challenge.copyWith(habits: byId.values.toList()),
-          );
+      await ref.read(appStateProvider.notifier).updateChallenge(updated);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(context.l10n.habitsSaved)));
+      if (setUpPlan) {
+        await Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(
+            builder: (BuildContext context) =>
+                TrainingEditorScreen(challenge: updated),
+          ),
+        );
+        return;
+      }
       Navigator.of(context).pop();
     } on Object catch (error) {
       if (!mounted) return;

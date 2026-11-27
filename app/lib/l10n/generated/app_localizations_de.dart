@@ -5895,4 +5895,58 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return 'Mach die kleinste Version davon. Hauptsache, die Flamme bleibt an – $_temp0 auf dem Spiel.';
   }
+
+  @override
+  String get trainingFunkiTitle => 'Funki baut ihn dir';
+
+  @override
+  String get trainingFunkiBody =>
+      'Sag, was du hast und was du willst – er baut Split und Übungen.';
+
+  @override
+  String get trainingFunkiHint =>
+      'z. B. „Kurzhanteln bis 20 kg, Knie empfindlich“';
+
+  @override
+  String get trainingFunkiSend => 'Plan bauen';
+
+  @override
+  String trainingFunkiBuilt(String split) {
+    return 'Funki hat dir $split gebaut.';
+  }
+
+  @override
+  String trainingFunkiEquipment(String equipment) {
+    return 'Ausrüstung: $equipment';
+  }
+
+  @override
+  String get trainingFunkiFailed =>
+      'Daraus konnte Funki keinen Plan bauen. Sag\'s anders – oder stell ihn unten selbst zusammen.';
+
+  @override
+  String promptTrainingPlan(
+    String goal,
+    String experience,
+    int days,
+    String equipment,
+    String current,
+    String wish,
+    String splits,
+    String exercises,
+    int max,
+    String format,
+  ) {
+    return 'Du bist Funki, ein Krafttrainer. Stell für diese Person einen Trainingsplan zusammen.\nZiel: „$goal“\nErfahrung: $experience. Trainingstage pro Woche: $days (fest).\nAusrüstung, wie ausgewählt: $equipment.\n${current}Was die Person sagt: „$wish“\n\nSplits und die Einheiten, die sie durchwechseln:\n$splits\n\nÜbungen (id: Name, Muskel, mindestens nötig):\n$exercises\n\nNimm den Split, der passt. Gib jede seiner Einheiten in dieser Reihenfolge an, je 3 bis $max Übungen, nur ids aus der Liste. Verrät das Gesagte mehr oder weniger Ausrüstung, setz \"equipment\" auf fullGym, homeBasic oder bodyweight und nimm nur Übungen, die damit gehen. Sätze 1 bis 6, Wiederholungen 3 bis 30. Die Begründung ist ein kurzer Satz auf Deutsch, in Du-Form an die Person.\nAntworte nur mit JSON, in dieser Form:\n$format';
+  }
+
+  @override
+  String promptTrainingCurrent(String plan) {
+    return 'Der Plan jetzt:\n$plan\n';
+  }
+
+  @override
+  String promptTrainingRefused(String why) {
+    return '\nDeine letzte Antwort wurde abgelehnt: $why\nAntworte noch einmal, nur mit JSON.';
+  }
 }

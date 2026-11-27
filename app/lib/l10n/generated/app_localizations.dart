@@ -9403,6 +9403,77 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Do the smallest version of it. As long as the flame stays on – {streak, plural, =1{1 day} other{{streak} days}} are at stake.'**
   String pushLastCallSmallest(int streak);
+
+  /// No description provided for @trainingFunkiTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Funki builds it for you'**
+  String get trainingFunkiTitle;
+
+  /// No description provided for @trainingFunkiBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Say what you have and what you want — he builds the split and the exercises.'**
+  String get trainingFunkiBody;
+
+  /// No description provided for @trainingFunkiHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. “dumbbells up to 20 kg, touchy knees”'**
+  String get trainingFunkiHint;
+
+  /// No description provided for @trainingFunkiSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Build the plan'**
+  String get trainingFunkiSend;
+
+  /// No description provided for @trainingFunkiBuilt.
+  ///
+  /// In en, this message translates to:
+  /// **'Funki built you {split}.'**
+  String trainingFunkiBuilt(String split);
+
+  /// No description provided for @trainingFunkiEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment: {equipment}'**
+  String trainingFunkiEquipment(String equipment);
+
+  /// No description provided for @trainingFunkiFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Funki couldn\'t build a plan from that. Say it differently — or put it together below yourself.'**
+  String get trainingFunkiFailed;
+
+  /// No description provided for @promptTrainingPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'You are Funki, a strength coach. Put a training plan together for this person.\nGoal: \"{goal}\"\nExperience: {experience}. Training days a week: {days} (fixed).\nEquipment as they picked it: {equipment}.\n{current}What they say: \"{wish}\"\n\nSplits and the sessions they rotate through:\n{splits}\n\nExercises (id: name, muscle, least equipment):\n{exercises}\n\nPick the split that fits. Give every session of it, in that order, with 3 to {max} exercises each, only ids from the list. If what they say tells you they have more or less equipment, set \"equipment\" to fullGym, homeBasic or bodyweight and use only exercises it allows. Sets 1 to 6, reps 3 to 30. The reason is one short sentence in English, addressed to them.\nAnswer with JSON only, in this form:\n{format}'**
+  String promptTrainingPlan(
+    String goal,
+    String experience,
+    int days,
+    String equipment,
+    String current,
+    String wish,
+    String splits,
+    String exercises,
+    int max,
+    String format,
+  );
+
+  /// No description provided for @promptTrainingCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Their plan now:\n{plan}\n'**
+  String promptTrainingCurrent(String plan);
+
+  /// No description provided for @promptTrainingRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'\nYour last answer was refused: {why}\nAnswer again with JSON only.'**
+  String promptTrainingRefused(String why);
 }
 
 class _AppLocalizationsDelegate

@@ -220,6 +220,59 @@ void main() {
     expect(setup.split, SplitKind.pushPullLegs);
   });
 
+  test('a plan edited in onboarding keeps its edits when moving home', () {
+    final ProviderContainer container = ProviderContainer();
+    addTearDown(container.dispose);
+    final OnboardingController c = container.read(onboardingProvider.notifier);
+    c.chooseArchetype(GoalArchetype.buildMuscle);
+    OnboardingDraft draft() => container.read(onboardingProvider);
+    expect(draft().usesTrainingPlan, isTrue);
+
+    final TrainingSetup suggested = draft().currentTrainingSetup();
+    final ExerciseSlot first = suggested.sessions.first.exercises.first;
+    expect(first.exercise!.availableWith(EquipmentAccess.homeBasic), isFalse);
+    c.setTrainingSetup(suggested.withSession(
+      0,
+      suggested.sessions.first.copyWith(exercises: <ExerciseSlot>[
+        first.copyWith(sets: first.sets + 1),
+        ...suggested.sessions.first.exercises.skip(1),
+      ]),
+    ));
+
+    c.setEquipment(EquipmentAccess.homeBasic);
+    final TrainingSetup moved = draft().currentTrainingSetup();
+    expect(moved.split, suggested.split);
+    final ExerciseSlot swapped = moved.sessions.first.exercises.first;
+    expect(swapped.exercise!.availableWith(EquipmentAccess.homeBasic), isTrue);
+    expect(swapped.exercise!.pattern, first.exercise!.pattern);
+    expect(swapped.sets, first.sets + 1);
+  });
+
+  test('an untouched plan follows the answers, also after Funki is undone',
+      () {
+    final ProviderContainer container = ProviderContainer();
+    addTearDown(container.dispose);
+    final OnboardingController c = container.read(onboardingProvider.notifier);
+    c.chooseArchetype(GoalArchetype.buildMuscle);
+    OnboardingDraft draft() => container.read(onboardingProvider);
+    final TrainingSetup before = draft().currentTrainingSetup();
+
+    // Funki's plan, then back to the suggestion it replaced.
+    c.setTrainingPlan(
+      EquipmentAccess.bodyweight,
+      suggestTrainingSetup(
+        draft().toGoal().copyWith(equipment: EquipmentAccess.bodyweight),
+        split: SplitKind.pushPullLegs,
+      ),
+    );
+    expect(draft().equipment, EquipmentAccess.bodyweight);
+    c.setTrainingPlan(EquipmentAccess.fullGym, before);
+    expect(draft().trainingSetup, isNull);
+
+    c.setTrainingDays(3);
+    expect(draft().currentTrainingSetup().split, recommendedSplit(3));
+  });
+
   testWidgets('completing the flow writes the challenge to the feed',
       (WidgetTester tester) async {
     await pump(tester);

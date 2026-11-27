@@ -1,5 +1,7 @@
 import 'package:hundred_core/hundred_core.dart';
 
+import 'core_l10n.dart';
+import 'exercise_l10n.dart';
 import 'generated/app_localizations.dart';
 
 /// Wording for the generated plans.
@@ -276,4 +278,37 @@ extension PlanL10n on AppLocalizations {
         return milestoneGeneric66Body;
     }
   }
+}
+
+/// Funki's training prompt, in the language the user reads: exercises by
+/// the names they know, ids as the answer has to give them.
+class LocalizedTrainingPrompts implements TrainingPromptBuilder {
+  const LocalizedTrainingPrompts(this.l10n);
+
+  final AppLocalizations l10n;
+
+  @override
+  String proposePlan(TrainingRequest request) {
+    final Goal goal = request.goal;
+    final TrainingSetup? current = request.current;
+    return l10n.promptTrainingPlan(
+      '${goal.statement} (${l10n.goalTitle(goal.archetype)})',
+      l10n.experienceTitle(goal.experience),
+      request.daysPerWeek,
+      '${l10n.equipmentTitle(goal.equipment)} (${goal.equipment.name}) – '
+          '${l10n.equipmentBody(goal.equipment)}',
+      current == null ? '' : l10n.promptTrainingCurrent(describeSetup(current)),
+      request.wish.trim(),
+      describeSplits(request.daysPerWeek),
+      proposableExercises
+          .map((Exercise e) => '- ${e.id}: ${l10n.exerciseName(e.id)}, '
+              '${l10n.muscleName(e.primary)}, ${e.minEquipment.name}')
+          .join('\n'),
+      kMaxProposedExercises,
+      kTrainingProposalJson,
+    );
+  }
+
+  @override
+  String refused(String why) => l10n.promptTrainingRefused(why);
 }
