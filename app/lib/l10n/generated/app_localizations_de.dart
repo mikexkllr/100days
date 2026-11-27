@@ -2282,6 +2282,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get loginGoogle => 'Mit Google anmelden';
 
   @override
+  String get loginOffline =>
+      'Keine Verbindung zum Server. Prüf WLAN oder mobile Daten und versuch es noch einmal.';
+
+  @override
   String get loginNotConfigured =>
       'Die Anmeldung ist für diesen Server noch nicht eingerichtet.';
 

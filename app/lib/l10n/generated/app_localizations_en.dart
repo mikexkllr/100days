@@ -2273,6 +2273,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginGoogle => 'Sign in with Google';
 
   @override
+  String get loginOffline =>
+      'Could not reach the server. Check Wi-Fi or mobile data and try again.';
+
+  @override
   String get loginNotConfigured => 'Sign-in is not set up for this server yet.';
 
   @override

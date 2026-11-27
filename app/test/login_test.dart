@@ -9,16 +9,24 @@ import 'package:hundred_days/l10n/l10n.dart';
 import 'package:hundred_days/state/providers.dart';
 import 'package:hundred_days/theme/theme.dart';
 import 'package:hundred_days/ui/auth/login_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'helpers.dart';
 
 /// Records what the login screen asks of Auth, and answers as told.
 class _FakeAuth implements AuthService {
-  _FakeAuth({this.signUpSignsIn = false, this.problem});
+  _FakeAuth({this.signUpSignsIn = false, this.problem, this.googleFailure});
 
   final bool signUpSignsIn;
   final SignInProblem? problem;
+  final SignInException? googleFailure;
   final List<String> calls = <String>[];
+
+  @override
+  Future<void> signInWithGoogle() async {
+    calls.add('google');
+    if (googleFailure != null) throw googleFailure!;
+  }
 
   @override
   bool get canUseGoogle => true;
@@ -139,7 +147,10 @@ void main() {
     await tester.tap(find.byKey(const Key('login-email-register')));
     await tester.pumpAndSettle();
     expect(auth.calls, isEmpty);
-    expect(find.text('Die beiden Passwörter sind nicht gleich.'), findsOneWidget);
+    expect(
+      find.text('Die beiden Passwörter sind nicht gleich.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a forgotten password sends a reset link', (
@@ -151,8 +162,10 @@ void main() {
     await tester.tap(find.byKey(const Key('login-forgot')));
     await tester.pumpAndSettle();
     expect(auth.calls, <String>['reset neu@example.com']);
-    expect(find.textContaining('Link zum Setzen eines neuen Passworts'),
-        findsOneWidget);
+    expect(
+      find.textContaining('Link zum Setzen eines neuen Passworts'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('registering asks to confirm the address when the backend does', (
@@ -230,6 +243,52 @@ void main() {
       expect(find.text(' neu@example.com '), findsOneWidget);
     },
   );
+
+  testWidgets('a failed sign-in says where it broke', (
+    WidgetTester tester,
+  ) async {
+    await pump(
+      tester,
+      _FakeAuth(
+        googleFailure: const SignInException(
+          SignInProblem.failed,
+          AuthException('Unacceptable audience', statusCode: '400'),
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const Key('login-google')));
+    await tester.pump();
+    expect(
+      find.text(
+        'Die Anmeldung hat nicht geklappt. Prüf deine Verbindung und versuch '
+        'es noch einmal.\n(Server 400)',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a sign-in that never reached the server says so', (
+    WidgetTester tester,
+  ) async {
+    await pump(
+      tester,
+      _FakeAuth(
+        googleFailure: SignInException(
+          SignInProblem.offline,
+          AuthRetryableFetchException(message: 'SocketException'),
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const Key('login-google')));
+    await tester.pump();
+    expect(
+      find.text(
+        'Keine Verbindung zum Server. Prüf WLAN oder mobile Daten und versuch '
+        'es noch einmal.',
+      ),
+      findsOneWidget,
+    );
+  });
 
   testWidgets('an address that already has an account is told so', (
     WidgetTester tester,

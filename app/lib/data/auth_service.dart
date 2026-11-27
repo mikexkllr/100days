@@ -1,13 +1,16 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/backend_config.dart';
+import 'crash_reporting.dart';
 
 /// Why a sign-in did not go through.
 enum SignInProblem {
@@ -29,7 +32,10 @@ enum SignInProblem {
   /// E-mail sign-up with a password the backend refuses as too weak.
   weakPassword,
 
-  /// Anything else: network, the provider, the backend.
+  /// The backend was out of reach: no connection, or it timed out.
+  offline,
+
+  /// Anything else: the provider's sheet, the backend.
   failed,
 }
 
@@ -43,6 +49,25 @@ class SignInException implements Exception {
 
   final SignInProblem problem;
   final Object? cause;
+
+  /// A few words on what [cause] was, such as `Apple unknown` or
+  /// `Server 400 bad_jwt`, shown small under the message: a screenshot of
+  /// a failed sign-in then says where it failed.
+  String? get detail {
+    final Object? cause = this.cause;
+    return switch (cause) {
+      null => null,
+      SignInWithAppleAuthorizationException() => 'Apple ${cause.code.name}',
+      GoogleSignInException() => 'Google ${cause.code.name}',
+      AuthException() => <String>[
+          'Server',
+          if (cause.statusCode != null) cause.statusCode!,
+          if (cause.code != null) cause.code!,
+        ].join(' '),
+      String() => cause,
+      _ => cause.runtimeType.toString(),
+    };
+  }
 
   @override
   String toString() => 'SignInException(${problem.name}: $cause)';
@@ -100,23 +125,19 @@ class AuthService {
       final GoogleSignInAccount account =
           await GoogleSignIn.instance.authenticate();
       final String? idToken = account.authentication.idToken;
-      if (idToken == null) {
-        throw const SignInException(SignInProblem.failed, 'no id token');
-      }
+      if (idToken == null) throw StateError('Google gave no ID token');
       await _client.auth.signInWithIdToken(
         provider: OAuthProvider.google,
         idToken: idToken,
         nonce: _googleRawNonce,
       );
-    } on GoogleSignInException catch (error) {
+    } on GoogleSignInException catch (error, stack) {
       if (error.code == GoogleSignInExceptionCode.canceled) {
         throw SignInException(SignInProblem.cancelled, error);
       }
-      throw SignInException(SignInProblem.failed, error);
-    } on SignInException {
-      rethrow;
-    } on Object catch (error) {
-      throw SignInException(SignInProblem.failed, error);
+      throw _failure('google', error, stack);
+    } on Object catch (error, stack) {
+      throw _failure('google', error, stack);
     }
   }
 
@@ -133,36 +154,40 @@ class AuthService {
         nonce: _sha256(rawNonce),
       );
       final String? idToken = credential.identityToken;
-      if (idToken == null) {
-        throw const SignInException(SignInProblem.failed, 'no identity token');
-      }
+      if (idToken == null) throw StateError('Apple gave no identity token');
       await _client.auth.signInWithIdToken(
         provider: OAuthProvider.apple,
         idToken: idToken,
         nonce: rawNonce,
       );
-      // Apple sends the name only on the very first sign-in, and never in
-      // the token: keep it, or the profile stays nameless.
       final String? given = credential.givenName;
-      if (given != null && given.isNotEmpty) {
-        await _client.auth.updateUser(UserAttributes(
-          data: <String, dynamic>{'given_name': given},
-        ));
-        await _client
-            .from('profiles')
-            .update(<String, dynamic>{'display_name': given})
-            .eq('id', _client.auth.currentUser!.id)
-            .eq('display_name', '');
-      }
-    } on SignInWithAppleAuthorizationException catch (error) {
+      if (given != null && given.isNotEmpty) await _keepAppleName(given);
+    } on SignInWithAppleAuthorizationException catch (error, stack) {
       if (error.code == AuthorizationErrorCode.canceled) {
         throw SignInException(SignInProblem.cancelled, error);
       }
-      throw SignInException(SignInProblem.failed, error);
-    } on SignInException {
-      rethrow;
-    } on Object catch (error) {
-      throw SignInException(SignInProblem.failed, error);
+      throw _failure('apple', error, stack);
+    } on Object catch (error, stack) {
+      throw _failure('apple', error, stack);
+    }
+  }
+
+  /// Apple sends the name only on the very first sign-in, and never in the
+  /// token: keep it, or the profile stays nameless. The user is signed in
+  /// by now, so a hiccup here must not turn into a failed sign-in;
+  /// onboarding asks for the name anyway.
+  Future<void> _keepAppleName(String given) async {
+    try {
+      await _client.auth.updateUser(UserAttributes(
+        data: <String, dynamic>{'given_name': given},
+      ));
+      await _client
+          .from('profiles')
+          .update(<String, dynamic>{'display_name': given})
+          .eq('id', _client.auth.currentUser!.id)
+          .eq('display_name', '');
+    } on Object {
+      // Best effort, see above.
     }
   }
 
@@ -176,8 +201,8 @@ class AuthService {
       );
     } on AuthException catch (error) {
       throw SignInException(_emailProblem(error), error);
-    } on Object catch (error) {
-      throw SignInException(SignInProblem.failed, error);
+    } on Object catch (error, stack) {
+      throw _failure('email', error, stack);
     }
   }
 
@@ -195,8 +220,8 @@ class AuthService {
       );
     } on AuthException catch (error) {
       throw SignInException(_emailProblem(error), error);
-    } on Object catch (error) {
-      throw SignInException(SignInProblem.failed, error);
+    } on Object catch (error, stack) {
+      throw _failure('email', error, stack);
     }
     if (response.session != null) return true;
     // With confirmations on, an address that already has an account comes
@@ -209,6 +234,7 @@ class AuthService {
   }
 
   static SignInProblem _emailProblem(AuthException error) {
+    if (isNetworkFailure(error)) return SignInProblem.offline;
     if (error is AuthWeakPasswordException) return SignInProblem.weakPassword;
     return switch (error.code) {
       'invalid_credentials' => SignInProblem.wrongCredentials,
@@ -303,6 +329,23 @@ class AuthService {
     }
     // The caller signs out once it has forgotten everything on this phone:
     // signing out here would close the local store under its feet.
+  }
+
+  /// What a sign-in that went wrong becomes. Anything that is neither the
+  /// user's choice nor a missing connection goes to Sentry, tagged with the
+  /// [provider]: the screen can only say that it did not work, the report
+  /// says why.
+  static SignInException _failure(
+      String provider, Object error, StackTrace stack) {
+    if (isNetworkFailure(error)) {
+      return SignInException(SignInProblem.offline, error);
+    }
+    unawaited(Sentry.captureException(
+      error,
+      stackTrace: stack,
+      withScope: (Scope scope) => scope.setTag('sign_in', provider),
+    ));
+    return SignInException(SignInProblem.failed, error);
   }
 
   static String _randomNonce([int length = 32]) {

@@ -3654,6 +3654,12 @@ abstract class AppLocalizations {
   /// **'Sign in with Google'**
   String get loginGoogle;
 
+  /// Sign-in failed because the backend could not be reached.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach the server. Check Wi-Fi or mobile data and try again.'**
+  String get loginOffline;
+
   /// No description provided for @loginNotConfigured.
   ///
   /// In en, this message translates to:

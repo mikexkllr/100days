@@ -1660,6 +1660,10 @@
   "loginEmailTaken": "There is already an account with this email. Sign in with it.",
   "loginFailed": "Sign-in did not work. Check your connection and try again.",
   "loginGoogle": "Sign in with Google",
+  "loginOffline": "Could not reach the server. Check Wi-Fi or mobile data and try again.",
+  "@loginOffline": {
+    "description": "Sign-in failed because the backend could not be reached."
+  },
   "loginNotConfigured": "Sign-in is not set up for this server yet.",
   "loginOwnServer": "Own server",
   "loginOwnServerActive": "Own server: {host}",
