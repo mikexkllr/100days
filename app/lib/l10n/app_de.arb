@@ -1251,6 +1251,7 @@
   "loginEmailTaken": "Mit dieser E-Mail gibt es schon ein Konto. Melde dich damit an.",
   "loginFailed": "Die Anmeldung hat nicht geklappt. Prüf deine Verbindung und versuch es noch einmal.",
   "loginGoogle": "Mit Google anmelden",
+  "loginOffline": "Keine Verbindung zum Server. Prüf WLAN oder mobile Daten und versuch es noch einmal.",
   "loginNotConfigured": "Die Anmeldung ist für diesen Server noch nicht eingerichtet.",
   "loginOwnServer": "Eigener Server",
   "loginOwnServerActive": "Eigener Server: {host}",
@@ -3094,5 +3095,15 @@
   "pushGoodbye": "Ich höre jetzt auf zu nerven. Wenn du wieder loslegen willst: Ich bin da.",
   "pushLastCallFlicker": "Ich flackere … {streak, plural, =1{1 Tag geht} other{{streak} Tage gehen}} um Mitternacht aus.",
   "pushLastCallMath": "{streak, plural, =1{1 Tag} other{{streak} Tage}} Arbeit gegen zwei Minuten jetzt. Rechne selbst.",
-  "pushLastCallSmallest": "Mach die kleinste Version davon. Hauptsache, die Flamme bleibt an – {streak, plural, =1{1 Tag steht} other{{streak} Tage stehen}} auf dem Spiel."
+  "pushLastCallSmallest": "Mach die kleinste Version davon. Hauptsache, die Flamme bleibt an – {streak, plural, =1{1 Tag steht} other{{streak} Tage stehen}} auf dem Spiel.",
+  "trainingFunkiTitle": "Funki baut ihn dir",
+  "trainingFunkiBody": "Sag, was du hast und was du willst – er baut Split und Übungen.",
+  "trainingFunkiHint": "z. B. „Kurzhanteln bis 20 kg, Knie empfindlich“",
+  "trainingFunkiSend": "Plan bauen",
+  "trainingFunkiBuilt": "Funki hat dir {split} gebaut.",
+  "trainingFunkiEquipment": "Ausrüstung: {equipment}",
+  "trainingFunkiFailed": "Daraus konnte Funki keinen Plan bauen. Sag's anders – oder stell ihn unten selbst zusammen.",
+  "promptTrainingPlan": "Du bist Funki, ein Krafttrainer. Stell für diese Person einen Trainingsplan zusammen.\nZiel: „{goal}“\nErfahrung: {experience}. Trainingstage pro Woche: {days} (fest).\nAusrüstung, wie ausgewählt: {equipment}.\n{current}Was die Person sagt: „{wish}“\n\nSplits und die Einheiten, die sie durchwechseln:\n{splits}\n\nÜbungen (id: Name, Muskel, mindestens nötig):\n{exercises}\n\nNimm den Split, der passt. Gib jede seiner Einheiten in dieser Reihenfolge an, je 3 bis {max} Übungen, nur ids aus der Liste. Verrät das Gesagte mehr oder weniger Ausrüstung, setz \"equipment\" auf fullGym, homeBasic oder bodyweight und nimm nur Übungen, die damit gehen. Sätze 1 bis 6, Wiederholungen 3 bis 30. Die Begründung ist ein kurzer Satz auf Deutsch, in Du-Form an die Person.\nAntworte nur mit JSON, in dieser Form:\n{format}",
+  "promptTrainingCurrent": "Der Plan jetzt:\n{plan}\n",
+  "promptTrainingRefused": "\nDeine letzte Antwort wurde abgelehnt: {why}\nAntworte noch einmal, nur mit JSON."
 }

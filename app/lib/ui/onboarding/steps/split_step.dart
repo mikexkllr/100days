@@ -5,10 +5,12 @@ import 'package:hundred_core/hundred_core.dart';
 import '../../../l10n/l10n.dart';
 import '../../../state/onboarding_state.dart';
 import '../../plan/session_editor.dart';
+import '../../plan/training_form.dart';
 import '../../widgets/app_card.dart';
 import '../onboarding_flow.dart';
 
-/// Pick a split, see the proposed exercises, change whatever does not fit.
+/// Pick a split, see the proposed exercises, change whatever does not fit —
+/// or say what you have and let Funki put it together.
 class SplitStep extends ConsumerWidget {
   const SplitStep({super.key});
 
@@ -26,6 +28,11 @@ class SplitStep extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          FunkiTrainingLine(
+            goal: goal,
+            setup: draft.currentTrainingSetup(),
+            onChanged: notifier.setTrainingPlan,
+          ),
           SplitPicker(
             daysPerWeek: draft.trainingDaysPerWeek,
             selected: draft.effectiveSplit,

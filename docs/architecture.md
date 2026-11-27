@@ -216,7 +216,12 @@ challenge and live in the account.
 - **Training.** The user picks a split; sessions rotate across training days
   rather than being pinned to weekdays, so any split works with any number of
   days. Each session's exercises start as a suggestion (by movement pattern,
-  equipment and experience) and are then the user's to edit. Periodisation —
+  equipment and experience) and are then the user's to edit. Onboarding and
+  the plan editor ask the same questions — days, experience, equipment — and
+  an answer changes the plan by one rule (`retargetTraining`): an untouched
+  suggestion is suggested again, an edited plan keeps its edits and loses
+  only what the new equipment cannot do. A plan that comes later — switched
+  on, or a training habit added — opens that editor. Periodisation —
   three build weeks, a deload — is applied on top. Logged sessions feed a
   double-progression recommender: more reps at the same weight until every
   set reaches the top of the range, then the smallest load jump.

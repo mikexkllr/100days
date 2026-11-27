@@ -5,6 +5,7 @@ import 'package:hundred_core/hundred_core.dart';
 import 'package:hundred_days/data/app_repository.dart';
 import 'package:hundred_days/state/providers.dart';
 import 'package:hundred_days/ui/home/home_screen.dart';
+import 'package:hundred_days/ui/plan/training_editor.dart';
 import 'package:hundred_days/ui/settings/habits_editor_screen.dart';
 
 import 'helpers.dart';
@@ -58,6 +59,53 @@ void main() {
 
   Future<Habit> habit(String id) async =>
       (await repository.snapshot()).challenge!.habitById(id)!;
+
+  testWidgets('training added later is set up like on day one',
+      (WidgetTester tester) async {
+    await openEditor(tester);
+    await tester.tap(find.byKey(const Key('habits-add')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('add-gym')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('habits-save')));
+    await tester.pumpAndSettle();
+
+    // Not a full-gym guess: the questions from onboarding, right away.
+    expect(find.byType(TrainingEditorScreen), findsOneWidget);
+    final Habit gym = await habit('gym');
+    expect((await repository.snapshot()).challenge!.goal.trainingDaysPerWeek,
+        gym.daysPerWeek.clamp(2, 6));
+    final Finder home = find.byKey(const Key('equipment-bodyweight'));
+    await tester.ensureVisible(home);
+    await tester.pumpAndSettle();
+    await tester.tap(home);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('editor-save')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TrainingEditorScreen), findsNothing);
+    final AppSnapshot snapshot = await repository.snapshot();
+    expect(snapshot.challenge!.goal.equipment, EquipmentAccess.bodyweight);
+    expect(snapshot.plan?.training, isNotNull);
+    for (final SessionPlan s in snapshot.challenge!.goal.training!.sessions) {
+      for (final ExerciseSlot slot in s.exercises) {
+        expect(slot.exercise!.isBodyweight, isTrue, reason: slot.exerciseId);
+      }
+    }
+  });
+
+  testWidgets('a habit that is not training just saves',
+      (WidgetTester tester) async {
+    await openEditor(tester);
+    await tester.tap(find.byKey(const Key('habits-add')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('add-water')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('habits-save')));
+    await tester.pumpAndSettle();
+    expect(find.byType(TrainingEditorScreen), findsNothing);
+    expect(find.byKey(const Key('open-editor')), findsOneWidget);
+  });
 
   testWidgets('a habit made optional is a bonus on Today, not a duty',
       (WidgetTester tester) async {

@@ -33,7 +33,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted || error.problem == SignInProblem.cancelled) return;
       final AppLocalizations l10n = context.l10n;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(signInProblemText(l10n, error.problem)),
+        content: Text(signInProblemText(l10n, error.problem, error.detail)),
       ));
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -209,15 +209,21 @@ class _ConfirmEmailDialog extends ConsumerWidget {
   }
 }
 
-/// What went wrong with an e-mail sign-in, in words.
-String signInProblemText(AppLocalizations l10n, SignInProblem problem) =>
+/// What went wrong with a sign-in, in words. A failure nobody saw coming
+/// carries its [detail] on a line of its own, so a screenshot says where it
+/// broke.
+String signInProblemText(AppLocalizations l10n, SignInProblem problem,
+        [String? detail]) =>
     switch (problem) {
       SignInProblem.notConfigured => l10n.loginNotConfigured,
       SignInProblem.wrongCredentials => l10n.loginWrongCredentials,
       SignInProblem.emailNotConfirmed => l10n.loginEmailNotConfirmed,
       SignInProblem.emailTaken => l10n.loginEmailTaken,
       SignInProblem.weakPassword => l10n.loginWeakPassword,
-      SignInProblem.cancelled || SignInProblem.failed => l10n.loginFailed,
+      SignInProblem.offline => l10n.loginOffline,
+      SignInProblem.cancelled => l10n.loginFailed,
+      SignInProblem.failed =>
+        detail == null ? l10n.loginFailed : '${l10n.loginFailed}\n($detail)',
     };
 
 /// E-mail and password: sign in, or register a new account with them.
@@ -288,7 +294,7 @@ class _EmailSheetState extends State<_EmailSheet> {
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _error = signInProblemText(l10n, error.problem);
+        _error = signInProblemText(l10n, error.problem, error.detail);
       });
     }
   }

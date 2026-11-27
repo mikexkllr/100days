@@ -45,6 +45,44 @@ Challenge _fitChallenge({bool plans = true}) => Challenge(
       startDay: DayKey.today(),
     );
 
+/// Answers every prompt with [answer] and remembers what it was asked.
+class _Llm implements LlmClient {
+  _Llm(this.answer);
+
+  final String answer;
+  final List<String> prompts = <String>[];
+
+  @override
+  String get modelName => 'fake';
+
+  @override
+  bool get isReady => true;
+
+  @override
+  Future<String> generate(
+    String prompt, {
+    List<LlmImage> images = const <LlmImage>[],
+    LlmPurpose purpose = LlmPurpose.food,
+    int maxTokens = 400,
+    double temperature = 0.7,
+    Duration timeout = const Duration(seconds: 30),
+    bool json = false,
+    Map<String, Object?>? schema,
+  }) async {
+    prompts.add(prompt);
+    return answer;
+  }
+}
+
+/// What Funki answers for "dumbbells and a pull-up bar at home".
+const String _homePlan = '{"split":"upperLower","equipment":"homeBasic",'
+    '"sessions":[{"kind":"upper","exercises":['
+    '{"id":"db_bench","sets":4,"reps_low":6,"reps_high":10},'
+    '{"id":"pullup","sets":3,"reps_low":5,"reps_high":8}]},'
+    '{"kind":"lower","exercises":['
+    '{"id":"goblet_squat","sets":3,"reps_low":10,"reps_high":15}]}],'
+    '"reason":"Oben und unten im Wechsel, mit dem, was du hast."}';
+
 /// A button that pushes [screen], so leaving it goes through the real back
 /// navigation.
 Widget _opener(Widget screen) => Builder(
@@ -67,7 +105,8 @@ void main() {
   });
 
   Future<void> pump(WidgetTester tester, Widget child,
-      {HouseholdBackend? household}) async {
+      {HouseholdBackend? household,
+      LlmClient llm = const UnavailableLlmClient()}) async {
     tester.view.physicalSize = const Size(1080, 4200);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.resetPhysicalSize);
@@ -76,7 +115,15 @@ void main() {
       repository: repository,
       child: child,
       household: household,
+      llm: llm,
     ));
+    await tester.pumpAndSettle();
+  }
+
+  /// Scrolls the plan editor to [target], up or down, and taps it.
+  Future<void> tapInEditor(WidgetTester tester, Finder target) async {
+    await reveal(tester, target);
+    await tester.tap(target);
     await tester.pumpAndSettle();
   }
 
@@ -539,6 +586,129 @@ void main() {
     expect(moved.sets, first.sets + 1);
   });
 
+  testWidgets('a plan switched on later asks what onboarding asks',
+      (WidgetTester tester) async {
+    await repository.startChallenge(_fitChallenge(plans: false));
+    await pump(tester, const PlanScreen());
+    await tester.tap(find.text('Trainingsplan einschalten').last);
+    await tester.pumpAndSettle();
+
+    // Equipment and experience, as on day one — and the plan follows.
+    await tapInEditor(tester, find.byKey(const Key('experience-advanced')));
+    await tapInEditor(tester, find.byKey(const Key('equipment-homeBasic')));
+    await tester.tap(find.byKey(const Key('editor-save')));
+    await tester.pumpAndSettle();
+
+    final Goal goal = (await repository.snapshot()).challenge!.goal;
+    expect(goal.trainingPlanEnabled, isTrue);
+    expect(goal.equipment, EquipmentAccess.homeBasic);
+    expect(goal.experience, TrainingExperience.advanced);
+    expect(goal.training, suggestTrainingSetup(goal));
+    for (final SessionPlan s in goal.training!.sessions) {
+      for (final ExerciseSlot slot in s.exercises) {
+        expect(slot.exercise!.availableWith(EquipmentAccess.homeBasic), isTrue,
+            reason: slot.exerciseId);
+      }
+    }
+  });
+
+  testWidgets('moving home keeps an edited plan and swaps only the barbell',
+      (WidgetTester tester) async {
+    final Challenge fit = _fitChallenge();
+    final TrainingSetup suggested = suggestTrainingSetup(fit.goal);
+    final ExerciseSlot first = suggested.sessions.first.exercises.first;
+    final TrainingSetup edited = suggested.withSession(
+      0,
+      suggested.sessions.first.copyWith(exercises: <ExerciseSlot>[
+        first.copyWith(sets: first.sets + 2),
+        ...suggested.sessions.first.exercises.skip(1),
+      ]),
+    );
+    final Challenge challenge =
+        fit.copyWith(goal: fit.goal.copyWith(training: edited));
+    await repository.startChallenge(challenge);
+    await pump(tester, _opener(TrainingEditorScreen(challenge: challenge)));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tapInEditor(tester, find.byKey(const Key('equipment-homeBasic')));
+    await tester.tap(find.byKey(const Key('editor-save')));
+    await tester.pumpAndSettle();
+
+    final TrainingSetup saved =
+        (await repository.snapshot()).challenge!.goal.training!;
+    final ExerciseSlot swapped = saved.sessions.first.exercises.first;
+    expect(first.exercise!.availableWith(EquipmentAccess.homeBasic), isFalse);
+    expect(swapped.exercise!.pattern, first.exercise!.pattern);
+    expect(swapped.exercise!.availableWith(EquipmentAccess.homeBasic), isTrue);
+    expect(swapped.sets, first.sets + 2);
+  });
+
+  testWidgets('Funki builds the plan from what is said, and it can go back',
+      (WidgetTester tester) async {
+    final Challenge challenge = _fitChallenge();
+    await repository.startChallenge(challenge);
+    final _Llm llm = _Llm(_homePlan);
+    await pump(tester, _opener(TrainingEditorScreen(challenge: challenge)),
+        llm: llm);
+    // Tall enough that Funki's card and the equipment are on one screen.
+    tester.view.physicalSize = const Size(1080, 9000);
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    Future<void> ask() async {
+      await tester.enterText(find.byKey(const Key('funki-training-text')),
+          'Kurzhanteln und eine Klimmzugstange zu Hause');
+      await tester.tap(find.byKey(const Key('funki-training-send')));
+      await tester.pumpAndSettle();
+    }
+
+    await ask();
+    // He was told what the form says, and what the exercises are called.
+    expect(llm.prompts.single, contains('Kurzhanteln und eine Klimmzugstange'));
+    expect(llm.prompts.single, contains('db_bench: Kurzhantel-Bankdrücken'));
+    expect(find.byKey(const Key('funki-training-done')), findsOneWidget);
+    expect(find.text('Funki hat dir Oberkörper / Unterkörper gebaut.'),
+        findsOneWidget);
+    expect(find.text('Ausrüstung: Home-Gym'), findsOneWidget);
+    expect(
+      tester.widget<AppCard>(find.byKey(const Key('equipment-homeBasic'))).border,
+      AppColors.primary,
+    );
+
+    // Back to what was there.
+    await tester.tap(find.byKey(const Key('funki-training-undo')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('funki-training-done')), findsNothing);
+    expect(
+      tester.widget<AppCard>(find.byKey(const Key('equipment-fullGym'))).border,
+      AppColors.primary,
+    );
+
+    await ask();
+    await tester.tap(find.byKey(const Key('editor-save')));
+    await tester.pumpAndSettle();
+    final Goal goal = (await repository.snapshot()).challenge!.goal;
+    expect(goal.equipment, EquipmentAccess.homeBasic);
+    expect(goal.training!.split, SplitKind.upperLower);
+    expect(
+      goal.training!.sessions.first.exercises
+          .map((ExerciseSlot s) => s.exerciseId),
+      <String>['db_bench', 'pullup'],
+    );
+  });
+
+  testWidgets('without a model there is no Funki in the plan editor',
+      (WidgetTester tester) async {
+    final Challenge challenge = _fitChallenge();
+    await repository.startChallenge(challenge);
+    await pump(tester, _opener(TrainingEditorScreen(challenge: challenge)));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('funki-training')), findsNothing);
+    expect(find.byKey(const Key('equipment-fullGym')), findsOneWidget);
+  });
+
   testWidgets('the training plan switches off, keeps the log, comes back',
       (WidgetTester tester) async {
     final Challenge challenge = _fitChallenge();
@@ -613,7 +783,7 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('4×'));
+    await tester.tap(find.byKey(const Key('days-4')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('editor-save')));
     await tester.pumpAndSettle();
@@ -834,4 +1004,13 @@ Future<void> _loadTextFont() async {
     loader.addFont(Future<ByteData>.value(ByteData.view(bytes.buffer)));
   }
   await loader.load();
+}
+
+/// Scrolls the plan editor's list down to [target]: the list builds only
+/// what is near the screen.
+Future<void> reveal(WidgetTester tester, Finder target) async {
+  await tester.scrollUntilVisible(target, 300,
+      scrollable: find.byType(Scrollable).first);
+  await tester.ensureVisible(target);
+  await tester.pumpAndSettle();
 }

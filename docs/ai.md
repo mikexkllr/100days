@@ -27,6 +27,7 @@ the sense — the checks below still run on every answer.
 | Meal from a photo | `food` | ✓ within the allowance | ✓ |
 | Meal from a description ("what did you eat?" — calories optional), meal ideas, target proposals | `food` | ✓ within the allowance | ✓ |
 | Plan the week, a recipe from a dish name (a planned meal in the meal sheet) | `plan` | ✓ within the allowance | ✓ |
+| A training plan from what the user says they have and want (onboarding, plan editor) | `plan` | ✓ within the allowance | ✓ |
 | Funki, the coach, to talk to (tools on everything) | `chat` | ✓ within the allowance | ✓ |
 | The coach's daily line, nudge texts | `coach` | rule-based | ✓ |
 
@@ -44,6 +45,13 @@ Every answer is checked before it counts, and every check lives in
   alone is dropped. A drafted single recipe must land within 30 % of the
   calories asked for. Saving reuses the household's recipe of the same name
   (`recipeNamed`, `reconcileRecipe`) instead of storing a copy.
+- **Training plans** (`TrainingAssistant`, `parseTrainingProposal`): a
+  split the app knows, every one of its sessions, only exercises from the
+  library that the equipment allows (one the model invents or cannot do
+  there is left out; a plan made mostly of those is refused), sets and reps
+  held to what a slot allows, effort and rest from the app's own
+  prescription. A refused answer goes back once with why. The plan lands
+  in the form with an undo; nothing is saved until the user saves.
 - **Funki's tools** (`app/lib/ai/funki/funki_tools.dart`): `set_meal` goes
   through `parseMealPlan`, `log_food` through `foodEstimateFrom` (the same
   check as a meal estimate); a refused answer goes back to the model with
@@ -85,6 +93,8 @@ what lands in the diary is only what the user confirms.
 Only what a feature needs, when the user uses it:
 
 - a meal photo or description;
+- for a training plan: the goal sentence, training days, experience,
+  equipment, the plan in the form, and what the user typed;
 - for a plan: the days and meals, each member's name, and — if they share
   them — their calorie and protein targets, diet, dislikes and allergies,
   the wish typed, recently planned dish titles;
@@ -136,6 +146,12 @@ of the meal sheet, the describe tab and a manual entry without calories.
 The "planned" side of the meal sheet makes a full recipe of a dish name
 through `MealPlanner.draftMeal`. Asked in his sheet, Funki logs food
 through `log_food` — told to enter what was said rather than discuss it.
+
+**Building a training plan is not a conversation either.** Where the plan
+is set up — the split step of onboarding and the plan editor — Funki has a
+line of his own (`FunkiTrainingLine`): "dumbbells up to 20 kg, touchy
+knees" becomes a split with its exercises, and the equipment level if what
+was said changes it, straight into the form, with an undo.
 
 **His notifications are rules, not model calls.** They are scheduled on the
 phone for the days to come, so nothing can be asked at the moment they

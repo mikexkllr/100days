@@ -42,6 +42,7 @@ export 'src/plan/exercises.dart';
 export 'src/plan/nutrition.dart';
 export 'src/plan/plan.dart';
 export 'src/plan/training.dart';
+export 'src/plan/training_coach.dart';
 export 'src/privacy/sharing.dart';
 export 'src/social/activity.dart';
 export 'src/social/friends.dart';

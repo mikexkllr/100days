@@ -13,12 +13,18 @@ import 'app_repository.dart';
 /// refused — or simply nobody signed in yet. The screens tell the user about
 /// those; they are not bugs, and reporting them would bury the real ones.
 bool isExpectedFailure(Object error) =>
-    error is NotSignedIn ||
+    error is NotSignedIn || isNetworkFailure(error) || error is AuthException;
+
+/// Whether [error] means the request never got an answer: no connection, a
+/// timeout, a broken TLS handshake. Supabase Auth wraps those in an
+/// [AuthRetryableFetchException] without a status code (with one, the
+/// server answered with a 5xx).
+bool isNetworkFailure(Object error) =>
     error is SocketException ||
     error is TimeoutException ||
     error is HandshakeException ||
     error is http.ClientException ||
-    error is AuthException;
+    (error is AuthRetryableFetchException && error.statusCode == null);
 
 /// Reports what a provider failed with, unless it was expected.
 ///

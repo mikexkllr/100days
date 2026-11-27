@@ -2273,6 +2273,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginGoogle => 'Sign in with Google';
 
   @override
+  String get loginOffline =>
+      'Could not reach the server. Check Wi-Fi or mobile data and try again.';
+
+  @override
   String get loginNotConfigured => 'Sign-in is not set up for this server yet.';
 
   @override
@@ -5865,5 +5869,58 @@ class AppLocalizationsEn extends AppLocalizations {
       one: '1 day',
     );
     return 'Do the smallest version of it. As long as the flame stays on – $_temp0 are at stake.';
+  }
+
+  @override
+  String get trainingFunkiTitle => 'Funki builds it for you';
+
+  @override
+  String get trainingFunkiBody =>
+      'Say what you have and what you want — he builds the split and the exercises.';
+
+  @override
+  String get trainingFunkiHint => 'e.g. “dumbbells up to 20 kg, touchy knees”';
+
+  @override
+  String get trainingFunkiSend => 'Build the plan';
+
+  @override
+  String trainingFunkiBuilt(String split) {
+    return 'Funki built you $split.';
+  }
+
+  @override
+  String trainingFunkiEquipment(String equipment) {
+    return 'Equipment: $equipment';
+  }
+
+  @override
+  String get trainingFunkiFailed =>
+      'Funki couldn\'t build a plan from that. Say it differently — or put it together below yourself.';
+
+  @override
+  String promptTrainingPlan(
+    String goal,
+    String experience,
+    int days,
+    String equipment,
+    String current,
+    String wish,
+    String splits,
+    String exercises,
+    int max,
+    String format,
+  ) {
+    return 'You are Funki, a strength coach. Put a training plan together for this person.\nGoal: \"$goal\"\nExperience: $experience. Training days a week: $days (fixed).\nEquipment as they picked it: $equipment.\n${current}What they say: \"$wish\"\n\nSplits and the sessions they rotate through:\n$splits\n\nExercises (id: name, muscle, least equipment):\n$exercises\n\nPick the split that fits. Give every session of it, in that order, with 3 to $max exercises each, only ids from the list. If what they say tells you they have more or less equipment, set \"equipment\" to fullGym, homeBasic or bodyweight and use only exercises it allows. Sets 1 to 6, reps 3 to 30. The reason is one short sentence in English, addressed to them.\nAnswer with JSON only, in this form:\n$format';
+  }
+
+  @override
+  String promptTrainingCurrent(String plan) {
+    return 'Their plan now:\n$plan\n';
+  }
+
+  @override
+  String promptTrainingRefused(String why) {
+    return '\nYour last answer was refused: $why\nAnswer again with JSON only.';
   }
 }

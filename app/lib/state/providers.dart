@@ -342,6 +342,17 @@ final FutureProvider<NutritionAssistant?> nutritionAssistantProvider =
   );
 });
 
+/// Funki putting a training plan together — or null without a model, in
+/// which case the plan is put together by hand.
+final FutureProvider<TrainingAssistant?> trainingAssistantProvider =
+    FutureProvider<TrainingAssistant?>((Ref ref) async {
+  final LlmClient llm = ref.watch(llmClientProvider);
+  if (!llm.isReady) return null;
+  final locale = ref.watch(effectiveLocaleProvider);
+  final l10n = await AppLocalizations.delegate.load(locale);
+  return TrainingAssistant(llm: llm, prompts: LocalizedTrainingPrompts(l10n));
+});
+
 /// The app's single source of truth for the UI.
 /// A day the user just completed, waiting to be celebrated. Set by
 /// [AppController] whichever screen completed the day — the check-in on
