@@ -6162,11 +6162,12 @@ abstract class AppLocalizations {
   /// No description provided for @promptMealPlan.
   ///
   /// In en, this message translates to:
-  /// **'You plan home cooking for a household. Plan these meals (day: slots, the slot names in brackets are only for you):\n{days}\n\nWho eats:\n{people}\n{extra}\n\nSimple, varied dishes from a normal supermarket. Reuse ingredients across the week so little is left over. One recipe per meal with servings for the whole household, the calories and macros of ONE serving, ingredients for all servings in g, ml or pieces (unit \"g\", \"ml\", \"piece\", \"tbsp\" or \"tsp\") with a category (produce, bakery, dairy, meat, fish, pantry, frozen, drinks, other), and short steps. Use the slot names breakfast, lunch, snack, dinner. Titles, ingredients and steps in English.\nAnswer with JSON only, in this form:\n{format}'**
+  /// **'You plan home cooking for a household. Plan these meals (day: slots, the slot names in brackets are only for you):\n{days}\n\nWho eats:\n{people}\n{extra}\n\nVaried dishes from a normal supermarket. Reuse ingredients across the week so little is left over. One recipe per meal with servings for the whole household and the calories and macros of ONE serving.\n{rules}\nUse the slot names breakfast, lunch, snack, dinner. Titles, ingredients and steps in English.\nAnswer with JSON only, in this form:\n{format}'**
   String promptMealPlan(
     String days,
     String people,
     String extra,
+    String rules,
     String format,
   );
 
@@ -8951,12 +8952,13 @@ abstract class AppLocalizations {
   /// No description provided for @promptMealDraft.
   ///
   /// In en, this message translates to:
-  /// **'You write one home-cooking recipe for a household: {slot} on {day}.\n{extra}\n\nWho eats:\n{people}\n\nServings for the whole household, the calories and macros of ONE serving, ingredients for all servings in g, ml or pieces (unit \"g\", \"ml\", \"piece\", \"tbsp\" or \"tsp\") with a category (produce, bakery, dairy, meat, fish, pantry, frozen, drinks, other), and short steps. Use the slot name and the date exactly as given. Title, ingredients and steps in English.\nAnswer with JSON only, in this form, with exactly one meal:\n{format}'**
+  /// **'You write one home-cooking recipe for a household: {slot} on {day}.\n{extra}\n\nWho eats:\n{people}\n\nServings for the whole household and the calories and macros of ONE serving.\n{rules}\nUse the slot name and the date exactly as given. Title, ingredients and steps in English.\nAnswer with JSON only, in this form, with exactly one meal:\n{format}'**
   String promptMealDraft(
     String slot,
     String day,
     String people,
     String extra,
+    String rules,
     String format,
   );
 
@@ -8969,7 +8971,7 @@ abstract class AppLocalizations {
   /// No description provided for @promptMealDraftAny.
   ///
   /// In en, this message translates to:
-  /// **'Pick a simple dish that suits this meal and the targets.'**
+  /// **'Pick a dish that suits this meal, the targets and the cooking level.'**
   String get promptMealDraftAny;
 
   /// No description provided for @promptMealDraftKcal.
@@ -9011,7 +9013,7 @@ abstract class AppLocalizations {
   /// No description provided for @promptFunki.
   ///
   /// In en, this message translates to:
-  /// **'You are Funki, the little flame and coach in the 100 Days app. {name} is doing a challenge of daily habits, and may keep a food diary, a meal plan with a shopping list, and a training plan. Today is {today} ({weekday}). {where}\nLook things up with the get_ tools before you say anything about numbers, the plan or the diary; never make anything up. Change things only with the tools and only when {name} wants it; never just describe a change. Every change can be undone in the app.\nDiary: when {name} says what was eaten, log it at once with log_food — no question back and no suggestions; you estimate missing amounts and calories yourself, realistically, kcal and macros for the amount eaten. Suggestions only when asked for. Check off a habit only when {name} says it is done. Recipes: simple, from a normal supermarket, servings for the whole household, calories and macros per serving.\nNo medical diagnoses; for complaints, a doctor. Answer briefly, in one to three sentences, in English, direct and warm, without schmaltz.'**
+  /// **'You are Funki, the little flame and coach in the 100 Days app. {name} is doing a challenge of daily habits, and may keep a food diary, a meal plan with recipes and a shopping list, and a training plan. Today is {today} ({weekday}). {where}\nLook things up with the get_ tools before you say anything about numbers, the plan, the list or the training; never make anything up. Change things only with the tools and only when {name} wants it; never just describe a change. Every change can be undone in the app.\nDiary: when {name} says what was eaten, log it at once with log_food — no question back and no suggestions; you estimate missing amounts and calories yourself, realistically, kcal and macros for the amount eaten. Suggestions only when asked for. Check off a habit only when {name} says it is done.\nMeal plan: several meals or a week are planned with plan_week, a single one with set_meal; write_recipe writes the recipe of a planned meal (ingredients and cooking instructions), also again at another cooking level. Cooking level (complexity): convenience = ready-made is welcome (a ready-to-cook fillet, beans from a can), everyday = everyday home cooking, scratch = from scratch (a whole fish, dried beans); named by nobody, it is the one {name} has. Recipes: servings for the whole household, calories and macros per serving, EVERY ingredient, the oil, salt and spices included (staple: true).\nShopping list: make_list_from_plan makes it from the recipes; a meal without a recipe is missing from it until write_recipe has written one. Basics (oil, salt, spices) are on it without an amount, to check at home; what {name} always has at home you remember with set_pantry.\nTraining: where there is a training plan you change it with the training tools; use only exercise ids that get_training_plan or find_exercises gave you.\nNo medical diagnoses; for complaints, a doctor. Answer briefly, in one to three sentences, in English, direct and warm, without schmaltz. For steps, ingredients or several points use Markdown: lists and **bold**, no tables.'**
   String promptFunki(String today, String weekday, String name, String where);
 
   /// No description provided for @promptFunkiNoName.
@@ -9397,6 +9399,329 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Do the smallest version of it. As long as the flame stays on – {streak, plural, =1{1 day} other{{streak} days}} are at stake.'**
   String pushLastCallSmallest(int streak);
+
+  /// No description provided for @cookingLevelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Effort'**
+  String get cookingLevelTitle;
+
+  /// No description provided for @cookingConvenience.
+  ///
+  /// In en, this message translates to:
+  /// **'Convenient'**
+  String get cookingConvenience;
+
+  /// No description provided for @cookingEveryday.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyday'**
+  String get cookingEveryday;
+
+  /// No description provided for @cookingScratch.
+  ///
+  /// In en, this message translates to:
+  /// **'From scratch'**
+  String get cookingScratch;
+
+  /// No description provided for @cookingConvenienceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready-made is welcome: a ready-to-cook fillet, beans from a can, frozen vegetables.'**
+  String get cookingConvenienceHint;
+
+  /// No description provided for @cookingEverydayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooked fresh, with canned tomatoes or beans where that is usual.'**
+  String get cookingEverydayHint;
+
+  /// No description provided for @cookingScratchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Made by hand: a whole fish, dried beans, stock and dough from scratch.'**
+  String get cookingScratchHint;
+
+  /// No description provided for @promptCookConvenience.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooking level: quick and ready. Ready-made parts are welcome — ready-to-cook fillets, canned pulses, frozen vegetables, pre-cooked rice, a sauce from a jar, a spice mix. Few ingredients and few steps.'**
+  String get promptCookConvenience;
+
+  /// No description provided for @promptCookEveryday.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooking level: everyday home cooking. Fresh main ingredients; canned tomatoes, canned pulses and stock from a cube are fine; no ready-made sauces or meals.'**
+  String get promptCookEveryday;
+
+  /// No description provided for @promptCookScratch.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooking level: from scratch. Whole, unprocessed ingredients — dried pulses soaked and cooked, a whole fish or a cut of meat prepared at home, stock, sauces, doughs and spice blends made by hand. More steps and technique are welcome, and the steps explain them.'**
+  String get promptCookScratch;
+
+  /// No description provided for @promptRecipeRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients for all servings in g, ml or pieces (unit \"g\", \"ml\", \"piece\", \"tbsp\" or \"tsp\") with a category (produce, bakery, dairy, meat, fish, pantry, frozen, drinks, other). List EVERY ingredient the steps use, with a realistic amount: the fat for frying, salt, pepper, spices, herbs, stock, vinegar. Mark with \"staple\": true what a kitchen usually has and what is bought as a pack that lasts — oil, vinegar, salt, pepper, dried spices and herbs, sugar, flour, stock powder, soy sauce, mustard — and never fresh food. The steps are cooking instructions in order: one action each, with heat and times, so that someone who does not know the dish can cook it.'**
+  String get promptRecipeRules;
+
+  /// No description provided for @promptFunkiFromShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'You were opened from the shopping list.'**
+  String get promptFunkiFromShopping;
+
+  /// No description provided for @promptFunkiFromTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'You were opened from the training plan.'**
+  String get promptFunkiFromTraining;
+
+  /// No description provided for @recipeBasics.
+  ///
+  /// In en, this message translates to:
+  /// **'Basics from the cupboard'**
+  String get recipeBasics;
+
+  /// No description provided for @recipeNotWritten.
+  ///
+  /// In en, this message translates to:
+  /// **'So far this is only a name. Have the recipe written — ingredients and how to cook it — and the shopping list knows what to buy.'**
+  String get recipeNotWritten;
+
+  /// No description provided for @recipeWrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Funki writes the recipe'**
+  String get recipeWrite;
+
+  /// No description provided for @recipeRewrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Write the recipe again'**
+  String get recipeRewrite;
+
+  /// No description provided for @recipeRewriteSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Another level changes what you buy and how you cook it.'**
+  String get recipeRewriteSub;
+
+  /// No description provided for @recipeWritten.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe: {title} · {level}'**
+  String recipeWritten(String title, String level);
+
+  /// No description provided for @recipeWriteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Funki could not write a recipe that adds up. Try again.'**
+  String get recipeWriteFailed;
+
+  /// No description provided for @planNoRecipe.
+  ///
+  /// In en, this message translates to:
+  /// **'no recipe yet'**
+  String get planNoRecipe;
+
+  /// No description provided for @shopStaples.
+  ///
+  /// In en, this message translates to:
+  /// **'Basics'**
+  String get shopStaples;
+
+  /// No description provided for @shopStaplesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Oil, salt, spices: look at home whether there is enough, and swipe away what you have.'**
+  String get shopStaplesHint;
+
+  /// No description provided for @shopNoRecipe.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{One planned meal has no recipe yet and is missing from the list: {titles}} other{{count} planned meals have no recipe yet and are missing from the list: {titles}}}'**
+  String shopNoRecipe(int count, String titles);
+
+  /// No description provided for @shopWriteRecipes.
+  ///
+  /// In en, this message translates to:
+  /// **'Write the recipes'**
+  String get shopWriteRecipes;
+
+  /// No description provided for @writeRecipesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipes for the list'**
+  String get writeRecipesTitle;
+
+  /// No description provided for @writeRecipesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Funki writes ingredients and cooking instructions for these meals. After that the list from the plan has everything.'**
+  String get writeRecipesBody;
+
+  /// No description provided for @writeRecipesGo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Write the recipe} other{Write {count} recipes}}'**
+  String writeRecipesGo(int count);
+
+  /// No description provided for @writeRecipesProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe {done} of {total} …'**
+  String writeRecipesProgress(int done, int total);
+
+  /// No description provided for @writeRecipesDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 recipe written} other{{count} recipes written}}'**
+  String writeRecipesDone(int count);
+
+  /// No description provided for @householdCooking.
+  ///
+  /// In en, this message translates to:
+  /// **'How you like to cook'**
+  String get householdCooking;
+
+  /// No description provided for @funkiIntroShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell me what goes on the list or can come off — “we still have rice”, “500 g of mince as well”. I can also make it from the plan and write the recipes it is missing.'**
+  String get funkiIntroShopping;
+
+  /// No description provided for @funkiIntroTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask me about your training, or let me rebuild the plan: swap an exercise, change the sets, add a day.'**
+  String get funkiIntroTraining;
+
+  /// No description provided for @funkiHintShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'What goes on the list?'**
+  String get funkiHintShopping;
+
+  /// No description provided for @funkiHintTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'What should change in your training?'**
+  String get funkiHintTraining;
+
+  /// No description provided for @funkiSuggestPlan3.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan the week, cooked from scratch'**
+  String get funkiSuggestPlan3;
+
+  /// No description provided for @funkiSuggestShopping1.
+  ///
+  /// In en, this message translates to:
+  /// **'Make the list from the plan'**
+  String get funkiSuggestShopping1;
+
+  /// No description provided for @funkiSuggestShopping2.
+  ///
+  /// In en, this message translates to:
+  /// **'We always have oil and salt at home'**
+  String get funkiSuggestShopping2;
+
+  /// No description provided for @funkiSuggestTraining1.
+  ///
+  /// In en, this message translates to:
+  /// **'What do I train today?'**
+  String get funkiSuggestTraining1;
+
+  /// No description provided for @funkiSuggestTraining2.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap squats for something easier on the knees'**
+  String get funkiSuggestTraining2;
+
+  /// No description provided for @funkiMovedMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} → {day}, {slot}'**
+  String funkiMovedMeal(String title, String day, String slot);
+
+  /// No description provided for @funkiTicked.
+  ///
+  /// In en, this message translates to:
+  /// **'In the basket: {name}'**
+  String funkiTicked(String name);
+
+  /// No description provided for @funkiUnticked.
+  ///
+  /// In en, this message translates to:
+  /// **'Open again: {name}'**
+  String funkiUnticked(String name);
+
+  /// No description provided for @funkiPantryAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Always at home: {names}'**
+  String funkiPantryAdded(String names);
+
+  /// No description provided for @funkiPantryRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'No longer always at home: {names}'**
+  String funkiPantryRemoved(String names);
+
+  /// No description provided for @funkiTastesChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Your food preferences changed'**
+  String get funkiTastesChanged;
+
+  /// No description provided for @funkiExerciseSwapped.
+  ///
+  /// In en, this message translates to:
+  /// **'{session}: {from} → {to}'**
+  String funkiExerciseSwapped(String session, String from, String to);
+
+  /// No description provided for @funkiExerciseChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'{session}: {exercise} · {sets} × {reps}'**
+  String funkiExerciseChanged(
+    String session,
+    String exercise,
+    int sets,
+    String reps,
+  );
+
+  /// No description provided for @funkiExerciseAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{session}: + {exercise}'**
+  String funkiExerciseAdded(String session, String exercise);
+
+  /// No description provided for @funkiExerciseRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{session}: − {exercise}'**
+  String funkiExerciseRemoved(String session, String exercise);
+
+  /// No description provided for @funkiTrainingDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Training: {split}, {days}× a week'**
+  String funkiTrainingDays(String split, int days);
+
+  /// No description provided for @funkiPlannedWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{One meal planned} other{{count} meals planned}} · {level}'**
+  String funkiPlannedWeek(int count, String level);
+
+  /// No description provided for @qtyPinch.
+  ///
+  /// In en, this message translates to:
+  /// **'1 pinch'**
+  String get qtyPinch;
 }
 
 class _AppLocalizationsDelegate

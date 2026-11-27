@@ -4,15 +4,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
+import '../../ai/funki/funki.dart';
 import '../../data/household_backend.dart';
 import '../../l10n/l10n.dart';
 import '../../state/household_providers.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
+import '../funki/funki_widgets.dart';
 import '../widgets/app_card.dart';
 import 'household_load_error.dart';
+import 'write_recipes_sheet.dart';
 
 /// The household's shopping list, by aisle, ticked off live by everyone.
+///
+/// What is bought stands with its amount, aisle by aisle; the kitchen
+/// basics the recipes take a little of — oil, salt, spices — stand at the
+/// end without one, to check at home. A planned meal that has no recipe
+/// yet cannot be on the list, and the view says so and offers to have it
+/// written.
 class ShoppingView extends ConsumerStatefulWidget {
   const ShoppingView({super.key});
 
@@ -42,12 +51,39 @@ class _ShoppingViewState extends ConsumerState<ShoppingView> {
     }
   }
 
+  /// Has the recipes of [meals] written and, when a list is open, puts on
+  /// it what they add: the list was waiting for exactly that.
+  Future<void> _writeRecipes(
+      List<(PlanEntry, Recipe)> meals, {required bool topUp}) async {
+    final AppLocalizations l10n = context.l10n;
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final int written = await showWriteRecipesSheet(context, meals);
+    if (written == 0 || !mounted) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(l10n.writeRecipesDone(written))));
+    if (!topUp) return;
+    await _run(() async {
+      final ListFromPlan made =
+          await ref.read(householdActionsProvider).listFromPlan();
+      if (mounted) setState(() => _selected = made.list.id);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = context.l10n;
     ref.watch(sharedTargetsSyncProvider);
     final AsyncValue<List<ShoppingListInfo>> lists = ref.watch(openListsProvider);
     final Household? household = ref.watch(householdProvider).valueOrNull;
+    // Only dishes with a name can have their recipe written.
+    final List<(PlanEntry, Recipe)> unwritten = <(PlanEntry, Recipe)>[
+      for (final (PlanEntry entry, Recipe? recipe)
+          in ref.watch(mealsWithoutRecipeProvider).valueOrNull ??
+              const <(PlanEntry, Recipe?)>[])
+        if (recipe != null) (entry, recipe),
+    ];
+    final bool canWrite = ref.watch(mealPlannerProvider).valueOrNull != null;
 
     // Every realtime tick reloads the lists; the old ones stay on screen
     // meanwhile, so the scroll position and the typed line survive it.
@@ -118,6 +154,48 @@ class _ShoppingViewState extends ConsumerState<ShoppingView> {
                 ),
               ],
             ),
+            const SizedBox(height: AppSpacing.sm),
+            FunkiAskButton(
+              key: const Key('shop-funki'),
+              focus: FunkiFocus.shopping(DayKey.today()),
+              label: l10n.funkiHintShopping,
+              filled: true,
+            ),
+            if (unwritten.isNotEmpty) ...<Widget>[
+              const SizedBox(height: AppSpacing.sm),
+              AppCard(
+                key: const Key('shop-no-recipe'),
+                color: AppColors.surfaceHigh,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      l10n.shopNoRecipe(
+                        unwritten.length,
+                        unwritten
+                            .map(((PlanEntry, Recipe) m) => m.$2.title)
+                            .toSet()
+                            .join(', '),
+                      ),
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    if (canWrite)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton.icon(
+                          key: const Key('shop-write-recipes'),
+                          onPressed: _working
+                              ? null
+                              : () => _writeRecipes(unwritten,
+                                  topUp: open.isNotEmpty),
+                          icon: const Icon(Icons.auto_awesome, size: 18),
+                          label: Text(l10n.shopWriteRecipes),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
             if (open.length > 1) ...<Widget>[
               const SizedBox(height: AppSpacing.sm),
               Wrap(
@@ -405,6 +483,17 @@ class _ListBodyState extends ConsumerState<_ListBody> {
                 style: text.labelSmall?.copyWith(
                     color: AppColors.textTertiary, letterSpacing: 1.2)),
           ),
+          // Not an aisle: what to look for at home before the trip.
+          if (aisle == ShopCategory.staples)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+              child: Text(
+                l10n.shopStaplesHint,
+                key: const Key('shop-staples-hint'),
+                style:
+                    text.bodySmall?.copyWith(color: AppColors.textSecondary),
+              ),
+            ),
           AppCard(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
             child: Column(

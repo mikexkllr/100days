@@ -68,6 +68,12 @@ String shoppingKey(String name) {
 /// added up. Things already at home ([pantry], by name) are left out. Sorted
 /// by aisle, then name. Deterministic: the same plan gives the same list on
 /// every phone of the household.
+///
+/// Kitchen basics ([Ingredient.staple]) are not added up: three teaspoons
+/// of oil across a week are not something to buy. Each is named once,
+/// without an amount, under [ShopCategory.staples] — to check at home
+/// before the trip. One that is also bought in quantity for another dish
+/// is on the list with that amount and not named again.
 List<ShoppingItem> buildShoppingList({
   required Iterable<PlanEntry> entries,
   required Map<String, Recipe> recipes,
@@ -79,6 +85,7 @@ List<ShoppingItem> buildShoppingList({
   final key = canonical ?? shoppingKey;
   final excluded = pantry.map(key).toSet();
   final lines = <(String, QtyUnit), _Line>{};
+  final basics = <String, _Line>{};
 
   for (final entry in entries) {
     if (!period.contains(entry.day)) continue;
@@ -89,6 +96,16 @@ List<ShoppingItem> buildShoppingList({
     for (final ingredient in recipe.ingredients) {
       final k = key(ingredient.name);
       if (k.isEmpty || excluded.contains(k)) continue;
+      if (ingredient.staple) {
+        basics
+            .putIfAbsent(
+                k,
+                () => _Line(ingredient.name, ShopCategory.staples,
+                    ingredient.quantity.unit))
+            .recipeIds
+            .add(recipe.id);
+        continue;
+      }
       final line = lines.putIfAbsent(
         (k, ingredient.quantity.unit),
         () => _Line(ingredient.name, ingredient.category, ingredient.quantity.unit),
@@ -106,12 +123,38 @@ List<ShoppingItem> buildShoppingList({
         quantity: Quantity(_shoppable(line.amount, line.unit), line.unit),
         recipeIds: line.recipeIds,
       ),
+    for (final MapEntry<String, _Line> basic in basics.entries)
+      if (!lines.keys.any(((String, QtyUnit) bought) => bought.$1 == basic.key))
+        ShoppingItem(
+          name: basic.value.name,
+          category: ShopCategory.staples,
+          recipeIds: basic.value.recipeIds,
+        ),
   ]..sort((ShoppingItem a, ShoppingItem b) {
       final byAisle = a.category.index.compareTo(b.category.index);
       return byAisle != 0 ? byAisle : a.name.toLowerCase().compareTo(b.name.toLowerCase());
     });
   return items;
 }
+
+/// The meals planned in [period] that no list can shop for: their recipe is
+/// only a name so far — typed in by hand, or picked from the meal ideas.
+/// In the order they are eaten. What a list made from the plan is missing,
+/// and what writing those recipes fixes.
+List<PlanEntry> mealsWithoutRecipe({
+  required Iterable<PlanEntry> entries,
+  required Map<String, Recipe> recipes,
+  required ShoppingPeriod period,
+}) =>
+    <PlanEntry>[
+      for (final entry in entries)
+        if (period.contains(entry.day) &&
+            !(recipes[entry.recipeId]?.isWritten ?? false))
+          entry,
+    ]..sort((PlanEntry a, PlanEntry b) {
+        final byDay = a.day.compareTo(b.day);
+        return byDay != 0 ? byDay : a.slot.index.compareTo(b.slot.index);
+      });
 
 /// What of [wanted] is not on a list yet that already holds [onList] — so
 /// making the list from the plan again tops it up instead of doubling it.

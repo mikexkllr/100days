@@ -12,6 +12,7 @@ import '../../state/household_providers.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
+import 'cooking_level_picker.dart';
 import 'household_load_error.dart';
 
 /// Who cooks and shops together: members, what each shares, when the
@@ -385,6 +386,9 @@ class _MyMembership extends ConsumerStatefulWidget {
 class _MyMembershipState extends ConsumerState<_MyMembership> {
   late bool _share = widget.member.shareTargets;
   bool _saving = false;
+
+  /// The level tapped and on its way to the server, shown as chosen.
+  CookingLevel? _cooking;
   late final TextEditingController _diet =
       TextEditingController(text: widget.member.diet ?? '');
   late final TextEditingController _dislikes =
@@ -412,6 +416,7 @@ class _MyMembershipState extends ConsumerState<_MyMembership> {
     final HouseholdMember was = old.member;
     final HouseholdMember now = widget.member;
     if (!_saving) _share = now.shareTargets;
+    if (_cooking == now.cooking) _cooking = null;
     _follow(_diet, was.diet ?? '', now.diet ?? '');
     _follow(_dislikes, was.dislikes.join(', '), now.dislikes.join(', '));
     _follow(_allergies, was.allergies.join(', '), now.allergies.join(', '));
@@ -443,6 +448,7 @@ class _MyMembershipState extends ConsumerState<_MyMembership> {
       diet: _diet.text.trim(),
       dislikes: _split(_dislikes.text),
       allergies: _split(_allergies.text),
+      cooking: _cooking ?? widget.member.cooking,
     ).withTargets(
       share: share && plan != null,
       kcal: plan?.kcal,
@@ -468,6 +474,20 @@ class _MyMembershipState extends ConsumerState<_MyMembership> {
     setState(() => _saving = true);
     await _store(share: _share);
     if (mounted) setState(() => _saving = false);
+  }
+
+  /// A chip saves when tapped, like the switch.
+  Future<void> _chooseCooking(CookingLevel level) async {
+    setState(() {
+      _cooking = level;
+      _saving = true;
+    });
+    final bool ok = await _store(share: _share);
+    if (!mounted) return;
+    setState(() {
+      _saving = false;
+      if (!ok) _cooking = null;
+    });
   }
 
   @override
@@ -509,6 +529,16 @@ class _MyMembershipState extends ConsumerState<_MyMembership> {
             key: const Key('household-save-me'),
             onPressed: _dirty && !_saving ? _saveText : null,
             child: Text(l10n.actionSave),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          // What a plan or a recipe this member asks for starts from.
+          Text(l10n.householdCooking,
+              style: Theme.of(context).textTheme.titleSmall),
+          CookingLevelPicker(
+            key: const Key('household-cooking'),
+            title: false,
+            level: _cooking ?? widget.member.cooking ?? CookingLevel.everyday,
+            onChanged: _saving ? null : _chooseCooking,
           ),
         ],
       ),

@@ -426,7 +426,13 @@ class _SlotRow extends ConsumerWidget {
             ),
             if (recipe != null && recipe.minutes != null)
               Text(l10n.planMinutes(recipe.minutes!),
-                  style: text.bodySmall?.copyWith(color: AppColors.textSecondary)),
+                  style: text.bodySmall?.copyWith(color: AppColors.textSecondary))
+            // Only a name: nothing to cook from and nothing for the list.
+            // Tapped, the meal's sheet offers to have the recipe written.
+            else if (recipe != null && !recipe.isWritten)
+              Text(l10n.planNoRecipe,
+                  key: Key('no-recipe-$day-${slot.name}'),
+                  style: text.bodySmall?.copyWith(color: AppColors.textTertiary)),
             if (recipe == null && canPhoto)
               IconButton(
                 key: Key('slot-photo-$day-${slot.name}'),

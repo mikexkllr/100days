@@ -3792,9 +3792,10 @@ class AppLocalizationsDe extends AppLocalizations {
     String days,
     String people,
     String extra,
+    String rules,
     String format,
   ) {
-    return 'Du planst Hausmannskost für einen Haushalt. Plane diese Mahlzeiten (Tag: Slots, die Namen in Klammern sind nur für dich):\n$days\n\nWer isst:\n$people\n$extra\n\nEinfache, abwechslungsreiche Gerichte aus einem normalen Supermarkt. Verwende Zutaten über die Woche mehrfach, damit wenig übrig bleibt. Ein Rezept pro Mahlzeit mit Portionen für den ganzen Haushalt, Kalorien und Makros EINER Portion, Zutaten für alle Portionen in g, ml oder Stück (unit \"g\", \"ml\", \"piece\", \"tbsp\" oder \"tsp\") mit Kategorie (produce, bakery, dairy, meat, fish, pantry, frozen, drinks, other) und kurzen Schritten. Slot-Namen: breakfast, lunch, snack, dinner. Titel, Zutaten und Schritte auf Deutsch.\nAntworte nur mit JSON, in dieser Form:\n$format';
+    return 'Du planst Hausmannskost für einen Haushalt. Plane diese Mahlzeiten (Tag: Slots, die Namen in Klammern sind nur für dich):\n$days\n\nWer isst:\n$people\n$extra\n\nAbwechslungsreiche Gerichte aus einem normalen Supermarkt. Verwende Zutaten über die Woche mehrfach, damit wenig übrig bleibt. Ein Rezept pro Mahlzeit mit Portionen für den ganzen Haushalt und den Kalorien und Makros EINER Portion.\n$rules\nSlot-Namen: breakfast, lunch, snack, dinner. Titel, Zutaten und Schritte auf Deutsch.\nAntworte nur mit JSON, in dieser Form:\n$format';
   }
 
   @override
@@ -5574,9 +5575,10 @@ class AppLocalizationsDe extends AppLocalizations {
     String day,
     String people,
     String extra,
+    String rules,
     String format,
   ) {
-    return 'Du schreibst ein Rezept für Hausmannskost für einen Haushalt: $slot am $day.\n$extra\n\nWer isst:\n$people\n\nPortionen für den ganzen Haushalt, Kalorien und Makros EINER Portion, Zutaten für alle Portionen in g, ml oder Stück (unit \"g\", \"ml\", \"piece\", \"tbsp\" oder \"tsp\") mit Kategorie (produce, bakery, dairy, meat, fish, pantry, frozen, drinks, other) und kurze Schritte. Slot-Name und Datum genau so übernehmen. Titel, Zutaten und Schritte auf Deutsch.\nAntworte nur mit JSON, in dieser Form, mit genau einer Mahlzeit:\n$format';
+    return 'Du schreibst ein Rezept für Hausmannskost für einen Haushalt: $slot am $day.\n$extra\n\nWer isst:\n$people\n\nPortionen für den ganzen Haushalt und die Kalorien und Makros EINER Portion.\n$rules\nSlot-Name und Datum genau so übernehmen. Titel, Zutaten und Schritte auf Deutsch.\nAntworte nur mit JSON, in dieser Form, mit genau einer Mahlzeit:\n$format';
   }
 
   @override
@@ -5586,7 +5588,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get promptMealDraftAny =>
-      'Such ein einfaches Gericht aus, das zu dieser Mahlzeit und den Zielen passt.';
+      'Such ein Gericht aus, das zu dieser Mahlzeit, den Zielen und der Kochstufe passt.';
 
   @override
   String promptMealDraftKcal(int kcal) {
@@ -5613,7 +5615,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String promptFunki(String today, String weekday, String name, String where) {
-    return 'Du bist Funki, die kleine Flamme und der Coach in der App 100 Days. $name macht eine Challenge mit täglichen Gewohnheiten und führt vielleicht ein Ernährungstagebuch, einen Essensplan mit Einkaufsliste und einen Trainingsplan. Heute ist $today ($weekday). $where\nSchau mit den get_-Tools nach, bevor du etwas über Zahlen, den Plan oder das Tagebuch sagst; erfinde nichts. Ändere Dinge nur mit den Tools und nur, wenn $name es will; beschreib eine Änderung nie nur. Jede Änderung lässt sich in der App rückgängig machen.\nTagebuch: Sagt $name, was gegessen wurde, trag es sofort mit log_food ein — ohne Rückfrage und ohne Vorschläge; fehlende Mengen und Kalorien schätzt du selbst, realistisch, kcal und Makros für die gegessene Menge. Vorschläge nur, wenn danach gefragt wird. Hak eine Gewohnheit nur ab, wenn $name sagt, dass sie erledigt ist. Rezepte: einfach, aus einem normalen Supermarkt, Portionen für den ganzen Haushalt, Kalorien und Makros pro Portion.\nKeine medizinischen Diagnosen; bei Beschwerden zum Arzt. Antworte kurz, in ein bis drei Sätzen, auf Deutsch, per du, direkt und herzlich, ohne Kitsch.';
+    return 'Du bist Funki, die kleine Flamme und der Coach in der App 100 Days. $name macht eine Challenge mit täglichen Gewohnheiten und führt vielleicht ein Ernährungstagebuch, einen Essensplan mit Rezepten und Einkaufsliste und einen Trainingsplan. Heute ist $today ($weekday). $where\nSchau mit den get_-Tools nach, bevor du etwas über Zahlen, den Plan, die Liste oder das Training sagst; erfinde nichts. Ändere Dinge nur mit den Tools und nur, wenn $name es will; beschreib eine Änderung nie nur. Jede Änderung lässt sich in der App rückgängig machen.\nTagebuch: Sagt $name, was gegessen wurde, trag es sofort mit log_food ein — ohne Rückfrage und ohne Vorschläge; fehlende Mengen und Kalorien schätzt du selbst, realistisch, kcal und Makros für die gegessene Menge. Vorschläge nur, wenn danach gefragt wird. Hak eine Gewohnheit nur ab, wenn $name sagt, dass sie erledigt ist.\nEssensplan: Mehrere Mahlzeiten oder eine Woche planst du mit plan_week, eine einzelne mit set_meal; write_recipe schreibt das Rezept einer geplanten Mahlzeit (Zutaten und Kochanleitung), auch neu auf einer anderen Kochstufe. Kochstufe (complexity): convenience = Fertiges ist willkommen (bratfertiges Filet, Bohnen aus der Dose), everyday = Alltagsküche, scratch = von Grund auf (ganzer Fisch, getrocknete Bohnen); nennt niemand eine, gilt die von $name. Rezepte: Portionen für den ganzen Haushalt, Kalorien und Makros pro Portion, JEDE Zutat, auch Öl, Salz und Gewürze (staple: true).\nEinkaufsliste: make_list_from_plan macht sie aus den Rezepten; eine Mahlzeit ohne Rezept fehlt darauf, bis write_recipe eins geschrieben hat. Basics (Öl, Salz, Gewürze) stehen ohne Menge drauf, zum Nachschauen zuhause; was $name immer zuhause hat, merkst du dir mit set_pantry.\nTraining: Gibt es einen Trainingsplan, änderst du ihn mit den Trainings-Tools; nimm nur Übungs-IDs, die dir get_training_plan oder find_exercises genannt haben.\nKeine medizinischen Diagnosen; bei Beschwerden zum Arzt. Antworte kurz, in ein bis drei Sätzen, auf Deutsch, per du, direkt und herzlich, ohne Kitsch. Für Schritte, Zutaten oder mehrere Punkte nimm Markdown: Listen und **fett**, keine Tabellen.';
   }
 
   @override
@@ -5891,4 +5893,243 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return 'Mach die kleinste Version davon. Hauptsache, die Flamme bleibt an – $_temp0 auf dem Spiel.';
   }
+
+  @override
+  String get cookingLevelTitle => 'Aufwand';
+
+  @override
+  String get cookingConvenience => 'Bequem';
+
+  @override
+  String get cookingEveryday => 'Alltag';
+
+  @override
+  String get cookingScratch => 'Von Grund auf';
+
+  @override
+  String get cookingConvenienceHint =>
+      'Fertiges ist willkommen: bratfertiges Filet, Bohnen aus der Dose, TK-Gemüse.';
+
+  @override
+  String get cookingEverydayHint =>
+      'Frisch gekocht, mit Dosentomaten oder -bohnen, wo das üblich ist.';
+
+  @override
+  String get cookingScratchHint =>
+      'Alles selbst gemacht: ganzer Fisch, getrocknete Bohnen, Brühe und Teig von Hand.';
+
+  @override
+  String get promptCookConvenience =>
+      'Kochstufe: schnell und fertig. Fertige Teile sind willkommen — bratfertige Filets, Hülsenfrüchte aus der Dose, TK-Gemüse, vorgegarter Reis, eine Sauce aus dem Glas, eine Gewürzmischung. Wenige Zutaten und wenige Schritte.';
+
+  @override
+  String get promptCookEveryday =>
+      'Kochstufe: Alltagsküche. Frische Hauptzutaten; Dosentomaten, Hülsenfrüchte aus der Dose und Brühe aus Pulver sind in Ordnung; keine Fertigsaucen und keine Fertiggerichte.';
+
+  @override
+  String get promptCookScratch =>
+      'Kochstufe: von Grund auf. Ganze, unverarbeitete Zutaten — getrocknete Hülsenfrüchte einweichen und kochen, einen ganzen Fisch oder Fleisch am Stück selbst zerlegen, Brühe, Saucen, Teige und Gewürzmischungen selbst machen. Mehr Schritte und Technik sind willkommen, und die Schritte erklären sie.';
+
+  @override
+  String get promptRecipeRules =>
+      'Zutaten für alle Portionen in g, ml oder Stück (unit \"g\", \"ml\", \"piece\", \"tbsp\" oder \"tsp\") mit Kategorie (produce, bakery, dairy, meat, fish, pantry, frozen, drinks, other). Führe JEDE Zutat auf, die in den Schritten vorkommt, mit realistischer Menge: auch Bratfett, Salz, Pfeffer, Gewürze, Kräuter, Brühe, Essig. Markiere mit \"staple\": true, was eine Küche meist da hat und was man als Packung auf Vorrat kauft — Öl, Essig, Salz, Pfeffer, getrocknete Gewürze und Kräuter, Zucker, Mehl, Brühpulver, Sojasauce, Senf — und nie frische Lebensmittel. Die Schritte sind eine Kochanleitung in der richtigen Reihenfolge: je ein Arbeitsschritt, mit Hitze und Zeiten, sodass jemand das Gericht kochen kann, der es nicht kennt.';
+
+  @override
+  String get promptFunkiFromShopping =>
+      'Du wurdest aus der Einkaufsliste geöffnet.';
+
+  @override
+  String get promptFunkiFromTraining =>
+      'Du wurdest aus dem Trainingsplan geöffnet.';
+
+  @override
+  String get recipeBasics => 'Basics aus dem Vorrat';
+
+  @override
+  String get recipeNotWritten =>
+      'Bisher steht hier nur der Name. Lass das Rezept schreiben — Zutaten und Kochanleitung —, dann weiß auch die Einkaufsliste, was fehlt.';
+
+  @override
+  String get recipeWrite => 'Funki schreibt das Rezept';
+
+  @override
+  String get recipeRewrite => 'Rezept neu schreiben';
+
+  @override
+  String get recipeRewriteSub =>
+      'Eine andere Stufe ändert, was du einkaufst und wie du kochst.';
+
+  @override
+  String recipeWritten(String title, String level) {
+    return 'Rezept: $title · $level';
+  }
+
+  @override
+  String get recipeWriteFailed =>
+      'Funki hat kein Rezept hinbekommen, das aufgeht. Versuch es noch einmal.';
+
+  @override
+  String get planNoRecipe => 'noch kein Rezept';
+
+  @override
+  String get shopStaples => 'Basics';
+
+  @override
+  String get shopStaplesHint =>
+      'Öl, Salz, Gewürze: schau zuhause nach, ob noch genug da ist, und wisch weg, was du hast.';
+
+  @override
+  String shopNoRecipe(int count, String titles) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count geplante Gerichte haben noch kein Rezept und fehlen auf der Liste: $titles',
+      one:
+          'Ein geplantes Gericht hat noch kein Rezept und fehlt auf der Liste: $titles',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get shopWriteRecipes => 'Rezepte schreiben';
+
+  @override
+  String get writeRecipesTitle => 'Rezepte für die Liste';
+
+  @override
+  String get writeRecipesBody =>
+      'Funki schreibt Zutaten und Kochanleitung für diese Gerichte. Danach hat die Liste aus dem Plan alles.';
+
+  @override
+  String writeRecipesGo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Rezepte schreiben',
+      one: 'Rezept schreiben',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String writeRecipesProgress(int done, int total) {
+    return 'Rezept $done von $total …';
+  }
+
+  @override
+  String writeRecipesDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Rezepte geschrieben',
+      one: '1 Rezept geschrieben',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get householdCooking => 'So kochst du am liebsten';
+
+  @override
+  String get funkiIntroShopping =>
+      'Sag mir, was auf die Liste soll oder runter kann — „Reis haben wir noch“, „500 g Hack dazu“. Ich mache sie auch aus dem Plan und schreibe die Rezepte, die ihr noch fehlen.';
+
+  @override
+  String get funkiIntroTraining =>
+      'Frag mich nach deinem Training oder lass mich den Plan umbauen: eine Übung tauschen, Sätze ändern, einen Tag mehr.';
+
+  @override
+  String get funkiHintShopping => 'Was soll auf die Liste?';
+
+  @override
+  String get funkiHintTraining => 'Was soll sich am Training ändern?';
+
+  @override
+  String get funkiSuggestPlan3 => 'Plane die Woche, von Grund auf gekocht';
+
+  @override
+  String get funkiSuggestShopping1 => 'Mach die Liste aus dem Plan';
+
+  @override
+  String get funkiSuggestShopping2 => 'Öl und Salz haben wir immer zuhause';
+
+  @override
+  String get funkiSuggestTraining1 => 'Was trainiere ich heute?';
+
+  @override
+  String get funkiSuggestTraining2 =>
+      'Tausch Kniebeugen gegen etwas Knieschonendes';
+
+  @override
+  String funkiMovedMeal(String title, String day, String slot) {
+    return '$title → $day, $slot';
+  }
+
+  @override
+  String funkiTicked(String name) {
+    return 'Im Korb: $name';
+  }
+
+  @override
+  String funkiUnticked(String name) {
+    return 'Wieder offen: $name';
+  }
+
+  @override
+  String funkiPantryAdded(String names) {
+    return 'Immer zuhause: $names';
+  }
+
+  @override
+  String funkiPantryRemoved(String names) {
+    return 'Nicht mehr immer zuhause: $names';
+  }
+
+  @override
+  String get funkiTastesChanged => 'Deine Essensvorlieben geändert';
+
+  @override
+  String funkiExerciseSwapped(String session, String from, String to) {
+    return '$session: $from → $to';
+  }
+
+  @override
+  String funkiExerciseChanged(
+    String session,
+    String exercise,
+    int sets,
+    String reps,
+  ) {
+    return '$session: $exercise · $sets × $reps';
+  }
+
+  @override
+  String funkiExerciseAdded(String session, String exercise) {
+    return '$session: + $exercise';
+  }
+
+  @override
+  String funkiExerciseRemoved(String session, String exercise) {
+    return '$session: − $exercise';
+  }
+
+  @override
+  String funkiTrainingDays(String split, int days) {
+    return 'Training: $split, $days× pro Woche';
+  }
+
+  @override
+  String funkiPlannedWeek(int count, String level) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Mahlzeiten geplant',
+      one: 'Eine Mahlzeit geplant',
+    );
+    return '$_temp0 · $level';
+  }
+
+  @override
+  String get qtyPinch => '1 Prise';
 }

@@ -197,7 +197,7 @@ void main() {
           'fat': 18,
           'ingredients': <Map<String, dynamic>>[
             <String, dynamic>{'name': 'Reis', 'qty': 0.15, 'unit': 'kg', 'category': 'pantry'},
-            <String, dynamic>{'name': 'Liebe', 'qty': 1, 'unit': 'Prise'},
+            <String, dynamic>{'name': 'Liebe', 'qty': 1, 'unit': 'Hauch'},
           ],
           'steps': <String>['Kochen.'],
         };
@@ -432,7 +432,7 @@ void main() {
     test('without a name it picks something for the meal', () async {
       final llm = _Llm(jsonEncode(answer(700)));
       await MealPlanner(llm: llm).draftMeal(request(title: ' '));
-      expect(llm.lastPrompt, contains('Pick a simple dish'));
+      expect(llm.lastPrompt, contains('Pick a dish'));
     });
   });
 

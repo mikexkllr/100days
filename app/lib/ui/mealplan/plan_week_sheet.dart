@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
@@ -6,9 +8,11 @@ import '../../data/household_backend.dart';
 import '../../l10n/l10n.dart';
 import '../../state/household_providers.dart';
 import '../../theme/theme.dart';
+import 'cooking_level_picker.dart';
 
-/// "Plan the week": which days and meals, any wishes — then a draft from the
-/// model that the user takes as a whole, or meal by meal.
+/// "Plan the week": which days and meals, how much is made at home, any
+/// wishes — then a draft from the model, each meal a full recipe, that the
+/// user takes as a whole or meal by meal.
 Future<void> showPlanWeekSheet(
   BuildContext context,
   WidgetRef ref,
@@ -19,7 +23,9 @@ Future<void> showPlanWeekSheet(
       isScrollControlled: true,
       builder: (BuildContext context) => DraggableScrollableSheet(
         expand: false,
-        initialChildSize: 0.85,
+        // Tall from the start: the form is long, and the button that
+        // starts it all should not sit below the fold.
+        initialChildSize: 0.92,
         maxChildSize: 0.95,
         builder: (BuildContext context, ScrollController scroll) =>
             _PlanWeekSheet(weekStart: weekStart, scroll: scroll),
@@ -45,6 +51,10 @@ class _PlanWeekSheetState extends ConsumerState<_PlanWeekSheet> {
   };
   final Set<MealSlotKind> _slots = <MealSlotKind>{MealSlotKind.dinner};
   int? _maxMinutes = 30;
+
+  /// Starts from how the user likes to cook; what they pick here is
+  /// remembered as that.
+  late CookingLevel _level = ref.read(myCookingLevelProvider);
   bool _working = false;
   bool _saving = false;
 
@@ -53,6 +63,18 @@ class _PlanWeekSheetState extends ConsumerState<_PlanWeekSheet> {
   String? _problem;
   List<ProposedMeal>? _proposal;
   final Set<int> _rejected = <int>{};
+
+  /// Where the answer starts — the draft, or why there is none. The form
+  /// above it fills a phone's screen, so the sheet scrolls here when the
+  /// answer comes; it would otherwise arrive unseen below the fold.
+  final GlobalKey _answer = GlobalKey();
+
+  void _showAnswer() => WidgetsBinding.instance.addPostFrameCallback((_) {
+        final BuildContext? answer = _answer.currentContext;
+        if (answer == null || !answer.mounted) return;
+        Scrollable.ensureVisible(answer,
+            duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+      });
 
   @override
   void dispose() {
@@ -108,6 +130,7 @@ class _PlanWeekSheetState extends ConsumerState<_PlanWeekSheet> {
       final MealPlanner? planner = await ref.read(mealPlannerProvider.future);
       if (planner == null) return;
       final Household household = await ref.read(householdProvider.future);
+      unawaited(ref.read(householdActionsProvider).rememberCooking(_level));
       final List<DayKey> days = _days.toList()..sort();
       final List<MealSlotKind> slots =
           MealSlotKind.values.where(_slots.contains).toList();
@@ -123,6 +146,7 @@ class _PlanWeekSheetState extends ConsumerState<_PlanWeekSheet> {
           people: household.members.map((HouseholdMember m) => m.toPlanFor()).toList(),
           wish: _wish.text,
           maxMinutes: _maxMinutes,
+          level: _level,
           avoidTitles: <String>[...lastDraft, ...dishes.recent],
           plannedTitles: dishes.planned,
         ),
@@ -141,7 +165,10 @@ class _PlanWeekSheetState extends ConsumerState<_PlanWeekSheet> {
       // The household itself could not be read: offline.
       if (mounted) setState(() => _problem = l10n.aiUnreachable);
     } finally {
-      if (mounted) setState(() => _working = false);
+      if (mounted) {
+        setState(() => _working = false);
+        _showAnswer();
+      }
     }
   }
 
@@ -161,7 +188,10 @@ class _PlanWeekSheetState extends ConsumerState<_PlanWeekSheet> {
     try {
       await ref.read(householdActionsProvider).acceptProposal(chosen);
     } on Object {
-      if (mounted) setState(() => _problem = l10n.planSaveFailed);
+      if (mounted) {
+        setState(() => _problem = l10n.planSaveFailed);
+        _showAnswer();
+      }
       return;
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -232,6 +262,13 @@ class _PlanWeekSheetState extends ConsumerState<_PlanWeekSheet> {
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
+        CookingLevelPicker(
+          level: _level,
+          onChanged: _working || _saving
+              ? null
+              : (CookingLevel level) => setState(() => _level = level),
+        ),
+        const SizedBox(height: AppSpacing.sm),
         TextField(
           key: const Key('plan-wish'),
           controller: _wish,
@@ -254,6 +291,7 @@ class _PlanWeekSheetState extends ConsumerState<_PlanWeekSheet> {
           icon: const Icon(Icons.auto_awesome, size: 18),
           label: Text(proposal == null ? l10n.planWeekPropose : l10n.planWeekAgain),
         ),
+        SizedBox(key: _answer, height: 0),
         if (_working) ...<Widget>[
           const SizedBox(height: AppSpacing.lg),
           const Center(child: CircularProgressIndicator()),

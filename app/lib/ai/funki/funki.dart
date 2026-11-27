@@ -8,7 +8,7 @@ import '../dartantic_llm_client.dart';
 
 /// Where Funki was opened from — what he looks at first, and which day or
 /// week "today" and "this week" mean in what the user types.
-enum FunkiPlace { home, diary, mealPlan }
+enum FunkiPlace { home, diary, mealPlan, shopping, training }
 
 /// What a conversation with Funki is about.
 @immutable
@@ -27,6 +27,12 @@ class FunkiFocus {
         day: today ?? DayKey.today(),
         weekStart: weekStart,
       );
+
+  factory FunkiFocus.shopping(DayKey today) => FunkiFocus(
+      place: FunkiPlace.shopping, day: today, weekStart: today.weekStart);
+
+  factory FunkiFocus.training(DayKey today) => FunkiFocus(
+      place: FunkiPlace.training, day: today, weekStart: today.weekStart);
 
   final FunkiPlace place;
 
@@ -86,7 +92,9 @@ abstract class FunkiBrain {
 
 /// The brain on the app's model: through the gateway, or the user's key.
 class DartanticFunkiBrain implements FunkiBrain {
-  DartanticFunkiBrain(this.llm, {this.timeout = const Duration(seconds: 120)});
+  /// Long enough for a tool that asks the model itself: a week planned
+  /// from the chat is several full recipes written before the answer.
+  DartanticFunkiBrain(this.llm, {this.timeout = const Duration(minutes: 4)});
 
   final DartanticLlmClient llm;
   final Duration timeout;

@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hundred_core/hundred_core.dart';
 
+import '../../ai/funki/funki.dart';
 import '../../data/app_repository.dart';
 import '../../l10n/l10n.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
+import '../funki/funki_widgets.dart';
 import '../mealplan/shopping_view.dart';
 import '../mealplan/week_plan_view.dart';
 import '../nutrition/nutrition_goals_screen.dart';
@@ -299,6 +301,14 @@ class _TrainingTab extends StatelessWidget {
                     ),
                     icon: const Icon(Icons.edit, size: 18),
                     label: Text(l10n.planEditTraining),
+                  ),
+                  // Or said to Funki: "swap the squats", "one day more".
+                  const SizedBox(height: AppSpacing.sm),
+                  FunkiAskButton(
+                    key: const Key('training-funki'),
+                    focus: FunkiFocus.training(today),
+                    label: l10n.funkiHintTraining,
+                    filled: true,
                   ),
                 ],
               ),

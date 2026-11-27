@@ -18,9 +18,31 @@ extension MealPlanL10n on AppLocalizations {
         ShopCategory.drinks => shopDrinks,
         ShopCategory.household => shopHousehold,
         ShopCategory.other => shopOther,
+        ShopCategory.staples => shopStaples,
       };
 
-  /// "380 g", "1,5 l", "3 Stk.", "2 EL".
+  /// "Quick & ready", "Everyday", "From scratch".
+  String cookingLevelName(CookingLevel level) => switch (level) {
+        CookingLevel.convenience => cookingConvenience,
+        CookingLevel.everyday => cookingEveryday,
+        CookingLevel.scratch => cookingScratch,
+      };
+
+  /// One line on what a level means for the shopping and the cooking.
+  String cookingLevelHint(CookingLevel level) => switch (level) {
+        CookingLevel.convenience => cookingConvenienceHint,
+        CookingLevel.everyday => cookingEverydayHint,
+        CookingLevel.scratch => cookingScratchHint,
+      };
+
+  /// What the model is told about a level.
+  String promptCookingLevel(CookingLevel level) => switch (level) {
+        CookingLevel.convenience => promptCookConvenience,
+        CookingLevel.everyday => promptCookEveryday,
+        CookingLevel.scratch => promptCookScratch,
+      };
+
+  /// "380 g", "1,5 l", "3 Stk.", "2 EL", "1 Prise".
   String quantityLabel(Quantity q) {
     final NumberFormat number = NumberFormat.decimalPattern(localeName)
       ..maximumFractionDigits = 1;
@@ -31,6 +53,8 @@ extension MealPlanL10n on AppLocalizations {
       QtyUnit.ml => '${number.format(q.amount)} ml',
       QtyUnit.piece => qtyPieces(number.format(q.amount)),
       QtyUnit.tbsp => qtyTbsp(number.format(q.amount)),
+      // "0,3 TL Pfeffer" is not how anyone measures pepper.
+      QtyUnit.tsp when q.amount < 0.4 => qtyPinch,
       QtyUnit.tsp => qtyTsp(number.format(q.amount)),
     };
   }
@@ -80,8 +104,15 @@ class LocalizedMealPlanPrompts implements MealPlanPromptBuilder {
         l10n.promptPlanAlreadyPlanned(request.plannedTitles.join(', ')),
       if (request.avoidTitles.isNotEmpty)
         l10n.promptPlanAvoid(request.avoidTitles.join(', ')),
+      l10n.promptCookingLevel(request.level),
     ];
-    return l10n.promptMealPlan(days, people, extra.join('\n'), kMealPlanJson);
+    return l10n.promptMealPlan(
+      days,
+      people,
+      extra.join('\n'),
+      l10n.promptRecipeRules,
+      kMealPlanJson,
+    );
   }
 
   @override
@@ -94,12 +125,14 @@ class LocalizedMealPlanPrompts implements MealPlanPromptBuilder {
       if (request.kcalPerServing != null)
         l10n.promptMealDraftKcal(request.kcalPerServing!),
       if (request.maxMinutes != null) l10n.promptPlanMinutes(request.maxMinutes!),
+      l10n.promptCookingLevel(request.level),
     ];
     return l10n.promptMealDraft(
       '${request.slot.name} (${l10n.mealName(request.slot)})',
       '${request.day} (${l10n.weekdayShort(request.day.toDateTime().weekday)})',
       request.people.map(_person).join('\n'),
       extra.join('\n'),
+      l10n.promptRecipeRules,
       kMealPlanJson,
     );
   }

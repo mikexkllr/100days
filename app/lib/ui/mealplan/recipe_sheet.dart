@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,11 +15,16 @@ import '../funki/funki_widgets.dart';
 import '../nutrition/add_food_screen.dart';
 import '../nutrition/food_compose.dart';
 import '../widgets/app_card.dart';
+import 'cooking_level_picker.dart';
 import 'household_load_error.dart';
 
-/// A planned meal: what is in it, who eats how much, and — for someone who
-/// keeps a diary — "eaten as planned", one tap into it with their own
-/// portion. The diary offers the same tap next to the meal.
+/// A planned meal: its recipe — what is in it and how it is cooked — who
+/// eats how much, and, for someone who keeps a diary, "eaten as planned",
+/// one tap into it with their own portion. The diary offers the same tap
+/// next to the meal.
+///
+/// The recipe can be written from here: for the first time, when the meal
+/// is only a name, or again at another cooking level.
 Future<void> showRecipeSheet(
   BuildContext context,
   WidgetRef ref,
@@ -56,6 +63,34 @@ class _RecipeSheetState extends ConsumerState<_RecipeSheet> {
   /// and pop the screen under the sheet.
   bool _busy = false;
 
+  /// While Funki writes the recipe, and why he could not if he could not.
+  bool _writing = false;
+  String? _writeProblem;
+
+  /// What was written from this sheet last, for as long as it can be taken
+  /// back. Shown in the sheet: it stays open over the recipe, and a
+  /// snackbar would come up behind it.
+  RecipeRewrite? _written;
+
+  /// The level a recipe is written at from here: the one it has, or how
+  /// the user likes to cook.
+  late CookingLevel _level =
+      widget.recipe.level ?? ref.read(myCookingLevelProvider);
+
+  /// The meal as it is now: written again, the recipe under this sheet is
+  /// a new one, and the portions with it.
+  Recipe get _recipe =>
+      ref.read(recipesProvider).valueOrNull?[widget.recipe.id] ??
+      widget.recipe;
+
+  PlanEntry get _entry =>
+      ref
+          .read(weekPlanProvider(widget.entry.day.weekStart))
+          .valueOrNull
+          ?.where((PlanEntry e) => e.id == widget.entry.id)
+          .firstOrNull ??
+      widget.entry;
+
   Future<void> _guard(Future<void> Function() action) async {
     if (_busy) return;
     setState(() => _busy = true);
@@ -68,12 +103,59 @@ class _RecipeSheetState extends ConsumerState<_RecipeSheet> {
     }
   }
 
+  /// The recipe, written by Funki at the level picked: ingredients and
+  /// cooking instructions under the dish's name. The way back stands
+  /// under the button.
+  Future<void> _write(PlanEntry entry, Recipe recipe) async {
+    if (_busy || _writing) return;
+    final AppLocalizations l10n = context.l10n;
+    final HouseholdActions actions = ref.read(householdActionsProvider);
+    final CookingLevel level = _level;
+    setState(() {
+      _writing = true;
+      _writeProblem = null;
+      _written = null;
+    });
+    unawaited(actions.rememberCooking(level));
+    Object? failure;
+    RecipeRewrite? written;
+    String? problem;
+    try {
+      written = await actions.writeRecipe(entry, recipe, level,
+          onError: (Object error) => failure = error);
+      if (written == null) {
+        problem = failure != null
+            ? l10n.aiErrorMessage(failure!)
+            : l10n.recipeWriteFailed;
+      }
+    } on Object {
+      problem = l10n.householdSaveFailed;
+    }
+    if (!mounted) return;
+    setState(() {
+      _writing = false;
+      _writeProblem = problem;
+      _written = written;
+    });
+  }
+
+  /// The recipe as it was before [_write].
+  Future<void> _unwrite() => _guard(() async {
+        final RecipeRewrite? written = _written;
+        if (written == null) return;
+        await ref.read(householdActionsProvider).undoRewrite(written);
+        if (!mounted) return;
+        setState(() {
+          _written = null;
+          // The chips go back with it.
+          _level = written.before.level ?? _level;
+        });
+      });
+
   Future<void> _eaten() => _guard(() async {
         final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
         final String done = context.l10n.recipeLogged;
-        await ref
-            .read(householdActionsProvider)
-            .eatAsPlanned(widget.entry, widget.recipe);
+        await ref.read(householdActionsProvider).eatAsPlanned(_entry, _recipe);
         if (!mounted) return;
         Navigator.of(context).pop();
         messenger.showSnackBar(SnackBar(content: Text(done)));
@@ -84,7 +166,7 @@ class _RecipeSheetState extends ConsumerState<_RecipeSheet> {
         final AppLocalizations l10n = context.l10n;
         final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
         final HouseholdActions actions = ref.read(householdActionsProvider);
-        final PlanEntry entry = widget.entry;
+        final PlanEntry entry = _entry;
         await actions.removeEntry(entry.id);
         if (!mounted) return;
         Navigator.of(context).pop();
@@ -106,8 +188,20 @@ class _RecipeSheetState extends ConsumerState<_RecipeSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final PlanEntry entry = widget.entry;
-    final Recipe recipe = widget.recipe;
+    // Rebuilt when either changes; the getters read what is there.
+    ref.watch(recipesProvider);
+    ref.watch(weekPlanProvider(widget.entry.day.weekStart));
+    final PlanEntry entry = _entry;
+    final Recipe recipe = _recipe;
+    final List<Ingredient> toBuy = <Ingredient>[
+      for (final Ingredient i in recipe.ingredients)
+        if (!i.staple) i,
+    ];
+    final List<Ingredient> basics = <Ingredient>[
+      for (final Ingredient i in recipe.ingredients)
+        if (i.staple) i,
+    ];
+    final bool canWrite = ref.watch(mealPlannerProvider).valueOrNull != null;
     final AppLocalizations l10n = context.l10n;
     final TextTheme text = Theme.of(context).textTheme;
     final Household? household = ref.watch(householdProvider).valueOrNull;
@@ -131,7 +225,9 @@ class _RecipeSheetState extends ConsumerState<_RecipeSheet> {
         const SizedBox(height: AppSpacing.xs),
         Text(
           '${l10n.mealName(entry.slot)} · ${l10n.formatDay(entry.day)}'
-          '${recipe.minutes == null ? '' : ' · ${l10n.planMinutes(recipe.minutes!)}'}',
+          '${recipe.minutes == null ? '' : ' · ${l10n.planMinutes(recipe.minutes!)}'}'
+          '${recipe.level == null ? '' : ' · ${l10n.cookingLevelName(recipe.level!)}'}',
+          key: const Key('recipe-meta'),
           style: text.bodyMedium?.copyWith(color: AppColors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.md),
@@ -176,32 +272,131 @@ class _RecipeSheetState extends ConsumerState<_RecipeSheet> {
             ),
         ],
         const SizedBox(height: AppSpacing.lg),
-        Text(l10n.recipeIngredients(recipe.servings), style: text.titleMedium),
-        const SizedBox(height: AppSpacing.xs),
-        for (final Ingredient i in recipe.ingredients)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: Row(
-              children: <Widget>[
-                SizedBox(
-                  width: 90,
-                  child: Text(l10n.quantityLabel(i.quantity),
-                      style:
-                          text.bodyMedium?.copyWith(color: AppColors.textSecondary)),
-                ),
-                Expanded(child: Text(i.name, style: text.bodyMedium)),
-              ],
+        if (!recipe.isWritten)
+          // Typed by hand or picked from the ideas: a name, and nothing a
+          // shopping list could know.
+          Text(
+            canWrite
+                ? l10n.recipeNotWritten
+                : '${l10n.recipeNotWritten} ${l10n.planNeedsAi}',
+            key: const Key('recipe-not-written'),
+            style: text.bodyMedium?.copyWith(color: AppColors.textSecondary),
+          )
+        else ...<Widget>[
+          Text(l10n.recipeIngredients(recipe.servings),
+              style: text.titleMedium),
+          const SizedBox(height: AppSpacing.xs),
+          for (final Ingredient i in toBuy) _IngredientRow(i),
+          if (basics.isNotEmpty) ...<Widget>[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.recipeBasics.toUpperCase(),
+              key: const Key('recipe-basics'),
+              style: text.labelSmall?.copyWith(
+                  color: AppColors.textTertiary, letterSpacing: 1.2),
             ),
-          ),
+            const SizedBox(height: 2),
+            for (final Ingredient i in basics) _IngredientRow(i),
+          ],
+        ],
         if (recipe.steps.isNotEmpty) ...<Widget>[
           const SizedBox(height: AppSpacing.lg),
           Text(l10n.recipeSteps, style: text.titleMedium),
           const SizedBox(height: AppSpacing.xs),
           for (int n = 0; n < recipe.steps.length; n++)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3),
-              child: Text('${n + 1}. ${recipe.steps[n]}', style: text.bodyMedium),
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  SizedBox(
+                    width: 26,
+                    child: Text('${n + 1}.',
+                        style: text.bodyMedium
+                            ?.copyWith(color: AppColors.textTertiary)),
+                  ),
+                  Expanded(
+                      child: Text(recipe.steps[n], style: text.bodyMedium)),
+                ],
+              ),
             ),
+        ],
+        if (canWrite) ...<Widget>[
+          const SizedBox(height: AppSpacing.lg),
+          AppCard(
+            color: AppColors.surfaceHigh,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                if (recipe.isWritten) ...<Widget>[
+                  Text(l10n.recipeRewrite, style: text.titleSmall),
+                  Text(
+                    l10n.recipeRewriteSub,
+                    style: text.bodySmall
+                        ?.copyWith(color: AppColors.textTertiary),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                ],
+                CookingLevelPicker(
+                  level: _level,
+                  // The heading above says what the chips are for.
+                  title: !recipe.isWritten,
+                  onChanged: _writing
+                      ? null
+                      : (CookingLevel level) =>
+                          setState(() => _level = level),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                FilledButton.icon(
+                  key: const Key('recipe-write'),
+                  onPressed:
+                      _busy || _writing ? null : () => _write(entry, recipe),
+                  icon: _writing
+                      ? const FunkiThinking(color: AppColors.onPrimary)
+                      : const FunkiAvatar(size: 26),
+                  label: Text(_writing
+                      ? l10n.addMealFunkiWorking
+                      : recipe.isWritten
+                          ? l10n.recipeRewrite
+                          : l10n.recipeWrite),
+                ),
+                if (_writeProblem != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.sm),
+                    child: Text(
+                      _writeProblem!,
+                      key: const Key('recipe-write-problem'),
+                      textAlign: TextAlign.center,
+                      style:
+                          text.bodySmall?.copyWith(color: AppColors.danger),
+                    ),
+                  ),
+                if (_written case final RecipeRewrite written)
+                  Row(
+                    children: <Widget>[
+                      const Icon(Icons.check_circle_outline,
+                          size: 18, color: AppColors.success),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          l10n.recipeWritten(
+                            written.now.title,
+                            l10n.cookingLevelName(
+                                written.now.level ?? _level),
+                          ),
+                          style: text.bodySmall,
+                        ),
+                      ),
+                      TextButton(
+                        key: const Key('recipe-undo'),
+                        onPressed: _busy || _writing ? null : _unwrite,
+                        child: Text(l10n.actionUndo),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
         ],
         const SizedBox(height: AppSpacing.lg),
         Text(
@@ -226,6 +421,32 @@ class _RecipeSheetState extends ConsumerState<_RecipeSheet> {
   }
 }
 
+/// One line of a recipe: the amount, then what.
+class _IngredientRow extends StatelessWidget {
+  const _IngredientRow(this.ingredient);
+
+  final Ingredient ingredient;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: <Widget>[
+          SizedBox(
+            width: 90,
+            child: Text(context.l10n.quantityLabel(ingredient.quantity),
+                style:
+                    text.bodyMedium?.copyWith(color: AppColors.textSecondary)),
+          ),
+          Expanded(child: Text(ingredient.name, style: text.bodyMedium)),
+        ],
+      ),
+    );
+  }
+}
+
 /// A meal for a slot — eaten or planned, and the sheet asks which only
 /// when both can be.
 ///
@@ -235,8 +456,9 @@ class _RecipeSheetState extends ConsumerState<_RecipeSheet> {
 /// of the plate does the same.
 ///
 /// Planned ("what's for dinner?"): a name and, if known, the calories of a
-/// portion — Funki writes the full recipe of it, with ingredients for the
-/// list — or one of the app's meal ideas in a tap.
+/// portion — Funki writes the full recipe of it at the cooking level
+/// picked, with ingredients for the list and steps to cook from — or one
+/// of the app's meal ideas in a tap.
 ///
 /// Either way the entry can be saved as typed, without Funki.
 Future<void> showAddMealSheet(
@@ -268,6 +490,7 @@ Future<void> showAddMealSheet(
   final NavigatorState navigator = Navigator.of(context);
   final AppLocalizations l10n = context.l10n;
   final Locale locale = Localizations.localeOf(context);
+  final CookingLevel myLevel = ref.read(myCookingLevelProvider);
   final MealPlanner? planner =
       await ref.read(mealPlannerProvider.future).catchError((Object _) => null);
   final NutritionAssistant? assistant = await ref
@@ -290,6 +513,7 @@ Future<void> showAddMealSheet(
       slot: slot,
       ideas: ideas,
       canLogEaten: canLogEaten,
+      level: myLevel,
       funkiEstimates: assistant != null,
       composeEaten: (String text, double? kcal) async {
         final ComposedFood food = await composeFood(text,
@@ -306,8 +530,9 @@ Future<void> showAddMealSheet(
       },
       askFunki: planner == null
           ? null
-          : (String title, int? kcal) async {
+          : (String title, int? kcal, CookingLevel level) async {
               Object? failure;
+              unawaited(actions.rememberCooking(level));
               final ProposedMeal? meal = await planner.draftMeal(
                 MealDraftRequest(
                   day: day,
@@ -315,6 +540,7 @@ Future<void> showAddMealSheet(
                   people: people,
                   title: title,
                   kcalPerServing: kcal,
+                  level: level,
                 ),
                 onError: (Object error) => failure = error,
               );
@@ -373,9 +599,10 @@ class _EatenMeal {
   final List<ComposedItem> items;
 }
 
-/// Funki's recipe for a name and calories — or why there is none.
+/// Funki's recipe for a name and calories at a cooking level — or why
+/// there is none.
 typedef FunkiRecipe = Future<({Recipe? recipe, String? problem})> Function(
-    String title, int? kcal);
+    String title, int? kcal, CookingLevel level);
 
 /// Diary lines for a description and, if known, its calories — or why
 /// there are none.
@@ -391,6 +618,7 @@ class _AddMealSheet extends StatefulWidget {
     required this.canLogEaten,
     required this.composeEaten,
     required this.funkiEstimates,
+    this.level = CookingLevel.everyday,
     this.askFunki,
   });
 
@@ -408,6 +636,9 @@ class _AddMealSheet extends StatefulWidget {
 
   /// Whether Funki can estimate what the food table does not know.
   final bool funkiEstimates;
+
+  /// How the user likes to cook: where the level chips start.
+  final CookingLevel level;
 
   /// Null without a reachable model: planned meals are saved as typed.
   final FunkiRecipe? askFunki;
@@ -437,6 +668,9 @@ class _AddMealSheetState extends State<_AddMealSheet> {
   /// While Funki works, and what went wrong if he could not.
   bool _asking = false;
   String? _funkiProblem;
+
+  /// How much of the planned dish is made at home.
+  late CookingLevel _level = widget.level;
 
   /// Whether Funki has a part in what the main button does.
   bool get _withFunki =>
@@ -550,6 +784,7 @@ class _AddMealSheetState extends State<_AddMealSheet> {
     final ({Recipe? recipe, String? problem}) answer = await widget.askFunki!(
       _title.text.trim(),
       _typedKcal?.round(),
+      _level,
     );
     if (!mounted) return;
     if (answer.recipe != null) {
@@ -657,6 +892,18 @@ class _AddMealSheetState extends State<_AddMealSheet> {
                             _kcalMissing ? l10n.addMealKcalMissing : null,
                       ),
                     ),
+                    // A recipe Funki writes is written at a level; what was
+                    // eaten, or is saved as typed, has none.
+                    if (!_eaten && widget.askFunki != null) ...<Widget>[
+                      const SizedBox(height: AppSpacing.md),
+                      CookingLevelPicker(
+                        level: _level,
+                        onChanged: _asking
+                            ? null
+                            : (CookingLevel level) =>
+                                setState(() => _level = level),
+                      ),
+                    ],
                     // Ideas are for planning; what was eaten is not up for
                     // suggestions.
                     if (!_eaten && widget.ideas.isNotEmpty) ...<Widget>[

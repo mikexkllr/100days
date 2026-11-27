@@ -16,6 +16,7 @@ class HouseholdMember {
     this.diet,
     this.dislikes = const <String>[],
     this.allergies = const <String>[],
+    this.cooking,
   });
 
   final String userId;
@@ -32,6 +33,10 @@ class HouseholdMember {
   final List<String> dislikes;
   final List<String> allergies;
 
+  /// How much this member likes to make at home — what a plan or a recipe
+  /// they ask for starts from. Null until they have picked one.
+  final CookingLevel? cooking;
+
   /// This member with [kcal] and [protein] as the shared targets.
   HouseholdMember withTargets({required bool share, int? kcal, int? protein}) =>
       HouseholdMember(
@@ -45,6 +50,28 @@ class HouseholdMember {
         diet: diet,
         dislikes: dislikes,
         allergies: allergies,
+        cooking: cooking,
+      );
+
+  /// This member with other tastes; what is left out stays.
+  HouseholdMember withTastes({
+    String? diet,
+    List<String>? dislikes,
+    List<String>? allergies,
+    CookingLevel? cooking,
+  }) =>
+      HouseholdMember(
+        userId: userId,
+        displayName: displayName,
+        emoji: emoji,
+        owner: owner,
+        shareTargets: shareTargets,
+        kcalTarget: kcalTarget,
+        proteinG: proteinG,
+        diet: diet ?? this.diet,
+        dislikes: dislikes ?? this.dislikes,
+        allergies: allergies ?? this.allergies,
+        cooking: cooking ?? this.cooking,
       );
 
   PlanFor toPlanFor() => PlanFor(
@@ -60,6 +87,7 @@ class HouseholdMember {
         if (diet != null && diet!.isNotEmpty) 'diet': diet,
         'dislikes': dislikes,
         'allergies': allergies,
+        if (cooking != null) 'cooking': cooking!.name,
       };
 }
 
@@ -343,6 +371,7 @@ class SupabaseHouseholdBackend implements HouseholdBackend {
       diet: prefs['diet'] as String?,
       dislikes: strings(prefs['dislikes']),
       allergies: strings(prefs['allergies']),
+      cooking: CookingLevel.values.asNameMap()[prefs['cooking']],
     );
   }
 
@@ -788,6 +817,7 @@ class MemoryHouseholdBackend implements HouseholdBackend {
               diet: me.diet,
               dislikes: me.dislikes,
               allergies: me.allergies,
+              cooking: me.cooking,
             )
           else
             m,

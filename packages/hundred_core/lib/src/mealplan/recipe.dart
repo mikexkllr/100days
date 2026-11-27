@@ -20,6 +20,30 @@ enum ShopCategory {
   drinks,
   household,
   other,
+
+  /// Not an aisle: kitchen basics a recipe takes a little of — oil, salt,
+  /// spices — which a list names to check at home rather than to buy
+  /// outright. Last, so the aisles before it keep their order.
+  staples,
+}
+
+/// How much of a dish is made at home and how much is bought ready.
+///
+/// The same dinner is three different shopping trips: a ready-to-cook
+/// salmon fillet with beans from a can, the fillet with fresh sides — or a
+/// side of wild salmon to portion and dried beans soaked overnight. Chosen
+/// when a plan or a recipe is written, and kept on the recipe.
+enum CookingLevel {
+  /// Ready-made parts welcome: canned, frozen, pre-cooked, ready to cook.
+  convenience,
+
+  /// Home cooking as most households do it: fresh main ingredients, a can
+  /// of tomatoes or beans where that is usual.
+  everyday,
+
+  /// From whole, raw ingredients: dried pulses, whole fish, stock and dough
+  /// made at home.
+  scratch,
 }
 
 /// A quantity in one of [QtyUnit]s.
@@ -66,6 +90,16 @@ class Quantity {
       case 'teelöffel':
       case 'teaspoon':
         return Quantity(value, QtyUnit.tsp);
+      // "A pinch of salt" is still salt: a quarter teaspoon, so it stays in
+      // the recipe instead of being dropped for its unit.
+      case 'prise':
+      case 'prisen':
+      case 'pinch':
+      case 'pinches':
+      case 'msp':
+      case 'messerspitze':
+      case 'dash':
+        return Quantity(value * 0.25, QtyUnit.tsp);
       case '':
       case 'stk':
       case 'stück':
@@ -116,6 +150,7 @@ class Ingredient {
     required this.name,
     required this.quantity,
     this.category = ShopCategory.other,
+    this.staple = false,
   });
 
   factory Ingredient.fromJson(Map<String, dynamic> json) => Ingredient(
@@ -126,17 +161,28 @@ class Ingredient {
         ),
         category: ShopCategory.values.asNameMap()[json['category'] as String?] ??
             ShopCategory.other,
+        staple: json['staple'] == true,
       );
 
   final String name;
   final Quantity quantity;
+
+  /// The aisle it is bought in — also for a [staple], which a list files
+  /// under [ShopCategory.staples] instead.
   final ShopCategory category;
+
+  /// A kitchen basic: the recipe takes a little, the shop sells a pack
+  /// that lasts for months, and most kitchens have one — oil, salt, dried
+  /// spices. The recipe still says how much; the shopping list only asks
+  /// whether it is there.
+  final bool staple;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'name': name,
         'qty': _round(quantity.amount),
         'unit': quantity.unit.name,
         'category': category.name,
+        if (staple) 'staple': true,
       };
 }
 
@@ -152,27 +198,45 @@ class Recipe {
     this.minutes,
     this.steps = const <String>[],
     this.tags = const <String>[],
+    this.level,
   });
 
-  factory Recipe.fromJson(Map<String, dynamic> json) => Recipe(
-        id: json['id'] as String,
-        title: json['title'] as String? ?? '',
-        servings: (json['servings'] as num?)?.toInt() ?? 1,
-        ingredients: <Ingredient>[
-          for (final Object? i in (json['ingredients'] as List?) ?? const <Object?>[])
-            if (i is Map) Ingredient.fromJson(Map<String, dynamic>.from(i)),
-        ],
-        perServing: _nutrients(json['nutrition']),
-        minutes: (json['minutes'] as num?)?.toInt(),
-        steps: <String>[
-          for (final Object? s in (json['steps'] as List?) ?? const <Object?>[])
-            if (s is String) s,
-        ],
-        tags: <String>[
-          for (final Object? t in (json['tags'] as List?) ?? const <Object?>[])
-            if (t is String) t,
-        ],
-      );
+  factory Recipe.fromJson(Map<String, dynamic> json) {
+    final tags = <String>[
+      for (final Object? t in (json['tags'] as List?) ?? const <Object?>[])
+        if (t is String) t,
+    ];
+    CookingLevel? level;
+    for (final tag in tags) {
+      if (!tag.startsWith(_levelTag)) continue;
+      level ??= CookingLevel.values.asNameMap()[tag.substring(_levelTag.length)];
+    }
+    return Recipe(
+      id: json['id'] as String,
+      title: json['title'] as String? ?? '',
+      servings: (json['servings'] as num?)?.toInt() ?? 1,
+      ingredients: <Ingredient>[
+        for (final Object? i in (json['ingredients'] as List?) ?? const <Object?>[])
+          if (i is Map) Ingredient.fromJson(Map<String, dynamic>.from(i)),
+      ],
+      perServing: _nutrients(json['nutrition']),
+      minutes: (json['minutes'] as num?)?.toInt(),
+      steps: <String>[
+        for (final Object? s in (json['steps'] as List?) ?? const <Object?>[])
+          if (s is String) s,
+      ],
+      tags: <String>[
+        for (final tag in tags)
+          if (!tag.startsWith(_levelTag)) tag,
+      ],
+      level: level,
+    );
+  }
+
+  /// How a recipe's [level] is stored: as one of its tags. Recipes have
+  /// had tags from the start, so a backend from before levels keeps one
+  /// without a change to its tables, and an older app reads past it.
+  static const String _levelTag = 'level:';
 
   final String id;
   final String title;
@@ -184,8 +248,33 @@ class Recipe {
   /// Energy and macros of one portion.
   final Nutrients perServing;
   final int? minutes;
+
+  /// The cooking instructions, one action each, in order.
   final List<String> steps;
   final List<String> tags;
+
+  /// The level it was written at. Null for a recipe from before levels, and
+  /// for one that is only a name.
+  final CookingLevel? level;
+
+  /// Whether there is more to it than a name: something to buy. A meal
+  /// typed in by hand, or picked from the meal ideas, has none until its
+  /// recipe is written — and until then no shopping list can know it.
+  bool get isWritten => ingredients.isNotEmpty;
+
+  /// This recipe with the content of [written] — the same dish, written
+  /// again. The id and the name stay: the plan points at them.
+  Recipe rewrittenAs(Recipe written) => Recipe(
+        id: id,
+        title: title,
+        servings: written.servings,
+        ingredients: written.ingredients,
+        perServing: written.perServing,
+        minutes: written.minutes,
+        steps: written.steps,
+        tags: tags,
+        level: written.level,
+      );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'id': id,
@@ -202,7 +291,10 @@ class Recipe {
         },
         if (minutes != null) 'minutes': minutes,
         'steps': steps,
-        'tags': tags,
+        'tags': <String>[
+          ...tags,
+          if (level != null) '$_levelTag${level!.name}',
+        ],
       };
 }
 
@@ -222,13 +314,30 @@ String recipeKey(String title) =>
     title.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
 
 /// The household's recipe called [title], if it has one.
-Recipe? recipeNamed(Iterable<Recipe> recipes, String title) {
+///
+/// With [level], the one written at that level — chili from cans and chili
+/// from dried beans are two recipes with one name — or else one that is
+/// only a name so far, which a written recipe may fill in. A recipe from
+/// before levels counts as [CookingLevel.everyday]. Without [level], a
+/// written recipe of that name before one that is only a name.
+Recipe? recipeNamed(
+  Iterable<Recipe> recipes,
+  String title, {
+  CookingLevel? level,
+}) {
   final key = recipeKey(title);
   if (key.isEmpty) return null;
+  Recipe? onlyAName;
   for (final recipe in recipes) {
-    if (recipeKey(recipe.title) == key) return recipe;
+    if (recipeKey(recipe.title) != key) continue;
+    if (!recipe.isWritten) {
+      onlyAName ??= recipe;
+    } else if (level == null ||
+        (recipe.level ?? CookingLevel.everyday) == level) {
+      return recipe;
+    }
   }
-  return null;
+  return onlyAName;
 }
 
 /// What to store when [incoming] has the name of a recipe the household
@@ -255,5 +364,34 @@ Recipe reconcileRecipe(Recipe existing, Recipe incoming) {
     minutes: incoming.minutes ?? existing.minutes,
     steps: incoming.steps.isEmpty ? existing.steps : incoming.steps,
     tags: incoming.tags.isEmpty ? existing.tags : incoming.tags,
+    level: incoming.level ?? existing.level,
   );
 }
+
+/// Whether [name] is a kitchen basic by its name alone: salt, pepper, an
+/// oil, a vinegar, a common dried spice. The model marks the basics of the
+/// recipes it writes; this catches the ones it forgets to mark, in German
+/// and English. Deliberately short — "paprika" is a vegetable in one
+/// language and a spice in the other, and is not on it.
+bool isKitchenStaple(String name) {
+  final key = recipeKey(name);
+  return _stapleNames.contains(key) || _stapleEndings.any(key.endsWith);
+}
+
+const Set<String> _stapleNames = <String>{
+  'salz', 'meersalz', 'jodsalz', 'salt', 'sea salt', 'table salt',
+  'oil', 'vinegar',
+  'pfeffer', 'schwarzer pfeffer', 'pepper', 'black pepper', 'ground pepper',
+  'salz und pfeffer', 'salt and pepper',
+  'paprikapulver', 'paprika edelsüß', 'paprika powder', 'smoked paprika',
+  'kreuzkümmel', 'cumin', 'ground cumin',
+  'currypulver', 'curry powder', 'kurkuma', 'turmeric',
+  'zimt', 'cinnamon', 'muskat', 'muskatnuss', 'nutmeg',
+  'oregano', 'getrockneter oregano', 'dried oregano',
+  'chiliflocken', 'chili flakes', 'chilli flakes',
+  'lorbeerblatt', 'lorbeerblätter', 'bay leaf', 'bay leaves',
+};
+
+/// "Olivenöl", "olive oil", "Apfelessig", "white wine vinegar".
+const List<String> _stapleEndings = <String>['öl', ' oil', 'essig', ' vinegar'];
+

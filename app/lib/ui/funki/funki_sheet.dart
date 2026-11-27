@@ -100,6 +100,8 @@ class _FunkiSheetState extends ConsumerState<FunkiSheet> {
         FunkiPlace.home => l10n.funkiIntroHome,
         FunkiPlace.diary => l10n.funkiIntroDiary,
         FunkiPlace.mealPlan => l10n.plannerIntro,
+        FunkiPlace.shopping => l10n.funkiIntroShopping,
+        FunkiPlace.training => l10n.funkiIntroTraining,
       };
 
   @override

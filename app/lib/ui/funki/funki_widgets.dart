@@ -15,6 +15,7 @@ import '../mascot/flame_mascot.dart';
 import '../motion/motion.dart';
 import '../settings/ai_screen.dart' show showPaywall;
 import '../widgets/app_card.dart';
+import 'funki_markdown.dart';
 import 'funki_sheet.dart';
 
 /// Funki himself wherever he speaks: the flame the user has raised, at the
@@ -92,13 +93,23 @@ class FunkiThinking extends StatelessWidget {
 /// What Funki says, written out as he says it: the words appear one after
 /// the other, once. Where motion is reduced they are simply there.
 class FunkiSpeech extends StatefulWidget {
-  const FunkiSpeech(this.text, {super.key, this.style, this.animate = true});
+  const FunkiSpeech(
+    this.text, {
+    super.key,
+    this.style,
+    this.animate = true,
+    this.markdown = false,
+  });
 
   final String text;
   final TextStyle? style;
 
   /// False for words already read — an old message is not said again.
   final bool animate;
+
+  /// Whether [text] is Markdown, as a model's answer is: lists, bold and
+  /// the rest are drawn as such. The app's own lines are plain words.
+  final bool markdown;
 
   @override
   State<FunkiSpeech> createState() => _FunkiSpeechState();
@@ -107,6 +118,9 @@ class FunkiSpeech extends StatefulWidget {
 class _FunkiSpeechState extends State<FunkiSpeech>
     with SingleTickerProviderStateMixin {
   AnimationController? _say;
+
+  /// [FunkiSpeech.text] read as Markdown, once for as long as it stays.
+  List<MdBlock>? _blocks;
 
   @override
   void didChangeDependencies() {
@@ -117,6 +131,7 @@ class _FunkiSpeechState extends State<FunkiSpeech>
   @override
   void didUpdateWidget(FunkiSpeech old) {
     super.didUpdateWidget(old);
+    if (old.text != widget.text) _blocks = null;
     if (old.text != widget.text && widget.animate && ambientMotionOf(context)) {
       _start();
     }
@@ -142,7 +157,23 @@ class _FunkiSpeechState extends State<FunkiSpeech>
   @override
   Widget build(BuildContext context) {
     final AnimationController? say = _say;
-    if (say == null || say.isCompleted) {
+    final bool saying = say != null && !say.isCompleted;
+    if (widget.markdown) {
+      final List<MdBlock> blocks = _blocks ??= parseMarkdown(widget.text);
+      if (!saying) return FunkiMarkdown(blocks, style: widget.style);
+      // Read out as the whole answer, not as the half that is on screen.
+      return Semantics(
+        label: widget.text,
+        child: ExcludeSemantics(
+          child: FunkiMarkdown(
+            blocks,
+            style: widget.style,
+            reveal: (FunkiMarkdown.lengthOf(blocks) * say.value).floor(),
+          ),
+        ),
+      );
+    }
+    if (!saying) {
       return Text(widget.text, style: widget.style);
     }
     final int shown = (widget.text.length * say.value).floor();
@@ -315,8 +346,14 @@ class FunkiTurnView extends StatelessWidget {
           if (turn.fromUser)
             Text(turn.text, style: text.bodyMedium)
           else
-            FunkiSpeech(funkiTurnText(l10n, turn),
-                style: text.bodyMedium, animate: fresh),
+            FunkiSpeech(
+              funkiTurnText(l10n, turn),
+              style: text.bodyMedium,
+              animate: fresh,
+              // His answers are a model's and come as Markdown; why he
+              // could not answer is the app's own sentence.
+              markdown: turn.failure == null,
+            ),
           if (turn.offersPaywall)
             Padding(
               padding: const EdgeInsets.only(top: AppSpacing.sm),
@@ -378,11 +415,25 @@ List<String> funkiSuggestions(AppLocalizations l10n, FunkiPlace place) =>
     switch (place) {
       FunkiPlace.home => <String>[l10n.funkiSuggestHome1, l10n.funkiSuggestHome2],
       FunkiPlace.diary => <String>[l10n.funkiSuggestDiary1, l10n.funkiSuggestDiary2],
-      FunkiPlace.mealPlan => <String>[l10n.funkiSuggestPlan1, l10n.funkiSuggestPlan2],
+      FunkiPlace.mealPlan => <String>[
+          l10n.funkiSuggestPlan1,
+          l10n.funkiSuggestPlan3,
+          l10n.funkiSuggestPlan2,
+        ],
+      FunkiPlace.shopping => <String>[
+          l10n.funkiSuggestShopping1,
+          l10n.funkiSuggestShopping2,
+        ],
+      FunkiPlace.training => <String>[
+          l10n.funkiSuggestTraining1,
+          l10n.funkiSuggestTraining2,
+        ],
     };
 
 String funkiHint(AppLocalizations l10n, FunkiPlace place) => switch (place) {
       FunkiPlace.home => l10n.funkiHintHome,
       FunkiPlace.diary => l10n.funkiHintDiary,
       FunkiPlace.mealPlan => l10n.plannerHint,
+      FunkiPlace.shopping => l10n.funkiHintShopping,
+      FunkiPlace.training => l10n.funkiHintTraining,
     };

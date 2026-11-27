@@ -2615,7 +2615,7 @@
       }
     }
   },
-  "promptMealPlan": "You plan home cooking for a household. Plan these meals (day: slots, the slot names in brackets are only for you):\n{days}\n\nWho eats:\n{people}\n{extra}\n\nSimple, varied dishes from a normal supermarket. Reuse ingredients across the week so little is left over. One recipe per meal with servings for the whole household, the calories and macros of ONE serving, ingredients for all servings in g, ml or pieces (unit \"g\", \"ml\", \"piece\", \"tbsp\" or \"tsp\") with a category (produce, bakery, dairy, meat, fish, pantry, frozen, drinks, other), and short steps. Use the slot names breakfast, lunch, snack, dinner. Titles, ingredients and steps in English.\nAnswer with JSON only, in this form:\n{format}",
+  "promptMealPlan": "You plan home cooking for a household. Plan these meals (day: slots, the slot names in brackets are only for you):\n{days}\n\nWho eats:\n{people}\n{extra}\n\nVaried dishes from a normal supermarket. Reuse ingredients across the week so little is left over. One recipe per meal with servings for the whole household and the calories and macros of ONE serving.\n{rules}\nUse the slot names breakfast, lunch, snack, dinner. Titles, ingredients and steps in English.\nAnswer with JSON only, in this form:\n{format}",
   "@promptMealPlan": {
     "placeholders": {
       "days": {
@@ -2625,6 +2625,9 @@
         "type": "String"
       },
       "extra": {
+        "type": "String"
+      },
+      "rules": {
         "type": "String"
       },
       "format": {
@@ -3859,7 +3862,7 @@
       }
     }
   },
-  "promptMealDraft": "You write one home-cooking recipe for a household: {slot} on {day}.\n{extra}\n\nWho eats:\n{people}\n\nServings for the whole household, the calories and macros of ONE serving, ingredients for all servings in g, ml or pieces (unit \"g\", \"ml\", \"piece\", \"tbsp\" or \"tsp\") with a category (produce, bakery, dairy, meat, fish, pantry, frozen, drinks, other), and short steps. Use the slot name and the date exactly as given. Title, ingredients and steps in English.\nAnswer with JSON only, in this form, with exactly one meal:\n{format}",
+  "promptMealDraft": "You write one home-cooking recipe for a household: {slot} on {day}.\n{extra}\n\nWho eats:\n{people}\n\nServings for the whole household and the calories and macros of ONE serving.\n{rules}\nUse the slot name and the date exactly as given. Title, ingredients and steps in English.\nAnswer with JSON only, in this form, with exactly one meal:\n{format}",
   "@promptMealDraft": {
     "placeholders": {
       "slot": {
@@ -3872,6 +3875,9 @@
         "type": "String"
       },
       "extra": {
+        "type": "String"
+      },
+      "rules": {
         "type": "String"
       },
       "format": {
@@ -3887,7 +3893,7 @@
       }
     }
   },
-  "promptMealDraftAny": "Pick a simple dish that suits this meal and the targets.",
+  "promptMealDraftAny": "Pick a dish that suits this meal, the targets and the cooking level.",
   "promptMealDraftKcal": "About {kcal} kcal per serving.",
   "@promptMealDraftKcal": {
     "placeholders": {
@@ -3908,7 +3914,7 @@
       }
     }
   },
-  "promptFunki": "You are Funki, the little flame and coach in the 100 Days app. {name} is doing a challenge of daily habits, and may keep a food diary, a meal plan with a shopping list, and a training plan. Today is {today} ({weekday}). {where}\nLook things up with the get_ tools before you say anything about numbers, the plan or the diary; never make anything up. Change things only with the tools and only when {name} wants it; never just describe a change. Every change can be undone in the app.\nDiary: when {name} says what was eaten, log it at once with log_food — no question back and no suggestions; you estimate missing amounts and calories yourself, realistically, kcal and macros for the amount eaten. Suggestions only when asked for. Check off a habit only when {name} says it is done. Recipes: simple, from a normal supermarket, servings for the whole household, calories and macros per serving.\nNo medical diagnoses; for complaints, a doctor. Answer briefly, in one to three sentences, in English, direct and warm, without schmaltz.",
+  "promptFunki": "You are Funki, the little flame and coach in the 100 Days app. {name} is doing a challenge of daily habits, and may keep a food diary, a meal plan with recipes and a shopping list, and a training plan. Today is {today} ({weekday}). {where}\nLook things up with the get_ tools before you say anything about numbers, the plan, the list or the training; never make anything up. Change things only with the tools and only when {name} wants it; never just describe a change. Every change can be undone in the app.\nDiary: when {name} says what was eaten, log it at once with log_food — no question back and no suggestions; you estimate missing amounts and calories yourself, realistically, kcal and macros for the amount eaten. Suggestions only when asked for. Check off a habit only when {name} says it is done.\nMeal plan: several meals or a week are planned with plan_week, a single one with set_meal; write_recipe writes the recipe of a planned meal (ingredients and cooking instructions), also again at another cooking level. Cooking level (complexity): convenience = ready-made is welcome (a ready-to-cook fillet, beans from a can), everyday = everyday home cooking, scratch = from scratch (a whole fish, dried beans); named by nobody, it is the one {name} has. Recipes: servings for the whole household, calories and macros per serving, EVERY ingredient, the oil, salt and spices included (staple: true).\nShopping list: make_list_from_plan makes it from the recipes; a meal without a recipe is missing from it until write_recipe has written one. Basics (oil, salt, spices) are on it without an amount, to check at home; what {name} always has at home you remember with set_pantry.\nTraining: where there is a training plan you change it with the training tools; use only exercise ids that get_training_plan or find_exercises gave you.\nNo medical diagnoses; for complaints, a doctor. Answer briefly, in one to three sentences, in English, direct and warm, without schmaltz. For steps, ingredients or several points use Markdown: lists and **bold**, no tables.",
   "@promptFunki": {
     "placeholders": {
       "today": {
@@ -4118,5 +4124,212 @@
         "type": "int"
       }
     }
-  }
+  },
+  "cookingLevelTitle": "Effort",
+  "cookingConvenience": "Convenient",
+  "cookingEveryday": "Everyday",
+  "cookingScratch": "From scratch",
+  "cookingConvenienceHint": "Ready-made is welcome: a ready-to-cook fillet, beans from a can, frozen vegetables.",
+  "cookingEverydayHint": "Cooked fresh, with canned tomatoes or beans where that is usual.",
+  "cookingScratchHint": "Made by hand: a whole fish, dried beans, stock and dough from scratch.",
+  "promptCookConvenience": "Cooking level: quick and ready. Ready-made parts are welcome — ready-to-cook fillets, canned pulses, frozen vegetables, pre-cooked rice, a sauce from a jar, a spice mix. Few ingredients and few steps.",
+  "promptCookEveryday": "Cooking level: everyday home cooking. Fresh main ingredients; canned tomatoes, canned pulses and stock from a cube are fine; no ready-made sauces or meals.",
+  "promptCookScratch": "Cooking level: from scratch. Whole, unprocessed ingredients — dried pulses soaked and cooked, a whole fish or a cut of meat prepared at home, stock, sauces, doughs and spice blends made by hand. More steps and technique are welcome, and the steps explain them.",
+  "promptRecipeRules": "Ingredients for all servings in g, ml or pieces (unit \"g\", \"ml\", \"piece\", \"tbsp\" or \"tsp\") with a category (produce, bakery, dairy, meat, fish, pantry, frozen, drinks, other). List EVERY ingredient the steps use, with a realistic amount: the fat for frying, salt, pepper, spices, herbs, stock, vinegar. Mark with \"staple\": true what a kitchen usually has and what is bought as a pack that lasts — oil, vinegar, salt, pepper, dried spices and herbs, sugar, flour, stock powder, soy sauce, mustard — and never fresh food. The steps are cooking instructions in order: one action each, with heat and times, so that someone who does not know the dish can cook it.",
+  "promptFunkiFromShopping": "You were opened from the shopping list.",
+  "promptFunkiFromTraining": "You were opened from the training plan.",
+  "recipeBasics": "Basics from the cupboard",
+  "recipeNotWritten": "So far this is only a name. Have the recipe written — ingredients and how to cook it — and the shopping list knows what to buy.",
+  "recipeWrite": "Funki writes the recipe",
+  "recipeRewrite": "Write the recipe again",
+  "recipeRewriteSub": "Another level changes what you buy and how you cook it.",
+  "recipeWritten": "Recipe: {title} · {level}",
+  "@recipeWritten": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "recipeWriteFailed": "Funki could not write a recipe that adds up. Try again.",
+  "planNoRecipe": "no recipe yet",
+  "shopStaples": "Basics",
+  "shopStaplesHint": "Oil, salt, spices: look at home whether there is enough, and swipe away what you have.",
+  "shopNoRecipe": "{count, plural, =1{One planned meal has no recipe yet and is missing from the list: {titles}} other{{count} planned meals have no recipe yet and are missing from the list: {titles}}}",
+  "@shopNoRecipe": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "titles": {
+        "type": "String"
+      }
+    }
+  },
+  "shopWriteRecipes": "Write the recipes",
+  "writeRecipesTitle": "Recipes for the list",
+  "writeRecipesBody": "Funki writes ingredients and cooking instructions for these meals. After that the list from the plan has everything.",
+  "writeRecipesGo": "{count, plural, =1{Write the recipe} other{Write {count} recipes}}",
+  "@writeRecipesGo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "writeRecipesProgress": "Recipe {done} of {total} …",
+  "@writeRecipesProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "writeRecipesDone": "{count, plural, =1{1 recipe written} other{{count} recipes written}}",
+  "@writeRecipesDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "householdCooking": "How you like to cook",
+  "funkiIntroShopping": "Tell me what goes on the list or can come off — “we still have rice”, “500 g of mince as well”. I can also make it from the plan and write the recipes it is missing.",
+  "funkiIntroTraining": "Ask me about your training, or let me rebuild the plan: swap an exercise, change the sets, add a day.",
+  "funkiHintShopping": "What goes on the list?",
+  "funkiHintTraining": "What should change in your training?",
+  "funkiSuggestPlan3": "Plan the week, cooked from scratch",
+  "funkiSuggestShopping1": "Make the list from the plan",
+  "funkiSuggestShopping2": "We always have oil and salt at home",
+  "funkiSuggestTraining1": "What do I train today?",
+  "funkiSuggestTraining2": "Swap squats for something easier on the knees",
+  "funkiMovedMeal": "{title} → {day}, {slot}",
+  "@funkiMovedMeal": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "slot": {
+        "type": "String"
+      }
+    }
+  },
+  "funkiTicked": "In the basket: {name}",
+  "@funkiTicked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "funkiUnticked": "Open again: {name}",
+  "@funkiUnticked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "funkiPantryAdded": "Always at home: {names}",
+  "@funkiPantryAdded": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "funkiPantryRemoved": "No longer always at home: {names}",
+  "@funkiPantryRemoved": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "funkiTastesChanged": "Your food preferences changed",
+  "funkiExerciseSwapped": "{session}: {from} → {to}",
+  "@funkiExerciseSwapped": {
+    "placeholders": {
+      "session": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "funkiExerciseChanged": "{session}: {exercise} · {sets} × {reps}",
+  "@funkiExerciseChanged": {
+    "placeholders": {
+      "session": {
+        "type": "String"
+      },
+      "exercise": {
+        "type": "String"
+      },
+      "sets": {
+        "type": "int"
+      },
+      "reps": {
+        "type": "String"
+      }
+    }
+  },
+  "funkiExerciseAdded": "{session}: + {exercise}",
+  "@funkiExerciseAdded": {
+    "placeholders": {
+      "session": {
+        "type": "String"
+      },
+      "exercise": {
+        "type": "String"
+      }
+    }
+  },
+  "funkiExerciseRemoved": "{session}: − {exercise}",
+  "@funkiExerciseRemoved": {
+    "placeholders": {
+      "session": {
+        "type": "String"
+      },
+      "exercise": {
+        "type": "String"
+      }
+    }
+  },
+  "funkiTrainingDays": "Training: {split}, {days}× a week",
+  "@funkiTrainingDays": {
+    "placeholders": {
+      "split": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "funkiPlannedWeek": "{count, plural, =1{One meal planned} other{{count} meals planned}} · {level}",
+  "@funkiPlannedWeek": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "qtyPinch": "1 pinch"
 }
