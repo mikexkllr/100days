@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../theme/theme.dart';
@@ -83,7 +85,12 @@ class _BubblePainter extends CustomPainter {
 
   Path _outline(Size size) {
     final Rect body = Rect.fromLTRB(0, 0, size.width, size.height - _tail);
-    final double x = (size.width * tailAt).clamp(28.0, size.width - 28);
+    // The tail keeps 28 px clear of either side so it stays off the rounded
+    // corners. A bubble squeezed narrower than two of those (the keyboard
+    // can do that) has no such room, so its tail sits in the middle; a
+    // fixed 28 there put clamp's upper limit below its lower one and threw.
+    final double inset = math.min(28.0, size.width / 2);
+    final double x = (size.width * tailAt).clamp(inset, size.width - inset);
     final Path tail = Path()
       ..moveTo(x - 10, body.bottom - 1)
       ..quadraticBezierTo(x - 1, body.bottom + 2, x + 3, size.height)
