@@ -12,10 +12,12 @@ import '../../state/household_providers.dart';
 import '../../state/providers.dart';
 import '../../theme/theme.dart';
 import '../widgets/app_card.dart';
+import 'household_join.dart';
 import 'household_load_error.dart';
 
-/// Who cooks and shops together: members, what each shares, when the
-/// household shops, and the invite.
+/// Who cooks and shops together: members, the two ways of getting more of
+/// them into one plan — inviting, joining — what each shares, and when the
+/// household shops.
 ///
 /// One way of saving throughout: a switch or a chip saves when tapped, a
 /// text field with its card's Save button, which lights up once something
@@ -50,7 +52,11 @@ class HouseholdScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                SectionHeader(l10n.householdMembersTitle),
+                // Someone who joined before the app asked about their own
+                // plan: first of all, where it went.
+                const HouseholdLeftoverCard(),
+                SectionHeader(l10n.householdMembersTitle,
+                    subtitle: l10n.householdMembersSub),
                 AppCard(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                   child: Column(
@@ -78,9 +84,11 @@ class HouseholdScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: AppSpacing.sm),
+                SectionHeader(l10n.householdTogetherTitle,
+                    subtitle: l10n.householdTogetherSub),
                 _InviteCard(householdId: h.id),
-                TextButton.icon(
+                const SizedBox(height: AppSpacing.sm),
+                OutlinedButton.icon(
                   key: const Key('household-join'),
                   onPressed: () => _join(context, ref),
                   icon: const Icon(Icons.login, size: 18),
@@ -180,11 +188,20 @@ class HouseholdScreen extends ConsumerWidget {
       context: context,
       builder: (BuildContext context) => AlertDialog(
         title: Text(l10n.householdJoin),
-        content: TextField(
-          controller: code,
-          autofocus: true,
-          textCapitalization: TextCapitalization.characters,
-          decoration: InputDecoration(hintText: l10n.inviteCodeHint),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(l10n.householdJoinCodeBody),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              key: const Key('household-join-code'),
+              controller: code,
+              autofocus: true,
+              textCapitalization: TextCapitalization.characters,
+              decoration: InputDecoration(hintText: l10n.inviteCodeHint),
+            ),
+          ],
         ),
         actions: <Widget>[
           TextButton(
@@ -192,8 +209,9 @@ class HouseholdScreen extends ConsumerWidget {
             child: Text(l10n.actionCancel),
           ),
           FilledButton(
+            key: const Key('household-join-next'),
             onPressed: () => Navigator.of(context).pop(code.text),
-            child: Text(l10n.actionConnect),
+            child: Text(l10n.actionNext),
           ),
         ],
       ),
@@ -201,88 +219,6 @@ class HouseholdScreen extends ConsumerWidget {
     code.dispose();
     if (entered == null || entered.trim().isEmpty || !context.mounted) return;
     await joinHouseholdFlow(context, ref, entered);
-  }
-}
-
-/// Whether joining another household would hide something of the user's:
-/// people they share with now, or a plan and lists of their own. Joining
-/// keeps the old household, but the app shows the newest one.
-Future<bool> _wouldSwitchAway(WidgetRef ref) async {
-  const Duration patience = Duration(seconds: 5);
-  final HouseholdBackend backend = ref.read(householdBackendProvider);
-  try {
-    final String id = await ref.read(householdIdProvider.future).timeout(patience);
-    final Household current = await backend.household(id).timeout(patience);
-    if (current.members.length > 1) return true;
-    return (await backend.recipes(id).timeout(patience)).isNotEmpty;
-  } on Object {
-    // Offline: the invite preview got through, so this rarely happens;
-    // the join itself says what it does.
-    return false;
-  }
-}
-
-/// Shows whose household an invite is for, asks once, and joins.
-Future<void> joinHouseholdFlow(BuildContext context, WidgetRef ref, String code) async {
-  final AppLocalizations l10n = context.l10n;
-  final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
-  final HouseholdBackend backend = ref.read(householdBackendProvider);
-  HouseholdInvitePreview? preview;
-  try {
-    preview = await backend.previewInvite(code);
-  } on Object {
-    messenger.showSnackBar(SnackBar(content: Text(l10n.inviteErrorOffline)));
-    return;
-  }
-  if (preview == null) {
-    messenger.showSnackBar(SnackBar(content: Text(l10n.inviteErrorMalformed)));
-    return;
-  }
-  final bool switching = await _wouldSwitchAway(ref);
-  if (!context.mounted) return;
-  final HouseholdInvitePreview found = preview;
-  final bool? yes = await showDialog<bool>(
-    context: context,
-    builder: (BuildContext context) => AlertDialog(
-      title: Text(l10n.householdJoinTitle(
-          found.name.isEmpty ? found.memberNames.join(', ') : found.name)),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(l10n.householdJoinBody),
-          if (switching) ...<Widget>[
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              l10n.householdJoinWarning,
-              key: const Key('household-join-warning'),
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: AppColors.attention),
-            ),
-          ],
-        ],
-      ),
-      actions: <Widget>[
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: Text(l10n.actionCancel),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: Text(l10n.householdJoinAction),
-        ),
-      ],
-    ),
-  );
-  if (yes != true) return;
-  try {
-    await backend.join(code);
-    ref.invalidate(householdIdProvider);
-    messenger.showSnackBar(SnackBar(content: Text(l10n.householdJoined)));
-  } on Object {
-    messenger.showSnackBar(SnackBar(content: Text(l10n.inviteErrorMalformed)));
   }
 }
 
@@ -309,6 +245,15 @@ class _InviteCard extends ConsumerWidget {
             children: <Widget>[
               Text(l10n.householdInviteTitle,
                   style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                l10n.householdInviteSub,
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: AppColors.textSecondary),
+              ),
               const SizedBox(height: AppSpacing.sm),
               Container(
                 padding: const EdgeInsets.all(AppSpacing.sm),

@@ -1141,7 +1141,6 @@
   "householdListHint": "mit Komma getrennt",
   "householdMeSub": "Damit, wer plant, deine Portionen passend macht und weglässt, was du nicht isst.",
   "householdMeTitle": "Du im Haushalt",
-  "householdMembers": "{count} Personen",
   "householdMembersTitle": "Wer zusammen kocht und einkauft",
   "householdNoTarget": "Ziele privat, je eine Portion",
   "householdPantry": "Meistens zuhause",
@@ -2809,7 +2808,6 @@
   "foodPhotoNoGallery": "Kein Zugriff auf deine Fotos. Erlaube ihn 100 Days in den Einstellungen deines Handys, oder mach ein neues Foto.",
   "foodPhotoPickFailed": "Kamera oder Galerie ließen sich nicht öffnen. Versuch es noch einmal oder beschreib das Essen.",
   "foodPhotoUnreadable": "Dieses Foto lässt sich nicht lesen — manche HEIC-Fotos nicht. Mach ein neues oder wähl ein JPEG.",
-  "householdJoinWarning": "Du wechselst den Haushalt: Dein jetziger Plan und deine Liste bleiben, wo sie sind, und du siehst stattdessen die des neuen Haushalts. Du kannst ihn später wieder verlassen.",
   "householdLeave": "Haushalt verlassen",
   "householdLeaveBody": "Plan, Rezepte und Listen bleiben bei den anderen. Du fängst mit einem eigenen Haushalt neu an und kannst jederzeit wieder eingeladen werden.",
   "householdLeaveFailed": "Du konntest den Haushalt nicht verlassen. Prüf deine Verbindung und versuch es noch einmal.",
@@ -3105,5 +3103,77 @@
   "trainingFunkiFailed": "Daraus konnte Funki keinen Plan bauen. Sag's anders – oder stell ihn unten selbst zusammen.",
   "promptTrainingPlan": "Du bist Funki, ein Krafttrainer. Stell für diese Person einen Trainingsplan zusammen.\nZiel: „{goal}“\nErfahrung: {experience}. Trainingstage pro Woche: {days} (fest).\nAusrüstung, wie ausgewählt: {equipment}.\n{current}Was die Person sagt: „{wish}“\n\nSplits und die Einheiten, die sie durchwechseln:\n{splits}\n\nÜbungen (id: Name, Muskel, mindestens nötig):\n{exercises}\n\nNimm den Split, der passt. Gib jede seiner Einheiten in dieser Reihenfolge an, je 3 bis {max} Übungen, nur ids aus der Liste. Verrät das Gesagte mehr oder weniger Ausrüstung, setz \"equipment\" auf fullGym, homeBasic oder bodyweight und nimm nur Übungen, die damit gehen. Sätze 1 bis 6, Wiederholungen 3 bis 30. Die Begründung ist ein kurzer Satz auf Deutsch, in Du-Form an die Person.\nAntworte nur mit JSON, in dieser Form:\n{format}",
   "promptTrainingCurrent": "Der Plan jetzt:\n{plan}\n",
-  "promptTrainingRefused": "\nDeine letzte Antwort wurde abgelehnt: {why}\nAntworte noch einmal, nur mit JSON."
+  "promptTrainingRefused": "\nDeine letzte Antwort wurde abgelehnt: {why}\nAntworte noch einmal, nur mit JSON.",
+  "householdMembersSub": "Ein Haushalt hat einen Plan: Alle hier sehen und ändern denselben Essensplan und dieselbe Einkaufsliste.",
+  "householdTogetherTitle": "Gemeinsam planen",
+  "householdTogetherSub": "Lade jemanden in diesen Haushalt ein – oder tritt mit einem Code einem anderen bei.",
+  "householdInviteSub": "Wer den Code einlöst, plant in diesem Plan mit und kann den eigenen mitbringen.",
+  "householdJoinCodeBody": "Gib den Code ein, den du bekommen hast. Bevor du beitrittst, siehst du, welcher Plan gilt und was aus deinem wird.",
+  "householdSharedWith": "Gemeinsamer Plan mit {names}",
+  "@householdSharedWith": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "householdJoinTheirs": "Euer gemeinsamer Plan",
+  "householdJoinTheirsNote": "Der Plan dieses Haushalts bleibt, wie er ist. Ab jetzt planst du dort mit.",
+  "householdJoinTheirsEmpty": "Dort ist noch nichts geplant",
+  "householdJoinMine": "Dein bisheriger Plan",
+  "householdJoinMineNothing": "Du hast selbst noch nichts geplant. Es geht nichts verloren.",
+  "householdJoinBring": "Mitnehmen",
+  "householdJoinBringSub": "Kommt zum gemeinsamen Plan dazu. Was dort schon geplant ist, bleibt stehen.",
+  "householdJoinDrop": "Nicht mitnehmen",
+  "householdJoinDropSub": "Wird gelöscht und lässt sich nicht zurückholen.",
+  "householdJoinLeaves": "Du verlässt dafür den Haushalt mit {names}. Plan und Listen dort bleiben bei den anderen.",
+  "@householdJoinLeaves": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "householdJoinActionDrop": "Beitreten, meinen Plan löschen",
+  "householdJoinedBrought": "Du bist drin. Dein Plan ist mitgekommen.",
+  "householdJoinFailed": "Beitreten hat nicht geklappt. Prüf deine Verbindung und versuch es noch einmal.",
+  "householdAlreadyIn": "In diesem Haushalt bist du schon.",
+  "householdPlannedCount": "{count, plural, =1{1 Gericht geplant} other{{count} Gerichte geplant}}",
+  "@householdPlannedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "householdRecipeCount": "{count, plural, =1{1 Rezept} other{{count} Rezepte}}",
+  "@householdRecipeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "householdListCount": "{count, plural, =1{1 Einkaufsliste} other{{count} Einkaufslisten}}",
+  "@householdListCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "householdLeftoverTitle": "Dein eigener Plan wartet noch",
+  "householdLeftoverBody": "Das hattest du geplant, bevor du diesem Haushalt beigetreten bist. Im Moment sieht es niemand.",
+  "householdLeftoverBring": "In diesen Haushalt holen",
+  "householdLeftoverDropTitle": "Deinen eigenen Plan löschen?",
+  "householdLeftoverDropBody": "{contents} – das lässt sich nicht zurückholen.",
+  "@householdLeftoverDropBody": {
+    "placeholders": {
+      "contents": {
+        "type": "String"
+      }
+    }
+  },
+  "householdLeftoverBrought": "Dein Plan ist jetzt im Haushalt.",
+  "householdLeftoverDropped": "Dein eigener Plan ist gelöscht."
 }

@@ -88,16 +88,64 @@ class Household {
   }
 }
 
+/// What a household holds, in the numbers shown before a plan is taken
+/// along, left or deleted.
+class HouseholdContents {
+  const HouseholdContents({this.planned = 0, this.recipes = 0, this.lists = 0});
+
+  /// Meals planned for today or later.
+  final int planned;
+  final int recipes;
+
+  /// Open shopping lists with something on them.
+  final int lists;
+
+  bool get isEmpty => planned == 0 && recipes == 0 && lists == 0;
+
+  HouseholdContents operator +(HouseholdContents other) => HouseholdContents(
+        planned: planned + other.planned,
+        recipes: recipes + other.recipes,
+        lists: lists + other.lists,
+      );
+}
+
 class HouseholdInvitePreview {
   const HouseholdInvitePreview({
     required this.householdId,
     required this.name,
     required this.memberNames,
+    this.contents = const HouseholdContents(),
+    this.alreadyMember = false,
   });
 
   final String householdId;
   final String name;
   final List<String> memberNames;
+
+  /// What the household has planned — the plan a joiner will see.
+  final HouseholdContents contents;
+
+  /// The user is in this household already.
+  final bool alreadyMember;
+}
+
+/// A household the user is in besides the one in front of them: the one
+/// they would leave by joining another, or one an earlier join left behind.
+class OtherHousehold {
+  const OtherHousehold({
+    required this.id,
+    this.otherNames = const <String>[],
+    this.contents = const HouseholdContents(),
+  });
+
+  final String id;
+
+  /// Who else is in it. Empty: it is the user's alone.
+  final List<String> otherNames;
+  final HouseholdContents contents;
+
+  /// The user's alone, so what is in it is theirs to bring or delete.
+  bool get alone => otherNames.isEmpty;
 }
 
 class ShoppingListInfo {
@@ -172,8 +220,18 @@ abstract class HouseholdBackend {
   Future<String> inviteCode(String householdId);
   Future<HouseholdInvitePreview?> previewInvite(String code);
 
-  /// Joins the household behind [code]. Returns its id.
-  Future<String> join(String code);
+  /// The user's households other than [householdId], oldest first.
+  Future<List<OtherHousehold>> householdsBesides(String householdId);
+
+  /// Joins the household behind [code], which becomes the user's only one.
+  /// A household they were alone in goes: with [bring], its recipes, planned
+  /// meals and lists move into the one joined first. One they shared stays
+  /// with the others. Returns the id of the household joined.
+  Future<String> join(String code, {required bool bring});
+
+  /// Makes [householdId], which the user is in, their only household — what
+  /// [join] does to the others, for someone who joined before it did.
+  Future<void> settle(String householdId, {required bool bring});
 
   /// Takes the user out of [householdId]. The server hands ownership on to
   /// whoever has been in it longest; the plan and the lists stay with the
@@ -384,22 +442,69 @@ class SupabaseHouseholdBackend implements HouseholdBackend {
   @override
   Future<HouseholdInvitePreview?> previewInvite(String code) async {
     final Object? result = await _client.rpc('household_invite_preview',
-        params: <String, dynamic>{'p_code': _normalize(code)});
+        params: <String, dynamic>{
+          'p_code': _normalize(code),
+          'p_today': DayKey.today().toString(),
+        });
     if (result is! List || result.isEmpty) return null;
     final Map<String, dynamic> row = Map<String, dynamic>.from(result.first as Map);
     return HouseholdInvitePreview(
       householdId: row['household_id'] as String,
       name: row['name'] as String? ?? '',
-      memberNames: <String>[
-        for (final Object? m in (row['members'] as List?) ?? const <Object?>[])
-          if (m is Map) '${m['emoji'] ?? ''} ${m['name'] ?? ''}'.trim(),
-      ],
+      memberNames: _people(row['members']),
+      contents: _contents(row),
+      alreadyMember: row['member'] as bool? ?? false,
     );
   }
 
   @override
-  Future<String> join(String code) async => await _client.rpc('join_household',
-      params: <String, dynamic>{'p_code': _normalize(code)}) as String;
+  Future<List<OtherHousehold>> householdsBesides(String householdId) async {
+    final Object? result = await _client.rpc('households_besides',
+        params: <String, dynamic>{
+          'p_household': householdId,
+          'p_today': DayKey.today().toString(),
+        });
+    return <OtherHousehold>[
+      for (final Object? entry in (result as List?) ?? const <Object?>[])
+        if (entry is Map)
+          OtherHousehold(
+            id: entry['household_id'] as String,
+            otherNames: _people(entry['others']),
+            contents: _contents(Map<String, dynamic>.from(entry)),
+          ),
+    ];
+  }
+
+  /// "🙂 Mike" for each person in a list the server sends.
+  static List<String> _people(Object? people) => <String>[
+        for (final Object? p in (people as List?) ?? const <Object?>[])
+          if (p is Map) '${p['emoji'] ?? ''} ${p['name'] ?? ''}'.trim(),
+      ];
+
+  static HouseholdContents _contents(Map<String, dynamic> row) => HouseholdContents(
+        planned: (row['planned'] as num?)?.toInt() ?? 0,
+        recipes: (row['recipes'] as num?)?.toInt() ?? 0,
+        lists: (row['lists'] as num?)?.toInt() ?? 0,
+      );
+
+  @override
+  Future<String> join(String code, {required bool bring}) async {
+    final String id = await _client.rpc('join_household', params: <String, dynamic>{
+      'p_code': _normalize(code),
+      'p_mine': bring ? 'bring' : 'drop',
+    }) as String;
+    _touched();
+    return id;
+  }
+
+  @override
+  Future<void> settle(String householdId, {required bool bring}) async {
+    await _client.rpc('settle_households', params: <String, dynamic>{
+      'p_household': householdId,
+      'p_bring': bring,
+    });
+    _touched();
+  }
 
   @override
   Future<void> leave(String householdId) async {
@@ -802,8 +907,17 @@ class MemoryHouseholdBackend implements HouseholdBackend {
   @override
   Future<HouseholdInvitePreview?> previewInvite(String code) async => null;
 
+  /// In memory there is the one household.
   @override
-  Future<String> join(String code) async => throw StateError('invalid invite');
+  Future<List<OtherHousehold>> householdsBesides(String householdId) async =>
+      const <OtherHousehold>[];
+
+  @override
+  Future<String> join(String code, {required bool bring}) async =>
+      throw StateError('invalid invite');
+
+  @override
+  Future<void> settle(String householdId, {required bool bring}) async {}
 
   /// The plan and the lists stay with the others; the user starts over in
   /// a household of their own.

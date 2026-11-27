@@ -62,7 +62,7 @@ void main() {
         ],
         recipes: <String, Recipe>{'curry': _curry(), 'omelette': _omelette()},
         period: ShoppingPeriod(_sat, _sat.addDays(6)),
-        householdSize: 2,
+        members: <String>['mike', 'lena'],
       );
       ShoppingItem line(String name) => items.firstWhere((ShoppingItem i) => shoppingKey(i.name) == shoppingKey(name));
       // 2.5 portions of a 2-serving curry: 375 g chicken, rounded up.
@@ -75,6 +75,28 @@ void main() {
       expect(line('Eier').quantity, const Quantity(6, QtyUnit.piece));
     });
 
+    test('cooks for the household as it is now', () {
+      // Planned when Mike lived alone, at a portion and a half.
+      final PlanEntry planned =
+          _entry('a', _sat, 'curry', portions: <String, double>{'mike': 1.5});
+      double chicken(List<String> members) => buildShoppingList(
+            entries: <PlanEntry>[planned],
+            recipes: <String, Recipe>{'curry': _curry()},
+            period: ShoppingPeriod(_sat, _sat),
+            members: members,
+          )
+              .firstWhere((ShoppingItem i) => i.name == 'Hähnchenbrust')
+              .quantity!
+              .amount;
+
+      expect(chicken(<String>['mike']), 230, reason: '1.5 of 2 servings of 300 g, rounded up');
+      // Lena moved in: she eats too, one portion until the meal is sized for her.
+      expect(planned.portionFor('lena'), 1);
+      expect(chicken(<String>['mike', 'lena']), 380);
+      // Mike moved out: nobody cooks for him any more.
+      expect(chicken(<String>['lena']), 150);
+    });
+
     test('leaves out what is at home and what lies outside the period', () {
       final items = buildShoppingList(
         entries: <PlanEntry>[
@@ -83,7 +105,7 @@ void main() {
         ],
         recipes: <String, Recipe>{'curry': _curry(), 'omelette': _omelette()},
         period: ShoppingPeriod(_sat, _sat.addDays(6)),
-        householdSize: 2,
+        members: <String>['mike', 'lena'],
         pantry: <String>{'reis'},
       );
       expect(items.map((ShoppingItem i) => i.name), isNot(contains('Reis')));
@@ -95,7 +117,7 @@ void main() {
         entries: <PlanEntry>[_entry('a', _sat, 'curry')],
         recipes: <String, Recipe>{'curry': _curry()},
         period: ShoppingPeriod(_sat, _sat),
-        householdSize: 2,
+        members: <String>['mike', 'lena'],
       );
       expect(items.map((ShoppingItem i) => i.category),
           <ShopCategory>[ShopCategory.produce, ShopCategory.meat, ShopCategory.pantry]);
@@ -159,8 +181,12 @@ void main() {
     test('what someone ate as planned is their share of the recipe', () {
       final entry = _entry('a', _sat, 'curry', portions: <String, double>{'mike': 1.5});
       expect(nutrientsFor(entry, _curry(), 'mike').kcal, 960);
-      expect(nutrientsFor(entry, _curry(), 'lena').kcal, 0);
+      // Lena joined after this was planned: one portion, not none.
+      expect(nutrientsFor(entry, _curry(), 'lena').kcal, 640);
       expect(nutrientsFor(_entry('b', _sat, 'curry'), _curry(), 'lena').kcal, 640);
+      // Only a meal that says so is not hers.
+      final without = entry.withPortions(<String, double>{'mike': 1.5, 'lena': 0});
+      expect(nutrientsFor(without, _curry(), 'lena').kcal, 0);
     });
 
     test('a planned meal counts as eaten once, in its slot on its day', () {

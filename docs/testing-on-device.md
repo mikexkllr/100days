@@ -98,7 +98,9 @@ The interesting part of the app needs two accounts — two phones, anywhere:
 4. Tick something off on both — the other person's entry appears within
    seconds, and the league fills up.
 5. **Plan → Meals → household bar → invite**, join on phone B, make a list
-   from the plan and tick things off on both phones.
+   from the plan and tick things off on both phones. Plan a meal on phone B
+   first: joining then shows both plans and asks whether B's comes along,
+   and afterwards both phones show one week with both meals in it.
 
 Without a second account everything works except the social part.
 

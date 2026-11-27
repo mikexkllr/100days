@@ -25,7 +25,7 @@ import 'state/household_providers.dart';
 import 'state/providers.dart';
 import 'ai/dartantic_llm_client.dart';
 import 'ui/auth/login_screen.dart';
-import 'ui/mealplan/household_screen.dart';
+import 'ui/mealplan/household_join.dart';
 import 'ui/motion/sounds.dart';
 import 'ui/settings/ai_screen.dart';
 import 'ui/social/invite_flow.dart';

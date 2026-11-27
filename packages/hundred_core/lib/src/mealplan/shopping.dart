@@ -64,15 +64,15 @@ String shoppingKey(String name) {
 /// What to buy for the plan in [period].
 ///
 /// Each planned meal's ingredients are scaled from the recipe's servings to
-/// the portions actually planned, then lines with the same name and unit are
-/// added up. Things already at home ([pantry], by name) are left out. Sorted
+/// the portions planned for [members] — the ids of everyone in the household
+/// now — then lines with the same name and unit are added up. Things already at home ([pantry], by name) are left out. Sorted
 /// by aisle, then name. Deterministic: the same plan gives the same list on
 /// every phone of the household.
 List<ShoppingItem> buildShoppingList({
   required Iterable<PlanEntry> entries,
   required Map<String, Recipe> recipes,
   required ShoppingPeriod period,
-  required int householdSize,
+  required Iterable<String> members,
   Set<String> pantry = const <String>{},
   String Function(String name)? canonical,
 }) {
@@ -84,7 +84,7 @@ List<ShoppingItem> buildShoppingList({
     if (!period.contains(entry.day)) continue;
     final recipe = recipes[entry.recipeId];
     if (recipe == null || recipe.servings <= 0) continue;
-    final factor = entry.totalPortions(householdSize) / recipe.servings;
+    final factor = entry.totalPortions(members) / recipe.servings;
     if (factor <= 0) continue;
     for (final ingredient in recipe.ingredients) {
       final k = key(ingredient.name);

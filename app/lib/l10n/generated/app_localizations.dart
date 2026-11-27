@@ -3180,12 +3180,6 @@ abstract class AppLocalizations {
   /// **'You in the household'**
   String get householdMeTitle;
 
-  /// No description provided for @householdMembers.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} people'**
-  String householdMembers(int count);
-
   /// No description provided for @householdMembersTitle.
   ///
   /// In en, this message translates to:
@@ -8486,12 +8480,6 @@ abstract class AppLocalizations {
   /// **'This photo cannot be read — some HEIC photos cannot. Take a new one, or pick a JPEG.'**
   String get foodPhotoUnreadable;
 
-  /// No description provided for @householdJoinWarning.
-  ///
-  /// In en, this message translates to:
-  /// **'You are switching households: your current plan and list stay where they are, and you will see the new household\'s instead. You can leave it again later.'**
-  String get householdJoinWarning;
-
   /// No description provided for @householdLeave.
   ///
   /// In en, this message translates to:
@@ -9474,6 +9462,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'\nYour last answer was refused: {why}\nAnswer again with JSON only.'**
   String promptTrainingRefused(String why);
+
+  /// No description provided for @householdMembersSub.
+  ///
+  /// In en, this message translates to:
+  /// **'One household, one plan: everyone here sees and changes the same meal plan and the same shopping list.'**
+  String get householdMembersSub;
+
+  /// No description provided for @householdTogetherTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan together'**
+  String get householdTogetherTitle;
+
+  /// No description provided for @householdTogetherSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite someone into this household — or join another one with a code.'**
+  String get householdTogetherSub;
+
+  /// No description provided for @householdInviteSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Whoever redeems the code plans along in this plan, and can bring their own.'**
+  String get householdInviteSub;
+
+  /// No description provided for @householdJoinCodeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code you were given. Before you join you will see which plan counts and what becomes of yours.'**
+  String get householdJoinCodeBody;
+
+  /// No description provided for @householdSharedWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared plan with {names}'**
+  String householdSharedWith(String names);
+
+  /// No description provided for @householdJoinTheirs.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan you will share'**
+  String get householdJoinTheirs;
+
+  /// No description provided for @householdJoinTheirsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This household\'s plan stays as it is. From now on you plan along.'**
+  String get householdJoinTheirsNote;
+
+  /// No description provided for @householdJoinTheirsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is planned there yet'**
+  String get householdJoinTheirsEmpty;
+
+  /// No description provided for @householdJoinMine.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan you have now'**
+  String get householdJoinMine;
+
+  /// No description provided for @householdJoinMineNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not planned anything yourself yet. Nothing is lost.'**
+  String get householdJoinMineNothing;
+
+  /// No description provided for @householdJoinBring.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring it along'**
+  String get householdJoinBring;
+
+  /// No description provided for @householdJoinBringSub.
+  ///
+  /// In en, this message translates to:
+  /// **'It is added to the shared plan. What is planned there already stays.'**
+  String get householdJoinBringSub;
+
+  /// No description provided for @householdJoinDrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave it behind'**
+  String get householdJoinDrop;
+
+  /// No description provided for @householdJoinDropSub.
+  ///
+  /// In en, this message translates to:
+  /// **'It is deleted and cannot be brought back.'**
+  String get householdJoinDropSub;
+
+  /// No description provided for @householdJoinLeaves.
+  ///
+  /// In en, this message translates to:
+  /// **'For this you leave the household with {names}. Its plan and lists stay with the others.'**
+  String householdJoinLeaves(String names);
+
+  /// No description provided for @householdJoinActionDrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Join and delete my plan'**
+  String get householdJoinActionDrop;
+
+  /// No description provided for @householdJoinedBrought.
+  ///
+  /// In en, this message translates to:
+  /// **'You are in. Your plan came along.'**
+  String get householdJoinedBrought;
+
+  /// No description provided for @householdJoinFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Joining did not work. Check your connection and try again.'**
+  String get householdJoinFailed;
+
+  /// No description provided for @householdAlreadyIn.
+  ///
+  /// In en, this message translates to:
+  /// **'You are in this household already.'**
+  String get householdAlreadyIn;
+
+  /// No description provided for @householdPlannedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 meal planned} other{{count} meals planned}}'**
+  String householdPlannedCount(int count);
+
+  /// No description provided for @householdRecipeCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 recipe} other{{count} recipes}}'**
+  String householdRecipeCount(int count);
+
+  /// No description provided for @householdListCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 shopping list} other{{count} shopping lists}}'**
+  String householdListCount(int count);
+
+  /// No description provided for @householdLeftoverTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own plan is still waiting'**
+  String get householdLeftoverTitle;
+
+  /// No description provided for @householdLeftoverBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This is what you had planned before you joined this household. Right now nobody sees it.'**
+  String get householdLeftoverBody;
+
+  /// No description provided for @householdLeftoverBring.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring it into this household'**
+  String get householdLeftoverBring;
+
+  /// No description provided for @householdLeftoverDropTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your own plan?'**
+  String get householdLeftoverDropTitle;
+
+  /// No description provided for @householdLeftoverDropBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{contents} — this cannot be brought back.'**
+  String householdLeftoverDropBody(String contents);
+
+  /// No description provided for @householdLeftoverBrought.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan is in the household now.'**
+  String get householdLeftoverBrought;
+
+  /// No description provided for @householdLeftoverDropped.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own plan is deleted.'**
+  String get householdLeftoverDropped;
 }
 
 class _AppLocalizationsDelegate

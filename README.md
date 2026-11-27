@@ -95,7 +95,9 @@ until there is a connection again.
 ## Meals and shopping, together
 
 Everyone has a household — alone, as a couple, as a flat. Its members share
-one **week of meals** and one **shopping list**, live on every phone.
+one **week of meals** and one **shopping list**, live on every phone. Whoever
+joins someone else's sees both plans first and decides whether their own
+comes along.
 
 - **Plan the week** with the AI: pick days, meals, cooking time, type a wish
   ("no fish, Wednesday something quick"), get a draft, keep what you like.

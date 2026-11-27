@@ -40,18 +40,28 @@ class PlanEntry {
   final MealSlotKind slot;
   final String recipeId;
 
-  /// Member id → portions of the recipe. Empty means one portion for
-  /// everyone in the household.
+  /// Member id → portions of the recipe, as sized when the meal was
+  /// planned. Someone not in it eats one portion: the plan is the whole
+  /// household's, and whoever joined after a meal was planned eats too.
   final Map<String, double> portions;
   final String? note;
 
-  /// How many portions get cooked, for the shopping list.
-  double totalPortions(int householdSize) => portions.isEmpty
-      ? householdSize.toDouble()
-      : portions.values.fold(0.0, (double a, double b) => a + b);
+  /// How many portions get cooked for [members], the household as it is
+  /// now — for the shopping list. Someone who has left is not cooked for.
+  double totalPortions(Iterable<String> members) =>
+      members.fold(0.0, (double sum, String id) => sum + portionFor(id));
 
-  double portionFor(String memberId) =>
-      portions.isEmpty ? 1 : portions[memberId] ?? 0;
+  double portionFor(String memberId) => portions[memberId] ?? 1;
+
+  /// This meal with [portions] instead of its own.
+  PlanEntry withPortions(Map<String, double> portions) => PlanEntry(
+        id: id,
+        day: day,
+        slot: slot,
+        recipeId: recipeId,
+        portions: portions,
+        note: note,
+      );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'id': id,

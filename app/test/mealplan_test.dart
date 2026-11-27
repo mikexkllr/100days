@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hundred_core/hundred_core.dart';
 import 'package:hundred_days/data/app_repository.dart';
 import 'package:hundred_days/data/household_backend.dart';
+import 'package:hundred_days/state/household_providers.dart';
+import 'package:hundred_days/ui/mealplan/household_join.dart';
 import 'package:hundred_days/ui/mealplan/household_screen.dart';
 import 'package:hundred_days/ui/mealplan/recipe_sheet.dart';
 import 'package:hundred_days/ui/mealplan/shopping_view.dart';
@@ -964,25 +966,287 @@ void main() {
       expect(find.byKey(const Key('household-leave')), findsNothing);
     });
 
-    testWidgets('joining another household warns while sharing this one',
+    testWidgets('the plan says whom it is shared with',
         (WidgetTester tester) async {
-      final _InviteHousehold invited =
-          _InviteHousehold(userId: repository.userId, displayName: 'Mike');
-      household = invited;
-      await invited.ensureHousehold();
-      invited.addMember(lena);
-      await pump(tester, Consumer(
-          builder: (BuildContext context, WidgetRef ref, _) => TextButton(
-                onPressed: () => joinHouseholdFlow(context, ref, 'ABCD2345'),
-                child: const Text('join'),
-              )));
+      await household.ensureHousehold();
+      household.addMember(lena);
+      await pump(tester, const WeekPlanView());
+      expect(find.text('Gemeinsamer Plan mit Lena'), findsOneWidget);
+    });
 
-      await tester.tap(find.text('join'));
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('household-join-warning')), findsOneWidget);
-      await tester.tap(find.text('Abbrechen'));
-      await tester.pumpAndSettle();
-      expect(invited.joined, isFalse);
+    group('joining', () {
+      const HouseholdContents mine =
+          HouseholdContents(planned: 5, recipes: 11, lists: 1);
+
+      /// Opens the sheet for an invite to Lena's household.
+      Future<_InviteHousehold> open(
+        WidgetTester tester, {
+        List<OtherHousehold> besides = const <OtherHousehold>[
+          OtherHousehold(id: 'home', contents: mine),
+        ],
+        bool alreadyMember = false,
+        bool fails = false,
+      }) async {
+        final _InviteHousehold invited =
+            _InviteHousehold(userId: repository.userId, displayName: 'Mike')
+              ..besides = besides
+              ..alreadyMember = alreadyMember
+              ..failJoin = fails;
+        household = invited;
+        await invited.ensureHousehold();
+        await pump(tester, Consumer(
+            builder: (BuildContext context, WidgetRef ref, _) => TextButton(
+                  onPressed: () => joinHouseholdFlow(context, ref, 'ABCD2345'),
+                  child: const Text('join'),
+                )));
+        await tester.tap(find.text('join'));
+        await tester.pumpAndSettle();
+        return invited;
+      }
+
+      Finder within(Key card, String text) => find.descendant(
+          of: find.byKey(card), matching: find.text(text));
+
+      testWidgets('both plans side by side, and mine comes along',
+          (WidgetTester tester) async {
+        final _InviteHousehold invited = await open(tester);
+
+        expect(find.text('🦊 Lena beitreten?'), findsOneWidget);
+        // Theirs: what we will both see. Mine: what I bring.
+        expect(within(const Key('join-theirs'), '1 Gericht geplant · 1 Rezept'),
+            findsOneWidget);
+        expect(
+            within(const Key('join-mine'),
+                '5 Gerichte geplant · 11 Rezepte · 1 Einkaufsliste'),
+            findsOneWidget);
+        expect(find.text('Beitreten'), findsOneWidget);
+
+        await tester.tap(find.byKey(const Key('join-confirm')));
+        await tester.pumpAndSettle();
+        expect(invited.joinedBringing, isTrue);
+        expect(find.text('Du bist drin. Dein Plan ist mitgekommen.'), findsOneWidget);
+      });
+
+      testWidgets('not bringing my plan deletes it, and the button says so',
+          (WidgetTester tester) async {
+        final _InviteHousehold invited = await open(tester);
+
+        await tester.tap(find.byKey(const Key('join-drop')));
+        await tester.pumpAndSettle();
+        expect(find.text('Beitreten'), findsNothing);
+        expect(find.text('Beitreten, meinen Plan löschen'), findsOneWidget);
+
+        await tester.tap(find.byKey(const Key('join-confirm')));
+        await tester.pumpAndSettle();
+        expect(invited.joinedBringing, isFalse);
+        expect(find.text('Du bist drin. Der Plan ist jetzt geteilt.'), findsOneWidget);
+      });
+
+      testWidgets('with nothing planned there is nothing to decide, or to lose',
+          (WidgetTester tester) async {
+        final _InviteHousehold invited = await open(tester,
+            besides: const <OtherHousehold>[OtherHousehold(id: 'home')]);
+
+        expect(find.text('Du hast selbst noch nichts geplant. Es geht nichts verloren.'),
+            findsOneWidget);
+        expect(find.byKey(const Key('join-drop')), findsNothing);
+        await tester.tap(find.byKey(const Key('join-confirm')));
+        await tester.pumpAndSettle();
+        expect(invited.joinedBringing, isTrue);
+        expect(find.text('Du bist drin. Der Plan ist jetzt geteilt.'), findsOneWidget);
+      });
+
+      testWidgets('a household shared with others is left, and says with whom',
+          (WidgetTester tester) async {
+        await open(tester, besides: const <OtherHousehold>[
+          OtherHousehold(id: 'home', otherNames: <String>['🐻 Tom'], contents: mine),
+        ]);
+
+        expect(find.byKey(const Key('join-leaves')), findsOneWidget);
+        expect(find.textContaining('den Haushalt mit 🐻 Tom'), findsOneWidget);
+        // Their plan is not mine to take along.
+        expect(find.byKey(const Key('join-bring')), findsNothing);
+      });
+
+      testWidgets('cancelling joins nothing', (WidgetTester tester) async {
+        final _InviteHousehold invited = await open(tester);
+        await tester.tap(find.text('Abbrechen'));
+        await tester.pumpAndSettle();
+        expect(invited.joinedBringing, isNull);
+        expect(find.byKey(const Key('join-confirm')), findsNothing);
+      });
+
+      testWidgets('a join that fails stays open and says so',
+          (WidgetTester tester) async {
+        final _InviteHousehold invited = await open(tester, fails: true);
+        await tester.tap(find.byKey(const Key('join-confirm')));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('join-failed')), findsOneWidget);
+
+        invited.failJoin = false;
+        await tester.tap(find.byKey(const Key('join-confirm')));
+        await tester.pumpAndSettle();
+        expect(invited.joinedBringing, isTrue);
+      });
+
+      testWidgets('a household I am in already is not joined again',
+          (WidgetTester tester) async {
+        final _InviteHousehold invited = await open(tester, alreadyMember: true);
+        expect(find.text('In diesem Haushalt bist du schon.'), findsOneWidget);
+        expect(find.byKey(const Key('join-confirm')), findsNothing);
+        expect(invited.joinedBringing, isNull);
+      });
+
+      testWidgets('my targets can be shared while joining',
+          (WidgetTester tester) async {
+        await repository.startChallenge(_dietChallenge());
+        final _InviteHousehold invited = await open(tester);
+        final NutritionPlan plan = (await repository.snapshot()).plan!.nutrition!;
+
+        // Off unless switched on: nothing is shared by default.
+        final Finder share = find.byKey(const Key('join-share-targets'));
+        expect(tester.widget<SwitchListTile>(share).value, isFalse);
+        await tester.ensureVisible(share);
+        await tester.tap(share);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('join-confirm')));
+        await tester.pumpAndSettle();
+
+        final HouseholdMember me = (await invited.household('home')).members.single;
+        expect(me.shareTargets, isTrue);
+        expect(me.kcalTarget, plan.kcal);
+      });
+
+      testWidgets('without a nutrition plan there are no targets to offer',
+          (WidgetTester tester) async {
+        await open(tester);
+        expect(find.byKey(const Key('join-share-targets')), findsNothing);
+      });
+    });
+
+    group('a plan left behind by an earlier join', () {
+      Future<_InviteHousehold> leftBehind(WidgetTester tester, Widget screen) async {
+        final _InviteHousehold invited =
+            _InviteHousehold(userId: repository.userId, displayName: 'Mike')
+              ..besides = const <OtherHousehold>[
+                OtherHousehold(
+                    id: 'old',
+                    contents: HouseholdContents(planned: 5, recipes: 11, lists: 1)),
+              ];
+        household = invited;
+        await invited.ensureHousehold();
+        invited.addMember(lena);
+        await pump(tester, screen);
+        return invited;
+      }
+
+      testWidgets('waits on the plan and on the household, and can be fetched',
+          (WidgetTester tester) async {
+        final _InviteHousehold invited =
+            await leftBehind(tester, const WeekPlanView());
+        expect(find.text('Dein eigener Plan wartet noch'), findsOneWidget);
+        expect(find.text('5 Gerichte geplant · 11 Rezepte · 1 Einkaufsliste'),
+            findsOneWidget);
+
+        await tester.tap(find.byKey(const Key('leftover-bring')));
+        await tester.pumpAndSettle();
+        expect(invited.settledBringing, isTrue);
+        expect(find.text('Dein Plan ist jetzt im Haushalt.'), findsOneWidget);
+        expect(find.byKey(const Key('household-leftover')), findsNothing);
+      });
+
+      testWidgets('is only deleted after asking', (WidgetTester tester) async {
+        final _InviteHousehold invited =
+            await leftBehind(tester, const HouseholdScreen());
+
+        await tester.tap(find.byKey(const Key('leftover-drop')));
+        await tester.pumpAndSettle();
+        expect(find.text('Deinen eigenen Plan löschen?'), findsOneWidget);
+        await tester.tap(find.text('Abbrechen'));
+        await tester.pumpAndSettle();
+        expect(invited.settledBringing, isNull);
+
+        await tester.tap(find.byKey(const Key('leftover-drop')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('leftover-drop-confirm')));
+        await tester.pumpAndSettle();
+        expect(invited.settledBringing, isFalse);
+        expect(find.text('Dein eigener Plan ist gelöscht.'), findsOneWidget);
+        expect(find.byKey(const Key('household-leftover')), findsNothing);
+      });
+
+      testWidgets('nobody else is bothered with it', (WidgetTester tester) async {
+        await household.ensureHousehold();
+        await pump(tester, const HouseholdScreen());
+        expect(find.byKey(const Key('household-leftover')), findsNothing);
+      });
+    });
+
+    group('portions for whoever is in the household now', () {
+      /// Dinner today, planned when the user lived alone.
+      Future<PlanEntry> plannedAlone([Recipe? recipe]) async {
+        final String id = await household.ensureHousehold();
+        final Recipe curry = await household.saveRecipe(id, recipe ?? _curry());
+        final PlanEntry entry = PlanEntry(
+          id: newEventId(),
+          day: DayKey.today(),
+          slot: MealSlotKind.dinner,
+          recipeId: curry.id,
+          portions: <String, double>{repository.userId: 1},
+        );
+        await household.saveEntry(id, entry);
+        return entry;
+      }
+
+      Future<Map<String, double>> portionsNow() async {
+        final DayKey today = DayKey.today();
+        return (await household.plan('home', today, today)).single.portions;
+      }
+
+      testWidgets('someone who joined is cooked for, at their own size',
+          (WidgetTester tester) async {
+        await plannedAlone();
+        // 3000 kcal a day: dinner is 900 of them, a portion and a half of
+        // a 640 kcal curry.
+        household.addMember(const HouseholdMember(
+            userId: 'lena',
+            displayName: 'Lena',
+            emoji: '🦊',
+            shareTargets: true,
+            kcalTarget: 3000));
+        late WidgetRef ref;
+        await pump(tester, Consumer(builder: (BuildContext context, WidgetRef r, _) {
+          ref = r;
+          return const SizedBox.shrink();
+        }));
+
+        await tester.runAsync(() => ref.read(householdActionsProvider).fitPortions());
+        expect(await portionsNow(),
+            <String, double>{repository.userId: 1, 'lena': 1.5});
+      });
+
+      testWidgets('sharing my targets sizes the meals already planned',
+          (WidgetTester tester) async {
+        await repository.startChallenge(_dietChallenge());
+        // A light dish: one portion of it is not a dinner for anyone.
+        final Recipe soup = Recipe(
+          id: newEventId(),
+          title: 'Gemüsesuppe',
+          servings: 2,
+          ingredients: const <Ingredient>[],
+          perServing: const Nutrients(kcal: 240, proteinG: 9, carbsG: 30, fatG: 8),
+        );
+        await plannedAlone(soup);
+        final NutritionPlan plan = (await repository.snapshot()).plan!.nutrition!;
+        final double fitted = portionsFor(
+            recipe: soup, slot: MealSlotKind.dinner, dailyKcal: plan.kcal);
+        expect(fitted, greaterThan(1), reason: 'or this test shows nothing');
+        await pump(tester, const HouseholdScreen());
+
+        await tapShown(tester, const Key('household-share-targets'));
+        await tester.pumpAndSettle();
+        expect((await portionsNow())[repository.userId], fitted);
+      });
     });
 
     testWidgets('the shared target follows the nutrition plan',
@@ -1003,21 +1267,45 @@ void main() {
   });
 }
 
-/// A household with an invite waiting.
+/// A household with an invite to Lena's waiting, and — as the test sets it
+/// up — households the user is in besides.
 class _InviteHousehold extends MemoryHouseholdBackend {
   _InviteHousehold({super.userId, super.displayName});
 
-  bool joined = false;
+  List<OtherHousehold> besides = const <OtherHousehold>[];
+  bool alreadyMember = false;
+  bool failJoin = false;
+
+  /// How the user joined, or null while they have not.
+  bool? joinedBringing;
+
+  /// How what was left behind got settled, or null while it has not.
+  bool? settledBringing;
 
   @override
   Future<HouseholdInvitePreview?> previewInvite(String code) async =>
-      const HouseholdInvitePreview(
-          householdId: 'elsewhere', name: 'WG', memberNames: <String>['Tom']);
+      HouseholdInvitePreview(
+        householdId: 'elsewhere',
+        name: '',
+        memberNames: const <String>['🦊 Lena'],
+        contents: const HouseholdContents(planned: 1, recipes: 1),
+        alreadyMember: alreadyMember,
+      );
 
   @override
-  Future<String> join(String code) async {
-    joined = true;
-    return 'elsewhere';
+  Future<List<OtherHousehold>> householdsBesides(String householdId) async =>
+      settledBringing == null ? besides : const <OtherHousehold>[];
+
+  @override
+  Future<String> join(String code, {required bool bring}) async {
+    if (failJoin) throw StateError('offline');
+    joinedBringing = bring;
+    return 'home';
+  }
+
+  @override
+  Future<void> settle(String householdId, {required bool bring}) async {
+    settledBringing = bring;
   }
 }
 

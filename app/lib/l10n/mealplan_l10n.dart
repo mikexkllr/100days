@@ -1,6 +1,7 @@
 import 'package:hundred_core/hundred_core.dart';
 import 'package:intl/intl.dart';
 
+import '../data/household_backend.dart';
 import 'core_l10n.dart';
 import 'generated/app_localizations.dart';
 import 'plan_l10n.dart';
@@ -49,6 +50,14 @@ extension MealPlanL10n on AppLocalizations {
   String periodLabel(ShoppingPeriod period) => period.lengthDays == 1
       ? formatDay(period.start)
       : '${formatDay(period.start)} – ${formatDay(period.end)}';
+
+  /// "5 meals planned · 11 recipes · 1 shopping list" — what is in a
+  /// household, leaving out what there is none of. Empty for an empty one.
+  String householdContentsLabel(HouseholdContents contents) => <String>[
+        if (contents.planned > 0) householdPlannedCount(contents.planned),
+        if (contents.recipes > 0) householdRecipeCount(contents.recipes),
+        if (contents.lists > 0) householdListCount(contents.lists),
+      ].join(' · ');
 
   /// "1,25 portions" — for the portion chips.
   String portionLabel(double portions) {

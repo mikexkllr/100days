@@ -15,6 +15,7 @@ import '../funki/funki_widgets.dart';
 import '../nutrition/add_food_screen.dart';
 import '../nutrition/diary_view.dart';
 import '../widgets/app_card.dart';
+import 'household_join.dart';
 import 'household_load_error.dart';
 import 'household_screen.dart';
 import 'plan_week_sheet.dart';
@@ -74,7 +75,12 @@ class _WeekPlanViewState extends ConsumerState<WeekPlanView> {
             widget.leading!,
             const SizedBox(height: AppSpacing.sm),
           ],
-          if (household != null) _HouseholdBar(household: household),
+          if (household != null)
+            _HouseholdBar(
+              household: household,
+              me: ref.watch(repositoryProvider).userId,
+            ),
+          const HouseholdLeftoverCard(),
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: <Widget>[
@@ -167,10 +173,12 @@ class _WeekPlanViewState extends ConsumerState<WeekPlanView> {
   }
 }
 
+/// Whose plan this is: the user's alone, or shared and with whom.
 class _HouseholdBar extends StatelessWidget {
-  const _HouseholdBar({required this.household});
+  const _HouseholdBar({required this.household, required this.me});
 
   final Household household;
+  final String me;
 
   @override
   Widget build(BuildContext context) {
@@ -197,8 +205,13 @@ class _HouseholdBar extends StatelessWidget {
               household.members.length == 1
                   ? l10n.householdJustYou
                   : (household.name.isEmpty
-                      ? l10n.householdMembers(household.members.length)
+                      ? l10n.householdSharedWith(<String>[
+                          for (final HouseholdMember m in household.members)
+                            if (m.userId != me) m.displayName,
+                        ].join(', '))
                       : household.name),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.titleSmall,
             ),
           ),

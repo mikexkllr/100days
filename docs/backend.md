@@ -132,8 +132,27 @@ Finding people:
 A household is the people who cook and shop together. Members read and
 change its plan, recipes and lists; nobody else sees them. The shopping
 list is ticked off live through realtime. Invites work like friend invites
-(`household_invite_code()`, `join_household()`); joining removes the
-joiner's own empty household. Removing a member revokes the household's
+(`household_invite_code()`, `join_household()`).
+
+A person is in one household, and a household has one plan. Whoever joins
+says what becomes of the plan they had: `join_household(code, 'bring')`
+moves their recipes, planned meals and open lists into the household they
+join — a meal lands where the slot is free, a dish both know by name stays
+one recipe — and `'drop'` deletes them with the household of one they came
+from. A household they shared with others is left, and stays the others'.
+Before asking, the app shows both sides: `household_invite_preview()` counts
+what the household has planned, `households_besides()` what the joiner
+would bring or leave. An app from before this asked nothing and left the old
+household behind, hidden (`'keep'`, still the default of the function);
+`settle_households()` is how the app clears that up once the user has
+chosen.
+
+Portions are stored per member when a meal is planned. Someone who is not
+in a meal's portions eats one — they joined later — and someone who has
+left is not cooked for; the app sizes the meals still to come again when
+someone joins or changes what they share (`HouseholdActions.fitPortions`).
+
+Removing a member revokes the household's
 codes; `leave_household()` takes the caller out and, if they owned it,
 hands it to the longest-standing member (as does deleting the owner's
 account). Members switch on sharing their calorie and

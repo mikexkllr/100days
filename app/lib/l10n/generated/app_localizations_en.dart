@@ -1986,11 +1986,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get householdMeTitle => 'You in the household';
 
   @override
-  String householdMembers(int count) {
-    return '$count people';
-  }
-
-  @override
   String get householdMembersTitle => 'Who cooks and shops together';
 
   @override
@@ -5235,10 +5230,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'This photo cannot be read — some HEIC photos cannot. Take a new one, or pick a JPEG.';
 
   @override
-  String get householdJoinWarning =>
-      'You are switching households: your current plan and list stay where they are, and you will see the new household\'s instead. You can leave it again later.';
-
-  @override
   String get householdLeave => 'Leave household';
 
   @override
@@ -5923,4 +5914,134 @@ class AppLocalizationsEn extends AppLocalizations {
   String promptTrainingRefused(String why) {
     return '\nYour last answer was refused: $why\nAnswer again with JSON only.';
   }
+
+  @override
+  String get householdMembersSub =>
+      'One household, one plan: everyone here sees and changes the same meal plan and the same shopping list.';
+
+  @override
+  String get householdTogetherTitle => 'Plan together';
+
+  @override
+  String get householdTogetherSub =>
+      'Invite someone into this household — or join another one with a code.';
+
+  @override
+  String get householdInviteSub =>
+      'Whoever redeems the code plans along in this plan, and can bring their own.';
+
+  @override
+  String get householdJoinCodeBody =>
+      'Enter the code you were given. Before you join you will see which plan counts and what becomes of yours.';
+
+  @override
+  String householdSharedWith(String names) {
+    return 'Shared plan with $names';
+  }
+
+  @override
+  String get householdJoinTheirs => 'The plan you will share';
+
+  @override
+  String get householdJoinTheirsNote =>
+      'This household\'s plan stays as it is. From now on you plan along.';
+
+  @override
+  String get householdJoinTheirsEmpty => 'Nothing is planned there yet';
+
+  @override
+  String get householdJoinMine => 'The plan you have now';
+
+  @override
+  String get householdJoinMineNothing =>
+      'You have not planned anything yourself yet. Nothing is lost.';
+
+  @override
+  String get householdJoinBring => 'Bring it along';
+
+  @override
+  String get householdJoinBringSub =>
+      'It is added to the shared plan. What is planned there already stays.';
+
+  @override
+  String get householdJoinDrop => 'Leave it behind';
+
+  @override
+  String get householdJoinDropSub =>
+      'It is deleted and cannot be brought back.';
+
+  @override
+  String householdJoinLeaves(String names) {
+    return 'For this you leave the household with $names. Its plan and lists stay with the others.';
+  }
+
+  @override
+  String get householdJoinActionDrop => 'Join and delete my plan';
+
+  @override
+  String get householdJoinedBrought => 'You are in. Your plan came along.';
+
+  @override
+  String get householdJoinFailed =>
+      'Joining did not work. Check your connection and try again.';
+
+  @override
+  String get householdAlreadyIn => 'You are in this household already.';
+
+  @override
+  String householdPlannedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count meals planned',
+      one: '1 meal planned',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String householdRecipeCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count recipes',
+      one: '1 recipe',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String householdListCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count shopping lists',
+      one: '1 shopping list',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get householdLeftoverTitle => 'Your own plan is still waiting';
+
+  @override
+  String get householdLeftoverBody =>
+      'This is what you had planned before you joined this household. Right now nobody sees it.';
+
+  @override
+  String get householdLeftoverBring => 'Bring it into this household';
+
+  @override
+  String get householdLeftoverDropTitle => 'Delete your own plan?';
+
+  @override
+  String householdLeftoverDropBody(String contents) {
+    return '$contents — this cannot be brought back.';
+  }
+
+  @override
+  String get householdLeftoverBrought => 'Your plan is in the household now.';
+
+  @override
+  String get householdLeftoverDropped => 'Your own plan is deleted.';
 }

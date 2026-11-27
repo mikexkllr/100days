@@ -1440,14 +1440,6 @@
   "householdListHint": "comma-separated",
   "householdMeSub": "So whoever plans can size your portions and skip what you do not eat.",
   "householdMeTitle": "You in the household",
-  "householdMembers": "{count} people",
-  "@householdMembers": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "householdMembersTitle": "Who cooks and shops together",
   "householdNoTarget": "Targets private — one portion each",
   "householdPantry": "Usually at home",
@@ -3643,7 +3635,6 @@
   "foodPhotoNoGallery": "No access to your photos. Allow it for 100 Days in your phone's settings, or take a new photo.",
   "foodPhotoPickFailed": "The camera or the gallery could not be opened. Try again, or describe the meal.",
   "foodPhotoUnreadable": "This photo cannot be read — some HEIC photos cannot. Take a new one, or pick a JPEG.",
-  "householdJoinWarning": "You are switching households: your current plan and list stay where they are, and you will see the new household's instead. You can leave it again later.",
   "householdLeave": "Leave household",
   "householdLeaveBody": "The plan, the recipes and the lists stay with the others. You start over with a household of your own and can be invited back any time.",
   "householdLeaveFailed": "Could not leave the household. Check your connection and try again.",
@@ -4194,5 +4185,77 @@
         "type": "String"
       }
     }
-  }
+  },
+  "householdMembersSub": "One household, one plan: everyone here sees and changes the same meal plan and the same shopping list.",
+  "householdTogetherTitle": "Plan together",
+  "householdTogetherSub": "Invite someone into this household — or join another one with a code.",
+  "householdInviteSub": "Whoever redeems the code plans along in this plan, and can bring their own.",
+  "householdJoinCodeBody": "Enter the code you were given. Before you join you will see which plan counts and what becomes of yours.",
+  "householdSharedWith": "Shared plan with {names}",
+  "@householdSharedWith": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "householdJoinTheirs": "The plan you will share",
+  "householdJoinTheirsNote": "This household's plan stays as it is. From now on you plan along.",
+  "householdJoinTheirsEmpty": "Nothing is planned there yet",
+  "householdJoinMine": "The plan you have now",
+  "householdJoinMineNothing": "You have not planned anything yourself yet. Nothing is lost.",
+  "householdJoinBring": "Bring it along",
+  "householdJoinBringSub": "It is added to the shared plan. What is planned there already stays.",
+  "householdJoinDrop": "Leave it behind",
+  "householdJoinDropSub": "It is deleted and cannot be brought back.",
+  "householdJoinLeaves": "For this you leave the household with {names}. Its plan and lists stay with the others.",
+  "@householdJoinLeaves": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "householdJoinActionDrop": "Join and delete my plan",
+  "householdJoinedBrought": "You are in. Your plan came along.",
+  "householdJoinFailed": "Joining did not work. Check your connection and try again.",
+  "householdAlreadyIn": "You are in this household already.",
+  "householdPlannedCount": "{count, plural, =1{1 meal planned} other{{count} meals planned}}",
+  "@householdPlannedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "householdRecipeCount": "{count, plural, =1{1 recipe} other{{count} recipes}}",
+  "@householdRecipeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "householdListCount": "{count, plural, =1{1 shopping list} other{{count} shopping lists}}",
+  "@householdListCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "householdLeftoverTitle": "Your own plan is still waiting",
+  "householdLeftoverBody": "This is what you had planned before you joined this household. Right now nobody sees it.",
+  "householdLeftoverBring": "Bring it into this household",
+  "householdLeftoverDropTitle": "Delete your own plan?",
+  "householdLeftoverDropBody": "{contents} — this cannot be brought back.",
+  "@householdLeftoverDropBody": {
+    "placeholders": {
+      "contents": {
+        "type": "String"
+      }
+    }
+  },
+  "householdLeftoverBrought": "Your plan is in the household now.",
+  "householdLeftoverDropped": "Your own plan is deleted."
 }

@@ -48,6 +48,15 @@ final FutureProvider<Household> householdProvider =
   return ref.watch(householdBackendProvider).household(id);
 });
 
+/// Households the user is still in besides the one the app shows. Someone
+/// who joined before the app asked what to do with their own plan has it
+/// waiting here; for everyone else this is empty.
+final FutureProvider<List<OtherHousehold>> otherHouseholdsProvider =
+    FutureProvider<List<OtherHousehold>>((Ref ref) async {
+  final String id = await ref.watch(householdIdProvider.future);
+  return ref.watch(householdBackendProvider).householdsBesides(id);
+});
+
 final FutureProvider<Map<String, Recipe>> recipesProvider =
     FutureProvider<Map<String, Recipe>>((Ref ref) async {
   ref.watch(householdChangesProvider);
@@ -247,7 +256,7 @@ class HouseholdActions {
       entries: entries,
       recipes: recipes,
       period: period,
-      householdSize: household.members.length,
+      members: household.members.map((HouseholdMember m) => m.userId),
       pantry: household.pantry.toSet(),
     );
     ShoppingListInfo? open;
@@ -387,12 +396,113 @@ class HouseholdActions {
     }
   }
 
+  /// Stores the user's own membership. When what they share of their
+  /// targets changed, the meals still to come are sized again: sharing a
+  /// target is for portions that fit, and those were worked out before.
   Future<void> updateMe(HouseholdMember me) async {
+    final HouseholdMember? before = _ref
+        .read(householdProvider)
+        .valueOrNull
+        ?.member(_ref.read(repositoryProvider).userId);
     try {
       await _backend.updateMembership(await _id, me);
     } finally {
       _ref.invalidate(householdProvider);
     }
+    if (before != null &&
+        (before.shareTargets != me.shareTargets ||
+            before.kcalTarget != me.kcalTarget)) {
+      await _fitQuietly();
+    }
+  }
+
+  /// How far ahead meals are sized again when the household changes.
+  static const int _fitDays = 60;
+
+  /// Sizes the meals from today on for the household as it is now: a
+  /// portion for everyone in it, fitted to the targets they share. A meal
+  /// planned before someone joined, or brought along from a household of
+  /// one, knew only who was there then.
+  Future<void> fitPortions() async {
+    final String id = await _id;
+    final Household household = await _backend.household(id);
+    final DayKey today = DayKey.today();
+    final List<PlanEntry> entries =
+        await _backend.plan(id, today, today.addDays(_fitDays));
+    if (entries.isEmpty) return;
+    final Map<String, Recipe> recipes = await _backend.recipes(id);
+    try {
+      for (final PlanEntry entry in entries) {
+        final Recipe? recipe = recipes[entry.recipeId];
+        if (recipe == null) continue;
+        final Map<String, double> wanted =
+            portionsForHousehold(household, recipe, entry.slot);
+        if (_samePortions(wanted, entry.portions)) continue;
+        await _backend.saveEntry(id, entry.withPortions(wanted));
+      }
+    } finally {
+      _planChanged();
+    }
+  }
+
+  static bool _samePortions(Map<String, double> a, Map<String, double> b) =>
+      a.length == b.length &&
+      a.entries.every((MapEntry<String, double> e) => b[e.key] == e.value);
+
+  /// [fitPortions] after something else already went through. Until it
+  /// does, everyone counts for one portion, so a failure here costs
+  /// precision, not a meal — and is not worth reporting as the failure of
+  /// what was asked for.
+  Future<void> _fitQuietly() async {
+    try {
+      await fitPortions();
+    } on Object {
+      // Offline: the next change to the household sizes them.
+    }
+  }
+
+  /// Joins the household behind [code]; it becomes the user's only one.
+  /// With [bring], what they had planned alone comes along (see
+  /// [HouseholdBackend.join]). With [shareTargets], the household gets
+  /// their calorie and protein target at once, so the meals already
+  /// planned there are sized for them too.
+  Future<void> join(String code,
+      {required bool bring, bool shareTargets = false}) async {
+    final String id = await _backend.join(code, bring: bring);
+    _ref.invalidate(householdIdProvider);
+    final NutritionPlan? plan =
+        _ref.read(appStateProvider).valueOrNull?.plan?.nutrition;
+    try {
+      if (shareTargets && plan != null) {
+        final HouseholdMember? me = (await _backend.household(id))
+            .member(_ref.read(repositoryProvider).userId);
+        if (me != null && !me.shareTargets) {
+          await _backend.updateMembership(
+              id,
+              me.withTargets(
+                  share: true, kcal: plan.kcal, protein: plan.proteinG));
+          _ref.invalidate(householdProvider);
+        }
+      }
+    } on Object {
+      // The join went through; the switch on the household screen is
+      // still there.
+    }
+    await _fitQuietly();
+  }
+
+  /// Clears up what an earlier join left behind: the household the app
+  /// shows becomes the user's only one, with [bring] after taking in what
+  /// they had planned alone.
+  Future<void> settle({required bool bring}) async {
+    try {
+      await _backend.settle(await _id, bring: bring);
+    } finally {
+      _ref.invalidate(otherHouseholdsProvider);
+      _planChanged();
+      _listsChanged();
+    }
+    if (bring) await _fitQuietly();
   }
 
   Future<void> removeMember(String userId) async {

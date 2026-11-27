@@ -275,6 +275,132 @@ Deno.test({
         await as(tx, null);
         assertEquals((await tx`select id from public.households where id = ${home}`).length, 0);
 
+        // --- Joining with a plan of one's own ---------------------------------
+        // Frank and Gina have each planned. Both know a curry.
+        const frank = await createUser(tx, 'Frank');
+        const gina = await createUser(tx, 'Gina');
+        const recipeIn = async (household: string, title: string) =>
+          (await tx`insert into public.recipes (household_id, title) values (${household}, ${title}) returning id`)[0]
+            .id as string;
+        const planIn = (household: string, recipeId: string, inDays: number, slot: string) =>
+          tx`insert into public.meal_plan_entries (household_id, day, slot, recipe_id)
+             values (${household}, current_date + ${inDays}::int, ${slot}, ${recipeId})`;
+        const listIn = async (household: string, status = 'open') =>
+          (await tx`insert into public.shopping_lists (household_id, period_start, period_end, status)
+                    values (${household}, current_date, current_date + 6, ${status}) returning id`)[0].id as string;
+
+        await as(tx, gina);
+        const [{ create_household: ginas }] = await tx`select public.create_household('')`;
+        const ginasCurry = await recipeIn(ginas, 'Curry');
+        await planIn(ginas, ginasCurry, 0, 'dinner');
+        const [{ household_invite_code: ginasCode }] = await tx`select public.household_invite_code(${ginas})`;
+
+        await as(tx, frank);
+        const [{ create_household: franks }] = await tx`select public.create_household('')`;
+        const franksChili = await recipeIn(franks, 'Chili');
+        const franksCurry = await recipeIn(franks, '  curry ');
+        await planIn(franks, franksChili, 0, 'dinner'); // Gina has dinner today already
+        await planIn(franks, franksCurry, 1, 'dinner');
+        await planIn(franks, franksChili, -1, 'lunch');
+        const franksList = await listIn(franks);
+        await tx`insert into public.shopping_items (list_id, household_id, name, checked, recipe_ids)
+                 values (${franksList}, ${franks}, 'Reis', true, ${[franksCurry]}::uuid[])`;
+        await listIn(franks); // nothing on it
+        const franksDone = await listIn(franks, 'done');
+        await tx`insert into public.shopping_items (list_id, household_id, name) values (${franksDone}, ${franks}, 'Salz')`;
+
+        // Before joining, the app shows both sides: what is there, what comes.
+        const [theirs] = await tx`select * from public.household_invite_preview(${ginasCode})`;
+        assertEquals([theirs.planned, theirs.recipes, theirs.lists, theirs.member], [1, 1, 0, false]);
+        assertEquals(theirs.members.map((m: { name: string }) => m.name), ['Gina']);
+        const [mine] = await tx`select * from public.households_besides(${ginas})`;
+        assertEquals([mine.household_id, mine.others, mine.planned, mine.recipes, mine.lists], [franks, [], 2, 2, 1]);
+        // What moves a plan is not for the API to call.
+        await refused(tx, (sp) => sp`select public.move_household_contents(${ginas}, ${franks})`);
+        await refused(tx, (sp) => sp`select public.settle_households(${ginas}, true)`);
+        await refused(tx, (sp) => sp`select public.join_household(${ginasCode}, 'theirs')`);
+
+        // Bringing it along: one household afterwards, with both plans in it.
+        await tx`select public.join_household(${ginasCode}, 'bring')`;
+        assertEquals(
+          (await tx`select household_id from public.household_members where user_id = ${frank}`)
+            .map((r: { household_id: string }) => r.household_id),
+          [ginas],
+        );
+        await as(tx, gina);
+        assertEquals((await tx`select id from public.households where id = ${franks}`).length, 0);
+        // One curry, Gina's; the chili is new to her.
+        const merged = await tx`select id, title from public.recipes where household_id = ${ginas} order by title`;
+        assertEquals(merged.map((r: { id: string }) => r.id), [franksChili, ginasCurry]);
+        // Her dinner today stays; Frank's meals fill what was free, the curry
+        // now cooked from her recipe.
+        const meals = await tx`
+          select (day - current_date) as in_days, slot, recipe_id from public.meal_plan_entries
+          where household_id = ${ginas} order by day, slot`;
+        assertEquals(
+          meals.map((e: { in_days: number; slot: string; recipe_id: string }) => [e.in_days, e.slot, e.recipe_id]),
+          [[-1, 'lunch', franksChili], [0, 'dinner', ginasCurry], [1, 'dinner', ginasCurry]],
+        );
+        // The list he was shopping from, ticks included; not the empty one,
+        // not the one that was done.
+        const lists = await tx`select id from public.shopping_lists where household_id = ${ginas}`;
+        assertEquals(lists.map((l: { id: string }) => l.id), [franksList]);
+        const [rice] = await tx`select name, checked, recipe_ids from public.shopping_items where household_id = ${ginas}`;
+        assertEquals([rice.name, rice.checked, rice.recipe_ids], ['Reis', true, [ginasCurry]]);
+        await as(tx, null);
+        assertEquals((await tx`select id from public.shopping_items where list_id = ${franksDone}`).length, 0);
+
+        // Not bringing it: the household of one goes, with what was in it.
+        const hank = await createUser(tx, 'Hank');
+        await as(tx, hank);
+        const [{ create_household: hanks }] = await tx`select public.create_household('')`;
+        const hanksSoup = await recipeIn(hanks, 'Suppe');
+        await planIn(hanks, hanksSoup, 2, 'lunch');
+        await tx`select public.join_household(${ginasCode}, 'drop')`;
+        await as(tx, null);
+        assertEquals((await tx`select id from public.households where id = ${hanks}`).length, 0);
+        assertEquals((await tx`select id from public.recipes where id = ${hanksSoup}`).length, 0);
+        assertEquals((await tx`select id from public.recipes where household_id = ${ginas}`).length, 2);
+
+        // A household shared with others is left, not taken along: Gina
+        // moves in with Ivy, and what she planned stays with Frank and Hank.
+        const ivy = await createUser(tx, 'Ivy');
+        await as(tx, ivy);
+        const [{ create_household: ivys }] = await tx`select public.create_household('')`;
+        const [{ household_invite_code: ivysCode }] = await tx`select public.household_invite_code(${ivys})`;
+        await as(tx, gina);
+        const [leaving] = await tx`select * from public.households_besides(${ivys})`;
+        assertEquals(leaving.others.map((m: { name: string }) => m.name), ['Frank', 'Hank']);
+        await tx`select public.join_household(${ivysCode}, 'bring')`;
+        assertEquals((await tx`select id from public.recipes where household_id = ${ivys}`).length, 0);
+        assertEquals((await tx`select * from public.households_besides(${ivys})`).length, 0);
+        await as(tx, frank);
+        assertEquals((await tx`select id from public.recipes where household_id = ${ginas}`).length, 2);
+        const [{ role: franksRole }] = await tx`
+          select role from public.household_members where household_id = ${ginas} and user_id = ${frank}`;
+        assertEquals(franksRole, 'owner');
+
+        // An app that does not ask yet keeps the old household, hidden — and
+        // the app that does can still fetch what is in it.
+        const judy = await createUser(tx, 'Judy');
+        await as(tx, judy);
+        const [{ create_household: judys }] = await tx`select public.create_household('')`;
+        const judysStew = await recipeIn(judys, 'Eintopf');
+        await planIn(judys, judysStew, 3, 'dinner');
+        await tx`select public.join_household(${ivysCode})`;
+        const [left] = await tx`select * from public.households_besides(${ivys})`;
+        assertEquals([left.household_id, left.others, left.planned, left.recipes], [judys, [], 1, 1]);
+        const [again] = await tx`select member from public.household_invite_preview(${ivysCode})`;
+        assertEquals(again.member, true);
+        await tx`select public.settle_households(${ivys}, true)`;
+        await as(tx, ivy);
+        const brought = await tx`
+          select e.slot, r.title from public.meal_plan_entries e join public.recipes r on r.id = e.recipe_id
+          where e.household_id = ${ivys}`;
+        assertEquals(brought.map((e: { slot: string; title: string }) => [e.slot, e.title]), [['dinner', 'Eintopf']]);
+        await as(tx, null);
+        assertEquals((await tx`select id from public.households where id = ${judys}`).length, 0);
+
         // --- Sign-up hook ------------------------------------------------------
         // Google, Apple and e-mail all pass; only Auth itself may call it.
         await as(tx, null);
